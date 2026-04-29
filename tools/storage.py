@@ -20,3 +20,15 @@ def get_recipe_by_token(token: str) -> dict:
         _client().table("recipes").select("*").eq("token", token).single().execute()
     )
     return result.data
+
+
+def list_recipes() -> list:
+    """Fetch all recipes ordered by recorded_at desc (newest first)."""
+    result = (
+        _client()
+        .table("recipes")
+        .select("id, token, dish_name, narrator, recorded_at, image_url")
+        .order("recorded_at", desc=True)
+        .execute()
+    )
+    return result.data
