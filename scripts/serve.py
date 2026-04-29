@@ -2,17 +2,20 @@
 Local dev server for testing the full voice → recipe pipeline.
 
 Usage:
-    export OPENAI_API_KEY=sk-...
-    export SUPABASE_URL=...          # optional — skip to test without storing
-    export SUPABASE_SERVICE_KEY=...  # optional
-    python -m scripts.serve
+    1. Create a .env file in the project root (see .env.example)
+    2. python -m scripts.serve
+    3. Open http://localhost:8080
 
-Then open http://localhost:8000 in your browser (or on your phone via local IP).
+Then open http://localhost:8080 in your browser (or on your phone via local IP).
 """
 
 import os
 import tempfile
 from pathlib import Path
+from dotenv import load_dotenv
+
+# Load .env from project root automatically — no need to export vars manually
+load_dotenv(Path(__file__).parent.parent / ".env")
 
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
