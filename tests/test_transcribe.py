@@ -15,8 +15,8 @@ class TestTranscribeAudio:
 
         assert result == "ఇది ఒక రెసిపీ"
 
-    def test_uses_telugu_language_code(self):
-        """transcribe_audio() always passes language='te' to Whisper."""
+    def test_does_not_pass_language_param(self):
+        """transcribe_audio() uses auto-detection — Whisper API rejects 'te' as unsupported."""
         mock_transcript = MagicMock()
         mock_transcript.text = "some text"
 
@@ -28,7 +28,7 @@ class TestTranscribeAudio:
 
             call_kwargs = mock_client.audio.transcriptions.create.call_args[1]
 
-        assert call_kwargs["language"] == "te"
+        assert "language" not in call_kwargs
 
     def test_uses_whisper_1_model(self):
         """transcribe_audio() uses the whisper-1 model."""
