@@ -1,18 +1,21 @@
 # RecipeKeepsake — Roadmap
 
-## Phase 0 — Core pipeline (current)
-- [ ] PRD approved (brainstorm complete)
-- [ ] Whisper transcription tool (`tools/transcribe.py`)
-- [ ] Two-step LLM pipeline (`prompts/translate.py`, `prompts/structure.py`)
-- [ ] CLI capture script (`scripts/capture.py`)
+## Phase 0 — Core pipeline ✅
+- [x] PRD approved (brainstorm complete)
+- [x] Whisper transcription tool (`tools/transcribe.py`)
+- [x] Two-step LLM pipeline (`prompts/translate.py`, `prompts/structure.py`)
+- [x] CLI capture script (`scripts/capture.py`)
 - [ ] Supabase schema + storage bucket
-- [ ] Tests for all tools and prompts (mocked)
+- [x] Tests for all tools and prompts (mocked)
 
-## Phase 1 — Mobile capture UI
-- [ ] Next.js recording page (mobile-first, MediaRecorder API)
-- [ ] Upload to Supabase Storage
-- [ ] Trigger pipeline on upload
-- [ ] Browse recipes UI
+## Phase 1 — Mobile capture UI + Recipe Blog
+- [x] PRD approved (brainstorm complete)
+- [ ] `/record` page — record button, progress stages, review screen, photo upload
+- [ ] DALL-E image generation (`prompts/image.py`) — auto-generates if no photo
+- [ ] Audio + image upload to Supabase Storage
+- [ ] Blog home (`/`) — recipe grid, most recent first
+- [ ] Individual recipe page (`/recipe/[token]`) — card + audio player
+- [ ] WhatsApp share — pre-filled message with recipe link
 
 ## Phase 2 — Search + playback
 - [ ] Full-text search across recipes
