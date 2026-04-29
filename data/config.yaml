@@ -1,0 +1,10 @@
+llm:
+  provider: openai
+  model: gpt-4o
+
+whisper:
+  model: whisper-1
+  language: te
+
+supabase:
+  table: recipes
