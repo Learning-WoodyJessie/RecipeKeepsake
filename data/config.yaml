@@ -3,7 +3,7 @@ llm:
   model: gpt-4o
 
 whisper:
-  model: whisper-1
+  model: gpt-4o-transcribe
   language: te
 
 supabase:
