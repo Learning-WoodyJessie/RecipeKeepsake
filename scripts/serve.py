@@ -10,6 +10,8 @@ Production (Railway):
 
 import os
 import tempfile
+from collections import defaultdict
+from datetime import date as _date
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -42,6 +44,27 @@ _ALLOWED_ORIGINS = os.environ.get(
 app = FastAPI(title="RecipeKeepsake API")
 
 _bearer = HTTPBearer(auto_error=False)
+
+# ── Rate limiting (in-memory, resets on restart — abuse prevention, not billing) ──
+_MAX_RECORDINGS_PER_DAY = int(os.environ.get("MAX_RECORDINGS_PER_DAY", "10"))
+_rec_counts: dict[str, int] = defaultdict(int)
+_rec_dates: dict[str, _date] = {}
+
+
+def _check_rate_limit(user_id: str) -> None:
+    """Raise HTTP 429 if user has hit today's recording limit."""
+    if not user_id:
+        return  # unauthenticated dev/local calls pass through
+    today = _date.today()
+    if _rec_dates.get(user_id) != today:
+        _rec_counts[user_id] = 0
+        _rec_dates[user_id] = today
+    _rec_counts[user_id] += 1
+    if _rec_counts[user_id] > _MAX_RECORDINGS_PER_DAY:
+        raise HTTPException(
+            status_code=429,
+            detail=f"Daily limit of {_MAX_RECORDINGS_PER_DAY} recordings reached. Try again tomorrow.",
+        )
 
 app.mount("/assets", StaticFiles(directory=_WEB_DIR / "assets"), name="assets")
 
@@ -122,6 +145,8 @@ async def capture_endpoint(audio: UploadFile = File(...), user: dict = Depends(r
     Accept an audio file, run the full pipeline, return structured recipe JSON.
     Supabase storage is optional — skip by omitting env vars (useful for local testing).
     """
+    _check_rate_limit(user.get("id", ""))
+
     if not os.environ.get("OPENAI_API_KEY"):
         raise HTTPException(status_code=500, detail="OPENAI_API_KEY not set")
 
