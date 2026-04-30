@@ -1,0 +1,11 @@
+web/
+docs/
+tests/
+data/migrations/
+.agent/
+*.md
+.env
+.env.*
+__pycache__/
+.pytest_cache/
+*.pyc
