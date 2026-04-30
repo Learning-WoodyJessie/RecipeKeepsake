@@ -79,12 +79,13 @@ def patch_recipe(token: str, fields: dict) -> dict:
     return result.data[0]
 
 
-def list_recipes() -> list:
-    """Fetch all recipes ordered by recorded_at desc. audio_url replaced with signed URLs."""
+def list_recipes(user_id: str) -> list:
+    """Fetch recipes for a specific user, ordered by recorded_at desc."""
     sb = _client()
     result = (
         sb.table("recipes")
         .select("id, token, dish_name, narrator, recorded_at, image_url, audio_url")
+        .eq("user_id", user_id)
         .order("recorded_at", desc=True)
         .execute()
     )

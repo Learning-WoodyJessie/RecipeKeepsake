@@ -101,12 +101,13 @@ async def get_recipe_endpoint(token: str):
 
 
 @app.get("/recipes")
-async def list_recipes_endpoint():
-    """Return all recipes for the blog home page."""
+async def list_recipes_endpoint(user: dict = Depends(require_auth)):
+    """Return recipes belonging to the authenticated user."""
     if not (os.environ.get("SUPABASE_URL") and os.environ.get("SUPABASE_SERVICE_KEY")):
         return JSONResponse(content={"recipes": []})
     from tools.storage import list_recipes
-    return JSONResponse(content={"recipes": list_recipes()})
+    user_id = user.get("id", "")
+    return JSONResponse(content={"recipes": list_recipes(user_id)})
 
 
 @app.post("/capture")
@@ -167,6 +168,7 @@ async def capture_endpoint(audio: UploadFile = File(...), user: dict = Depends(r
             stored = insert_recipe({
                 **recipe,
                 "audio_url": stored_path,
+                "user_id": user.get("id", ""),
                 "recorded_by_email": user.get("email", ""),
                 "recorded_by_name": (user.get("user_metadata") or {}).get("full_name", ""),
             })

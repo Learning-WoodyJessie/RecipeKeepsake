@@ -48,27 +48,40 @@ class TestGetRecipeByToken:
 
 class TestListRecipes:
     def test_returns_list(self, monkeypatch):
-        """list_recipes() returns a list of recipe summaries."""
+        """list_recipes(user_id) returns a list of recipe summaries for that user."""
         monkeypatch.setenv("SUPABASE_URL", "https://fake.supabase.co")
         monkeypatch.setenv("SUPABASE_SERVICE_KEY", "fake-key")
         expected = [{"id": "abc", "dish_name": "Pesarattu", "token": "tok-1"}]
         mock_client = MagicMock()
-        mock_client.table.return_value.select.return_value.order.return_value.execute.return_value.data = expected
+        mock_client.table.return_value.select.return_value.eq.return_value.order.return_value.execute.return_value.data = expected
 
         with patch("tools.storage.create_client", return_value=mock_client):
-            result = list_recipes()
+            result = list_recipes("user-123")
 
         assert result == expected
+
+    def test_filters_by_user_id(self, monkeypatch):
+        """list_recipes(user_id) filters by the given user_id."""
+        monkeypatch.setenv("SUPABASE_URL", "https://fake.supabase.co")
+        monkeypatch.setenv("SUPABASE_SERVICE_KEY", "fake-key")
+        mock_client = MagicMock()
+        mock_client.table.return_value.select.return_value.eq.return_value.order.return_value.execute.return_value.data = []
+
+        with patch("tools.storage.create_client", return_value=mock_client):
+            list_recipes("user-abc")
+
+        eq_call = mock_client.table.return_value.select.return_value.eq
+        eq_call.assert_called_once_with("user_id", "user-abc")
 
     def test_orders_by_recorded_at_desc(self, monkeypatch):
         """list_recipes() orders results newest first."""
         monkeypatch.setenv("SUPABASE_URL", "https://fake.supabase.co")
         monkeypatch.setenv("SUPABASE_SERVICE_KEY", "fake-key")
         mock_client = MagicMock()
-        mock_client.table.return_value.select.return_value.order.return_value.execute.return_value.data = []
+        mock_client.table.return_value.select.return_value.eq.return_value.order.return_value.execute.return_value.data = []
 
         with patch("tools.storage.create_client", return_value=mock_client):
-            list_recipes()
+            list_recipes("user-123")
 
-        order_call = mock_client.table.return_value.select.return_value.order
+        order_call = mock_client.table.return_value.select.return_value.eq.return_value.order
         order_call.assert_called_once_with("recorded_at", desc=True)

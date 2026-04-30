@@ -1084,7 +1084,8 @@ function go(screen, navEl) {
 // ═══════════════════════════════════════
 async function loadRecipes() {
   try {
-    const res = await fetch('/recipes');
+    const authHdrs = await getAuthHeaders();
+    const res = await fetch('/recipes', { headers: authHdrs });
     if (!res.ok) throw new Error('Failed');
     const data = await res.json();
     allRecipes = data.recipes || [];
