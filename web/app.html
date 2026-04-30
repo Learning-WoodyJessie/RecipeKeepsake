@@ -1,0 +1,1442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Dadi's Recipes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+/* ═══════════════════════════════════════
+   DESIGN TOKENS
+═══════════════════════════════════════ */
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --cream:#FDF8F3;
+  --cream2:#F5EDE2;
+  --cream3:#EBE0D3;
+  --surface:#FFFFFF;
+  --accent:#C4522A;
+  --accent2:#BE4D25;
+  --accent-light:#FDEEE8;
+  --text:#2D1B0E;
+  --text2:#5C3D28;
+  --muted:#9B7E6A;
+  --border:#E8DDD0;
+  --border2:#D6C5B0;
+  --amber:#F5A623;
+  --amber-bg:#FFF8EC;
+  --green:#2E7D52;
+  --green-bg:#E8F5EE;
+  --serif:'Playfair Display',Georgia,serif;
+  --sans:'Inter',-apple-system,sans-serif;
+  --sidebar-w:220px;
+}
+html,body{height:100%;overflow:hidden}
+body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size:14px;-webkit-font-smoothing:antialiased}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-thumb{background:var(--cream3);border-radius:99px}
+
+/* ═══════════════════════════════════════
+   APP SHELL
+═══════════════════════════════════════ */
+.app{display:flex;height:100vh;overflow:hidden}
+
+/* ── Sidebar (desktop) ── */
+.sidebar{
+  width:var(--sidebar-w);flex-shrink:0;
+  background:var(--surface);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;height:100vh;overflow-y:auto;
+}
+.sidebar-logo{padding:1.4rem 1.25rem .9rem;border-bottom:1px solid var(--border)}
+.logo-name{font-family:var(--serif);font-size:1.2rem;color:var(--accent);font-weight:700;line-height:1}
+.logo-tag{font-size:.62rem;color:var(--muted);margin-top:3px;font-style:italic}
+.sidebar-nav{padding:.6rem;flex:1}
+.nav-group{font-size:.58rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:.45rem .5rem .25rem;margin-top:.4rem}
+.nav-item{display:flex;align-items:center;gap:.55rem;padding:.5rem .7rem;border-radius:9px;cursor:pointer;font-size:.82rem;font-weight:500;color:var(--text2);transition:background .15s,color .15s;margin-bottom:2px}
+.nav-item:hover{background:var(--cream);color:var(--text)}
+.nav-item.active{background:var(--accent-light);color:var(--accent);font-weight:600}
+.nav-icon{font-size:.9rem;width:17px;text-align:center;flex-shrink:0}
+.sidebar-cta{padding:.65rem .9rem .9rem}
+.btn-sidebar-cta{width:100%;padding:.6rem;border-radius:11px;background:var(--accent);color:white;border:none;font-size:.8rem;font-weight:600;cursor:pointer;font-family:var(--sans);display:flex;align-items:center;justify-content:center;gap:.35rem;transition:background .15s}
+.btn-sidebar-cta:hover{background:var(--accent2)}
+.sidebar-user{padding:.8rem 1rem;border-top:1px solid var(--border);display:flex;align-items:center;gap:.55rem;cursor:pointer}
+.user-av{width:28px;height:28px;border-radius:50%;background:var(--accent-light);display:flex;align-items:center;justify-content:center;font-size:.8rem;flex-shrink:0}
+.user-name{font-size:.78rem;font-weight:500;color:var(--text2)}
+
+/* ── Main content ── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{display:flex;align-items:center;gap:.85rem;padding:.6rem 1.5rem;background:rgba(253,248,243,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);flex-shrink:0}
+.search-wrap{flex:1;max-width:360px;display:flex;align-items:center;gap:.45rem;background:var(--cream2);border:1px solid var(--border);border-radius:9px;padding:.4rem .8rem}
+.search-wrap input{background:transparent;border:none;outline:none;font-size:.82rem;color:var(--text);font-family:var(--sans);width:100%}
+.search-wrap input::placeholder{color:var(--muted)}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:.5rem}
+.topbar-greeting{font-size:.78rem;color:var(--muted)}
+.topbar-bell{background:none;border:none;cursor:pointer;font-size:1.05rem;color:var(--muted)}
+
+/* ── Screen container ── */
+.screen-wrap{flex:1;overflow-y:auto}
+.screen{display:none}
+.screen.active{display:block}
+
+/* ── Bottom nav (mobile) ── */
+.bottom-nav{display:none;align-items:center;background:var(--surface);border-top:1px solid var(--border);padding:.4rem 0 .85rem;flex-shrink:0}
+.bn-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:.15rem;cursor:pointer;padding:.2rem 0}
+.bn-icon{font-size:1.1rem;color:var(--muted)}
+.bn-label{font-size:.56rem;color:var(--muted);font-weight:500}
+.bn-item.active .bn-icon,.bn-item.active .bn-label{color:var(--accent)}
+.bn-record{width:46px;height:46px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;margin-top:-14px;box-shadow:0 4px 14px rgba(196,82,42,.4);cursor:pointer;flex-shrink:0}
+.bn-record svg{width:19px;height:19px;fill:white}
+
+/* ═══════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════ */
+@media(max-width:767px){
+  .sidebar,.topbar{display:none}
+  .bottom-nav{display:flex}
+}
+
+/* ═══════════════════════════════════════
+   LAYOUT HELPERS
+═══════════════════════════════════════ */
+.page{max-width:700px;margin:0 auto;padding:1.75rem 1.5rem}
+.page-narrow{max-width:520px;margin:0 auto;padding:1.75rem 1.5rem}
+.section-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem}
+.section-title{font-family:var(--serif);font-size:1rem;color:var(--text)}
+.view-all{font-size:.72rem;color:var(--accent);font-weight:500;background:none;border:none;cursor:pointer}
+.view-all:hover{text-decoration:underline}
+.back-btn{background:none;border:none;cursor:pointer;color:var(--accent);font-size:.82rem;font-weight:500;display:flex;align-items:center;gap:.25rem;padding:0;font-family:var(--sans);margin-bottom:1rem}
+
+/* ═══════════════════════════════════════
+   SHARED COMPONENTS
+═══════════════════════════════════════ */
+.btn-primary{background:var(--accent);color:white;border:none;border-radius:11px;padding:.7rem 1.25rem;font-size:.86rem;font-weight:600;cursor:pointer;font-family:var(--sans);transition:background .15s}
+.btn-primary:hover{background:var(--accent2)}
+.btn-full{width:100%}
+
+/* Skeleton loader */
+.skel{background:linear-gradient(90deg,var(--cream2) 25%,var(--cream3) 50%,var(--cream2) 75%);background-size:200% 100%;animation:skelAnim 1.4s ease infinite;border-radius:8px}
+@keyframes skelAnim{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* Toast */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(16px);background:rgba(45,27,14,.92);color:white;padding:.45rem 1rem;border-radius:99px;font-size:.75rem;opacity:0;transition:all .25s;pointer-events:none;white-space:nowrap;z-index:9999}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@media(max-width:767px){.toast{bottom:68px}}
+
+/* Heart */
+.heart-btn{cursor:pointer;background:none;border:none;font-size:inherit;padding:0;transition:transform .15s}
+.heart-btn:active{transform:scale(1.3)}
+
+/* ═══════════════════════════════════════
+   HOME SCREEN
+═══════════════════════════════════════ */
+.home-hero{border-radius:18px;overflow:hidden;position:relative;height:210px;margin-bottom:1.5rem;cursor:pointer;background:linear-gradient(135deg,#8B3A1A,#5A2210)}
+.home-hero img{width:100%;height:100%;object-fit:cover;opacity:.82}
+.home-hero-overlay{position:absolute;inset:0;background:linear-gradient(135deg,rgba(90,34,16,.82) 0%,rgba(90,34,16,.3) 55%,transparent 100%);padding:1.4rem;display:flex;flex-direction:column;justify-content:flex-end}
+.hero-title{font-family:var(--serif);font-size:1.55rem;color:white;line-height:1.3;margin-bottom:.3rem}
+.hero-sub{font-size:.72rem;color:rgba(255,255,255,.75);margin-bottom:.85rem}
+.hero-cta{align-self:flex-start;background:var(--accent);color:white;border:none;padding:.45rem 1rem;border-radius:99px;font-size:.76rem;font-weight:600;cursor:pointer;font-family:var(--sans);transition:background .15s}
+.hero-cta:hover{background:var(--accent2)}
+
+.fav-row{display:flex;gap:.7rem;overflow-x:auto;padding-bottom:.4rem;scrollbar-width:none;margin-bottom:1.5rem}
+.fav-row::-webkit-scrollbar{display:none}
+.fav-chip{flex-shrink:0;border-radius:13px;overflow:hidden;cursor:pointer;position:relative;width:95px;height:74px;box-shadow:0 2px 8px rgba(0,0,0,.1);transition:transform .15s}
+.fav-chip:hover{transform:translateY(-2px)}
+.fav-chip img{width:100%;height:100%;object-fit:cover}
+.fav-chip-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.6),transparent 55%)}
+.fav-chip-name{position:absolute;bottom:.38rem;left:.42rem;right:.42rem;font-size:.63rem;font-weight:600;color:white;line-height:1.2}
+.fav-chip-heart{position:absolute;top:.32rem;right:.32rem;font-size:.7rem}
+
+.recent-card{display:flex;align-items:center;gap:.8rem;padding:.65rem .8rem;background:var(--surface);border:1px solid var(--border);border-radius:13px;cursor:pointer;transition:box-shadow .15s;margin-bottom:.55rem}
+.recent-card:hover{box-shadow:0 4px 14px rgba(0,0,0,.07)}
+.recent-av{width:40px;height:40px;border-radius:50%;overflow:hidden;flex-shrink:0;background:var(--cream2);display:flex;align-items:center;justify-content:center;font-size:1rem}
+.recent-av img{width:100%;height:100%;object-fit:cover}
+.recent-info{flex:1;min-width:0}
+.recent-dish{font-size:.86rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.recent-when{font-size:.68rem;color:var(--muted);margin-top:.08rem}
+.recent-play{width:30px;height:30px;border-radius:50%;background:var(--accent-light);border:1.5px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:.65rem;color:var(--accent);cursor:pointer;flex-shrink:0}
+
+/* ═══════════════════════════════════════
+   CAPTURE SCREEN
+═══════════════════════════════════════ */
+.capture-heading{text-align:center;margin-bottom:1.4rem}
+.capture-label{font-size:.7rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:.45rem}
+.capture-big{font-family:var(--serif);font-size:1.5rem;color:var(--text);line-height:1.35;margin-bottom:.35rem}
+.capture-sub{font-size:.76rem;color:var(--muted)}
+
+.narrator-chips{display:flex;gap:.45rem;flex-wrap:wrap;margin-bottom:1.25rem}
+.n-chip{display:flex;align-items:center;gap:.35rem;padding:.3rem .7rem .3rem .3rem;border-radius:99px;border:1.5px solid var(--border);background:var(--surface);cursor:pointer;transition:all .18s;font-size:.76rem;font-weight:500;color:var(--text2)}
+.n-chip.selected{border-color:var(--accent);background:var(--accent-light);color:var(--accent)}
+.n-chip-av{width:22px;height:22px;border-radius:50%;background:var(--cream2);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:.7rem;flex-shrink:0}
+.n-chip-av img{width:100%;height:100%;object-fit:cover}
+
+.mic-card{display:flex;flex-direction:column;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:2rem 1.75rem;margin-bottom:1.1rem}
+.mic-outer{width:116px;height:116px;border-radius:50%;border:2.5px dashed var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:border-color .3s;margin-bottom:.9rem}
+.mic-outer.recording{border-color:var(--accent);animation:pulseRing 1.2s ease-in-out infinite}
+@keyframes pulseRing{0%,100%{box-shadow:0 0 0 0 rgba(196,82,42,.15)}50%{box-shadow:0 0 0 14px rgba(196,82,42,0)}}
+.mic-inner{width:86px;height:86px;border-radius:50%;background:var(--accent-light);display:flex;align-items:center;justify-content:center;font-size:1.95rem;transition:background .3s;user-select:none}
+.mic-inner.recording{background:#FDEEE8}
+.mic-timer{font-size:1.7rem;font-weight:300;color:var(--text);letter-spacing:.05em;font-variant-numeric:tabular-nums}
+.mic-hint{font-size:.73rem;color:var(--muted);margin-top:.2rem}
+
+.or-row{display:flex;align-items:center;gap:.7rem;margin-bottom:.7rem}
+.or-line{flex:1;height:1px;background:var(--border)}
+.or-text{font-size:.68rem;color:var(--muted)}
+
+.upload-row{display:flex;align-items:center;justify-content:space-between;padding:.75rem .9rem;background:var(--surface);border:1px solid var(--border);border-radius:11px;cursor:pointer;transition:border-color .2s;margin-bottom:.5rem}
+.upload-row:hover{border-color:var(--accent)}
+.upload-row-left{display:flex;align-items:center;gap:.55rem;font-size:.82rem;font-weight:500;color:var(--text2)}
+
+.tips-card{background:var(--amber-bg);border:1px solid rgba(245,166,35,.2);border-radius:13px;padding:.85rem 1rem}
+.tips-hdr{display:flex;align-items:center;gap:.35rem;margin-bottom:.4rem;font-size:.71rem;font-weight:700;color:var(--text2)}
+.tip-row{display:flex;align-items:flex-start;gap:.3rem;font-size:.71rem;color:var(--muted);margin-bottom:.22rem;line-height:1.45}
+.tip-row:last-child{margin-bottom:0}
+
+/* ═══════════════════════════════════════
+   SAVING / PROCESSING SCREEN
+═══════════════════════════════════════ */
+.saving-wrap{max-width:440px;margin:0 auto;padding:2.5rem 1.5rem;text-align:center}
+.saving-title{font-family:var(--serif);font-size:1.45rem;color:var(--text);margin-bottom:.2rem}
+.saving-sparkle{display:inline-block;animation:sparkleAnim 1.5s ease-in-out infinite}
+@keyframes sparkleAnim{0%,100%{transform:scale(1) rotate(0deg)}50%{transform:scale(1.35) rotate(15deg)}}
+.saving-sub{font-size:.72rem;color:var(--muted);margin-bottom:1.4rem}
+
+.proc-list{background:var(--surface);border:1px solid var(--border);border-radius:15px;overflow:hidden;margin-bottom:1.4rem;text-align:left}
+.proc-item{display:flex;align-items:center;gap:.85rem;padding:.8rem 1rem;border-bottom:1px solid var(--border)}
+.proc-item:last-child{border-bottom:none}
+.proc-icon{width:32px;height:32px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.82rem;background:var(--cream2);border:1.5px solid var(--border);transition:all .35s}
+.proc-item.done .proc-icon{background:var(--green-bg);border-color:var(--green)}
+.proc-item.active .proc-icon{background:var(--accent-light);border-color:var(--accent);animation:procSpin .85s linear infinite}
+@keyframes procSpin{to{transform:rotate(360deg)}}
+.proc-label{font-size:.84rem;font-weight:600;color:var(--text)}
+.proc-item.done .proc-label{color:var(--muted)}
+.proc-check{margin-left:auto;font-size:.95rem;flex-shrink:0}
+.proc-item.done .proc-check{color:var(--green)}
+.proc-item.pending .proc-check{color:var(--border2)}
+.saving-note{font-size:.73rem;color:var(--muted);font-style:italic;line-height:1.65}
+
+/* ═══════════════════════════════════════
+   RECIPE DETAIL
+═══════════════════════════════════════ */
+.recipe-layout{display:flex;gap:1.75rem;align-items:flex-start;max-width:860px;margin:0 auto;padding:1.75rem 1.5rem}
+.recipe-left{flex:1;min-width:0}
+.recipe-right{width:268px;flex-shrink:0}
+@media(max-width:767px){.recipe-layout{flex-direction:column;padding:0;gap:0}.recipe-right{width:100%;padding:0 1rem 1rem}}
+
+.recipe-hero{width:100%;height:215px;border-radius:15px;overflow:hidden;position:relative;margin-bottom:1.1rem;background:var(--cream2);flex-shrink:0}
+.recipe-hero img{width:100%;height:100%;object-fit:cover}
+.recipe-badge{position:absolute;top:.8rem;left:.8rem;background:var(--amber);color:white;padding:.28rem .62rem;border-radius:99px;font-size:.67rem;font-weight:700}
+.recipe-hero-btns{position:absolute;top:.8rem;right:.8rem;display:flex;gap:.4rem}
+.icon-btn{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.92);border:none;display:flex;align-items:center;justify-content:center;font-size:.78rem;cursor:pointer}
+
+.recipe-name{font-family:var(--serif);font-size:1.6rem;color:var(--text);font-weight:700;margin-bottom:.85rem}
+
+.hear-bar{display:flex;align-items:center;gap:.6rem;background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:.6rem .85rem;margin-bottom:.85rem;cursor:pointer;transition:border-color .2s}
+.hear-bar:hover{border-color:var(--accent)}
+.hear-play{width:26px;height:26px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:white;font-size:.62rem}
+.hear-label{font-size:.74rem;font-weight:600;color:var(--text2);flex:1}
+.hear-wave{display:flex;align-items:center;gap:2px;height:17px}
+.hear-bar-el{width:2px;border-radius:99px;background:var(--accent);opacity:.55}
+.hear-bar-el:nth-child(odd){height:7px}.hear-bar-el:nth-child(even){height:13px}
+.hear-bar-el:nth-child(3){height:15px}.hear-bar-el:nth-child(6){height:9px}
+.hear-time{font-size:.67rem;color:var(--muted);flex-shrink:0}
+
+.meta-row{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.9rem}
+.meta-pill{display:flex;align-items:center;gap:.3rem;background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:.3rem .65rem}
+.meta-pill-val{font-size:.71rem;font-weight:500;color:var(--text2)}
+
+.recipe-tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:.9rem}
+.r-tab{padding:.55rem .82rem;font-size:.78rem;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2.5px solid transparent;transition:all .15s;white-space:nowrap}
+.r-tab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
+.tab-panel{display:none}.tab-panel.active{display:block}
+
+.steps-list{display:flex;flex-direction:column}
+.step-row{display:flex;gap:.8rem;padding:.82rem 0;border-bottom:1px solid var(--border)}
+.step-row:last-child{border-bottom:none}
+.step-num{width:26px;height:26px;border-radius:50%;background:var(--accent);color:white;font-size:.75rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:.05rem}
+.step-text{font-size:.84rem;color:var(--text2);line-height:1.62}
+.step-note{font-style:italic;color:var(--muted);font-size:.76rem;margin-top:.2rem}
+
+.ing-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:.9rem 1rem;margin-bottom:.85rem}
+.ing-card-title{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:.6rem}
+.ing-item{display:flex;align-items:flex-start;gap:.38rem;font-size:.81rem;color:var(--text2);margin-bottom:.28rem;line-height:1.42}
+.ing-dot{color:var(--accent);flex-shrink:0;margin-top:.14rem}
+
+.tip-block{background:var(--amber-bg);border:1px solid rgba(245,166,35,.22);border-radius:13px;padding:.9rem 1rem;margin-bottom:.7rem}
+.tip-block-text{font-size:.82rem;color:var(--text2);font-style:italic;line-height:1.65}
+
+.transcript-block{background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:.9rem 1rem;margin-bottom:.8rem}
+.transcript-lang{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:.45rem;display:flex;align-items:center;gap:.3rem}
+.transcript-text{font-size:.81rem;color:var(--text2);line-height:1.75}
+.transcript-note{color:var(--muted);font-style:italic;font-size:.72rem;margin-top:.3rem}
+
+.notes-block{background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:.9rem 1rem;font-size:.81rem;color:var(--muted);line-height:1.7}
+.notes-flag{color:var(--amber);margin-right:.2rem}
+
+/* ═══════════════════════════════════════
+   PEOPLE SCREEN
+═══════════════════════════════════════ */
+.people-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.1rem}
+.people-hdr h1{font-family:var(--serif);font-size:1.4rem;color:var(--text)}
+.people-hdr p{font-size:.71rem;color:var(--muted);margin-top:.12rem}
+.add-btn{display:flex;align-items:center;gap:.22rem;background:var(--accent-light);color:var(--accent);border:1.5px solid var(--accent);border-radius:99px;padding:.3rem .75rem;font-size:.71rem;font-weight:600;cursor:pointer;font-family:var(--sans)}
+
+.people-list{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:.9rem}
+.person-row{display:flex;align-items:center;gap:.8rem;padding:.75rem 1rem;border-bottom:1px solid var(--border);cursor:pointer;transition:background .14s}
+.person-row:last-child{border-bottom:none}
+.person-row:hover{background:var(--cream)}
+.person-av{width:42px;height:42px;border-radius:50%;overflow:hidden;flex-shrink:0;background:var(--cream2);display:flex;align-items:center;justify-content:center;font-size:1.15rem}
+.person-av img{width:100%;height:100%;object-fit:cover}
+.person-name{font-size:.88rem;font-weight:600;color:var(--text)}
+.person-count{font-size:.68rem;color:var(--muted);margin-top:.08rem}
+.person-chev{margin-left:auto;color:var(--muted);font-size:.85rem}
+
+.add-person-card{background:linear-gradient(135deg,#FDF0E8,#FAE8D8);border:1.5px dashed var(--border2);border-radius:14px;padding:.9rem 1.1rem;display:flex;align-items:center;gap:.8rem;cursor:pointer;transition:border-color .2s}
+.add-person-card:hover{border-color:var(--accent)}
+.add-person-card h3{font-size:.86rem;font-weight:600;color:var(--text2)}
+.add-person-card p{font-size:.7rem;color:var(--muted);margin-top:.08rem}
+
+/* ═══════════════════════════════════════
+   PROFILE SCREEN
+═══════════════════════════════════════ */
+.profile-cover{position:relative;height:185px;border-radius:14px;overflow:hidden;margin-bottom:0}
+.profile-cover img{width:100%;height:100%;object-fit:cover}
+.profile-cover-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(45,27,14,.72),transparent 58%)}
+.profile-cover-btns{position:absolute;top:.8rem;right:.8rem;display:flex;gap:.4rem}
+.profile-header{display:flex;align-items:flex-end;gap:.9rem;margin-top:-28px;position:relative;padding:0 0 .9rem}
+.profile-photo{width:64px;height:64px;border-radius:50%;border:3px solid var(--cream);overflow:hidden;background:var(--cream2);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.7rem}
+.profile-photo img{width:100%;height:100%;object-fit:cover}
+.profile-name{font-family:var(--serif);font-size:1.25rem;color:var(--text);font-weight:700}
+.profile-quote{font-size:.7rem;color:var(--muted);font-style:italic;margin-top:.15rem;line-height:1.45}
+
+.stats-row{display:flex;background:var(--surface);border:1px solid var(--border);border-radius:13px;overflow:hidden;margin-bottom:1.1rem}
+.stat{flex:1;display:flex;flex-direction:column;align-items:center;padding:.7rem .5rem;border-right:1px solid var(--border)}
+.stat:last-child{border-right:none}
+.stat-val{font-size:1.05rem;font-weight:700;color:var(--text)}
+.stat-label{font-size:.6rem;color:var(--muted)}
+
+.profile-tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:1.1rem}
+.p-tab{padding:.55rem .8rem;font-size:.76rem;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2.5px solid transparent;transition:all .14s}
+.p-tab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
+
+.photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem}
+@media(min-width:768px){.photo-grid{grid-template-columns:repeat(4,1fr)}}
+.pg-item{border-radius:10px;overflow:hidden;aspect-ratio:1;position:relative;cursor:pointer;background:var(--cream2)}
+.pg-item img{width:100%;height:100%;object-fit:cover}
+.pg-item-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.5),transparent 60%)}
+.pg-name{position:absolute;bottom:.32rem;left:.38rem;right:.38rem;font-size:.61rem;font-weight:600;color:white;line-height:1.2}
+.pg-time{position:absolute;top:.28rem;right:.28rem;font-size:.56rem;color:white;background:rgba(0,0,0,.38);padding:.08rem .28rem;border-radius:99px}
+
+/* ═══════════════════════════════════════
+   ALL RECIPES SCREEN
+═══════════════════════════════════════ */
+.allr-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.9rem}
+.allr-hdr h1{font-family:var(--serif);font-size:1.35rem;color:var(--text)}
+.allr-hdr p{font-size:.7rem;color:var(--muted);margin-top:.12rem}
+
+.filter-row{display:flex;gap:.45rem;overflow-x:auto;padding-bottom:.4rem;scrollbar-width:none;margin-bottom:1.1rem}
+.filter-row::-webkit-scrollbar{display:none}
+.f-chip{flex-shrink:0;padding:.28rem .75rem;border-radius:99px;font-size:.71rem;font-weight:500;border:1.5px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer;transition:all .18s}
+.f-chip.active{background:var(--accent);border-color:var(--accent);color:white}
+.f-chip:hover:not(.active){border-color:var(--accent);color:var(--accent)}
+
+.recipes-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.9rem}
+@media(min-width:600px){.recipes-grid{grid-template-columns:repeat(3,1fr)}}
+@media(min-width:900px){.recipes-grid{grid-template-columns:repeat(4,1fr)}}
+.r-card{border-radius:13px;overflow:hidden;background:var(--surface);border:1px solid var(--border);cursor:pointer;transition:transform .14s,box-shadow .14s}
+.r-card:hover{transform:translateY(-2px);box-shadow:0 5px 18px rgba(0,0,0,.07)}
+.r-card-img{position:relative;height:105px;background:var(--cream2)}
+.r-card-img img{width:100%;height:100%;object-fit:cover}
+.r-card-heart{position:absolute;top:.45rem;right:.45rem;width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,.92);display:flex;align-items:center;justify-content:center;font-size:.72rem;cursor:pointer}
+.r-card-body{padding:.5rem .7rem .65rem}
+.r-card-name{font-size:.81rem;font-weight:600;color:var(--text);margin-bottom:.18rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.r-card-meta{font-size:.64rem;color:var(--muted)}
+
+/* ═══════════════════════════════════════
+   HEAR DADI SCREEN
+═══════════════════════════════════════ */
+.audio-wrap{max-width:400px;margin:0 auto;text-align:center;padding:1.5rem 1.5rem 2rem}
+.audio-photo{width:130px;height:130px;border-radius:50%;overflow:hidden;border:4px solid var(--cream2);background:var(--cream2);display:flex;align-items:center;justify-content:center;font-size:2.8rem;margin:0 auto 1.1rem;position:relative}
+.audio-photo img{width:100%;height:100%;object-fit:cover}
+.audio-heart{position:absolute;top:-6px;right:-6px;font-size:1rem;animation:floatHeart 3s ease-in-out infinite}
+@keyframes floatHeart{0%,100%{transform:translateY(0);opacity:.8}50%{transform:translateY(-7px);opacity:.35}}
+
+.audio-wave{display:flex;align-items:center;gap:2.5px;justify-content:center;height:42px;margin-bottom:.45rem}
+.aw{width:3px;border-radius:99px;background:var(--accent)}
+.aw.played{opacity:1}.aw.unplayed{opacity:.2}
+/* heights */
+.aw:nth-child(1){height:9px}.aw:nth-child(2){height:17px}.aw:nth-child(3){height:25px}.aw:nth-child(4){height:33px}.aw:nth-child(5){height:29px}.aw:nth-child(6){height:39px}.aw:nth-child(7){height:37px}.aw:nth-child(8){height:29px}.aw:nth-child(9){height:21px}.aw:nth-child(10){height:33px}.aw:nth-child(11){height:25px}.aw:nth-child(12){height:17px}.aw:nth-child(13){height:23px}.aw:nth-child(14){height:31px}.aw:nth-child(15){height:19px}.aw:nth-child(16){height:13px}.aw:nth-child(17){height:9px}.aw:nth-child(18){height:19px}.aw:nth-child(19){height:27px}.aw:nth-child(20){height:15px}
+
+.audio-times{display:flex;justify-content:space-between;font-size:.64rem;color:var(--muted);margin-bottom:1.1rem}
+.audio-controls{display:flex;align-items:center;justify-content:center;gap:1rem;margin-bottom:1.1rem}
+.skip-btn{width:40px;height:40px;border-radius:50%;background:var(--surface);border:1.5px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;gap:.04rem}
+.skip-icon{font-size:.95rem;color:var(--text2);line-height:1}
+.skip-label{font-size:.5rem;color:var(--muted);font-weight:600;line-height:1}
+.play-pause{width:56px;height:56px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:1.25rem;color:white;cursor:pointer;box-shadow:0 4px 14px rgba(196,82,42,.32)}
+
+.cooking-mode{display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:.6rem .9rem;cursor:pointer}
+.cooking-mode-label{font-size:.76rem;font-weight:500;color:var(--text2)}
+
+/* ═══════════════════════════════════════
+   ADD VOICE SCREEN
+═══════════════════════════════════════ */
+.addvoice-wrap{max-width:400px;margin:0 auto;text-align:center;padding:1.5rem 1.5rem}
+.addvoice-heading{font-family:var(--serif);font-size:1.2rem;color:var(--text);margin-bottom:.32rem}
+.addvoice-sub{font-size:.75rem;color:var(--muted);line-height:1.55;margin-bottom:1.1rem}
+.drop-zone{width:100%;border:2px dashed var(--border2);border-radius:14px;padding:1.6rem 1rem;cursor:pointer;transition:border-color .2s,background .2s;margin-bottom:.75rem}
+.drop-zone:hover,.drop-zone.dragover{border-color:var(--accent);background:var(--accent-light)}
+.drop-zone input{display:none}
+.drop-icon{font-size:1.9rem;margin-bottom:.38rem;color:var(--muted)}
+.drop-text{font-size:.76rem;color:var(--muted)}
+.choose-btn{width:100%;padding:.75rem;background:var(--surface);border:1.5px solid var(--border);border-radius:11px;font-size:.84rem;font-weight:600;color:var(--text2);cursor:pointer;font-family:var(--sans);transition:border-color .2s;margin-bottom:.5rem}
+.choose-btn:hover{border-color:var(--accent);color:var(--accent)}
+.file-note{font-size:.63rem;color:var(--muted)}
+
+/* hidden real audio element */
+#real-audio{display:none}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ══════════ SIDEBAR ══════════ -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-name">Dadi's Recipes</div>
+      <div class="logo-tag">Stories. Recipes. Memories.</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-item active" data-screen="home" onclick="go('home',this)">
+        <span class="nav-icon">🏠</span> Home
+      </div>
+      <div class="nav-item" data-screen="people" onclick="go('people',this)">
+        <span class="nav-icon">👥</span> Our People
+      </div>
+      <div class="nav-item" data-screen="all-recipes" onclick="go('all-recipes',this)">
+        <span class="nav-icon">📖</span> All Recipes
+      </div>
+      <div class="nav-group">Record</div>
+      <div class="nav-item" data-screen="capture" onclick="go('capture',this)">
+        <span class="nav-icon">🎤</span> Capture a Memory
+      </div>
+      <div class="nav-item" data-screen="add-voice" onclick="go('add-voice',this)">
+        <span class="nav-icon">📤</span> Upload Audio
+      </div>
+      <div class="nav-group">Account</div>
+      <div class="nav-item" onclick="showToast('Saved coming soon')">
+        <span class="nav-icon">🔖</span> Saved
+      </div>
+      <div class="nav-item" onclick="showToast('Settings coming soon')">
+        <span class="nav-icon">⚙️</span> Settings
+      </div>
+    </nav>
+    <div class="sidebar-cta">
+      <button class="btn-sidebar-cta" onclick="go('capture')">🎤 Capture a memory</button>
+    </div>
+    <div class="sidebar-user">
+      <div class="user-av">A</div>
+      <div class="user-name">Ananya</div>
+    </div>
+  </aside>
+
+  <!-- ══════════ MAIN ══════════ -->
+  <div class="main">
+
+    <!-- Desktop topbar -->
+    <div class="topbar">
+      <div class="search-wrap">
+        <span style="color:var(--muted);font-size:.9rem">🔍</span>
+        <input placeholder="Search recipes, people…" oninput="filterSearch(this.value)"/>
+      </div>
+      <div class="topbar-right">
+        <span class="topbar-greeting">Namaste, Ananya 👋</span>
+        <button class="topbar-bell" onclick="showToast('Notifications coming soon')">🔔</button>
+      </div>
+    </div>
+
+    <div class="screen-wrap" id="screenWrap">
+
+      <!-- ════ HOME ════ -->
+      <div class="screen active" id="screen-home">
+        <div class="page">
+          <!-- Hero -->
+          <div class="home-hero" onclick="go('capture')">
+            <img src="https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=800&q=80" alt="" onerror="this.style.opacity=0"/>
+            <div class="home-hero-overlay">
+              <div class="hero-title">Stories from<br>our kitchen ♡</div>
+              <div class="hero-sub">Recipes and stories passed down with love.</div>
+              <button class="hero-cta" onclick="event.stopPropagation();go('capture')">+ Capture a memory</button>
+            </div>
+          </div>
+
+          <!-- Dadi's favorites -->
+          <div class="section-hdr">
+            <span class="section-title">Recent memories</span>
+            <button class="view-all" onclick="go('all-recipes')">View all</button>
+          </div>
+          <div class="fav-row" id="fav-row">
+            <div class="skel" style="width:95px;height:74px;flex-shrink:0;border-radius:13px"></div>
+            <div class="skel" style="width:95px;height:74px;flex-shrink:0;border-radius:13px"></div>
+            <div class="skel" style="width:95px;height:74px;flex-shrink:0;border-radius:13px"></div>
+          </div>
+
+          <!-- Recently remembered -->
+          <div class="section-hdr">
+            <span class="section-title">Recently remembered</span>
+          </div>
+          <div id="recent-list">
+            <div class="skel" style="height:60px;margin-bottom:.55rem"></div>
+            <div class="skel" style="height:60px;margin-bottom:.55rem"></div>
+          </div>
+          <div style="height:1rem"></div>
+        </div>
+      </div>
+
+      <!-- ════ CAPTURE ════ -->
+      <div class="screen" id="screen-capture">
+        <div class="page-narrow">
+          <button class="back-btn" onclick="go('home')">← Back</button>
+          <div class="capture-heading">
+            <div class="capture-label">Capture a memory</div>
+            <div class="capture-big">What is Dadi making<br>today? <span style="color:var(--accent)">♡</span></div>
+            <div class="capture-sub">Just let her talk. We'll take care of the rest.</div>
+          </div>
+
+          <!-- Narrator chips -->
+          <div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:.5rem">Who is narrating?</div>
+          <div class="narrator-chips" id="narrator-chips">
+            <div class="n-chip selected" onclick="selectNarrator(this,'Dadi')">
+              <div class="n-chip-av">👵</div>Dadi
+            </div>
+            <div class="n-chip" onclick="selectNarrator(this,'Nani')">
+              <div class="n-chip-av">👩‍🦳</div>Nani
+            </div>
+            <div class="n-chip" onclick="selectNarrator(this,'Mumma')">
+              <div class="n-chip-av">👩</div>Mumma
+            </div>
+          </div>
+
+          <!-- Mic -->
+          <div class="mic-card">
+            <div class="mic-outer" id="micOuter" onclick="toggleRecording()">
+              <div class="mic-inner" id="micInner">🎤</div>
+            </div>
+            <div class="mic-timer" id="recTimer">00:00</div>
+            <div class="mic-hint" id="recHint">Tap to start recording</div>
+          </div>
+
+          <div class="or-row"><div class="or-line"></div><span class="or-text">or</span><div class="or-line"></div></div>
+
+          <div class="upload-row" onclick="go('add-voice')">
+            <div class="upload-row-left"><span>📤</span> Upload audio file</div>
+            <span style="color:var(--muted)">›</span>
+          </div>
+          <div class="upload-row" onclick="showToast('Gallery coming soon')">
+            <div class="upload-row-left"><span>🖼️</span> Choose from gallery</div>
+            <span style="color:var(--muted)">›</span>
+          </div>
+
+          <div style="height:.8rem"></div>
+          <div class="tips-card">
+            <div class="tips-hdr">💡 Tips to get the best memory</div>
+            <div class="tip-row"><span style="color:var(--amber)">•</span> Ask what makes this recipe special</div>
+            <div class="tip-row"><span style="color:var(--amber)">•</span> Ask for her tips and little secrets</div>
+            <div class="tip-row"><span style="color:var(--amber)">•</span> Let her talk naturally ❤️</div>
+          </div>
+          <div style="height:1.5rem"></div>
+        </div>
+      </div>
+
+      <!-- ════ SAVING ════ -->
+      <div class="screen" id="screen-saving">
+        <div class="saving-wrap">
+          <div class="saving-title">Saving this memory… <span class="saving-sparkle">✨</span></div>
+          <div class="saving-sub">Just a few more moments</div>
+
+          <!-- Bowl SVG -->
+          <svg width="100" height="88" viewBox="0 0 100 88" style="display:block;margin:.6rem auto 1.3rem">
+            <g id="steam" style="animation:steamRise 2s ease-in-out infinite">
+              <path d="M36 18 C36 10 42 10 42 18 C42 26 48 26 48 18" stroke="#C4522A" stroke-width="1.8" stroke-linecap="round" fill="none" opacity=".6"/>
+              <path d="M50 14 C50 6 56 6 56 14 C56 22 62 22 62 14" stroke="#C4522A" stroke-width="1.8" stroke-linecap="round" fill="none" opacity=".45"/>
+            </g>
+            <style>@keyframes steamRise{0%,100%{transform:translateY(0);opacity:.8}50%{transform:translateY(-6px);opacity:.35}}</style>
+            <ellipse cx="50" cy="62" rx="38" ry="12" fill="#E8DDD0"/>
+            <ellipse cx="50" cy="54" rx="38" ry="10" fill="#F5EDE2"/>
+            <ellipse cx="50" cy="54" rx="38" ry="10" stroke="#D4C5B5" stroke-width="1.4" fill="none"/>
+            <ellipse cx="50" cy="53" rx="28" ry="7" fill="#C4522A" opacity=".18"/>
+            <path d="M72 44 L82 30" stroke="#A8421E" stroke-width="2.2" stroke-linecap="round"/>
+            <circle cx="71" cy="45" r="4" fill="#C4522A" opacity=".75"/>
+            <text x="17" y="36" font-size="10">⭐</text>
+            <text x="76" y="50" font-size="8">✨</text>
+          </svg>
+
+          <div class="proc-list">
+            <div class="proc-item done" id="proc-1">
+              <div class="proc-icon">🎧</div>
+              <div class="proc-label">Listening to Dadi's story</div>
+              <span class="proc-check">✓</span>
+            </div>
+            <div class="proc-item done" id="proc-2">
+              <div class="proc-icon">✏️</div>
+              <div class="proc-label">Writing down her words</div>
+              <span class="proc-check">✓</span>
+            </div>
+            <div class="proc-item active" id="proc-3">
+              <div class="proc-icon">🍲</div>
+              <div class="proc-label">Understanding her recipe</div>
+              <span class="proc-check pending">○</span>
+            </div>
+            <div class="proc-item pending" id="proc-4">
+              <div class="proc-icon">💝</div>
+              <div class="proc-label">Adding her tips and secrets</div>
+              <span class="proc-check pending">○</span>
+            </div>
+            <div class="proc-item pending" id="proc-5">
+              <div class="proc-icon">📖</div>
+              <div class="proc-label">Saving this memory forever</div>
+              <span class="proc-check pending">○</span>
+            </div>
+          </div>
+          <div class="saving-note">This may take a few moments ✨<br>We promise it's worth the wait.</div>
+        </div>
+      </div>
+
+      <!-- ════ RECIPE DETAIL ════ -->
+      <div class="screen" id="screen-recipe-detail">
+        <div class="recipe-layout">
+          <div class="recipe-left">
+            <button class="back-btn" onclick="go('home')">← Back</button>
+            <div class="recipe-hero">
+              <img id="rd-img" src="" alt="" onerror="this.style.display='none'"/>
+              <div class="recipe-badge">🧡 From Dadi's kitchen</div>
+              <div class="recipe-hero-btns">
+                <button class="icon-btn" id="rd-heart" onclick="toggleHeart(this)">🤍</button>
+                <button class="icon-btn" onclick="shareRecipe()">↗️</button>
+              </div>
+            </div>
+            <div class="recipe-name" id="rd-name"></div>
+            <div class="hear-bar" id="hear-bar" onclick="openHearDadi()" style="display:none">
+              <div class="hear-play">▶</div>
+              <div class="hear-label">Hear Dadi say it</div>
+              <div class="hear-wave">
+                <div class="hear-bar-el"></div><div class="hear-bar-el"></div><div class="hear-bar-el"></div>
+                <div class="hear-bar-el"></div><div class="hear-bar-el"></div><div class="hear-bar-el"></div>
+                <div class="hear-bar-el"></div><div class="hear-bar-el"></div><div class="hear-bar-el"></div>
+                <div class="hear-bar-el"></div><div class="hear-bar-el"></div><div class="hear-bar-el"></div>
+              </div>
+              <div class="hear-time" id="rd-duration"></div>
+            </div>
+            <div class="meta-row">
+              <div class="meta-pill"><span style="font-size:.85rem">👤</span><span class="meta-pill-val" id="rd-narrator"></span></div>
+              <div class="meta-pill"><span style="font-size:.85rem">📅</span><span class="meta-pill-val" id="rd-date"></span></div>
+            </div>
+            <!-- Tabs -->
+            <div class="recipe-tabs">
+              <div class="r-tab active" onclick="showTab('steps',this)">Steps</div>
+              <div class="r-tab" onclick="showTab('tip',this)">Dadi's Tip</div>
+              <div class="r-tab" onclick="showTab('transcript',this)">Transcript</div>
+              <div class="r-tab" onclick="showTab('notes',this)">Notes</div>
+            </div>
+            <div class="tab-panel active" id="tab-steps"><div class="steps-list" id="rd-steps"></div></div>
+            <div class="tab-panel" id="tab-tip"><div id="rd-tip"></div></div>
+            <div class="tab-panel" id="tab-transcript"><div id="rd-transcript"></div></div>
+            <div class="tab-panel" id="tab-notes"><div id="rd-notes"></div></div>
+            <div style="height:1rem"></div>
+          </div>
+          <div class="recipe-right">
+            <div class="ing-card">
+              <div class="ing-card-title">Ingredients (as Dadi said)</div>
+              <div id="rd-ingredients"></div>
+            </div>
+            <button class="btn-primary btn-full" id="cook-btn" onclick="openHearDadi()" style="display:none">🎧 Cook with Dadi</button>
+            <div id="cook-btn-note" style="display:none;margin-top:.5rem;text-align:center;font-size:.68rem;color:var(--muted)">Listen while you cook</div>
+            <div style="height:1rem"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════ PEOPLE ════ -->
+      <div class="screen" id="screen-people">
+        <div class="page">
+          <div class="people-hdr">
+            <div>
+              <h1>Our People <span style="color:var(--accent)">♡</span></h1>
+              <p>Everyone who fills our kitchen with love.</p>
+            </div>
+            <button class="add-btn" onclick="showToast('Add person coming soon')">+ Add</button>
+          </div>
+          <div class="people-list" id="people-list">
+            <div class="skel" style="height:62px;margin:.5rem"></div>
+            <div class="skel" style="height:62px;margin:.5rem"></div>
+          </div>
+          <div class="add-person-card" onclick="showToast('Add someone special coming soon')">
+            <div style="font-size:1.8rem">🤝</div>
+            <div>
+              <h3>Add someone special</h3>
+              <p>Preserve their recipes and stories.</p>
+            </div>
+          </div>
+          <div style="height:1rem"></div>
+        </div>
+      </div>
+
+      <!-- ════ PROFILE ════ -->
+      <div class="screen" id="screen-profile">
+        <div class="page">
+          <button class="back-btn" onclick="go('people')">← Our People</button>
+          <div class="profile-cover">
+            <img id="prof-cover" src="" alt="" onerror="this.style.opacity=0"/>
+            <div class="profile-cover-overlay"></div>
+            <div class="profile-cover-btns">
+              <button class="icon-btn" onclick="showToast('Edit coming soon')">✏️</button>
+            </div>
+          </div>
+          <div class="profile-header">
+            <div class="profile-photo"><span id="prof-emoji">👵</span></div>
+            <div>
+              <div class="profile-name" id="prof-name">Dadi</div>
+              <div class="profile-quote" id="prof-quote"></div>
+            </div>
+          </div>
+          <div class="stats-row">
+            <div class="stat"><div class="stat-val" id="prof-count">0</div><div class="stat-label">Memories</div></div>
+            <div class="stat"><div class="stat-val" id="prof-recipes">0</div><div class="stat-label">Recipes</div></div>
+          </div>
+          <div class="profile-tabs">
+            <div class="p-tab active">Recipes</div>
+            <div class="p-tab" onclick="showToast('Stories coming soon')">Stories</div>
+            <div class="p-tab" onclick="showToast('Tips coming soon')">Tips</div>
+            <div class="p-tab" onclick="showToast('Voice Notes coming soon')">Voice Notes</div>
+          </div>
+          <div class="photo-grid" id="prof-grid"></div>
+          <div style="height:1rem"></div>
+        </div>
+      </div>
+
+      <!-- ════ ALL RECIPES ════ -->
+      <div class="screen" id="screen-all-recipes">
+        <div class="page">
+          <div class="allr-hdr">
+            <div>
+              <h1>All Recipes</h1>
+              <p>Made with love, just for us 🧡</p>
+            </div>
+          </div>
+          <div class="filter-row" id="filter-row">
+            <div class="f-chip active" onclick="filterRecipes('all',this)">All</div>
+          </div>
+          <div class="recipes-grid" id="recipes-grid">
+            <div class="skel" style="height:150px;border-radius:13px"></div>
+            <div class="skel" style="height:150px;border-radius:13px"></div>
+            <div class="skel" style="height:150px;border-radius:13px"></div>
+            <div class="skel" style="height:150px;border-radius:13px"></div>
+          </div>
+          <div style="height:1rem"></div>
+        </div>
+      </div>
+
+      <!-- ════ HEAR DADI ════ -->
+      <div class="screen" id="screen-hear-dadi">
+        <div class="page-narrow">
+          <button class="back-btn" onclick="go('recipe-detail')">← Back</button>
+          <div class="audio-wrap">
+            <div style="font-family:var(--serif);font-size:1.05rem;color:var(--text);margin-bottom:.2rem" id="hd-name">Hear Dadi</div>
+            <div style="font-size:.68rem;color:var(--muted);margin-bottom:.85rem" id="hd-sub">Loading…</div>
+            <div class="audio-photo">
+              <img id="hd-photo" src="" alt="" onerror="this.style.display='none'"/>
+              <span id="hd-emoji" style="position:absolute">👵</span>
+              <span class="audio-heart">❤️</span>
+            </div>
+            <div class="audio-wave">
+              <div class="aw played"></div><div class="aw played"></div><div class="aw played"></div><div class="aw played"></div><div class="aw played"></div><div class="aw played"></div><div class="aw played"></div><div class="aw played"></div>
+              <div class="aw unplayed"></div><div class="aw unplayed"></div><div class="aw unplayed"></div><div class="aw unplayed"></div><div class="aw unplayed"></div><div class="aw unplayed"></div><div class="aw unplayed"></div><div class="aw unplayed"></div><div class="aw unplayed"></div><div class="aw unplayed"></div><div class="aw unplayed"></div><div class="aw unplayed"></div>
+            </div>
+            <div class="audio-times"><span id="hd-current">0:00</span><span id="hd-total">0:00</span></div>
+            <div class="audio-controls">
+              <div class="skip-btn" onclick="skipAudio(-15)"><span class="skip-icon">↺</span><span class="skip-label">15</span></div>
+              <div class="play-pause" id="playPauseBtn" onclick="togglePlay()">▶</div>
+              <div class="skip-btn" onclick="skipAudio(15)"><span class="skip-icon">↻</span><span class="skip-label">15</span></div>
+            </div>
+            <div class="cooking-mode" onclick="showToast('Cooking with Dadi mode coming soon')">
+              <div style="display:flex;align-items:center;gap:.45rem">
+                <span>🍳</span><span class="cooking-mode-label">Cooking with Dadi mode</span>
+              </div>
+              <span style="color:var(--muted)">⌄</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════ ADD VOICE ════ -->
+      <div class="screen" id="screen-add-voice">
+        <div class="page-narrow">
+          <button class="back-btn" onclick="go('capture')">← Back</button>
+          <div class="addvoice-wrap" style="padding:0">
+            <svg width="130" height="108" viewBox="0 0 130 108" style="display:block;margin:0 auto .9rem">
+              <circle cx="20" cy="30" r="5" fill="#F5A623" opacity=".7"/>
+              <circle cx="20" cy="19" r="3" fill="#C4522A" opacity=".6"/>
+              <path d="M20 28 L20 50" stroke="#C4522A" stroke-width="1.4" stroke-linecap="round" opacity=".5"/>
+              <circle cx="110" cy="25" r="5" fill="#F5A623" opacity=".7"/>
+              <path d="M110 23 L110 50" stroke="#C4522A" stroke-width="1.4" stroke-linecap="round" opacity=".5"/>
+              <rect x="26" y="34" width="78" height="63" rx="10" fill="#F5EDE2" stroke="#D4C5B5" stroke-width="1.8"/>
+              <rect x="34" y="43" width="48" height="32" rx="5" fill="white" stroke="#E8DDD0" stroke-width="1.4"/>
+              <circle cx="92" cy="54" r="2.8" fill="#E8DDD0"/>
+              <circle cx="92" cy="64" r="2.8" fill="#E8DDD0"/>
+              <circle cx="92" cy="74" r="2.8" fill="#E8DDD0"/>
+              <circle cx="92" cy="86" r="6.5" fill="#C4522A" opacity=".8"/>
+              <path d="M86 34 L94 10" stroke="#D4C5B5" stroke-width="1.8" stroke-linecap="round"/>
+              <circle cx="94" cy="10" r="2.2" fill="#C4522A" opacity=".6"/>
+              <text x="55" y="66" text-anchor="middle" font-size="18">☁️</text>
+            </svg>
+            <div class="addvoice-heading">Have an old recording?</div>
+            <div class="addvoice-sub">Upload it here and we'll turn it into a memory.</div>
+            <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()"
+                 ondragover="event.preventDefault();this.classList.add('dragover')"
+                 ondragleave="this.classList.remove('dragover')"
+                 ondrop="handleDrop(event)">
+              <input type="file" id="fileInput" accept="audio/*" onchange="handleFileSelect(event)"/>
+              <div class="drop-icon">☁️</div>
+              <div class="drop-text"><strong>Drag &amp; drop audio file here</strong></div>
+              <div class="drop-text" style="margin-top:.22rem">or click to browse</div>
+            </div>
+            <button class="choose-btn" onclick="document.getElementById('fileInput').click()">Choose file</button>
+            <div class="file-note">Supports mp3, m4a, wav, webm (Max 50MB)</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /screen-wrap -->
+
+    <!-- Mobile bottom nav -->
+    <nav class="bottom-nav">
+      <div class="bn-item active" id="bn-home" onclick="go('home')"><div class="bn-icon">🏠</div><div class="bn-label">Home</div></div>
+      <div class="bn-item" id="bn-people" onclick="go('people')"><div class="bn-icon">👥</div><div class="bn-label">People</div></div>
+      <div class="bn-record" onclick="go('capture')">
+        <svg viewBox="0 0 24 24"><path d="M12 14a3 3 0 003-3V5a3 3 0 00-6 0v6a3 3 0 003 3zm5-3a5 5 0 01-10 0H5a7 7 0 0014 0h-2z"/></svg>
+      </div>
+      <div class="bn-item" id="bn-recipes" onclick="go('all-recipes')"><div class="bn-icon">📖</div><div class="bn-label">Recipes</div></div>
+      <div class="bn-item" onclick="showToast('Profile coming soon')"><div class="bn-icon">👤</div><div class="bn-label">Me</div></div>
+    </nav>
+
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- Hidden real audio element -->
+<audio id="real-audio" preload="auto"></audio>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════
+let allRecipes = [];
+let currentRecipe = null;
+let selectedNarrator = 'Dadi';
+let recInterval = null;
+let recSeconds = 0;
+let isRecording = false;
+let mediaRecorder = null;
+let audioChunks = [];
+
+const audio = document.getElementById('real-audio');
+
+// ═══════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════
+const SCREEN_IDS = [
+  'home','capture','saving','recipe-detail',
+  'people','profile','all-recipes','hear-dadi','add-voice'
+];
+const BOTTOM_NAV_MAP = {
+  'home':'bn-home','people':'bn-people','all-recipes':'bn-recipes'
+};
+
+function go(screen, navEl) {
+  // Hide all
+  SCREEN_IDS.forEach(id => {
+    const el = document.getElementById('screen-' + id);
+    if (el) el.classList.remove('active');
+  });
+  // Show target
+  const target = document.getElementById('screen-' + screen);
+  if (target) {
+    target.classList.add('active');
+    document.getElementById('screenWrap').scrollTop = 0;
+  }
+
+  // Sidebar active state
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (navEl && navEl.classList) navEl.classList.add('active');
+  else {
+    // auto-match by data-screen
+    const match = document.querySelector(`.nav-item[data-screen="${screen}"]`);
+    if (match) match.classList.add('active');
+  }
+
+  // Bottom nav active
+  document.querySelectorAll('.bn-item').forEach(b => b.classList.remove('active'));
+  const bnId = BOTTOM_NAV_MAP[screen];
+  if (bnId) document.getElementById(bnId)?.classList.add('active');
+
+  // Side effects
+  if (screen === 'saving') startProcessingAnimation();
+}
+
+// ═══════════════════════════════════════
+// DATA LOADING
+// ═══════════════════════════════════════
+async function loadRecipes() {
+  try {
+    const res = await fetch('/recipes');
+    if (!res.ok) throw new Error('Failed');
+    const data = await res.json();
+    allRecipes = data.recipes || [];
+    renderHome();
+    renderPeople();
+    renderAllRecipes();
+  } catch (e) {
+    console.warn('Could not load recipes:', e.message);
+    renderHome(); // show empty state
+  }
+}
+
+// ═══════════════════════════════════════
+// HOME SCREEN
+// ═══════════════════════════════════════
+const NARRATOR_EMOJI = { 'Dadi':'👵','Nani':'👩‍🦳','Mumma':'👩' };
+function narratorEmoji(name) {
+  return NARRATOR_EMOJI[name] || '👤';
+}
+
+function renderHome() {
+  // Favorites chips
+  const favRow = document.getElementById('fav-row');
+  if (allRecipes.length === 0) {
+    favRow.innerHTML = `<div style="color:var(--muted);font-size:.8rem;padding:.5rem 0">No recipes yet — <a onclick="go('capture')" style="color:var(--accent);cursor:pointer">capture the first one</a></div>`;
+  } else {
+    favRow.innerHTML = allRecipes.slice(0,6).map(r => `
+      <div class="fav-chip" onclick="openRecipe('${r.token}')">
+        ${r.image_url ? `<img src="${r.image_url}" alt="${esc(r.dish_name)}" onerror="this.style.display='none'"/>` : `<div style="width:100%;height:100%;background:var(--cream2);display:flex;align-items:center;justify-content:center;font-size:1.8rem">🍽️</div>`}
+        <div class="fav-chip-overlay"></div>
+        <div class="fav-chip-name">${esc(r.dish_name || 'Untitled')}</div>
+      </div>
+    `).join('');
+  }
+
+  // Recently remembered
+  const recList = document.getElementById('recent-list');
+  if (allRecipes.length === 0) {
+    recList.innerHTML = `<div style="color:var(--muted);font-size:.8rem;text-align:center;padding:1rem 0">No memories recorded yet.</div>`;
+  } else {
+    recList.innerHTML = allRecipes.slice(0,4).map(r => `
+      <div class="recent-card" onclick="openRecipe('${r.token}')">
+        <div class="recent-av">${narratorEmoji(r.narrator)}</div>
+        <div class="recent-info">
+          <div class="recent-dish">${esc(r.dish_name || 'Untitled')}</div>
+          <div class="recent-when">Recorded ${formatDate(r.recorded_at)} · ${esc(r.narrator || 'Grandma')}</div>
+        </div>
+        ${r.audio_url ? `<div class="recent-play" onclick="event.stopPropagation();openHearDadiFor('${r.token}')">▶</div>` : ''}
+      </div>
+    `).join('');
+  }
+}
+
+// ═══════════════════════════════════════
+// RECIPE DETAIL
+// ═══════════════════════════════════════
+async function openRecipe(token, data) {
+  let recipe = data;
+  if (!recipe) {
+    // Try local first
+    recipe = allRecipes.find(r => r.token === token);
+    // If not found or incomplete, fetch from server
+    if (!recipe || !recipe.steps) {
+      try {
+        const res = await fetch(`/recipe/${token}`);
+        if (res.ok) recipe = await res.json();
+      } catch(e) { console.warn('fetch recipe failed', e); }
+    }
+  }
+  if (!recipe) { showToast('Recipe not found'); return; }
+  currentRecipe = recipe;
+  renderRecipeDetail(recipe);
+  go('recipe-detail');
+}
+
+function renderRecipeDetail(r) {
+  // Image
+  const img = document.getElementById('rd-img');
+  img.src = r.image_url || '';
+  img.style.display = r.image_url ? '' : 'none';
+  if (!r.image_url) {
+    document.querySelector('.recipe-hero').style.background = 'var(--cream2)';
+  }
+
+  // Name + meta
+  document.getElementById('rd-name').textContent = r.dish_name || 'Untitled recipe';
+  document.getElementById('rd-narrator').textContent = r.narrator || 'Grandma';
+  document.getElementById('rd-date').textContent = formatDate(r.recorded_at);
+
+  // Hear bar — show only if audio exists
+  const hearBar = document.getElementById('hear-bar');
+  const cookBtn = document.getElementById('cook-btn');
+  const cookNote = document.getElementById('cook-btn-note');
+  if (r.audio_url) {
+    hearBar.style.display = 'flex';
+    cookBtn.style.display = '';
+    cookNote.style.display = '';
+  } else {
+    hearBar.style.display = 'none';
+    cookBtn.style.display = 'none';
+    cookNote.style.display = 'none';
+  }
+
+  // Steps
+  const steps = r.steps || [];
+  document.getElementById('rd-steps').innerHTML = steps.length
+    ? steps.map((s, i) => `
+        <div class="step-row">
+          <div class="step-num">${i+1}</div>
+          <div class="step-text">${esc(s)}</div>
+        </div>`).join('')
+    : `<div style="color:var(--muted);font-size:.82rem;padding:.5rem 0">No steps available.</div>`;
+
+  // Dadi's tip / cook_notes
+  document.getElementById('rd-tip').innerHTML = r.cook_notes
+    ? `<div class="tip-block" style="margin-top:.5rem"><div style="font-size:1.1rem;margin-bottom:.35rem">💡</div><div class="tip-block-text">"${esc(r.cook_notes)}"</div></div>`
+    : `<div style="color:var(--muted);font-size:.82rem;padding:.5rem 0">No tips recorded.</div>`;
+
+  // Transcript
+  document.getElementById('rd-transcript').innerHTML = `
+    ${r.transcript_raw ? `
+      <div class="transcript-block" style="margin-top:.5rem">
+        <div class="transcript-lang">🇮🇳 Original</div>
+        <div class="transcript-text">${esc(r.transcript_raw)}</div>
+        <div class="transcript-note">Auto-transcribed via Whisper</div>
+      </div>` : ''}
+    ${r.transcript_english ? `
+      <div class="transcript-block">
+        <div class="transcript-lang">🇬🇧 English Translation</div>
+        <div class="transcript-text">${esc(r.transcript_english)}</div>
+        <div class="transcript-note">Translated faithfully — vague terms preserved</div>
+      </div>` : ''}
+    ${!r.transcript_raw && !r.transcript_english
+      ? `<div style="color:var(--muted);font-size:.82rem;padding:.5rem 0">No transcript available.</div>`
+      : ''}
+  `;
+
+  // Notes / review flags
+  const flags = r.review_flags || [];
+  document.getElementById('rd-notes').innerHTML = flags.length
+    ? `<div class="notes-block" style="margin-top:.5rem"><strong style="color:var(--text2);font-style:normal">Review flags</strong><br><br>${flags.map(f=>`<span class="notes-flag">⚠️</span>${esc(f)}<br>`).join('')}</div>`
+    : `<div class="notes-block" style="margin-top:.5rem;font-style:normal"><span style="color:var(--text2);font-weight:600">No flags.</span><br><br>This recipe was captured cleanly. All measurements are as Dadi described them.</div>`;
+
+  // Ingredients
+  const ings = r.ingredients || [];
+  document.getElementById('rd-ingredients').innerHTML = ings.length
+    ? ings.map(ing => `<div class="ing-item"><span class="ing-dot">•</span>${esc(ing.quantity ? ing.quantity + ' ' + ing.item : ing.item)}</div>`).join('')
+    : `<div style="color:var(--muted);font-size:.8rem">No ingredients listed.</div>`;
+
+  // Reset tabs to Steps
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-steps').classList.add('active');
+  document.querySelectorAll('.r-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector('.r-tab').classList.add('active');
+}
+
+function showTab(name, el) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.r-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  if (el) el.classList.add('active');
+}
+
+function shareRecipe() {
+  if (!currentRecipe) return;
+  const url = window.location.href.split('?')[0] + '?recipe=' + currentRecipe.token;
+  if (navigator.share) {
+    navigator.share({ title: currentRecipe.dish_name, url });
+  } else {
+    const text = `🍽️ ${currentRecipe.dish_name || 'A family recipe'} — narrated by ${currentRecipe.narrator || 'Grandma'}\n\n${url}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`);
+  }
+}
+
+// ═══════════════════════════════════════
+// PEOPLE + PROFILE
+// ═══════════════════════════════════════
+function renderPeople() {
+  // Derive narrators from loaded recipes
+  const narMap = {};
+  allRecipes.forEach(r => {
+    const n = r.narrator || 'Grandma';
+    narMap[n] = (narMap[n] || 0) + 1;
+  });
+
+  const list = document.getElementById('people-list');
+  const narrators = Object.entries(narMap).sort((a,b) => b[1]-a[1]);
+
+  if (narrators.length === 0) {
+    list.innerHTML = `<div style="padding:1rem;color:var(--muted);font-size:.82rem">No narrators yet. Record the first recipe!</div>`;
+    return;
+  }
+
+  list.innerHTML = narrators.map(([name, count]) => `
+    <div class="person-row" onclick="openProfile('${esc(name)}')">
+      <div class="person-av">${narratorEmoji(name)}</div>
+      <div>
+        <div class="person-name">${esc(name)}</div>
+        <div class="person-count">${count} ${count === 1 ? 'memory' : 'memories'}</div>
+      </div>
+      <div class="person-chev">›</div>
+    </div>
+  `).join('');
+}
+
+function openProfile(name) {
+  const recipes = allRecipes.filter(r => (r.narrator || 'Grandma') === name);
+  document.getElementById('prof-name').textContent = name;
+  document.getElementById('prof-emoji').textContent = narratorEmoji(name);
+  document.getElementById('prof-count').textContent = recipes.length;
+  document.getElementById('prof-recipes').textContent = recipes.length;
+  document.getElementById('prof-quote').textContent = '';
+
+  // Photo grid
+  document.getElementById('prof-grid').innerHTML = recipes.map(r => `
+    <div class="pg-item" onclick="openRecipe('${r.token}')">
+      ${r.image_url ? `<img src="${r.image_url}" alt="${esc(r.dish_name)}" onerror="this.style.display='none'"/>` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:1.8rem">🍽️</div>`}
+      <div class="pg-item-overlay"></div>
+      <div class="pg-name">${esc(r.dish_name || 'Untitled')}</div>
+    </div>
+  `).join('');
+
+  go('profile');
+}
+
+// ═══════════════════════════════════════
+// ALL RECIPES
+// ═══════════════════════════════════════
+let activeFilter = 'all';
+
+function renderAllRecipes(filter) {
+  filter = filter || activeFilter;
+
+  // Build narrator filter chips
+  const narrators = [...new Set(allRecipes.map(r => r.narrator || 'Grandma'))];
+  const filterRow = document.getElementById('filter-row');
+  filterRow.innerHTML = `<div class="f-chip ${filter==='all'?'active':''}" onclick="filterRecipes('all',this)">All</div>`
+    + narrators.map(n => `<div class="f-chip ${filter===n?'active':''}" onclick="filterRecipes('${esc(n)}',this)">${esc(n)}</div>`).join('');
+
+  // Filter recipes
+  const shown = filter === 'all' ? allRecipes : allRecipes.filter(r => (r.narrator||'Grandma') === filter);
+  const grid = document.getElementById('recipes-grid');
+
+  if (shown.length === 0) {
+    grid.innerHTML = `<div style="grid-column:1/-1;color:var(--muted);font-size:.82rem;text-align:center;padding:2rem 0">No recipes yet.</div>`;
+    return;
+  }
+
+  grid.innerHTML = shown.map(r => `
+    <div class="r-card" onclick="openRecipe('${r.token}')">
+      <div class="r-card-img">
+        ${r.image_url ? `<img src="${r.image_url}" alt="${esc(r.dish_name)}" onerror="this.style.display='none'"/>` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2rem">🍽️</div>`}
+      </div>
+      <div class="r-card-body">
+        <div class="r-card-name">${esc(r.dish_name || 'Untitled')}</div>
+        <div class="r-card-meta">${esc(r.narrator || 'Grandma')} · ${formatDate(r.recorded_at)}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterRecipes(filter, el) {
+  activeFilter = filter;
+  document.querySelectorAll('.f-chip').forEach(c => c.classList.remove('active'));
+  if (el) el.classList.add('active');
+  renderAllRecipes(filter);
+}
+
+function filterSearch(q) {
+  // Basic search — filter recipes matching query
+  if (!q) { renderAllRecipes(); return; }
+  const lower = q.toLowerCase();
+  const results = allRecipes.filter(r =>
+    (r.dish_name||'').toLowerCase().includes(lower) ||
+    (r.narrator||'').toLowerCase().includes(lower)
+  );
+  const grid = document.getElementById('recipes-grid');
+  if (results.length === 0) {
+    grid.innerHTML = `<div style="grid-column:1/-1;color:var(--muted);font-size:.82rem;text-align:center;padding:2rem 0">No results for "${esc(q)}"</div>`;
+    return;
+  }
+  grid.innerHTML = results.map(r => `
+    <div class="r-card" onclick="openRecipe('${r.token}')">
+      <div class="r-card-img">
+        ${r.image_url ? `<img src="${r.image_url}" alt="${esc(r.dish_name)}" onerror="this.style.display='none'"/>` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2rem">🍽️</div>`}
+      </div>
+      <div class="r-card-body">
+        <div class="r-card-name">${esc(r.dish_name || 'Untitled')}</div>
+        <div class="r-card-meta">${esc(r.narrator || 'Grandma')} · ${formatDate(r.recorded_at)}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ═══════════════════════════════════════
+// RECORDING
+// ═══════════════════════════════════════
+function selectNarrator(el, name) {
+  document.querySelectorAll('.n-chip').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedNarrator = name;
+}
+
+function toggleRecording() {
+  if (!isRecording) {
+    startRecording();
+  } else {
+    stopRecording();
+  }
+}
+
+async function startRecording() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4';
+    mediaRecorder = new MediaRecorder(stream, { mimeType });
+    audioChunks = [];
+
+    mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+    mediaRecorder.onstop = () => {
+      stream.getTracks().forEach(t => t.stop());
+      const blob = new Blob(audioChunks, { type: mimeType });
+      submitAudio(blob, mimeType.includes('webm') ? 'recording.webm' : 'recording.mp4');
+    };
+
+    mediaRecorder.start();
+    isRecording = true;
+    recSeconds = 0;
+
+    document.getElementById('micOuter').classList.add('recording');
+    document.getElementById('micInner').classList.add('recording');
+    document.getElementById('micInner').textContent = '⏹';
+    document.getElementById('recHint').textContent = 'Recording… tap to stop';
+
+    recInterval = setInterval(() => {
+      recSeconds++;
+      const m = String(Math.floor(recSeconds/60)).padStart(2,'0');
+      const s = String(recSeconds%60).padStart(2,'0');
+      document.getElementById('recTimer').textContent = `${m}:${s}`;
+    }, 1000);
+  } catch (err) {
+    showToast('Microphone access denied — please allow and try again');
+  }
+}
+
+function stopRecording() {
+  clearInterval(recInterval);
+  isRecording = false;
+  document.getElementById('micOuter').classList.remove('recording');
+  document.getElementById('micInner').classList.remove('recording');
+  document.getElementById('micInner').textContent = '🎤';
+  document.getElementById('recTimer').textContent = '00:00';
+  document.getElementById('recHint').textContent = 'Tap to start recording';
+  mediaRecorder?.stop();
+}
+
+// ═══════════════════════════════════════
+// PIPELINE SUBMISSION
+// ═══════════════════════════════════════
+async function submitAudio(blob, filename) {
+  go('saving');
+
+  const form = new FormData();
+  form.append('audio', blob, filename || 'recording.webm');
+
+  try {
+    const res = await fetch('/capture', { method: 'POST', body: form });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: 'Unknown error' }));
+      throw new Error(err.detail || 'Pipeline failed');
+    }
+    const recipe = await res.json();
+    currentRecipe = recipe;
+    allRecipes.unshift(recipe); // add to front
+    finishProcessingAnimation();
+    setTimeout(() => { renderRecipeDetail(recipe); go('recipe-detail'); }, 600);
+  } catch (err) {
+    go('capture');
+    showToast('Error: ' + err.message);
+  }
+}
+
+// ── File upload ──
+function handleFileSelect(e) {
+  const file = e.target.files[0];
+  if (file) submitAudio(file, file.name);
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('dropZone').classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file) submitAudio(file, file.name);
+}
+
+// ═══════════════════════════════════════
+// PROCESSING ANIMATION
+// ═══════════════════════════════════════
+let processingDone = false;
+let processingTimers = [];
+
+function startProcessingAnimation() {
+  processingDone = false;
+  processingTimers.forEach(clearTimeout);
+  processingTimers = [];
+
+  const reset = id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.className = 'proc-item pending';
+    const c = el.querySelector('.proc-check');
+    if (c) { c.textContent = '○'; c.className = 'proc-check pending'; }
+  };
+  const done = id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.className = 'proc-item done';
+    const c = el.querySelector('.proc-check');
+    if (c) { c.textContent = '✓'; c.className = 'proc-check'; }
+  };
+  const active = id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.className = 'proc-item active';
+  };
+
+  ['proc-1','proc-2','proc-3','proc-4','proc-5'].forEach(reset);
+  done('proc-1'); done('proc-2'); active('proc-3');
+
+  processingTimers.push(setTimeout(() => { if (!processingDone) { done('proc-3'); active('proc-4'); } }, 2000));
+  processingTimers.push(setTimeout(() => { if (!processingDone) { done('proc-4'); active('proc-5'); } }, 4000));
+}
+
+function finishProcessingAnimation() {
+  processingDone = true;
+  ['proc-3','proc-4','proc-5'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.className = 'proc-item done';
+    const c = el.querySelector('.proc-check');
+    if (c) { c.textContent = '✓'; c.className = 'proc-check'; }
+  });
+}
+
+// ═══════════════════════════════════════
+// AUDIO PLAYER
+// ═══════════════════════════════════════
+function openHearDadi() {
+  if (!currentRecipe) return;
+  openHearDadiFor(currentRecipe.token, currentRecipe);
+}
+
+function openHearDadiFor(token, recipe) {
+  const r = recipe || allRecipes.find(x => x.token === token);
+  if (!r?.audio_url) { showToast('No audio for this recipe'); return; }
+
+  document.getElementById('hd-name').textContent = 'Hear ' + (r.narrator || 'Dadi');
+  document.getElementById('hd-sub').textContent = r.dish_name || '';
+  document.getElementById('hd-emoji').textContent = narratorEmoji(r.narrator);
+
+  // Load audio
+  audio.src = r.audio_url;
+  audio.load();
+  document.getElementById('playPauseBtn').textContent = '▶';
+
+  audio.onloadedmetadata = () => {
+    document.getElementById('hd-total').textContent = formatAudioTime(audio.duration);
+  };
+  audio.ontimeupdate = () => {
+    document.getElementById('hd-current').textContent = formatAudioTime(audio.currentTime);
+  };
+
+  if (!currentRecipe || currentRecipe.token !== token) {
+    currentRecipe = r;
+  }
+  go('hear-dadi');
+}
+
+function togglePlay() {
+  const btn = document.getElementById('playPauseBtn');
+  if (audio.paused) {
+    audio.play();
+    btn.textContent = '⏸';
+  } else {
+    audio.pause();
+    btn.textContent = '▶';
+  }
+}
+
+function skipAudio(secs) {
+  audio.currentTime = Math.max(0, Math.min(audio.duration || 0, audio.currentTime + secs));
+}
+
+function formatAudioTime(s) {
+  if (!s || isNaN(s)) return '0:00';
+  const m = Math.floor(s / 60);
+  const sec = Math.floor(s % 60);
+  return `${m}:${sec.toString().padStart(2,'0')}`;
+}
+
+// ═══════════════════════════════════════
+// HEARTS
+// ═══════════════════════════════════════
+function toggleHeart(el) {
+  const liked = el.dataset.liked === 'true';
+  el.dataset.liked = (!liked).toString();
+  el.textContent = liked ? '🤍' : '❤️';
+}
+
+// ═══════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════
+function esc(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function formatDate(ts) {
+  if (!ts) return '';
+  try {
+    return new Date(ts).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+  } catch { return ''; }
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+// ═══════════════════════════════════════
+// URL PARAM — deep link to recipe
+// ═══════════════════════════════════════
+function handleUrlParams() {
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get('recipe');
+  if (token) openRecipe(token);
+}
+
+// ═══════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════
+document.addEventListener('DOMContentLoaded', async () => {
+  await loadRecipes();
+  handleUrlParams();
+});
+</script>
+</body>
+</html>
