@@ -507,10 +507,10 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
 }
 .rk-brand{display:flex;align-items:center;gap:.75rem}
 .rk-logo-mark{
-  width:58px;height:58px;border-radius:50%;
-  border:1.5px solid #C86E67;background:rgba(255,255,255,.58);
-  display:flex;align-items:center;justify-content:center;
-  font-size:1.55rem;
+  display:none;
+}
+.rk-logo-img{
+  width:min(252px,42vw);height:auto;display:block;
 }
 .rk-brand-text{
   font-family:var(--serif);font-size:1.7rem;line-height:.9;
@@ -595,7 +595,7 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
 .rk-memory-art img{width:100%;height:100%;object-fit:cover;object-position:78% 84%}
 @media(max-width:780px){
   .rk-nav{position:relative;padding:1rem 1rem 0}
-  .rk-logo-mark{width:46px;height:46px;font-size:1.25rem}
+  .rk-logo-img{width:min(220px,70vw)}
   .rk-brand-text{font-size:1.28rem}
   .rk-nav-links{display:none}
   .rk-hero{
@@ -956,8 +956,7 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
   <section class="rk-landing" aria-label="Grandma's Keepsake">
     <nav class="rk-nav" aria-label="Landing navigation">
       <div class="rk-brand">
-        <div class="rk-logo-mark">♡</div>
-        <div class="rk-brand-text">Grandma's <span>Keepsake</span></div>
+        <img class="rk-logo-img" src="assets/landing-logo.png" alt="Grandma's Keepsake"/>
       </div>
       <div class="rk-nav-links">
         <a href="#how-it-works">How It Works</a>
@@ -969,7 +968,7 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
 
     <section class="rk-hero">
       <div class="rk-hero-art" aria-hidden="true">
-        <img src="assets/landing-final.png" alt=""/>
+        <img src="assets/landing-hero-photo.png" alt=""/>
       </div>
       <div class="rk-copy">
         <h1 class="rk-title">Her recipes are memories. <span>Keep them alive.</span></h1>
@@ -1010,7 +1009,7 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
           <p>Capture today. Cherish forever.</p>
         </div>
         <div class="rk-memory-art" aria-hidden="true">
-          <img src="assets/landing-final.png" alt=""/>
+          <img src="assets/landing-memory-photo.png" alt=""/>
         </div>
       </div>
     </section>
