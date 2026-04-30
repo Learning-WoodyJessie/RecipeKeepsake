@@ -115,8 +115,17 @@ async def capture_endpoint(audio: UploadFile = File(...)):
         }
 
         if os.environ.get("SUPABASE_URL") and os.environ.get("SUPABASE_SERVICE_KEY"):
-            from tools.storage import insert_recipe
-            stored = insert_recipe({**recipe, "audio_url": ""})
+            from tools.storage import insert_recipe, upload_audio
+            import uuid
+            audio_filename = f"{uuid.uuid4()}{Path(audio.filename).suffix if audio.filename else '.webm'}"
+            print(f"[serve] Uploading audio as {audio_filename}...")
+            try:
+                audio_url = upload_audio(tmp_path, audio_filename)
+                print(f"[serve] Audio URL: {audio_url}")
+            except Exception as audio_err:
+                print(f"[serve] Audio upload failed (non-fatal): {audio_err}")
+                audio_url = ""
+            stored = insert_recipe({**recipe, "audio_url": audio_url})
             recipe["id"] = stored.get("id")
             recipe["token"] = stored.get("token")
             print(f"[serve] Saved: {recipe.get('id')}")
