@@ -30,8 +30,8 @@
 - [x] Google OAuth native fix: Capacitor Browser → system browser → deep link callback
 - [x] Build signed AAB in Android Studio (Build → Generate Signed Bundle)
 - [ ] **Supabase setup** (manual, required before testing auth):
-  - Add `recipekeepsake://auth/callback` to Supabase Auth → URL Configuration → Redirect URLs
-  - Create public `images` bucket (for DALL-E permanent storage)
+  - [ ] Add `recipekeepsake://auth/callback` to Supabase Auth → URL Configuration → Redirect URLs
+  - [x] Create public `images` bucket (for DALL-E permanent storage)
 - [ ] **Test on emulator/device** (before Play Store):
   - Android Studio → Run ▶ on emulator or physical device
   - Verify Railway URL loads inside the app
