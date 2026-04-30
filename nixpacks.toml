@@ -1,0 +1,11 @@
+# Force Nixpacks to use Python provider.
+# Without this, Railway picks Node.js because package.json (Capacitor mobile
+# tooling) is detected before requirements.txt, producing a container with no
+# Python runtime and a failing "python: command not found" start command.
+providers = ["python"]
+
+[phases.install]
+cmds = ["pip install -r requirements.txt"]
+
+[start]
+cmd = "python -m scripts.serve"

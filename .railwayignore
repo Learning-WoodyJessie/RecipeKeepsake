@@ -11,6 +11,9 @@ __pycache__/
 node_modules/
 ios/
 android/
+www/
+icons/
+# Capacitor tooling — not needed on Railway (Python server only)
 package.json
 package-lock.json
 capacitor.config.json
