@@ -7,7 +7,13 @@ node_modules/
 .next/
 *.log
 
-# Capacitor / mobile
+# Capacitor / mobile — track source, ignore build outputs
 node_modules/
 ios/
-android/
+# Android: track source + manifest, ignore Gradle build artifacts
+android/.gradle/
+android/build/
+android/app/build/
+android/captures/
+android/.idea/
+android/local.properties

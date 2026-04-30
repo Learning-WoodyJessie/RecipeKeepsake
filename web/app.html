@@ -2399,6 +2399,32 @@ async function initAuth() {
     if (event === 'SIGNED_IN' && session) onSignedIn(session.user);
     if (event === 'SIGNED_OUT') showAuthWall();
   });
+
+  // Native-only: handle deep link return from system browser after Google OAuth
+  // recipekeepsake://auth/callback#access_token=...&refresh_token=...
+  if (window.Capacitor?.isNativePlatform?.()) {
+    Capacitor.Plugins.App.addListener('appUrlOpen', async ({ url }) => {
+      if (!url.startsWith('recipekeepsake://auth/callback')) return;
+      // Close the system browser tab
+      try { await Capacitor.Plugins.Browser.close(); } catch (_) {}
+      // Parse tokens from the URL fragment or query string
+      const fragment = url.includes('#') ? url.split('#')[1] : url.split('?')[1] || '';
+      const params = new URLSearchParams(fragment);
+      const access_token  = params.get('access_token');
+      const refresh_token = params.get('refresh_token');
+      if (access_token && refresh_token) {
+        const { data, error } = await _sbClient.auth.setSession({ access_token, refresh_token });
+        if (data?.user) {
+          await onSignedIn(data.user);
+        } else {
+          console.error('[auth] setSession failed:', error);
+          showAuthWall();
+        }
+      } else {
+        console.warn('[auth] deep link missing tokens:', url);
+      }
+    });
+  }
 }
 
 async function onSignedIn(user) {
@@ -2426,10 +2452,32 @@ function hideAuthWall() {
 
 async function signInWithGoogle() {
   document.getElementById('auth-loading').style.display = 'block';
-  await _sbClient.auth.signInWithOAuth({
-    provider: 'google',
-    options: { redirectTo: window.location.origin }
-  });
+  const isNative = window.Capacitor?.isNativePlatform?.();
+
+  if (isNative) {
+    // Native Android/iOS: Google blocks OAuth inside WebViews.
+    // Get the redirect URL from Supabase, open in system browser via Capacitor Browser plugin.
+    const { data, error } = await _sbClient.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: 'recipekeepsake://auth/callback',
+        skipBrowserRedirect: true,
+      }
+    });
+    if (error || !data?.url) {
+      console.error('[auth] OAuth URL error:', error);
+      document.getElementById('auth-loading').style.display = 'none';
+      return;
+    }
+    // Opens Chrome/Safari instead of the in-app WebView
+    await Capacitor.Plugins.Browser.open({ url: data.url });
+  } else {
+    // Web: standard redirect flow — Supabase handles the redirect back to origin
+    await _sbClient.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.origin }
+    });
+  }
 }
 
 async function signOut() {
