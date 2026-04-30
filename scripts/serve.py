@@ -20,6 +20,7 @@ from fastapi import FastAPI, UploadFile, File, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 import httpx
 
@@ -41,6 +42,8 @@ _ALLOWED_ORIGINS = os.environ.get(
 app = FastAPI(title="RecipeKeepsake API")
 
 _bearer = HTTPBearer(auto_error=False)
+
+app.mount("/assets", StaticFiles(directory=_WEB_DIR / "assets"), name="assets")
 
 
 async def require_auth(creds: HTTPAuthorizationCredentials = Depends(_bearer)) -> dict:

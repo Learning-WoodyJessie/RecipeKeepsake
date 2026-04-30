@@ -492,8 +492,32 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
   background:#FAF6F0;overflow-y:auto;flex-direction:column;
 }
 .lp-wrap{
-  max-width:480px;margin:0 auto;min-height:100vh;
-  display:flex;flex-direction:column;background:#FAF6F0;
+  width:100%;max-width:1120px;margin:0 auto;min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;background:#FAF6F0;
+  padding:clamp(.75rem,2vw,1.5rem);
+}
+.lp-art-shell{
+  width:100%;max-width:1024px;overflow:hidden;
+  border-radius:24px;background:#FDF8F3;
+  box-shadow:0 16px 60px rgba(92,61,40,.16);
+}
+.lp-art-img{
+  display:block;width:100%;height:auto;
+}
+.lp-publish-signin{
+  position:sticky;bottom:0;width:100%;max-width:640px;
+  margin:1rem auto 0;padding:1rem;
+  background:rgba(250,246,240,.92);backdrop-filter:blur(12px);
+  border:1px solid rgba(214,197,176,.75);border-radius:18px;
+  box-shadow:0 8px 32px rgba(92,61,40,.12);
+}
+@media(max-width:640px){
+  .lp-wrap{padding:0}
+  .lp-art-shell{border-radius:0;box-shadow:none}
+  .lp-publish-signin{
+    max-width:none;margin:0;border-radius:18px 18px 0 0;
+    border-left:none;border-right:none;border-bottom:none;
+  }
 }
 /* Header */
 .lp-header{
@@ -667,6 +691,7 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
   box-shadow:0 4px 16px rgba(196,128,106,.45);
   border:3px solid #FAF6F0;
 }
+.lp-header,.lp-hero,.lp-features,.lp-section-hdr,.lp-cards,.lp-quote-banner,.lp-bottom-nav{display:none}
 /* Desktop centering */
 @media(min-width:481px){
   .lp-wrap{box-shadow:0 0 60px rgba(0,0,0,.08)}
@@ -748,6 +773,10 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
 <!-- ══════════ LANDING PAGE (pre-auth) ══════════ -->
 <div id="auth-wall">
 <div class="lp-wrap">
+
+  <div class="lp-art-shell">
+    <img class="lp-art-img" src="/assets/chatgpt.png" alt="Grandma's Keepsake app preview"/>
+  </div>
 
   <!-- Header -->
   <div class="lp-header">
@@ -880,7 +909,7 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
   </div>
 
   <!-- Sign-in -->
-  <div class="lp-signin">
+  <div class="lp-signin lp-publish-signin">
     <div class="lp-signin-label">Sign in to start capturing memories</div>
     <button class="lp-google-btn" onclick="signInWithGoogle()">
       <svg width="19" height="19" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg>
