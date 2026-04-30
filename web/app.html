@@ -486,77 +486,191 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
   position:fixed;inset:0;display:none;z-index:9999;
   flex-direction:row;
 }
-/* Left banner panel */
-.auth-banner{
-  flex:1;position:relative;overflow:hidden;
-  background:linear-gradient(160deg,rgba(60,18,6,.82) 0%,rgba(107,42,16,.75) 40%,rgba(155,61,26,.65) 70%,rgba(196,82,42,.5) 100%);
-  display:flex;flex-direction:column;justify-content:flex-end;padding:3rem;
-  min-height:100vh;
+/* ─── Landing page (pre-auth) ─── */
+#auth-wall{
+  position:fixed;inset:0;display:none;z-index:9999;
+  background:#FAF6F0;overflow-y:auto;flex-direction:column;
 }
-@media(max-width:767px){.auth-banner{display:none}}
-.auth-banner-img{
+.lp-wrap{
+  max-width:480px;margin:0 auto;min-height:100vh;
+  display:flex;flex-direction:column;background:#FAF6F0;
+}
+/* Header */
+.lp-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:1.1rem 1.25rem .75rem;
+  position:sticky;top:0;z-index:100;
+  background:rgba(250,246,240,.92);backdrop-filter:blur(8px);
+}
+.lp-menu-btn{background:none;border:none;font-size:1.4rem;cursor:pointer;color:#2C1810;line-height:1;padding:0}
+.lp-bell-btn{background:none;border:none;cursor:pointer;color:#2C1810;position:relative;padding:0;font-size:1.3rem;line-height:1}
+.lp-bell-dot{position:absolute;top:-1px;right:-1px;width:7px;height:7px;border-radius:50%;background:#C4806A;border:2px solid #FAF6F0}
+.lp-brand{text-align:center;line-height:1.1}
+.lp-brand-name{font-family:var(--serif);font-size:1.1rem;font-weight:700;color:#2C1810}
+.lp-brand-sub{font-family:var(--serif);font-size:1.05rem;color:#C4806A;font-style:italic}
+.lp-brand-tag{font-size:.52rem;color:#9E8B7D;letter-spacing:.07em;display:block;margin-top:.1rem}
+/* Hero card */
+.lp-hero{
+  margin:.5rem .75rem 0;border-radius:22px;overflow:hidden;
+  background:linear-gradient(145deg,#F5EAE0 0%,#EDD5C5 50%,#DDBFA8 100%);
+  position:relative;min-height:390px;
+}
+.lp-hero-food-bg{
   position:absolute;inset:0;width:100%;height:100%;
-  object-fit:cover;opacity:.55;
+  object-fit:cover;opacity:.28;
 }
-.auth-banner-pattern{
-  position:absolute;inset:0;
-  background-image:radial-gradient(circle at 25% 40%,rgba(255,255,255,.08) 1px,transparent 1px),
-    radial-gradient(circle at 75% 70%,rgba(255,255,255,.05) 1px,transparent 1px);
-  background-size:48px 48px,72px 72px;
+.lp-hero-grandma{
+  position:absolute;right:-10px;top:0;height:100%;width:58%;
+  object-fit:cover;object-position:top center;
+  mask-image:linear-gradient(to left,black 60%,transparent 100%);
+  -webkit-mask-image:linear-gradient(to left,black 60%,transparent 100%);
 }
-.auth-banner-content{position:relative;z-index:2}
-.auth-banner-eyebrow{
-  font-size:.65rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;
-  color:rgba(255,255,255,.55);margin-bottom:.85rem;
+.lp-hero-content{
+  position:relative;z-index:2;
+  padding:1.6rem 1.4rem 1.4rem;
+  max-width:55%;
 }
-.auth-banner-title{
-  font-family:var(--serif);font-size:3.2rem;color:white;
-  line-height:1.15;font-weight:700;margin-bottom:.85rem;
+.lp-hero-title{
+  font-family:var(--serif);font-size:2.2rem;font-weight:800;
+  color:#2C1810;line-height:1.1;margin-bottom:.55rem;
 }
-.auth-banner-sub{
-  font-size:.9rem;color:rgba(255,255,255,.7);line-height:1.7;
-  max-width:360px;margin-bottom:2rem;
+.lp-hero-sub{
+  font-size:.78rem;color:#5C3D2E;line-height:1.65;
+  margin-bottom:1.2rem;
 }
-.auth-banner-pills{display:flex;flex-wrap:wrap;gap:.5rem}
-.auth-pill{
-  background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);
-  border-radius:99px;padding:.3rem .85rem;font-size:.72rem;
-  color:rgba(255,255,255,.85);backdrop-filter:blur(4px);
+.lp-hero-cta{
+  display:inline-flex;align-items:center;gap:.5rem;
+  background:#C4806A;color:white;border:none;border-radius:99px;
+  padding:.7rem 1.35rem;font-size:.88rem;font-weight:700;
+  font-family:var(--sans);cursor:pointer;
+  box-shadow:0 4px 18px rgba(196,128,106,.42);
+  transition:transform .15s,box-shadow .15s;
 }
-.auth-banner-deco{
-  position:absolute;top:2rem;right:2.5rem;
-  font-size:9rem;opacity:.07;pointer-events:none;user-select:none;line-height:1;
+.lp-hero-cta:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(196,128,106,.52)}
+.lp-hero-quote{
+  position:absolute;bottom:1.25rem;right:1.1rem;
+  background:white;border-radius:14px;
+  padding:.8rem .9rem;max-width:148px;
+  box-shadow:0 4px 16px rgba(0,0,0,.1);text-align:center;
 }
-/* Right sign-in panel */
-.auth-panel{
-  width:440px;flex-shrink:0;background:var(--cream);
+.lp-hero-quote-heart{color:#C4806A;font-size:.85rem}
+.lp-hero-quote-text{
+  font-family:var(--serif);font-size:.68rem;color:#5C3D2E;
+  font-style:italic;line-height:1.5;display:block;margin:.25rem 0;
+}
+.lp-hero-quote-deco{color:#C4806A;font-size:.55rem;letter-spacing:.1em}
+/* Feature grid */
+.lp-features{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:.55rem;padding:.85rem .75rem;
+}
+.lp-feat{
+  background:white;border-radius:14px;padding:.8rem .35rem .7rem;
+  text-align:center;box-shadow:0 1px 6px rgba(0,0,0,.06);
+  cursor:pointer;transition:transform .15s;border:none;font-family:var(--sans);
+}
+.lp-feat:hover{transform:translateY(-2px)}
+.lp-feat-icon{
+  width:38px;height:38px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;
-  padding:2.5rem 2rem;min-height:100vh;
+  margin:0 auto .42rem;font-size:1.05rem;
 }
-@media(max-width:767px){
-  .auth-panel{width:100%;min-height:100vh;padding:2rem 1.5rem;flex-direction:column;justify-content:center}
+.lp-feat-label{font-size:.59rem;font-weight:700;color:#2C1810;line-height:1.25;display:block}
+.lp-feat-sub{font-size:.48rem;color:#9E8B7D;margin-top:.12rem;line-height:1.4;display:block}
+/* Section header */
+.lp-section-hdr{
+  display:flex;align-items:baseline;justify-content:space-between;
+  padding:.35rem .85rem .45rem;
 }
-.auth-card{
-  width:100%;max-width:340px;
-  display:flex;flex-direction:column;align-items:center;text-align:center;
+.lp-section-title{font-family:var(--serif);font-size:1rem;color:#2C1810;font-weight:700}
+.lp-view-all{font-size:.7rem;color:#C4806A;font-weight:600;cursor:pointer;background:none;border:none;font-family:var(--sans)}
+/* Recipe cards scroll */
+.lp-cards{
+  display:flex;gap:.65rem;padding:.2rem .85rem .55rem;
+  overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;
 }
-.auth-logo-mark{margin-bottom:1.4rem}
-.auth-title{font-family:var(--serif);font-size:1.75rem;color:var(--text);font-weight:700;line-height:1.2;margin-bottom:.4rem}
-.auth-sub{font-size:.83rem;color:var(--muted);margin-bottom:2rem;line-height:1.6}
-.auth-google-btn{
-  display:flex;align-items:center;justify-content:center;gap:.75rem;
-  width:100%;padding:.85rem 1.25rem;
-  background:white;border:1.5px solid #dadce0;border-radius:12px;
-  font-size:.9rem;font-weight:500;color:#3c4043;cursor:pointer;
-  font-family:var(--sans);transition:box-shadow .2s,border-color .2s;
-  margin-bottom:1.5rem;box-shadow:0 1px 4px rgba(0,0,0,.06);
+.lp-cards::-webkit-scrollbar{display:none}
+.lp-card{
+  flex-shrink:0;width:155px;background:white;border-radius:16px;
+  box-shadow:0 2px 10px rgba(0,0,0,.08);overflow:hidden;
+  cursor:pointer;transition:transform .15s;
 }
-.auth-google-btn:hover{box-shadow:0 3px 12px rgba(0,0,0,.13);border-color:#bbb}
-.auth-divider{display:flex;align-items:center;gap:.75rem;width:100%;margin-bottom:1.4rem}
-.auth-divider-line{flex:1;height:1px;background:var(--border)}
-.auth-divider-text{font-size:.65rem;color:var(--muted);white-space:nowrap}
-.auth-fine{font-size:.67rem;color:var(--muted);line-height:1.6;text-align:center}
-.auth-loading{font-size:.8rem;color:var(--muted);margin-top:.85rem;display:none}
+.lp-card:hover{transform:translateY(-2px)}
+.lp-card-thumb-wrap{position:relative;height:95px;background:#EDD5C5}
+.lp-card-thumb{width:100%;height:100%;object-fit:cover;display:block}
+.lp-card-play{
+  position:absolute;bottom:.45rem;left:.45rem;
+  width:22px;height:22px;border-radius:50%;
+  background:rgba(255,255,255,.9);display:flex;align-items:center;
+  justify-content:center;font-size:.6rem;color:#C4806A;
+}
+.lp-card-body{padding:.55rem .65rem .65rem}
+.lp-card-title{font-size:.72rem;font-weight:700;color:#2C1810;line-height:1.3;margin-bottom:.38rem}
+.lp-card-meta{display:flex;align-items:center;gap:.3rem}
+.lp-card-av{width:15px;height:15px;border-radius:50%;background:#EDD5C5;flex-shrink:0;font-size:.55rem;display:flex;align-items:center;justify-content:center}
+.lp-card-narrator{font-size:.56rem;color:#9E8B7D;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lp-card-heart{margin-left:auto;font-size:.7rem;color:#E0C5BC;flex-shrink:0}
+/* Quote banner */
+.lp-quote-banner{
+  margin:.75rem .75rem 0;border-radius:20px;
+  background:linear-gradient(135deg,#F5EAE0,#EDD5C5);
+  position:relative;overflow:hidden;
+  padding:1.25rem 1.1rem 1.25rem;min-height:95px;
+  display:flex;align-items:center;
+}
+.lp-quote-banner-img{
+  position:absolute;right:0;top:0;bottom:0;width:42%;
+  object-fit:cover;opacity:.38;
+}
+.lp-quote-text{
+  position:relative;z-index:1;font-family:var(--serif);
+  font-size:.85rem;font-style:italic;color:#5C3D2E;
+  line-height:1.65;max-width:195px;
+}
+.lp-quote-heart{color:#C4806A;font-size:.8rem;display:block;margin-top:.3rem;text-align:center}
+/* Sign-in section */
+.lp-signin{padding:1.1rem .85rem .4rem}
+.lp-signin-label{text-align:center;font-size:.72rem;color:#9E8B7D;margin-bottom:.7rem;line-height:1.5}
+.lp-google-btn{
+  display:flex;align-items:center;justify-content:center;gap:.7rem;
+  width:100%;padding:.82rem 1.25rem;
+  background:white;border:1.5px solid #DADCE0;border-radius:14px;
+  font-size:.88rem;font-weight:500;color:#3c4043;cursor:pointer;
+  font-family:var(--sans);transition:box-shadow .2s;
+  box-shadow:0 1px 5px rgba(0,0,0,.07);
+}
+.lp-google-btn:hover{box-shadow:0 3px 14px rgba(0,0,0,.13)}
+.lp-fine{font-size:.62rem;color:#9E8B7D;text-align:center;margin-top:.65rem;line-height:1.6}
+.auth-loading{font-size:.78rem;color:#9E8B7D;text-align:center;margin-top:.6rem;display:none}
+/* Bottom nav */
+.lp-bottom-nav{
+  position:sticky;bottom:0;
+  background:white;border-top:1px solid #EDE0D8;
+  display:flex;align-items:center;justify-content:space-around;
+  padding:.7rem 0 calc(.7rem + env(safe-area-inset-bottom));
+  margin-top:auto;
+}
+.lp-nav-item{
+  display:flex;flex-direction:column;align-items:center;gap:.18rem;
+  font-size:.52rem;font-weight:600;color:#9E8B7D;
+  cursor:pointer;background:none;border:none;
+  font-family:var(--sans);padding:.1rem .6rem;
+  transition:color .15s;
+}
+.lp-nav-item.active{color:#C4806A}
+.lp-nav-item-icon{font-size:1.2rem}
+.lp-nav-center-wrap{display:flex;flex-direction:column;align-items:center;margin-top:-14px}
+.lp-nav-center{
+  width:52px;height:52px;border-radius:50%;background:#C4806A;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.45rem;cursor:pointer;
+  box-shadow:0 4px 16px rgba(196,128,106,.45);
+  border:3px solid #FAF6F0;
+}
+/* Desktop centering */
+@media(min-width:481px){
+  .lp-wrap{box-shadow:0 0 60px rgba(0,0,0,.08)}
+}
 
 /* ── Topbar sign-out button ── */
 .topbar-signout{
@@ -631,53 +745,171 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
 </style>
 </head>
 <body>
-<!-- ══════════ AUTH WALL ══════════ -->
+<!-- ══════════ LANDING PAGE (pre-auth) ══════════ -->
 <div id="auth-wall">
-  <!-- Left: brand banner -->
-  <div class="auth-banner">
-    <img class="auth-banner-img" src="https://images.unsplash.com/photo-1596797038530-2c107229654b?w=1200&q=80" alt="" onerror="this.style.display='none'"/>
-    <div class="auth-banner-pattern"></div>
-    <div class="auth-banner-deco">🫕</div>
-    <div class="auth-banner-content">
-      <div class="auth-banner-eyebrow">Family Recipe Archive</div>
-      <div class="auth-banner-title">Preserve the taste<br>of home, forever.</div>
-      <div class="auth-banner-sub">Record your family's recipes in their own voice. Every dish, every story — kept safe for generations to come.</div>
-      <div class="auth-banner-pills">
-        <div class="auth-pill">🎙️ Voice recordings</div>
-        <div class="auth-pill">📖 Structured recipes</div>
-        <div class="auth-pill">🌐 Translate to any language</div>
-        <div class="auth-pill">♡ Family memories</div>
+<div class="lp-wrap">
+
+  <!-- Header -->
+  <div class="lp-header">
+    <button class="lp-menu-btn" onclick="void(0)">☰</button>
+    <div class="lp-brand">
+      <div class="lp-brand-name">Grandma's</div>
+      <div class="lp-brand-sub">Keepsake</div>
+      <span class="lp-brand-tag">Her voice. Her recipes. Our legacy.</span>
+    </div>
+    <button class="lp-bell-btn" onclick="void(0)">🔔<span class="lp-bell-dot"></span></button>
+  </div>
+
+  <!-- Hero -->
+  <div class="lp-hero">
+    <img class="lp-hero-food-bg"
+      src="https://images.unsplash.com/photo-1596797038530-2c107229654b?w=900&q=80"
+      alt="" onerror="this.style.opacity=0"/>
+    <img class="lp-hero-grandma"
+      src="https://images.unsplash.com/photo-1585237672814-8f85a8118bf6?w=600&q=80"
+      alt="" onerror="this.style.display='none'"/>
+    <div class="lp-hero-content">
+      <div class="lp-hero-title">Capture today,<br>cherish forever.</div>
+      <div class="lp-hero-sub">Record Grandma's recipes and stories. Save them as a keepsake for generations to come.</div>
+      <button class="lp-hero-cta" onclick="signInWithGoogle()">🎤 Record Grandma</button>
+    </div>
+    <div class="lp-hero-quote">
+      <span class="lp-hero-quote-heart">♥</span>
+      <span class="lp-hero-quote-text">Every recipe has a story. Every story is a memory.</span>
+      <span class="lp-hero-quote-deco">— ♡ —</span>
+    </div>
+  </div>
+
+  <!-- Feature icons -->
+  <div class="lp-features">
+    <button class="lp-feat" onclick="signInWithGoogle()">
+      <div class="lp-feat-icon" style="background:#FDE8E2">🎤</div>
+      <span class="lp-feat-label">Record</span>
+      <span class="lp-feat-sub">Capture voice, recipes &amp; stories</span>
+    </button>
+    <button class="lp-feat" onclick="signInWithGoogle()">
+      <div class="lp-feat-icon" style="background:#E8F4EC">📖</div>
+      <span class="lp-feat-label">My Keepsakes</span>
+      <span class="lp-feat-sub">View and relive all your memories</span>
+    </button>
+    <button class="lp-feat" onclick="signInWithGoogle()">
+      <div class="lp-feat-icon" style="background:#FDE8E2">♡</div>
+      <span class="lp-feat-label">Favorites</span>
+      <span class="lp-feat-sub">Your most loved keepsakes</span>
+    </button>
+    <button class="lp-feat" onclick="signInWithGoogle()">
+      <div class="lp-feat-icon" style="background:#EAF0F8">👥</div>
+      <span class="lp-feat-label">Family</span>
+      <span class="lp-feat-sub">Share memories with family</span>
+    </button>
+  </div>
+
+  <!-- Recent Keepsakes preview -->
+  <div class="lp-section-hdr">
+    <span class="lp-section-title">Recent Keepsakes</span>
+    <button class="lp-view-all" onclick="signInWithGoogle()">View all ›</button>
+  </div>
+  <div class="lp-cards">
+    <div class="lp-card" onclick="signInWithGoogle()">
+      <div class="lp-card-thumb-wrap">
+        <img class="lp-card-thumb" src="https://images.unsplash.com/photo-1585032226651-759b368d7246?w=300&q=80" alt="" onerror="this.style.opacity=0"/>
+        <div class="lp-card-play">▶</div>
+      </div>
+      <div class="lp-card-body">
+        <div class="lp-card-title">Toor Dal Recipe</div>
+        <div class="lp-card-meta">
+          <div class="lp-card-av">👵</div>
+          <span class="lp-card-narrator">Grandma's Voice · 2 days ago</span>
+          <span class="lp-card-heart">♡</span>
+        </div>
+      </div>
+    </div>
+    <div class="lp-card" onclick="signInWithGoogle()">
+      <div class="lp-card-thumb-wrap">
+        <img class="lp-card-thumb" src="https://images.unsplash.com/photo-1574484284002-952d92456975?w=300&q=80" alt="" onerror="this.style.opacity=0"/>
+        <div class="lp-card-play">▶</div>
+      </div>
+      <div class="lp-card-body">
+        <div class="lp-card-title">Soft Roti Secrets</div>
+        <div class="lp-card-meta">
+          <div class="lp-card-av">👵</div>
+          <span class="lp-card-narrator">Grandma's Voice · 5 days ago</span>
+          <span class="lp-card-heart">♡</span>
+        </div>
+      </div>
+    </div>
+    <div class="lp-card" onclick="signInWithGoogle()">
+      <div class="lp-card-thumb-wrap">
+        <img class="lp-card-thumb" src="https://images.unsplash.com/photo-1596797038530-2c107229654b?w=300&q=80" alt="" onerror="this.style.opacity=0"/>
+        <div class="lp-card-play">▶</div>
+      </div>
+      <div class="lp-card-body">
+        <div class="lp-card-title">Why patience makes it perfect</div>
+        <div class="lp-card-meta">
+          <div class="lp-card-av">👵</div>
+          <span class="lp-card-narrator">Grandma's Stories · 1 week ago</span>
+          <span class="lp-card-heart">♡</span>
+        </div>
+      </div>
+    </div>
+    <div class="lp-card" onclick="signInWithGoogle()">
+      <div class="lp-card-thumb-wrap">
+        <img class="lp-card-thumb" src="https://images.unsplash.com/photo-1567337710282-00832b415979?w=300&q=80" alt="" onerror="this.style.opacity=0"/>
+        <div class="lp-card-play">▶</div>
+      </div>
+      <div class="lp-card-body">
+        <div class="lp-card-title">Mango Pickle Recipe</div>
+        <div class="lp-card-meta">
+          <div class="lp-card-av">👵</div>
+          <span class="lp-card-narrator">Grandma's Voice · 2 weeks ago</span>
+          <span class="lp-card-heart">♡</span>
+        </div>
       </div>
     </div>
   </div>
-  <!-- Right: sign-in -->
-  <div class="auth-panel">
-    <div class="auth-card">
-      <div class="auth-logo-mark">
-        <svg width="52" height="52" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <ellipse cx="36" cy="46" rx="28" ry="12" fill="#FDEEE8"/>
-          <path d="M8 46 Q8 22 36 22 Q64 22 64 46" fill="#C4522A" opacity=".15"/>
-          <path d="M12 44 Q12 24 36 24 Q60 24 60 44" stroke="#C4522A" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-          <ellipse cx="36" cy="44" rx="24" ry="5" fill="#C4522A" opacity=".1"/>
-          <path d="M28 20 Q30 14 36 12 Q42 14 44 20" stroke="#C4522A" stroke-width="2" fill="none" stroke-linecap="round" opacity=".5"/>
-          <circle cx="36" cy="11" r="2" fill="#C4522A" opacity=".4"/>
-        </svg>
-      </div>
-      <div class="auth-title">Dadi's Recipes</div>
-      <div class="auth-sub">Sign in to access your family's recipe book.</div>
-      <button class="auth-google-btn" onclick="signInWithGoogle()">
-        <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg>
-        Continue with Google
-      </button>
-      <div class="auth-loading" id="auth-loading">Signing you in…</div>
-      <div class="auth-divider">
-        <div class="auth-divider-line"></div>
-        <div class="auth-divider-text">Your recipes, your family only</div>
-        <div class="auth-divider-line"></div>
-      </div>
-      <div class="auth-fine">Each account has its own private recipe book.<br>Sign in with the same Google account to access yours.</div>
+
+  <!-- Quote banner -->
+  <div class="lp-quote-banner">
+    <img class="lp-quote-banner-img"
+      src="https://images.unsplash.com/photo-1585237672814-8f85a8118bf6?w=400&q=80"
+      alt="" onerror="this.style.display='none'"/>
+    <div class="lp-quote-text">
+      These are not just recipes,<br>they are pieces of her heart.
+      <span class="lp-quote-heart">♡</span>
     </div>
   </div>
+
+  <!-- Sign-in -->
+  <div class="lp-signin">
+    <div class="lp-signin-label">Sign in to start capturing memories</div>
+    <button class="lp-google-btn" onclick="signInWithGoogle()">
+      <svg width="19" height="19" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg>
+      Continue with Google
+    </button>
+    <div class="auth-loading" id="auth-loading">Signing you in…</div>
+    <div class="lp-fine">Each account has its own private recipe book.<br>Sign in with the same Google account to access yours.</div>
+  </div>
+
+  <!-- Bottom nav -->
+  <div class="lp-bottom-nav">
+    <button class="lp-nav-item active" onclick="signInWithGoogle()">
+      <span class="lp-nav-item-icon">🏠</span>Home
+    </button>
+    <button class="lp-nav-item" onclick="signInWithGoogle()">
+      <span class="lp-nav-item-icon">📖</span>My Keepsakes
+    </button>
+    <div class="lp-nav-center-wrap">
+      <div class="lp-nav-center" onclick="signInWithGoogle()">🎤</div>
+    </div>
+    <button class="lp-nav-item" onclick="signInWithGoogle()">
+      <span class="lp-nav-item-icon">♡</span>Favorites
+    </button>
+    <button class="lp-nav-item" onclick="signInWithGoogle()">
+      <span class="lp-nav-item-icon">👤</span>Profile
+    </button>
+  </div>
+
+</div><!-- /lp-wrap -->
 </div>
 
 <div class="app">
