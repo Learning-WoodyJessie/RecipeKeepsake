@@ -83,6 +83,16 @@ async def index():
     return JSONResponse(content={"status": "RecipeKeepsake API running"})
 
 
+@app.get("/privacy")
+async def privacy_policy():
+    """Privacy policy — required for Play Store and App Store submissions."""
+    from fastapi.responses import HTMLResponse
+    privacy = _WEB_DIR / "privacy.html"
+    if privacy.exists():
+        return FileResponse(privacy)
+    return HTMLResponse(content="<h1>Privacy Policy</h1><p>Contact pavaniaiml75@gmail.com for privacy inquiries.</p>")
+
+
 @app.get("/recipe/{token}")
 async def get_recipe_endpoint(token: str):
     """Fetch a single recipe by share token."""
