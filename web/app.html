@@ -493,12 +493,26 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
 }
 .lp-wrap{
   width:100%;min-height:100vh;
-  display:flex;align-items:center;justify-content:center;
-  background:
-    radial-gradient(circle at 16% 12%,rgba(196,128,106,.16),transparent 26%),
-    radial-gradient(circle at 92% 86%,rgba(92,61,40,.1),transparent 28%),
-    #FAF6F0;
-  padding:clamp(1rem,3vw,2.25rem);
+  display:flex;align-items:flex-start;justify-content:center;
+  background:#FAF6F0;
+  padding:0;
+}
+.lp-final-landing{
+  position:relative;width:min(100%,1024px);
+  margin:0 auto;background:#FAF6F0;
+  box-shadow:0 0 60px rgba(92,61,40,.08);
+}
+.lp-final-img{
+  display:block;width:100%;height:auto;
+}
+.lp-final-cta{
+  position:absolute;left:4.9%;top:40.3%;width:32.9%;height:4.9%;
+  border:0;border-radius:14px;background:transparent;cursor:pointer;
+  font-size:0;color:transparent;
+}
+.lp-final-cta:focus-visible{
+  outline:3px solid rgba(196,82,42,.72);
+  outline-offset:4px;
 }
 .lp-landing{
   width:min(1180px,100%);
@@ -732,7 +746,7 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
   border:3px solid #FAF6F0;
 }
 .lp-header,.lp-hero,.lp-features,.lp-section-hdr,.lp-cards,.lp-quote-banner,.lp-bottom-nav{display:none}
-.lp-wrap > :not(.lp-landing){display:none!important}
+.lp-wrap > :not(.lp-final-landing){display:none!important}
 /* Desktop centering */
 @media(min-width:481px){
   .lp-wrap{box-shadow:0 0 60px rgba(0,0,0,.08)}
@@ -814,6 +828,13 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
 <!-- ══════════ LANDING PAGE (pre-auth) ══════════ -->
 <div id="auth-wall">
 <div class="lp-wrap">
+
+  <section class="lp-final-landing" aria-label="Grandma's Keepsake">
+    <img class="lp-final-img" src="assets/landing-final.png" alt="Grandma's Keepsake landing page"/>
+    <button class="lp-final-cta" onclick="signInWithGoogle()" aria-label="Start your family keepsake">
+      Start your family keepsake
+    </button>
+  </section>
 
   <section class="lp-landing" aria-label="Grandma's Keepsake sign in">
     <div class="lp-copy">
