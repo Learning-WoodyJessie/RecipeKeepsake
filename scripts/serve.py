@@ -139,7 +139,14 @@ async def capture_endpoint(audio: UploadFile = File(...), user: dict = Depends(r
         image_url = ""
         try:
             from prompts.image import generate_dish_image
-            image_url = generate_dish_image(structured.get("dish_name") or "Indian dish")
+            from tools.storage import store_image
+            raw_url = generate_dish_image(structured.get("dish_name") or "Indian dish")
+            # Download and store permanently — DALL-E CDN URLs expire in ~1hr
+            if raw_url and os.environ.get("SUPABASE_URL"):
+                print("[serve] Storing image permanently...")
+                image_url = store_image(raw_url)
+            else:
+                image_url = raw_url
         except Exception as img_err:
             print(f"[serve] Image generation failed (non-fatal): {img_err}")
 

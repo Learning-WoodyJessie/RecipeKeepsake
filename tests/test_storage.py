@@ -1,5 +1,5 @@
 from unittest.mock import patch, MagicMock
-from tools.storage import insert_recipe, get_recipe_by_token, list_recipes
+from tools.storage import insert_recipe, get_recipe_by_token, list_recipes, store_image
 
 
 def _mock_supabase(return_data):
@@ -85,3 +85,40 @@ class TestListRecipes:
 
         order_call = mock_client.table.return_value.select.return_value.eq.return_value.order
         order_call.assert_called_once_with("recorded_at", desc=True)
+
+
+class TestStoreImage:
+    def test_returns_permanent_supabase_url(self, monkeypatch):
+        """store_image() downloads DALL-E URL and returns permanent Supabase URL."""
+        monkeypatch.setenv("SUPABASE_URL", "https://fake.supabase.co")
+        monkeypatch.setenv("SUPABASE_SERVICE_KEY", "fake-key")
+        permanent = "https://fake.supabase.co/storage/v1/object/public/images/uuid.png"
+        mock_sb = MagicMock()
+        mock_sb.storage.from_.return_value.get_public_url.return_value = permanent
+        mock_response = MagicMock()
+        mock_response.content = b"fake-png-bytes"
+        mock_response.raise_for_status = lambda: None
+
+        with patch("tools.storage.create_client", return_value=mock_sb), \
+             patch("tools.storage.httpx.get", return_value=mock_response):
+            result = store_image("https://dalle.openai.com/img/expiring.png")
+
+        assert result == permanent
+
+    def test_falls_back_to_original_on_download_error(self, monkeypatch):
+        """store_image() returns original URL if download fails — capture never crashes."""
+        monkeypatch.setenv("SUPABASE_URL", "https://fake.supabase.co")
+        monkeypatch.setenv("SUPABASE_SERVICE_KEY", "fake-key")
+        original = "https://dalle.openai.com/img/expiring.png"
+
+        with patch("tools.storage.create_client"), \
+             patch("tools.storage.httpx.get", side_effect=Exception("timeout")):
+            result = store_image(original)
+
+        assert result == original
+
+    def test_returns_empty_string_for_empty_input(self, monkeypatch):
+        """store_image() short-circuits on empty URL — no network call made."""
+        monkeypatch.setenv("SUPABASE_URL", "https://fake.supabase.co")
+        monkeypatch.setenv("SUPABASE_SERVICE_KEY", "fake-key")
+        assert store_image("") == ""

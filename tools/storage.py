@@ -1,7 +1,9 @@
 import os
 import mimetypes
+import uuid as _uuid
 from pathlib import Path
 from supabase import create_client, Client
+import httpx
 
 
 def _client() -> Client:
@@ -37,6 +39,28 @@ def _sign_audio(audio_url: str, sb) -> str:
         return result.get("signedURL") or result.get("signed_url") or audio_url
     except Exception:
         return audio_url
+
+
+def store_image(image_url: str) -> str:
+    """Download a DALL-E image and store it permanently in Supabase 'images' bucket (public).
+    Returns the permanent public URL. Falls back to the original URL on any error —
+    image failure must never crash the capture pipeline.
+    """
+    if not image_url:
+        return image_url
+    try:
+        resp = httpx.get(image_url, timeout=30, follow_redirects=True)
+        resp.raise_for_status()
+        sb = _client()
+        filename = f"{_uuid.uuid4()}.png"
+        sb.storage.from_("images").upload(
+            path=filename,
+            file=resp.content,
+            file_options={"content-type": "image/png", "upsert": "false"},
+        )
+        return sb.storage.from_("images").get_public_url(filename)
+    except Exception:
+        return image_url  # graceful fallback
 
 
 def upload_audio(local_path: str, filename: str) -> str:
