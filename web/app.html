@@ -102,6 +102,7 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
    LAYOUT HELPERS
 ═══════════════════════════════════════ */
 .page{max-width:700px;margin:0 auto;padding:1.75rem 1.5rem}
+.page-full{padding:0}
 .page-narrow{max-width:520px;margin:0 auto;padding:1.75rem 1.5rem}
 .section-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem}
 .section-title{font-family:var(--serif);font-size:1rem;color:var(--text)}
@@ -132,13 +133,73 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
 /* ═══════════════════════════════════════
    HOME SCREEN
 ═══════════════════════════════════════ */
-.home-hero{border-radius:18px;overflow:hidden;position:relative;height:210px;margin-bottom:1.5rem;cursor:pointer;background:linear-gradient(135deg,#8B3A1A,#5A2210)}
-.home-hero img{width:100%;height:100%;object-fit:cover;opacity:.82}
-.home-hero-overlay{position:absolute;inset:0;background:linear-gradient(135deg,rgba(90,34,16,.82) 0%,rgba(90,34,16,.3) 55%,transparent 100%);padding:1.4rem;display:flex;flex-direction:column;justify-content:flex-end}
-.hero-title{font-family:var(--serif);font-size:1.55rem;color:white;line-height:1.3;margin-bottom:.3rem}
-.hero-sub{font-size:.72rem;color:rgba(255,255,255,.75);margin-bottom:.85rem}
-.hero-cta{align-self:flex-start;background:var(--accent);color:white;border:none;padding:.45rem 1rem;border-radius:99px;font-size:.76rem;font-weight:600;cursor:pointer;font-family:var(--sans);transition:background .15s}
-.hero-cta:hover{background:var(--accent2)}
+/* ── Home banner ── */
+.home-banner{
+  position:relative;width:100%;height:300px;overflow:hidden;
+  background:linear-gradient(135deg,#6B2A10 0%,#9B3D1A 40%,#C4522A 75%,#D4724A 100%);
+  flex-shrink:0;
+}
+@media(max-width:767px){.home-banner{height:240px}}
+.home-banner-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.22;mix-blend-mode:multiply}
+.home-banner-pattern{
+  position:absolute;inset:0;opacity:.06;
+  background-image:radial-gradient(circle at 20% 50%,white 1px,transparent 1px),
+    radial-gradient(circle at 80% 20%,white 1px,transparent 1px),
+    radial-gradient(circle at 60% 80%,white 1px,transparent 1px);
+  background-size:40px 40px,60px 60px,30px 30px;
+}
+.home-banner-content{
+  position:relative;z-index:2;height:100%;padding:2rem 2.2rem;
+  display:flex;flex-direction:column;justify-content:flex-end;
+}
+@media(max-width:767px){.home-banner-content{padding:1.4rem 1.25rem}}
+.banner-eyebrow{font-size:.65rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.65);margin-bottom:.5rem}
+.banner-title{font-family:var(--serif);font-size:2.4rem;color:white;line-height:1.18;font-weight:700;margin-bottom:.5rem}
+@media(max-width:767px){.banner-title{font-size:1.75rem}}
+.banner-sub{font-size:.82rem;color:rgba(255,255,255,.72);margin-bottom:1.25rem;line-height:1.55;max-width:420px}
+.banner-actions{display:flex;gap:.7rem;align-items:center;flex-wrap:wrap}
+.banner-cta{background:white;color:var(--accent);border:none;padding:.55rem 1.3rem;border-radius:99px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:var(--sans);transition:transform .15s,box-shadow .15s;box-shadow:0 4px 14px rgba(0,0,0,.18)}
+.banner-cta:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(0,0,0,.22)}
+.banner-cta-ghost{background:rgba(255,255,255,.15);color:white;border:1.5px solid rgba(255,255,255,.4);padding:.52rem 1.15rem;border-radius:99px;font-size:.82rem;font-weight:600;cursor:pointer;font-family:var(--sans);backdrop-filter:blur(4px);transition:background .15s}
+.banner-cta-ghost:hover{background:rgba(255,255,255,.25)}
+.banner-deco{position:absolute;right:2.5rem;bottom:1.5rem;opacity:.12;font-size:7rem;line-height:1;pointer-events:none;user-select:none}
+@media(max-width:767px){.banner-deco{display:none}}
+
+/* ── Stats strip ── */
+.stats-strip{display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--surface)}
+.stat-item{flex:1;padding:.85rem 1rem;text-align:center;border-right:1px solid var(--border)}
+.stat-item:last-child{border-right:none}
+.stat-num{font-family:var(--serif);font-size:1.45rem;color:var(--accent);font-weight:700;line-height:1}
+.stat-label{font-size:.62rem;color:var(--muted);margin-top:.2rem;font-weight:500;text-transform:uppercase;letter-spacing:.06em}
+
+/* ── Home body ── */
+.home-body{padding:1.6rem 2rem}
+@media(max-width:767px){.home-body{padding:1.2rem 1rem}}
+
+.home-hero{display:none} /* hide old hero */
+.hero-title,.hero-sub,.hero-cta{display:none}
+
+.fav-row{display:flex;gap:.85rem;overflow-x:auto;padding-bottom:.5rem;scrollbar-width:none;margin-bottom:1.75rem}
+.fav-row::-webkit-scrollbar{display:none}
+.fav-chip{flex-shrink:0;border-radius:16px;overflow:hidden;cursor:pointer;position:relative;width:120px;height:90px;box-shadow:0 3px 12px rgba(0,0,0,.12);transition:transform .18s,box-shadow .18s}
+.fav-chip:hover{transform:translateY(-3px);box-shadow:0 6px 20px rgba(0,0,0,.16)}
+.fav-chip img{width:100%;height:100%;object-fit:cover}
+.fav-chip-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.68) 0%,rgba(0,0,0,.1) 55%,transparent 100%)}
+.fav-chip-name{position:absolute;bottom:.45rem;left:.5rem;right:.5rem;font-size:.65rem;font-weight:600;color:white;line-height:1.2}
+.fav-chip-heart{position:absolute;top:.35rem;right:.38rem;font-size:.72rem}
+.fav-chip-empty{flex-shrink:0;width:120px;height:90px;border-radius:16px;background:var(--cream2);border:2px dashed var(--border2);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;gap:.3rem;transition:border-color .15s}
+.fav-chip-empty:hover{border-color:var(--accent)}
+.fav-chip-empty-icon{font-size:1.3rem;opacity:.5}
+.fav-chip-empty-label{font-size:.6rem;color:var(--muted);font-weight:500}
+
+.recent-card{display:flex;align-items:center;gap:.85rem;padding:.75rem .9rem;background:var(--surface);border:1px solid var(--border);border-radius:14px;cursor:pointer;transition:box-shadow .15s,border-color .15s;margin-bottom:.6rem}
+.recent-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.07);border-color:var(--border2)}
+
+/* ── Quote card ── */
+.quote-card{background:linear-gradient(135deg,var(--accent-light),#FDF5F0);border:1px solid rgba(196,82,42,.15);border-radius:16px;padding:1.25rem 1.4rem;margin-top:1.75rem;display:flex;gap:1rem;align-items:flex-start}
+.quote-mark{font-family:var(--serif);font-size:3rem;color:var(--accent);opacity:.3;line-height:.8;flex-shrink:0}
+.quote-text{font-family:var(--serif);font-size:.92rem;color:var(--text2);font-style:italic;line-height:1.65}
+.quote-attr{font-size:.68rem;color:var(--muted);margin-top:.4rem}
 
 .fav-row{display:flex;gap:.7rem;overflow-x:auto;padding-bottom:.4rem;scrollbar-width:none;margin-bottom:1.5rem}
 .fav-row::-webkit-scrollbar{display:none}
@@ -534,27 +595,50 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
     <div class="screen-wrap" id="screenWrap">
 
       <!-- ════ HOME ════ -->
-      <div class="screen active" id="screen-home">
-        <div class="page">
-          <!-- Hero -->
-          <div class="home-hero" onclick="go('capture')">
-            <img src="https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=800&q=80" alt="" onerror="this.style.opacity=0"/>
-            <div class="home-hero-overlay">
-              <div class="hero-title">Stories from<br>our kitchen ♡</div>
-              <div class="hero-sub">Recipes and stories passed down with love.</div>
-              <button class="hero-cta" onclick="event.stopPropagation();go('capture')">+ Capture a memory</button>
+      <div class="screen active page-full" id="screen-home">
+        <!-- Full-bleed banner -->
+        <div class="home-banner">
+          <img class="home-banner-img" src="https://images.unsplash.com/photo-1596797038530-2c107229654b?w=1200&q=80" alt="" onerror="this.style.display='none'"/>
+          <div class="home-banner-pattern"></div>
+          <div class="home-banner-content">
+            <div class="banner-eyebrow">Our family archive</div>
+            <div class="banner-title">Stories from<br>our kitchen ♡</div>
+            <div class="banner-sub">Every recipe holds a memory. Every voice tells a story.</div>
+            <div class="banner-actions">
+              <button class="banner-cta" onclick="go('capture')">🎤 Capture a memory</button>
+              <button class="banner-cta-ghost" onclick="go('all-recipes')">Browse recipes</button>
             </div>
           </div>
+          <div class="banner-deco">🫕</div>
+        </div>
 
-          <!-- Dadi's favorites -->
+        <!-- Stats strip -->
+        <div class="stats-strip" id="stats-strip">
+          <div class="stat-item">
+            <div class="stat-num" id="stat-recipes">—</div>
+            <div class="stat-label">Recipes</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-num" id="stat-narrators">—</div>
+            <div class="stat-label">Voices</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-num" id="stat-latest">—</div>
+            <div class="stat-label">Latest</div>
+          </div>
+        </div>
+
+        <!-- Home body -->
+        <div class="home-body">
+          <!-- Recipe chips -->
           <div class="section-hdr">
-            <span class="section-title">Recent memories</span>
+            <span class="section-title">From the kitchen</span>
             <button class="view-all" onclick="go('all-recipes')">View all</button>
           </div>
           <div class="fav-row" id="fav-row">
-            <div class="skel" style="width:95px;height:74px;flex-shrink:0;border-radius:13px"></div>
-            <div class="skel" style="width:95px;height:74px;flex-shrink:0;border-radius:13px"></div>
-            <div class="skel" style="width:95px;height:74px;flex-shrink:0;border-radius:13px"></div>
+            <div class="skel" style="width:120px;height:90px;flex-shrink:0;border-radius:16px"></div>
+            <div class="skel" style="width:120px;height:90px;flex-shrink:0;border-radius:16px"></div>
+            <div class="skel" style="width:120px;height:90px;flex-shrink:0;border-radius:16px"></div>
           </div>
 
           <!-- Recently remembered -->
@@ -562,10 +646,20 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
             <span class="section-title">Recently remembered</span>
           </div>
           <div id="recent-list">
-            <div class="skel" style="height:60px;margin-bottom:.55rem"></div>
-            <div class="skel" style="height:60px;margin-bottom:.55rem"></div>
+            <div class="skel" style="height:64px;margin-bottom:.6rem;border-radius:14px"></div>
+            <div class="skel" style="height:64px;margin-bottom:.6rem;border-radius:14px"></div>
           </div>
-          <div style="height:1rem"></div>
+
+          <!-- Kitchen quote -->
+          <div class="quote-card" id="home-quote" style="display:none">
+            <div class="quote-mark">"</div>
+            <div>
+              <div class="quote-text" id="quote-text"></div>
+              <div class="quote-attr" id="quote-attr"></div>
+            </div>
+          </div>
+
+          <div style="height:1.5rem"></div>
         </div>
       </div>
 
@@ -1011,27 +1105,60 @@ function narratorEmoji(name) {
   return NARRATOR_EMOJI[name] || '👤';
 }
 
+const KITCHEN_QUOTES = [
+  { text: "Cook with love, eat with joy. The secret ingredient is always in the heart.", attr: "An old family saying" },
+  { text: "A recipe has no soul. You, as the cook, must bring soul to the recipe.", attr: "From our kitchen" },
+  { text: "Food is our common ground, a universal experience.", attr: "Passed down through generations" },
+  { text: "The smell of good bread baking is the best smell there is, and it means that something is being done well.", attr: "Kitchen wisdom" },
+];
+
 function renderHome() {
+  // Stats strip
+  const narrators = new Set(allRecipes.map(r => r.narrator).filter(Boolean));
+  document.getElementById('stat-recipes').textContent = allRecipes.length || '0';
+  document.getElementById('stat-narrators').textContent = narrators.size || '0';
+  const latest = allRecipes[0];
+  document.getElementById('stat-latest').textContent = latest
+    ? formatDate(latest.recorded_at).replace(/\d{4}/,'').replace(/,\s*$/,'').trim() || '—'
+    : '—';
+
   // Favorites chips
   const favRow = document.getElementById('fav-row');
   if (allRecipes.length === 0) {
-    favRow.innerHTML = `<div style="color:var(--muted);font-size:.8rem;padding:.5rem 0">No recipes yet — <a onclick="go('capture')" style="color:var(--accent);cursor:pointer">capture the first one</a></div>`;
+    favRow.innerHTML = `
+      <div class="fav-chip-empty" onclick="go('capture')">
+        <div class="fav-chip-empty-icon">🎤</div>
+        <div class="fav-chip-empty-label">First recipe</div>
+      </div>`;
   } else {
-    favRow.innerHTML = allRecipes.slice(0,6).map(r => `
+    const chips = allRecipes.slice(0,8).map(r => `
       <div class="fav-chip" onclick="openRecipe('${r.token}')">
-        ${r.image_url ? `<img src="${r.image_url}" alt="${esc(r.dish_name)}" onerror="this.style.display='none'"/>` : `<div style="width:100%;height:100%;background:var(--cream2);display:flex;align-items:center;justify-content:center;font-size:1.8rem">🍽️</div>`}
+        ${r.image_url
+          ? `<img src="${r.image_url}" alt="${esc(r.dish_name)}" onerror="this.style.display='none'"/>`
+          : `<div style="width:100%;height:100%;background:linear-gradient(135deg,var(--cream2),var(--cream3));display:flex;align-items:center;justify-content:center;font-size:2rem">🍽️</div>`}
         <div class="fav-chip-overlay"></div>
         <div class="fav-chip-name">${esc(r.dish_name || 'Untitled')}</div>
-      </div>
-    `).join('');
+      </div>`).join('');
+    // Add a "record new" chip at the end
+    favRow.innerHTML = chips + `
+      <div class="fav-chip-empty" onclick="go('capture')">
+        <div class="fav-chip-empty-icon">＋</div>
+        <div class="fav-chip-empty-label">Add recipe</div>
+      </div>`;
   }
 
   // Recently remembered
   const recList = document.getElementById('recent-list');
   if (allRecipes.length === 0) {
-    recList.innerHTML = `<div style="color:var(--muted);font-size:.8rem;text-align:center;padding:1rem 0">No memories recorded yet.</div>`;
+    recList.innerHTML = `
+      <div style="text-align:center;padding:2rem 1rem">
+        <div style="font-size:2.5rem;margin-bottom:.75rem">🫕</div>
+        <div style="font-family:var(--serif);font-size:1rem;color:var(--text);margin-bottom:.4rem">No memories yet</div>
+        <div style="font-size:.8rem;color:var(--muted);margin-bottom:1rem">Start by recording a recipe with a family member</div>
+        <button onclick="go('capture')" style="background:var(--accent);color:white;border:none;padding:.5rem 1.2rem;border-radius:99px;font-size:.8rem;font-weight:600;cursor:pointer;font-family:var(--sans)">🎤 Capture a memory</button>
+      </div>`;
   } else {
-    recList.innerHTML = allRecipes.slice(0,4).map(r => `
+    recList.innerHTML = allRecipes.slice(0,5).map(r => `
       <div class="recent-card" onclick="openRecipe('${r.token}')">
         <div class="recent-av">${narratorEmoji(r.narrator)}</div>
         <div class="recent-info">
@@ -1039,8 +1166,15 @@ function renderHome() {
           <div class="recent-when">Recorded ${formatDate(r.recorded_at)} · ${esc(r.narrator || 'Grandma')}</div>
         </div>
         ${r.audio_url ? `<div class="recent-play" onclick="event.stopPropagation();openHearDadiFor('${r.token}')">▶</div>` : ''}
-      </div>
-    `).join('');
+      </div>`).join('');
+  }
+
+  // Kitchen quote
+  if (allRecipes.length > 0) {
+    const q = KITCHEN_QUOTES[Math.floor(Math.random() * KITCHEN_QUOTES.length)];
+    document.getElementById('quote-text').textContent = q.text;
+    document.getElementById('quote-attr').textContent = '— ' + q.attr;
+    document.getElementById('home-quote').style.display = 'flex';
   }
 }
 
