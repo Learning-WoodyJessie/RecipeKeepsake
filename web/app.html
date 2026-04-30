@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
 /* ═══════════════════════════════════════
    DESIGN TOKENS
@@ -416,9 +417,62 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
 
 /* hidden real audio element */
 #real-audio{display:none}
+
+/* ═══════════════════════════════════════
+   AUTH WALL
+═══════════════════════════════════════ */
+#auth-wall{
+  position:fixed;inset:0;background:var(--cream);
+  display:none;align-items:center;justify-content:center;
+  z-index:9999;padding:1.5rem;
+}
+.auth-card{
+  background:var(--surface);border-radius:22px;
+  padding:2.5rem 2rem;max-width:380px;width:100%;
+  box-shadow:0 4px 40px rgba(196,82,42,.12);
+  display:flex;flex-direction:column;align-items:center;text-align:center;gap:0;
+}
+.auth-bowl{margin-bottom:1.1rem}
+.auth-title{font-family:var(--serif);font-size:1.9rem;color:var(--text);font-weight:700;line-height:1.15;margin-bottom:.4rem}
+.auth-sub{font-size:.85rem;color:var(--muted);margin-bottom:1.8rem;line-height:1.55}
+.auth-google-btn{
+  display:flex;align-items:center;justify-content:center;gap:.75rem;
+  width:100%;padding:.82rem 1.25rem;
+  background:white;border:1.5px solid #dadce0;border-radius:12px;
+  font-size:.9rem;font-weight:500;color:#3c4043;cursor:pointer;
+  font-family:var(--sans);transition:box-shadow .2s,border-color .2s;
+  margin-bottom:1.5rem;
+}
+.auth-google-btn:hover{box-shadow:0 2px 10px rgba(0,0,0,.12);border-color:#c6c6c6}
+.auth-fine{font-size:.68rem;color:var(--muted);line-height:1.55}
+.auth-loading{font-size:.82rem;color:var(--muted);margin-top:1rem;display:none}
 </style>
 </head>
 <body>
+<!-- ══════════ AUTH WALL ══════════ -->
+<div id="auth-wall">
+  <div class="auth-card">
+    <div class="auth-bowl">
+      <svg width="72" height="72" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="36" cy="46" rx="28" ry="12" fill="#FDEEE8"/>
+        <path d="M8 46 Q8 22 36 22 Q64 22 64 46" fill="#C4522A" opacity=".15"/>
+        <path d="M12 44 Q12 24 36 24 Q60 24 60 44" stroke="#C4522A" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <ellipse cx="36" cy="44" rx="24" ry="5" fill="#C4522A" opacity=".1"/>
+        <path d="M28 20 Q30 14 36 12 Q42 14 44 20" stroke="#C4522A" stroke-width="2" fill="none" stroke-linecap="round" opacity=".5"/>
+        <circle cx="36" cy="11" r="2" fill="#C4522A" opacity=".4"/>
+      </svg>
+    </div>
+    <div class="auth-title">Dadi's Recipes</div>
+    <div class="auth-sub">Your family's recipe book.<br>Preserve the taste of home, forever.</div>
+    <button class="auth-google-btn" onclick="signInWithGoogle()">
+      <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg>
+      Continue with Google
+    </button>
+    <div class="auth-loading" id="auth-loading">Signing you in…</div>
+    <div class="auth-fine">Only family members can access this app.<br>Sign in with your Google account to continue.</div>
+  </div>
+</div>
+
 <div class="app">
 
   <!-- ══════════ SIDEBAR ══════════ -->
@@ -455,9 +509,10 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
     <div class="sidebar-cta">
       <button class="btn-sidebar-cta" onclick="go('capture')">🎤 Capture a memory</button>
     </div>
-    <div class="sidebar-user">
-      <div class="user-av">A</div>
-      <div class="user-name">Ananya</div>
+    <div class="sidebar-user" onclick="signOut()" title="Sign out">
+      <div class="user-av" id="sidebar-av">?</div>
+      <div class="user-name" id="sidebar-name">…</div>
+      <div style="margin-left:auto;font-size:.65rem;color:var(--muted)">↪</div>
     </div>
   </aside>
 
@@ -471,7 +526,7 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
         <input placeholder="Search recipes, people…" oninput="filterSearch(this.value)"/>
       </div>
       <div class="topbar-right">
-        <span class="topbar-greeting">Namaste, Ananya 👋</span>
+        <span class="topbar-greeting" id="topbar-greeting">Namaste 👋</span>
         <button class="topbar-bell" onclick="showToast('Notifications coming soon')">🔔</button>
       </div>
     </div>
@@ -1322,7 +1377,8 @@ async function submitAudio(blob, filename) {
   form.append('audio', blob, filename || 'recording.webm');
 
   try {
-    const res = await fetch('/capture', { method: 'POST', body: form });
+    const authHdrs = await getAuthHeaders();
+    const res = await fetch('/capture', { method: 'POST', body: form, headers: authHdrs });
     if (!res.ok) {
       const err = await res.json().catch(() => ({ detail: 'Unknown error' }));
       throw new Error(err.detail || 'Pipeline failed');
@@ -1481,9 +1537,10 @@ async function saveUserNotes() {
   btn.disabled = true;
   statusEl.textContent = 'Saving…';
   try {
+    const authHdrs = await getAuthHeaders();
     const res = await fetch(`/recipe/${currentRecipe.token}`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...authHdrs },
       body: JSON.stringify({ user_notes: notes })
     });
     if (!res.ok) throw new Error(await res.text());
@@ -1546,12 +1603,84 @@ function handleUrlParams() {
 }
 
 // ═══════════════════════════════════════
-// INIT
+// AUTH
 // ═══════════════════════════════════════
-document.addEventListener('DOMContentLoaded', async () => {
+const SUPABASE_URL  = 'https://wucsfihcophwqynqkqkf.supabase.co';
+const SUPABASE_ANON = 'sb_publishable_dcI9kc2f9PBOSc26LkgwfA_THjqV3EL';
+const _sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+let currentUser = null;
+
+async function initAuth() {
+  const { data: { session } } = await _sbClient.auth.getSession();
+  if (session) {
+    await onSignedIn(session.user);
+  } else {
+    showAuthWall();
+  }
+  _sbClient.auth.onAuthStateChange((event, session) => {
+    if (event === 'SIGNED_IN' && session) onSignedIn(session.user);
+    if (event === 'SIGNED_OUT') showAuthWall();
+  });
+}
+
+async function onSignedIn(user) {
+  currentUser = user;
+  hideAuthWall();
+  updateUserUI(user);
   await loadRecipes();
   handleUrlParams();
-});
+}
+
+function showAuthWall() {
+  document.getElementById('auth-wall').style.display = 'flex';
+  document.querySelector('.app').style.display = 'none';
+}
+
+function hideAuthWall() {
+  document.getElementById('auth-wall').style.display = 'none';
+  document.querySelector('.app').style.display = 'flex';
+}
+
+async function signInWithGoogle() {
+  document.getElementById('auth-loading').style.display = 'block';
+  await _sbClient.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.origin }
+  });
+}
+
+async function signOut() {
+  await _sbClient.auth.signOut();
+}
+
+function updateUserUI(user) {
+  const fullName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'You';
+  const firstName = fullName.split(' ')[0];
+  const avatarUrl = user.user_metadata?.avatar_url || '';
+
+  // Topbar
+  document.getElementById('topbar-greeting').textContent = `Namaste, ${firstName} 👋`;
+
+  // Sidebar
+  document.getElementById('sidebar-name').textContent = firstName;
+  const avEl = document.getElementById('sidebar-av');
+  if (avatarUrl) {
+    avEl.innerHTML = `<img src="${avatarUrl}" style="width:100%;height:100%;border-radius:50%;object-fit:cover"/>`;
+  } else {
+    avEl.textContent = firstName[0].toUpperCase();
+  }
+}
+
+async function getAuthHeaders() {
+  const { data: { session } } = await _sbClient.auth.getSession();
+  return session ? { 'Authorization': `Bearer ${session.access_token}` } : {};
+}
+
+// ═══════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════
+document.addEventListener('DOMContentLoaded', initAuth);
 </script>
 </body>
 </html>

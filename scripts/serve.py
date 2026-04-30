@@ -16,10 +16,12 @@ from dotenv import load_dotenv
 # Load .env from project root — no-op in production (Railway sets env vars directly)
 load_dotenv(Path(__file__).parent.parent / ".env")
 
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, UploadFile, File, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
+import httpx
 
 from tools.transcribe import transcribe_audio
 from prompts.translate import translate_to_english
@@ -44,6 +46,30 @@ def _load_config() -> dict:
 
 
 app = FastAPI(title="RecipeKeepsake API")
+
+_bearer = HTTPBearer(auto_error=False)
+
+
+async def require_auth(creds: HTTPAuthorizationCredentials = Depends(_bearer)) -> dict:
+    """Validate Supabase JWT. Returns the user dict or raises 401."""
+    if not creds:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    anon_key = os.environ.get("SUPABASE_ANON_KEY", "")
+    supabase_url = os.environ.get("SUPABASE_URL", "")
+    if not supabase_url:
+        # Auth not configured — allow through (local dev without Supabase)
+        return {}
+    try:
+        resp = httpx.get(
+            f"{supabase_url}/auth/v1/user",
+            headers={"apikey": anon_key, "Authorization": f"Bearer {creds.credentials}"},
+            timeout=5,
+        )
+        if resp.status_code != 200:
+            raise HTTPException(status_code=401, detail="Invalid or expired session")
+        return resp.json()
+    except httpx.RequestError:
+        raise HTTPException(status_code=401, detail="Could not verify session")
 
 app.add_middleware(
     CORSMiddleware,
@@ -84,7 +110,7 @@ async def list_recipes_endpoint():
 
 
 @app.post("/capture")
-async def capture_endpoint(audio: UploadFile = File(...)):
+async def capture_endpoint(audio: UploadFile = File(...), user: dict = Depends(require_auth)):
     """
     Accept an audio file, run the full pipeline, return structured recipe JSON.
     Supabase storage is optional — skip by omitting env vars (useful for local testing).
@@ -138,7 +164,12 @@ async def capture_endpoint(audio: UploadFile = File(...)):
             except Exception as audio_err:
                 print(f"[serve] Audio upload failed (non-fatal): {audio_err}")
                 stored_path = ""
-            stored = insert_recipe({**recipe, "audio_url": stored_path})
+            stored = insert_recipe({
+                **recipe,
+                "audio_url": stored_path,
+                "recorded_by_email": user.get("email", ""),
+                "recorded_by_name": (user.get("user_metadata") or {}).get("full_name", ""),
+            })
             recipe["id"] = stored.get("id")
             recipe["token"] = stored.get("token")
             # Return a signed URL so the browser can play immediately
@@ -181,7 +212,7 @@ class PatchRecipeRequest(BaseModel):
 
 
 @app.patch("/recipe/{token}")
-async def patch_recipe_endpoint(token: str, body: PatchRecipeRequest):
+async def patch_recipe_endpoint(token: str, body: PatchRecipeRequest, user: dict = Depends(require_auth)):
     """Update user_notes on a recipe."""
     if not (os.environ.get("SUPABASE_URL") and os.environ.get("SUPABASE_SERVICE_KEY")):
         raise HTTPException(status_code=503, detail="Storage not configured")
