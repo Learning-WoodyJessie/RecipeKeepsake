@@ -11,3 +11,6 @@ __pycache__/
 node_modules/
 ios/
 android/
+package.json
+package-lock.json
+capacitor.config.json
