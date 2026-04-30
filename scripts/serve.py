@@ -24,25 +24,18 @@ from pydantic import BaseModel
 import httpx
 
 from tools.transcribe import transcribe_audio
+from tools.config import load_config
 from prompts.translate import translate_to_english
 from prompts.structure import structure_recipe
 from prompts.llm import OpenAIProvider
 
-import yaml
-
-_CONFIG_PATH = Path(__file__).parent.parent / "data" / "config.yaml"
 _WEB_DIR = Path(__file__).parent.parent / "web"
 
-# CORS — allow localhost in dev, Vercel URL in prod via ALLOWED_ORIGINS env var
+# CORS — allow localhost in dev, Railway URL in prod via ALLOWED_ORIGINS env var
 _ALLOWED_ORIGINS = os.environ.get(
     "ALLOWED_ORIGINS",
     "http://localhost:3000,http://127.0.0.1:3000,http://localhost:8080"
 ).split(",")
-
-
-def _load_config() -> dict:
-    with open(_CONFIG_PATH) as f:
-        return yaml.safe_load(f)
 
 
 app = FastAPI(title="RecipeKeepsake API")
@@ -119,7 +112,7 @@ async def capture_endpoint(audio: UploadFile = File(...), user: dict = Depends(r
     if not os.environ.get("OPENAI_API_KEY"):
         raise HTTPException(status_code=500, detail="OPENAI_API_KEY not set")
 
-    config = _load_config()
+    config = load_config()
     provider = OpenAIProvider(model=config["llm"]["model"])
 
     suffix = Path(audio.filename).suffix if audio.filename else ".webm"

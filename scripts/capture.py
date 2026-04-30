@@ -1,18 +1,9 @@
-from pathlib import Path
-import yaml
-
 from tools.transcribe import transcribe_audio
+from tools.config import load_config
 from prompts.translate import translate_to_english
 from prompts.structure import structure_recipe
 from prompts.llm import OpenAIProvider
 from tools.storage import insert_recipe
-
-_CONFIG_PATH = Path(__file__).parent.parent / "data" / "config.yaml"
-
-
-def _load_config() -> dict:
-    with open(_CONFIG_PATH) as f:
-        return yaml.safe_load(f)
 
 
 def capture(audio_path: str, audio_url: str) -> dict:
@@ -21,7 +12,7 @@ def capture(audio_path: str, audio_url: str) -> dict:
     audio file → Whisper → translate → structure → Supabase insert.
     Returns the saved recipe row.
     """
-    config = _load_config()
+    config = load_config()
     provider = OpenAIProvider(model=config["llm"]["model"])
 
     print("Transcribing...")

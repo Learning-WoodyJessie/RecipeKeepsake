@@ -489,14 +489,14 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
 /* Left banner panel */
 .auth-banner{
   flex:1;position:relative;overflow:hidden;
-  background:linear-gradient(160deg,#6B2A10 0%,#9B3D1A 45%,#C4522A 80%,#D4724A 100%);
+  background:linear-gradient(160deg,rgba(60,18,6,.82) 0%,rgba(107,42,16,.75) 40%,rgba(155,61,26,.65) 70%,rgba(196,82,42,.5) 100%);
   display:flex;flex-direction:column;justify-content:flex-end;padding:3rem;
   min-height:100vh;
 }
 @media(max-width:767px){.auth-banner{display:none}}
 .auth-banner-img{
   position:absolute;inset:0;width:100%;height:100%;
-  object-fit:cover;opacity:.18;mix-blend-mode:multiply;
+  object-fit:cover;opacity:.55;
 }
 .auth-banner-pattern{
   position:absolute;inset:0;
@@ -558,6 +558,15 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
 .auth-fine{font-size:.67rem;color:var(--muted);line-height:1.6;text-align:center}
 .auth-loading{font-size:.8rem;color:var(--muted);margin-top:.85rem;display:none}
 
+/* ── Topbar sign-out button ── */
+.topbar-signout{
+  font-size:.72rem;font-family:var(--sans);font-weight:500;
+  color:var(--muted);background:none;
+  border:1px solid var(--border);border-radius:8px;
+  padding:.3rem .7rem;cursor:pointer;
+  transition:color .15s,border-color .15s;white-space:nowrap;
+}
+.topbar-signout:hover{color:var(--accent);border-color:var(--accent)}
 /* ── Topbar profile avatar + dropdown ── */
 .topbar-profile{position:relative;cursor:pointer;flex-shrink:0}
 .topbar-av{
@@ -590,6 +599,35 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
   transition:background .12s;
 }
 .profile-menu-item:hover{background:var(--cream);color:var(--accent)}
+/* ── Welcome / onboarding modal ── */
+.welcome-modal-inner{
+  background:var(--surface);border-radius:24px;
+  max-width:420px;width:100%;
+  box-shadow:0 12px 48px rgba(0,0,0,.22);overflow:hidden;
+}
+.welcome-modal-banner{
+  background:linear-gradient(135deg,#C4522A,#9B3D1A);
+  padding:2rem 2rem 1.5rem;text-align:center;position:relative;
+}
+.welcome-modal-banner img{
+  width:72px;height:72px;border-radius:50%;object-fit:cover;
+  border:3px solid rgba(255,255,255,.3);margin-bottom:.75rem;display:block;margin-left:auto;margin-right:auto;
+}
+.welcome-modal-banner-emoji{
+  font-size:3rem;display:block;margin-bottom:.75rem;
+}
+.welcome-modal-title{
+  font-family:var(--serif);font-size:1.4rem;color:white;font-weight:700;margin-bottom:.3rem;
+}
+.welcome-modal-sub{font-size:.78rem;color:rgba(255,255,255,.75);line-height:1.6}
+.welcome-modal-body{padding:1.5rem 1.75rem 1.75rem}
+.wm-field{margin-bottom:.85rem}
+.wm-label{font-size:.63rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);display:block;margin-bottom:.3rem}
+.wm-input{width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:10px;font-size:.88rem;font-family:var(--sans);background:var(--cream);color:var(--text);outline:none;box-sizing:border-box}
+.wm-input:focus{border-color:var(--accent)}
+.wm-photo-row{display:flex;align-items:center;gap:.75rem}
+.wm-photo-preview{width:44px;height:44px;border-radius:50%;background:var(--cream2);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.4rem;overflow:hidden;flex-shrink:0}
+.wm-photo-preview img{width:100%;height:100%;object-fit:cover}
 </style>
 </head>
 <body>
@@ -692,6 +730,7 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
       </div>
       <div class="topbar-right">
         <span class="topbar-greeting" id="topbar-greeting">Namaste 👋</span>
+        <button class="topbar-signout" onclick="signOut()" title="Sign out">↪ Sign out</button>
         <div class="topbar-profile" id="topbar-profile" onclick="toggleProfileMenu()">
           <div class="topbar-av" id="topbar-av">?</div>
         </div>
@@ -1389,13 +1428,18 @@ function renderPeople() {
   list.innerHTML = narrators.map(([name, count]) => {
     const custom = customPeople.find(p => p.name === name);
     const emoji = custom?.emoji || narratorEmoji(name);
+    const photo = custom?.photo || '';
     const relation = custom?.relation || '';
+    const notes = custom?.notes || '';
+    const avHtml = photo
+      ? `<img src="${esc(photo)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%" onerror="this.parentElement.textContent='${esc(emoji)}'">`
+      : emoji;
     return `
     <div class="person-row" onclick="openProfile('${esc(name)}')">
-      <div class="person-av">${emoji}</div>
-      <div>
+      <div class="person-av">${avHtml}</div>
+      <div style="flex:1;min-width:0">
         <div class="person-name">${esc(name)}${relation ? `<span style="font-size:.65rem;color:var(--muted);font-weight:400;margin-left:.4rem">${esc(relation)}</span>` : ''}</div>
-        <div class="person-count">${count} ${count === 1 ? 'memory' : 'memories'}</div>
+        <div class="person-count">${notes ? esc(notes.slice(0,48)) + (notes.length > 48 ? '…' : '') : count + ' ' + (count === 1 ? 'memory' : 'memories')}</div>
       </div>
       <div class="person-chev">›</div>
     </div>`;
@@ -1817,6 +1861,10 @@ async function onSignedIn(user) {
   renderNarratorChips();
   await loadRecipes();
   handleUrlParams();
+  // First-time welcome: if no people added yet, prompt to add first narrator
+  if (_loadPeople().length === 0 && !localStorage.getItem('rk_welcomed')) {
+    setTimeout(openWelcomeModal, 700);
+  }
 }
 
 function showAuthWall() {
@@ -1917,6 +1965,8 @@ function openAddPersonModal() {
   document.getElementById('ap-name').value = '';
   document.getElementById('ap-relation').value = '';
   document.getElementById('ap-emoji').value = '';
+  document.getElementById('ap-photo').value = '';
+  document.getElementById('ap-notes').value = '';
   document.getElementById('ap-err').textContent = '';
   setTimeout(() => document.getElementById('ap-name').focus(), 80);
 }
@@ -1929,17 +1979,64 @@ function saveNewPerson() {
   const name = document.getElementById('ap-name').value.trim();
   const relation = document.getElementById('ap-relation').value.trim();
   const emoji = document.getElementById('ap-emoji').value.trim() || '👤';
+  const photo = document.getElementById('ap-photo').value.trim();
+  const notes = document.getElementById('ap-notes').value.trim();
   const errEl = document.getElementById('ap-err');
   if (!name) { errEl.textContent = 'Please enter a name.'; return; }
   const people = _loadPeople();
   if (people.find(p => p.name.toLowerCase() === name.toLowerCase())) {
     errEl.textContent = `${name} is already in your family book.`; return;
   }
-  people.push({ name, relation, emoji });
+  people.push({ name, relation, emoji, photo, notes });
   _savePeople(people);
   closeAddPersonModal();
   renderPeople();
-  // Also refresh narrator chips on capture screen
+  renderNarratorChips();
+  showToast(`${name} added to your family book ♡`);
+}
+
+/* ── Welcome / onboarding modal ── */
+function openWelcomeModal() {
+  document.getElementById('wm-name').value = '';
+  document.getElementById('wm-relation').value = '';
+  document.getElementById('wm-emoji').value = '';
+  document.getElementById('wm-photo').value = '';
+  document.getElementById('wm-notes').value = '';
+  document.getElementById('wm-err').textContent = '';
+  document.getElementById('wm-preview-emoji').textContent = '👵';
+  document.getElementById('welcome-modal').style.display = 'flex';
+  setTimeout(() => document.getElementById('wm-name').focus(), 80);
+}
+
+function closeWelcomeModal() {
+  document.getElementById('welcome-modal').style.display = 'none';
+  localStorage.setItem('rk_welcomed', '1');
+}
+
+function updateWmPreview() {
+  const emoji = document.getElementById('wm-emoji').value.trim();
+  const photo = document.getElementById('wm-photo').value.trim();
+  const previewEl = document.getElementById('wm-preview-emoji');
+  if (photo) {
+    previewEl.innerHTML = `<img src="${esc(photo)}" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:3px solid rgba(255,255,255,.3)" onerror="this.parentElement.textContent='${esc(emoji)||'👵'}'"/>`;
+  } else {
+    previewEl.textContent = emoji || '👵';
+  }
+}
+
+function saveWelcomePerson() {
+  const name = document.getElementById('wm-name').value.trim();
+  const relation = document.getElementById('wm-relation').value.trim();
+  const emoji = document.getElementById('wm-emoji').value.trim() || '👵';
+  const photo = document.getElementById('wm-photo').value.trim();
+  const notes = document.getElementById('wm-notes').value.trim();
+  const errEl = document.getElementById('wm-err');
+  if (!name) { errEl.textContent = 'Please enter a name.'; return; }
+  const people = _loadPeople();
+  people.push({ name, relation, emoji, photo, notes });
+  _savePeople(people);
+  closeWelcomeModal();
+  renderPeople();
   renderNarratorChips();
   showToast(`${name} added to your family book ♡`);
 }
@@ -1963,6 +2060,56 @@ function renderNarratorChips() {
 </script>
 
 <!-- ══════════ ADD PERSON MODAL ══════════ -->
+<!-- ══════════ WELCOME / ONBOARDING MODAL ══════════ -->
+<div id="welcome-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9000;align-items:center;justify-content:center;padding:1.5rem">
+  <div class="welcome-modal-inner">
+    <div class="welcome-modal-banner">
+      <span class="welcome-modal-banner-emoji" id="wm-preview-emoji">👵</span>
+      <div class="welcome-modal-title">Welcome to the family book!</div>
+      <div class="welcome-modal-sub">Start by adding the first person whose recipes you want to capture. You can add more anytime.</div>
+    </div>
+    <div class="welcome-modal-body">
+      <div class="wm-field">
+        <label class="wm-label">Name *</label>
+        <input id="wm-name" class="wm-input" placeholder="e.g. Dadi, Nani, Mumma…"
+          onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"
+          oninput="updateWmPreview()" onkeydown="if(event.key==='Enter')saveWelcomePerson()"/>
+      </div>
+      <div class="wm-field">
+        <label class="wm-label">Relationship</label>
+        <input id="wm-relation" class="wm-input" placeholder="e.g. Grandmother, Mother, Aunt…"
+          onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
+      </div>
+      <div class="wm-field" style="display:flex;gap:.75rem">
+        <div style="flex:0 0 72px">
+          <label class="wm-label">Emoji</label>
+          <input id="wm-emoji" class="wm-input" placeholder="👵" maxlength="4"
+            style="text-align:center;font-size:1.3rem;padding:.5rem"
+            onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"
+            oninput="updateWmPreview()"/>
+        </div>
+        <div style="flex:1">
+          <label class="wm-label">Photo URL (optional)</label>
+          <input id="wm-photo" class="wm-input" placeholder="https://…"
+            onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"
+            oninput="updateWmPreview()"/>
+        </div>
+      </div>
+      <div class="wm-field">
+        <label class="wm-label">A little about them (optional)</label>
+        <textarea id="wm-notes" class="wm-input" rows="2" placeholder="e.g. Makes the best rasam every Sunday…"
+          onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"
+          style="resize:none;font-family:var(--sans)"></textarea>
+      </div>
+      <div id="wm-err" style="font-size:.75rem;color:#e53e3e;margin-bottom:.65rem;min-height:1em"></div>
+      <div style="display:flex;gap:.6rem">
+        <button onclick="closeWelcomeModal()" style="flex:1;padding:.65rem;border:1.5px solid var(--border);border-radius:10px;background:none;font-size:.85rem;font-family:var(--sans);color:var(--text2);cursor:pointer">Skip for now</button>
+        <button onclick="saveWelcomePerson()" style="flex:2;padding:.65rem;border:none;border-radius:10px;background:var(--accent);color:white;font-size:.88rem;font-weight:600;font-family:var(--sans);cursor:pointer">Add to family book ♡</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="add-person-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:8888;align-items:center;justify-content:center;padding:1.5rem">
   <div style="background:var(--surface);border-radius:20px;padding:2rem;max-width:380px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.18)">
     <div style="font-family:var(--serif);font-size:1.25rem;color:var(--text);margin-bottom:.25rem">Add someone special</div>
@@ -1976,9 +2123,19 @@ function renderNarratorChips() {
       <label style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);display:block;margin-bottom:.35rem">Relationship</label>
       <input id="ap-relation" placeholder="e.g. Grandmother, Mother, Aunt…" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:10px;font-size:.88rem;font-family:var(--sans);background:var(--cream);color:var(--text);outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
     </div>
+    <div style="margin-bottom:.85rem;display:flex;gap:.75rem">
+      <div style="flex:0 0 80px">
+        <label style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);display:block;margin-bottom:.35rem">Emoji</label>
+        <input id="ap-emoji" placeholder="👵" maxlength="4" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:10px;font-size:1.2rem;text-align:center;background:var(--cream);color:var(--text);outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
+      </div>
+      <div style="flex:1">
+        <label style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);display:block;margin-bottom:.35rem">Photo URL (optional)</label>
+        <input id="ap-photo" placeholder="https://…" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:10px;font-size:.82rem;font-family:var(--sans);background:var(--cream);color:var(--text);outline:none;box-sizing:border-box" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
+      </div>
+    </div>
     <div style="margin-bottom:1.2rem">
-      <label style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);display:block;margin-bottom:.35rem">Emoji (optional)</label>
-      <input id="ap-emoji" placeholder="👵" maxlength="4" style="width:80px;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:10px;font-size:1.2rem;text-align:center;background:var(--cream);color:var(--text);outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
+      <label style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);display:block;margin-bottom:.35rem">A little about them (optional)</label>
+      <textarea id="ap-notes" rows="2" placeholder="e.g. Makes the best rasam every Sunday…" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:10px;font-size:.82rem;font-family:var(--sans);background:var(--cream);color:var(--text);outline:none;resize:none;box-sizing:border-box" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"></textarea>
     </div>
     <div id="ap-err" style="font-size:.75rem;color:#e53e3e;margin-bottom:.75rem;min-height:1em"></div>
     <div style="display:flex;gap:.65rem">
