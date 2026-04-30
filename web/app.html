@@ -557,6 +557,39 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
 .auth-divider-text{font-size:.65rem;color:var(--muted);white-space:nowrap}
 .auth-fine{font-size:.67rem;color:var(--muted);line-height:1.6;text-align:center}
 .auth-loading{font-size:.8rem;color:var(--muted);margin-top:.85rem;display:none}
+
+/* ── Topbar profile avatar + dropdown ── */
+.topbar-profile{position:relative;cursor:pointer;flex-shrink:0}
+.topbar-av{
+  width:32px;height:32px;border-radius:50%;
+  background:var(--accent);color:white;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.82rem;font-weight:700;overflow:hidden;
+  border:2px solid var(--border);transition:border-color .15s;
+}
+.topbar-av:hover{border-color:var(--accent)}
+.topbar-av img{width:100%;height:100%;object-fit:cover}
+.profile-menu{
+  position:absolute;top:calc(100% + 8px);right:0;
+  background:var(--surface);border:1px solid var(--border);border-radius:14px;
+  box-shadow:0 8px 28px rgba(0,0,0,.12);min-width:220px;z-index:999;
+  overflow:hidden;
+}
+.profile-menu-user{display:flex;align-items:center;gap:.7rem;padding:.85rem 1rem}
+.profile-menu-av{
+  width:36px;height:36px;border-radius:50%;background:var(--accent);
+  color:white;display:flex;align-items:center;justify-content:center;
+  font-size:.88rem;font-weight:700;overflow:hidden;flex-shrink:0;
+}
+.profile-menu-av img{width:100%;height:100%;object-fit:cover}
+.profile-menu-name{font-size:.84rem;font-weight:600;color:var(--text)}
+.profile-menu-email{font-size:.68rem;color:var(--muted);margin-top:.1rem}
+.profile-menu-divider{height:1px;background:var(--border);margin:0}
+.profile-menu-item{
+  padding:.72rem 1rem;font-size:.82rem;color:var(--text2);cursor:pointer;
+  transition:background .12s;
+}
+.profile-menu-item:hover{background:var(--cream);color:var(--accent)}
 </style>
 </head>
 <body>
@@ -635,20 +668,16 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
         <span class="nav-icon">📤</span> Upload Audio
       </div>
       <div class="nav-group">Account</div>
-      <div class="nav-item" onclick="showToast('Saved coming soon')">
-        <span class="nav-icon">🔖</span> Saved
-      </div>
-      <div class="nav-item" onclick="showToast('Settings coming soon')">
-        <span class="nav-icon">⚙️</span> Settings
+      <div class="nav-item" onclick="signOut()">
+        <span class="nav-icon">↪</span> Sign Out
       </div>
     </nav>
     <div class="sidebar-cta">
       <button class="btn-sidebar-cta" onclick="go('capture')">🎤 Capture a memory</button>
     </div>
-    <div class="sidebar-user" onclick="signOut()" title="Sign out">
+    <div class="sidebar-user">
       <div class="user-av" id="sidebar-av">?</div>
       <div class="user-name" id="sidebar-name">…</div>
-      <div style="margin-left:auto;font-size:.65rem;color:var(--muted)">↪</div>
     </div>
   </aside>
 
@@ -663,7 +692,20 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
       </div>
       <div class="topbar-right">
         <span class="topbar-greeting" id="topbar-greeting">Namaste 👋</span>
-        <button class="topbar-bell" onclick="showToast('Notifications coming soon')">🔔</button>
+        <div class="topbar-profile" id="topbar-profile" onclick="toggleProfileMenu()">
+          <div class="topbar-av" id="topbar-av">?</div>
+        </div>
+        <div class="profile-menu" id="profile-menu" style="display:none">
+          <div class="profile-menu-user">
+            <div class="profile-menu-av" id="pmenu-av">?</div>
+            <div>
+              <div class="profile-menu-name" id="pmenu-name">…</div>
+              <div class="profile-menu-email" id="pmenu-email">…</div>
+            </div>
+          </div>
+          <div class="profile-menu-divider"></div>
+          <div class="profile-menu-item" onclick="closeProfileMenu();signOut()">↪ Sign out</div>
+        </div>
       </div>
     </div>
 
@@ -901,13 +943,13 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
               <h1>Our People <span style="color:var(--accent)">♡</span></h1>
               <p>Everyone who fills our kitchen with love.</p>
             </div>
-            <button class="add-btn" onclick="showToast('Add person coming soon')">+ Add</button>
+            <button class="add-btn" onclick="openAddPersonModal()">+ Add</button>
           </div>
           <div class="people-list" id="people-list">
             <div class="skel" style="height:62px;margin:.5rem"></div>
             <div class="skel" style="height:62px;margin:.5rem"></div>
           </div>
-          <div class="add-person-card" onclick="showToast('Add someone special coming soon')">
+          <div class="add-person-card" onclick="openAddPersonModal()">
             <div style="font-size:1.8rem">🤝</div>
             <div>
               <h3>Add someone special</h3>
@@ -1324,31 +1366,40 @@ function shareRecipe() {
 // PEOPLE + PROFILE
 // ═══════════════════════════════════════
 function renderPeople() {
-  // Derive narrators from loaded recipes
+  // Merge recipe narrators + manually added people
   const narMap = {};
   allRecipes.forEach(r => {
     const n = r.narrator || 'Grandma';
     narMap[n] = (narMap[n] || 0) + 1;
+  });
+  // Add manually added people (even if no recipes yet)
+  _loadPeople().forEach(p => {
+    if (!(p.name in narMap)) narMap[p.name] = 0;
   });
 
   const list = document.getElementById('people-list');
   const narrators = Object.entries(narMap).sort((a,b) => b[1]-a[1]);
 
   if (narrators.length === 0) {
-    list.innerHTML = `<div style="padding:1rem;color:var(--muted);font-size:.82rem">No narrators yet. Record the first recipe!</div>`;
+    list.innerHTML = `<div style="padding:1rem;color:var(--muted);font-size:.82rem">No one added yet. Add a family member to get started!</div>`;
     return;
   }
 
-  list.innerHTML = narrators.map(([name, count]) => `
+  const customPeople = _loadPeople();
+  list.innerHTML = narrators.map(([name, count]) => {
+    const custom = customPeople.find(p => p.name === name);
+    const emoji = custom?.emoji || narratorEmoji(name);
+    const relation = custom?.relation || '';
+    return `
     <div class="person-row" onclick="openProfile('${esc(name)}')">
-      <div class="person-av">${narratorEmoji(name)}</div>
+      <div class="person-av">${emoji}</div>
       <div>
-        <div class="person-name">${esc(name)}</div>
+        <div class="person-name">${esc(name)}${relation ? `<span style="font-size:.65rem;color:var(--muted);font-weight:400;margin-left:.4rem">${esc(relation)}</span>` : ''}</div>
         <div class="person-count">${count} ${count === 1 ? 'memory' : 'memories'}</div>
       </div>
       <div class="person-chev">›</div>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
 }
 
 function openProfile(name) {
@@ -1763,6 +1814,7 @@ async function onSignedIn(user) {
   currentUser = user;
   hideAuthWall();
   updateUserUI(user);
+  renderNarratorChips();
   await loadRecipes();
   handleUrlParams();
 }
@@ -1792,20 +1844,49 @@ async function signOut() {
 function updateUserUI(user) {
   const fullName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'You';
   const firstName = fullName.split(' ')[0];
+  const initials = fullName.split(' ').map(w => w[0]).slice(0,2).join('').toUpperCase();
   const avatarUrl = user.user_metadata?.avatar_url || '';
+  const email = user.email || '';
 
-  // Topbar
+  // Topbar greeting
   document.getElementById('topbar-greeting').textContent = `Namaste, ${firstName} 👋`;
+
+  // Topbar avatar
+  const topAvEl = document.getElementById('topbar-av');
+  topAvEl.innerHTML = avatarUrl
+    ? `<img src="${avatarUrl}" onerror="this.parentElement.textContent='${initials}'"/>`
+    : initials;
+
+  // Profile menu
+  const pmAvEl = document.getElementById('pmenu-av');
+  pmAvEl.innerHTML = avatarUrl
+    ? `<img src="${avatarUrl}" onerror="this.parentElement.textContent='${initials}'"/>`
+    : initials;
+  document.getElementById('pmenu-name').textContent = fullName;
+  document.getElementById('pmenu-email').textContent = email;
 
   // Sidebar
   document.getElementById('sidebar-name').textContent = firstName;
   const avEl = document.getElementById('sidebar-av');
-  if (avatarUrl) {
-    avEl.innerHTML = `<img src="${avatarUrl}" style="width:100%;height:100%;border-radius:50%;object-fit:cover"/>`;
-  } else {
-    avEl.textContent = firstName[0].toUpperCase();
-  }
+  avEl.innerHTML = avatarUrl
+    ? `<img src="${avatarUrl}" style="width:100%;height:100%;border-radius:50%;object-fit:cover" onerror="this.parentElement.textContent='${initials}'"/>`
+    : initials;
 }
+
+function toggleProfileMenu() {
+  const menu = document.getElementById('profile-menu');
+  menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+}
+
+function closeProfileMenu() {
+  document.getElementById('profile-menu').style.display = 'none';
+}
+
+// Close profile menu on outside click
+document.addEventListener('click', e => {
+  const profile = document.getElementById('topbar-profile');
+  if (profile && !profile.contains(e.target)) closeProfileMenu();
+});
 
 async function getAuthHeaders() {
   const { data: { session } } = await _sbClient.auth.getSession();
@@ -1816,6 +1897,95 @@ async function getAuthHeaders() {
 // INIT
 // ═══════════════════════════════════════
 document.addEventListener('DOMContentLoaded', initAuth);
+
+// ═══════════════════════════════════════
+// ADD PERSON MODAL
+// ═══════════════════════════════════════
+// People are stored in localStorage (no extra DB table needed)
+// They appear in narrator chips on capture screen + people list
+
+function _loadPeople() {
+  try { return JSON.parse(localStorage.getItem('rk_people') || '[]'); }
+  catch { return []; }
+}
+function _savePeople(arr) {
+  localStorage.setItem('rk_people', JSON.stringify(arr));
+}
+
+function openAddPersonModal() {
+  document.getElementById('add-person-modal').style.display = 'flex';
+  document.getElementById('ap-name').value = '';
+  document.getElementById('ap-relation').value = '';
+  document.getElementById('ap-emoji').value = '';
+  document.getElementById('ap-err').textContent = '';
+  setTimeout(() => document.getElementById('ap-name').focus(), 80);
+}
+
+function closeAddPersonModal() {
+  document.getElementById('add-person-modal').style.display = 'none';
+}
+
+function saveNewPerson() {
+  const name = document.getElementById('ap-name').value.trim();
+  const relation = document.getElementById('ap-relation').value.trim();
+  const emoji = document.getElementById('ap-emoji').value.trim() || '👤';
+  const errEl = document.getElementById('ap-err');
+  if (!name) { errEl.textContent = 'Please enter a name.'; return; }
+  const people = _loadPeople();
+  if (people.find(p => p.name.toLowerCase() === name.toLowerCase())) {
+    errEl.textContent = `${name} is already in your family book.`; return;
+  }
+  people.push({ name, relation, emoji });
+  _savePeople(people);
+  closeAddPersonModal();
+  renderPeople();
+  // Also refresh narrator chips on capture screen
+  renderNarratorChips();
+  showToast(`${name} added to your family book ♡`);
+}
+
+function renderNarratorChips() {
+  const container = document.getElementById('narrator-chips');
+  if (!container) return;
+  const defaults = [
+    { name: 'Dadi', emoji: '👵' },
+    { name: 'Nani', emoji: '👩‍🦳' },
+    { name: 'Mumma', emoji: '👩' },
+  ];
+  const custom = _loadPeople();
+  const all = [...defaults, ...custom.map(p => ({ name: p.name, emoji: p.emoji || '👤' }))];
+  container.innerHTML = all.map((p, i) => `
+    <div class="n-chip ${i === 0 ? 'selected' : ''}" onclick="selectNarrator(this,'${esc(p.name)}')">
+      <div class="n-chip-av">${p.emoji}</div>${esc(p.name)}
+    </div>`).join('');
+}
+
 </script>
+
+<!-- ══════════ ADD PERSON MODAL ══════════ -->
+<div id="add-person-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:8888;align-items:center;justify-content:center;padding:1.5rem">
+  <div style="background:var(--surface);border-radius:20px;padding:2rem;max-width:380px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.18)">
+    <div style="font-family:var(--serif);font-size:1.25rem;color:var(--text);margin-bottom:.25rem">Add someone special</div>
+    <div style="font-size:.75rem;color:var(--muted);margin-bottom:1.4rem">They'll appear in your narrator list when recording.</div>
+
+    <div style="margin-bottom:.85rem">
+      <label style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);display:block;margin-bottom:.35rem">Name *</label>
+      <input id="ap-name" placeholder="e.g. Dadi, Nani, Mumma…" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:10px;font-size:.88rem;font-family:var(--sans);background:var(--cream);color:var(--text);outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'" onkeydown="if(event.key==='Enter')saveNewPerson()"/>
+    </div>
+    <div style="margin-bottom:.85rem">
+      <label style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);display:block;margin-bottom:.35rem">Relationship</label>
+      <input id="ap-relation" placeholder="e.g. Grandmother, Mother, Aunt…" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:10px;font-size:.88rem;font-family:var(--sans);background:var(--cream);color:var(--text);outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
+    </div>
+    <div style="margin-bottom:1.2rem">
+      <label style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);display:block;margin-bottom:.35rem">Emoji (optional)</label>
+      <input id="ap-emoji" placeholder="👵" maxlength="4" style="width:80px;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:10px;font-size:1.2rem;text-align:center;background:var(--cream);color:var(--text);outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
+    </div>
+    <div id="ap-err" style="font-size:.75rem;color:#e53e3e;margin-bottom:.75rem;min-height:1em"></div>
+    <div style="display:flex;gap:.65rem">
+      <button onclick="closeAddPersonModal()" style="flex:1;padding:.65rem;border:1.5px solid var(--border);border-radius:10px;background:none;font-size:.85rem;font-family:var(--sans);color:var(--text2);cursor:pointer">Cancel</button>
+      <button onclick="saveNewPerson()" style="flex:2;padding:.65rem;border:none;border-radius:10px;background:var(--accent);color:white;font-size:.85rem;font-weight:600;font-family:var(--sans);cursor:pointer">Add to family book ♡</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
