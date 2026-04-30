@@ -46,7 +46,7 @@ def list_recipes() -> list:
     result = (
         _client()
         .table("recipes")
-        .select("id, token, dish_name, narrator, recorded_at, image_url")
+        .select("id, token, dish_name, narrator, recorded_at, image_url, audio_url")
         .order("recorded_at", desc=True)
         .execute()
     )
