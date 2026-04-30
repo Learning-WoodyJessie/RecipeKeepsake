@@ -271,8 +271,29 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
 .transcript-text{font-size:.81rem;color:var(--text2);line-height:1.75}
 .transcript-note{color:var(--muted);font-style:italic;font-size:.72rem;margin-top:.3rem}
 
-.notes-block{background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:.9rem 1rem;font-size:.81rem;color:var(--muted);line-height:1.7}
+.notes-block{background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:.9rem 1rem;font-size:.81rem;color:var(--muted);line-height:1.7;margin-bottom:.85rem}
 .notes-flag{color:var(--amber);margin-right:.2rem}
+.notes-personal{margin-top:.1rem}
+.notes-personal-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:.45rem}
+.notes-textarea{width:100%;min-height:100px;padding:.65rem .8rem;border:1px solid var(--border);border-radius:11px;background:var(--surface);color:var(--text);font-size:.82rem;font-family:var(--sans);line-height:1.6;resize:vertical;box-sizing:border-box}
+.notes-textarea:focus{outline:none;border-color:var(--accent)}
+.notes-save-btn{margin-top:.55rem;padding:.42rem 1rem;background:var(--accent);color:white;border:none;border-radius:8px;font-size:.78rem;font-weight:600;cursor:pointer}
+.notes-save-btn:hover{opacity:.88}
+.notes-save-status{font-size:.72rem;color:var(--muted);margin-top:.35rem;min-height:1em}
+
+/* ── Inline listen tab panel ── */
+.listen-panel{padding:1.2rem 0;display:flex;flex-direction:column;align-items:center;gap:.6rem}
+.listen-who{font-size:.72rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.listen-dish{font-family:var(--serif);font-size:1.05rem;color:var(--text);margin-bottom:.3rem}
+.listen-wave{display:flex;align-items:center;gap:3px;height:28px;margin:.2rem 0}
+.lw-bar{width:3px;border-radius:99px;background:var(--accent);opacity:.5}
+.lw-bar:nth-child(odd){height:10px}.lw-bar:nth-child(even){height:20px}
+.lw-bar:nth-child(3){height:24px}.lw-bar:nth-child(6){height:14px}.lw-bar:nth-child(9){height:22px}
+.listen-times{display:flex;width:100%;justify-content:space-between;font-size:.68rem;color:var(--muted);padding:0 .2rem}
+.listen-controls{display:flex;align-items:center;gap:1.1rem;margin-top:.3rem}
+.listen-play{width:48px;height:48px;border-radius:50%;background:var(--accent);color:white;border:none;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.listen-skip{background:none;border:1px solid var(--border);border-radius:8px;padding:.35rem .65rem;font-size:.72rem;color:var(--text2);cursor:pointer}
+.listen-skip:hover{border-color:var(--accent);color:var(--accent)}
 
 /* ═══════════════════════════════════════
    PEOPLE SCREEN
@@ -616,7 +637,7 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
               </div>
             </div>
             <div class="recipe-name" id="rd-name"></div>
-            <div class="hear-bar" id="hear-bar" onclick="openHearDadi()" style="display:none">
+            <div class="hear-bar" id="hear-bar" onclick="showTab('listen', document.getElementById('tab-listen-btn'))" style="display:none">
               <div class="hear-play">▶</div>
               <div class="hear-label">Hear Dadi say it</div>
               <div class="hear-wave">
@@ -635,13 +656,40 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
             <div class="recipe-tabs">
               <div class="r-tab active" onclick="showTab('steps',this)">Steps</div>
               <div class="r-tab" onclick="showTab('tip',this)">Dadi's Tip</div>
+              <div class="r-tab" id="tab-listen-btn" onclick="showTab('listen',this)" style="display:none">🎧 Listen</div>
               <div class="r-tab" onclick="showTab('transcript',this)">Transcript</div>
               <div class="r-tab" onclick="showTab('notes',this)">Notes</div>
             </div>
             <div class="tab-panel active" id="tab-steps"><div class="steps-list" id="rd-steps"></div></div>
             <div class="tab-panel" id="tab-tip"><div id="rd-tip"></div></div>
+            <div class="tab-panel" id="tab-listen">
+              <div class="listen-panel">
+                <div class="listen-who" id="lp-who"></div>
+                <div class="listen-dish" id="lp-dish"></div>
+                <div class="listen-wave">
+                  <div class="lw-bar"></div><div class="lw-bar"></div><div class="lw-bar"></div>
+                  <div class="lw-bar"></div><div class="lw-bar"></div><div class="lw-bar"></div>
+                  <div class="lw-bar"></div><div class="lw-bar"></div><div class="lw-bar"></div>
+                  <div class="lw-bar"></div><div class="lw-bar"></div><div class="lw-bar"></div>
+                </div>
+                <div class="listen-times"><span id="lp-current">0:00</span><span id="lp-total">0:00</span></div>
+                <div class="listen-controls">
+                  <button class="listen-skip" onclick="skipInlineAudio(-15)">↺ 15</button>
+                  <button class="listen-play" id="inlinePlayBtn" onclick="toggleInlinePlay()">▶</button>
+                  <button class="listen-skip" onclick="skipInlineAudio(15)">15 ↻</button>
+                </div>
+              </div>
+            </div>
             <div class="tab-panel" id="tab-transcript"><div id="rd-transcript"></div></div>
-            <div class="tab-panel" id="tab-notes"><div id="rd-notes"></div></div>
+            <div class="tab-panel" id="tab-notes">
+              <div id="rd-hints"></div>
+              <div class="notes-personal">
+                <div class="notes-personal-label">📝 Your memory</div>
+                <textarea id="rd-user-notes" class="notes-textarea" placeholder="Add your own memory about this recipe… when she made it, what it reminded you of, anything you want to remember."></textarea>
+                <button class="notes-save-btn" id="notes-save-btn" onclick="saveUserNotes()">Save note</button>
+                <div class="notes-save-status" id="notes-save-status"></div>
+              </div>
+            </div>
             <div style="height:1rem"></div>
           </div>
           <div class="recipe-right">
@@ -649,8 +697,6 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
               <div class="ing-card-title">Ingredients (as Dadi said)</div>
               <div id="rd-ingredients"></div>
             </div>
-            <button class="btn-primary btn-full" id="cook-btn" onclick="openHearDadi()" style="display:none">🎧 Cook with Dadi</button>
-            <div id="cook-btn-note" style="display:none;margin-top:.5rem;text-align:center;font-size:.68rem;color:var(--muted)">Listen while you cook</div>
             <div style="height:1rem"></div>
           </div>
         </div>
@@ -979,18 +1025,32 @@ function renderRecipeDetail(r) {
   document.getElementById('rd-narrator').textContent = r.narrator || 'Grandma';
   document.getElementById('rd-date').textContent = formatDate(r.recorded_at);
 
-  // Hear bar — show only if audio exists
+  // Hear bar + Listen tab — show only if audio exists
   const hearBar = document.getElementById('hear-bar');
-  const cookBtn = document.getElementById('cook-btn');
-  const cookNote = document.getElementById('cook-btn-note');
+  const listenTabBtn = document.getElementById('tab-listen-btn');
   if (r.audio_url) {
     hearBar.style.display = 'flex';
-    cookBtn.style.display = '';
-    cookNote.style.display = '';
+    listenTabBtn.style.display = '';
+    // Pre-populate listen panel labels
+    document.getElementById('lp-who').textContent = 'Hear ' + (r.narrator || 'Dadi');
+    document.getElementById('lp-dish').textContent = r.dish_name || '';
+    // Wire inline audio player to same <audio> element
+    audio.src = r.audio_url;
+    audio.load();
+    audio.onloadedmetadata = () => {
+      const t = formatAudioTime(audio.duration);
+      document.getElementById('lp-total').textContent = t;
+      document.getElementById('rd-duration').textContent = t;
+    };
+    audio.ontimeupdate = () => {
+      document.getElementById('lp-current').textContent = formatAudioTime(audio.currentTime);
+    };
+    audio.onended = () => {
+      document.getElementById('inlinePlayBtn').textContent = '▶';
+    };
   } else {
     hearBar.style.display = 'none';
-    cookBtn.style.display = 'none';
-    cookNote.style.display = 'none';
+    listenTabBtn.style.display = 'none';
   }
 
   // Steps
@@ -1027,11 +1087,17 @@ function renderRecipeDetail(r) {
       : ''}
   `;
 
-  // Notes / review flags
+  // Notes tab — hints (review_flags) + personal user_notes
   const flags = r.review_flags || [];
-  document.getElementById('rd-notes').innerHTML = flags.length
-    ? `<div class="notes-block" style="margin-top:.5rem"><strong style="color:var(--text2);font-style:normal">Review flags</strong><br><br>${flags.map(f=>`<span class="notes-flag">⚠️</span>${esc(f)}<br>`).join('')}</div>`
-    : `<div class="notes-block" style="margin-top:.5rem;font-style:normal"><span style="color:var(--text2);font-weight:600">No flags.</span><br><br>This recipe was captured cleanly. All measurements are as Dadi described them.</div>`;
+  document.getElementById('rd-hints').innerHTML = flags.length
+    ? `<div class="notes-block">
+        <div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:.55rem">📌 Things to remember</div>
+        ${flags.map(f => `<div style="display:flex;gap:.45rem;margin-bottom:.4rem"><span style="color:var(--accent);flex-shrink:0">•</span><span style="font-size:.81rem;color:var(--text2)">${esc(f)}</span></div>`).join('')}
+      </div>`
+    : '';
+  // Personal notes textarea
+  document.getElementById('rd-user-notes').value = r.user_notes || '';
+  document.getElementById('notes-save-status').textContent = '';
 
   // Ingredients
   const ings = r.ingredients || [];
@@ -1350,9 +1416,11 @@ function openHearDadiFor(token, recipe) {
   document.getElementById('hd-sub').textContent = r.dish_name || '';
   document.getElementById('hd-emoji').textContent = narratorEmoji(r.narrator);
 
-  // Load audio
-  audio.src = r.audio_url;
-  audio.load();
+  // Sync audio element (already loaded in renderRecipeDetail if coming from recipe detail)
+  if (audio.src !== r.audio_url) {
+    audio.src = r.audio_url;
+    audio.load();
+  }
   document.getElementById('playPauseBtn').textContent = '▶';
 
   audio.onloadedmetadata = () => {
@@ -1381,6 +1449,53 @@ function togglePlay() {
 
 function skipAudio(secs) {
   audio.currentTime = Math.max(0, Math.min(audio.duration || 0, audio.currentTime + secs));
+}
+
+// Inline listen tab controls (same <audio> element)
+function toggleInlinePlay() {
+  const btn = document.getElementById('inlinePlayBtn');
+  if (audio.paused) {
+    audio.play();
+    btn.textContent = '⏸';
+    // keep full-screen player in sync
+    const hdBtn = document.getElementById('playPauseBtn');
+    if (hdBtn) hdBtn.textContent = '⏸';
+  } else {
+    audio.pause();
+    btn.textContent = '▶';
+    const hdBtn = document.getElementById('playPauseBtn');
+    if (hdBtn) hdBtn.textContent = '▶';
+  }
+}
+
+function skipInlineAudio(secs) {
+  audio.currentTime = Math.max(0, Math.min(audio.duration || 0, audio.currentTime + secs));
+}
+
+// Personal notes — save to server
+async function saveUserNotes() {
+  if (!currentRecipe?.token) return;
+  const notes = document.getElementById('rd-user-notes').value;
+  const statusEl = document.getElementById('notes-save-status');
+  const btn = document.getElementById('notes-save-btn');
+  btn.disabled = true;
+  statusEl.textContent = 'Saving…';
+  try {
+    const res = await fetch(`/recipe/${currentRecipe.token}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_notes: notes })
+    });
+    if (!res.ok) throw new Error(await res.text());
+    currentRecipe.user_notes = notes;
+    statusEl.textContent = 'Saved ✓';
+    setTimeout(() => { statusEl.textContent = ''; }, 2000);
+  } catch(e) {
+    statusEl.textContent = 'Failed to save';
+    showToast('Could not save note — ' + e.message);
+  } finally {
+    btn.disabled = false;
+  }
 }
 
 function formatAudioTime(s) {

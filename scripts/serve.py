@@ -128,19 +128,22 @@ async def capture_endpoint(audio: UploadFile = File(...)):
         }
 
         if os.environ.get("SUPABASE_URL") and os.environ.get("SUPABASE_SERVICE_KEY"):
-            from tools.storage import insert_recipe, upload_audio
+            from tools.storage import insert_recipe, upload_audio, _sign_audio, _client as _sb
             import uuid
             audio_filename = f"{uuid.uuid4()}{Path(audio.filename).suffix if audio.filename else '.webm'}"
             print(f"[serve] Uploading audio as {audio_filename}...")
             try:
-                audio_url = upload_audio(tmp_path, audio_filename)
-                print(f"[serve] Audio URL: {audio_url}")
+                stored_path = upload_audio(tmp_path, audio_filename)
+                print(f"[serve] Audio stored: {stored_path}")
             except Exception as audio_err:
                 print(f"[serve] Audio upload failed (non-fatal): {audio_err}")
-                audio_url = ""
-            stored = insert_recipe({**recipe, "audio_url": audio_url})
+                stored_path = ""
+            stored = insert_recipe({**recipe, "audio_url": stored_path})
             recipe["id"] = stored.get("id")
             recipe["token"] = stored.get("token")
+            # Return a signed URL so the browser can play immediately
+            if stored_path:
+                recipe["audio_url"] = _sign_audio(stored_path, _sb())
             print(f"[serve] Saved: {recipe.get('id')}")
         else:
             print("[serve] No Supabase env — skipping storage")
@@ -169,6 +172,23 @@ async def generate_image_endpoint(body: ImageRequest):
     try:
         url = generate_dish_image(body.dish_name)
         return JSONResponse(content={"image_url": url})
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+class PatchRecipeRequest(BaseModel):
+    user_notes: str = ""
+
+
+@app.patch("/recipe/{token}")
+async def patch_recipe_endpoint(token: str, body: PatchRecipeRequest):
+    """Update user_notes on a recipe."""
+    if not (os.environ.get("SUPABASE_URL") and os.environ.get("SUPABASE_SERVICE_KEY")):
+        raise HTTPException(status_code=503, detail="Storage not configured")
+    from tools.storage import patch_recipe
+    try:
+        updated = patch_recipe(token, {"user_notes": body.user_notes})
+        return JSONResponse(content=updated)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
