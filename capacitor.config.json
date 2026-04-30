@@ -1,0 +1,33 @@
+{
+  "appId": "com.recipekeepsake.app",
+  "appName": "Recipe Keepsake",
+  "webDir": "web",
+  "server": {
+    "url": "https://vibrant-spontaneity-production-9f92.up.railway.app",
+    "cleartext": false,
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 2500,
+      "backgroundColor": "#FAF6F0",
+      "androidSplashResourceName": "splash",
+      "showSpinner": false,
+      "splashFullScreen": true,
+      "splashImmersive": true
+    },
+    "StatusBar": {
+      "style": "DARK",
+      "backgroundColor": "#FAF6F0"
+    }
+  },
+  "ios": {
+    "scheme": "recipekeepsake",
+    "contentInset": "automatic"
+  },
+  "android": {
+    "allowMixedContent": false,
+    "captureInput": true,
+    "webContentsDebuggingEnabled": false
+  }
+}

@@ -8,3 +8,6 @@ data/migrations/
 __pycache__/
 .pytest_cache/
 *.pyc
+node_modules/
+ios/
+android/
