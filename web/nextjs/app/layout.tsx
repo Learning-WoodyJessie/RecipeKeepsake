@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -18,18 +19,18 @@ export default function RootLayout({
           className="px-4 py-4 flex items-center justify-between"
           style={{ borderBottom: "1px solid #1E1B4B" }}
         >
-          <a href="/" className="text-xl font-bold" style={{ color: "#A78BFA" }}>
+          <Link href="/" className="text-xl font-bold" style={{ color: "#A78BFA" }}>
             🫙 RecipeKeepsake
-          </a>
-          <a
+          </Link>
+          <Link
             href="/record"
             className="text-sm font-medium px-4 py-1.5 rounded-full"
             style={{ background: "#A78BFA", color: "white" }}
           >
             + Record
-          </a>
+          </Link>
         </header>
-        <main className="max-w-2xl mx-auto px-4 py-6">{children}</main>
+        <main>{children}</main>
       </body>
     </html>
   );

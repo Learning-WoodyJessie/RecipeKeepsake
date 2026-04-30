@@ -137,7 +137,7 @@ export default function RecordPage() {
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="max-w-lg mx-auto">
+    <div className="max-w-lg mx-auto px-4 py-6">
       <Link href="/" className="inline-flex items-center gap-1 text-sm mb-6" style={{ color: '#A78BFA' }}>
         ← Back
       </Link>

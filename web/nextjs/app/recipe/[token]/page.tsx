@@ -27,7 +27,7 @@ export default async function RecipePage({
   const steps: string[] = recipe.steps ?? []
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-2xl mx-auto px-4 py-6">
       {/* Back link */}
       <Link
         href="/"
