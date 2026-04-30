@@ -493,9 +493,133 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
 }
 .lp-wrap{
   width:100%;min-height:100vh;
-  display:flex;align-items:flex-start;justify-content:center;
+  display:block;
   background:#FAF6F0;
   padding:0;
+}
+.rk-landing{
+  min-height:100vh;background:#FAF6F0;color:#2D1B0E;
+}
+.rk-nav{
+  position:absolute;top:0;left:0;right:0;z-index:5;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:1.55rem clamp(1.25rem,4.5vw,4.25rem);
+}
+.rk-brand{display:flex;align-items:center;gap:.75rem}
+.rk-logo-mark{
+  width:58px;height:58px;border-radius:50%;
+  border:1.5px solid #C86E67;background:rgba(255,255,255,.58);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.55rem;
+}
+.rk-brand-text{
+  font-family:var(--serif);font-size:1.7rem;line-height:.9;
+  color:#3B2113;font-weight:800;
+}
+.rk-brand-text span{display:block;color:#C46466}
+.rk-nav-links{display:flex;gap:clamp(1.2rem,3vw,3.2rem);font-size:.96rem;color:#2D1B0E}
+.rk-nav-links a{color:inherit;text-decoration:none}
+.rk-hero{
+  position:relative;min-height:min(820px,100vh);
+  display:grid;grid-template-columns:minmax(320px,.52fr) minmax(360px,.8fr);
+  align-items:center;overflow:hidden;
+  padding:7.5rem clamp(1.25rem,4.5vw,4.25rem) 4rem;
+}
+.rk-hero::before{
+  content:"";position:absolute;inset:0;z-index:0;
+  background:
+    linear-gradient(90deg,#FAF6F0 0%,rgba(250,246,240,.96) 30%,rgba(250,246,240,.58) 52%,rgba(250,246,240,0) 74%),
+    linear-gradient(180deg,rgba(250,246,240,.92) 0%,rgba(250,246,240,0) 28%,#FAF6F0 100%);
+}
+.rk-hero-art{
+  position:absolute;inset:0 0 0 31%;z-index:0;
+}
+.rk-hero-art img{
+  width:100%;height:100%;object-fit:cover;object-position:72% 3%;
+}
+.rk-copy{position:relative;z-index:1;max-width:470px}
+.rk-title{
+  font-family:var(--serif);font-size:clamp(3.3rem,6vw,5.6rem);
+  line-height:.96;font-weight:800;color:#3B2113;letter-spacing:-.01em;
+}
+.rk-title span{display:block;color:#C46466}
+.rk-heart{font-size:1.85rem;color:#C46466;margin:1.2rem 0 .8rem}
+.rk-subtitle{font-size:1.12rem;line-height:1.65;color:#3D2B21;margin-bottom:2rem}
+.rk-primary{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:330px;min-height:68px;padding:1rem 2rem;
+  border:0;border-radius:12px;background:#C46466;color:white;
+  font-family:var(--sans);font-size:1.08rem;font-weight:700;cursor:pointer;
+  box-shadow:0 12px 28px rgba(196,100,102,.26);
+}
+.rk-secure{margin-top:1.8rem;color:#76695F;font-size:.88rem}
+.rk-how{
+  position:relative;z-index:2;background:#FFFCF8;border-radius:28px 28px 0 0;
+  padding:2.1rem clamp(1.25rem,4.5vw,4.25rem) 3.2rem;
+  box-shadow:0 -16px 40px rgba(92,61,40,.06);
+}
+.rk-section-label{
+  display:flex;align-items:center;justify-content:center;gap:1.6rem;
+  font-size:.82rem;letter-spacing:.18em;font-weight:800;margin-bottom:1.8rem;
+}
+.rk-section-label::before,.rk-section-label::after{
+  content:"";width:86px;height:1px;background:#DDC6B8;
+}
+.rk-steps{display:grid;grid-template-columns:repeat(3,1fr);max-width:880px;margin:0 auto}
+.rk-step{text-align:center;padding:0 2.2rem;border-right:1px solid #E4D6CA}
+.rk-step:last-child{border-right:0}
+.rk-step-icon{
+  width:86px;height:86px;border-radius:50%;margin:0 auto 1rem;
+  display:flex;align-items:center;justify-content:center;
+  background:#F1DAD4;font-size:2.05rem;
+}
+.rk-step:nth-child(2) .rk-step-icon{background:#E9E7D8}
+.rk-step h3{font-family:var(--serif);font-size:1.35rem;margin-bottom:.5rem}
+.rk-step p{line-height:1.5;color:#3D2B21}
+.rk-memory{
+  padding:0 clamp(1.25rem,4.5vw,4.25rem) 4.25rem;background:#FFFCF8;
+}
+.rk-memory-card{
+  max-width:1120px;margin:0 auto;border-radius:24px;overflow:hidden;
+  display:grid;grid-template-columns:.48fr .52fr;min-height:330px;
+  background:linear-gradient(90deg,#FBEAE5 0%,#FDF8F3 42%,transparent 62%);
+}
+.rk-memory-copy{padding:4rem 3.2rem;z-index:1}
+.rk-memory-copy .rk-heart{margin:0 0 1.4rem}
+.rk-memory-copy h2{
+  font-family:var(--serif);font-size:clamp(2.1rem,3vw,3rem);
+  line-height:1.08;margin-bottom:1.2rem;color:#3B2113;
+}
+.rk-memory-copy p{font-size:1.05rem;color:#3D2B21}
+.rk-memory-art{min-height:330px;overflow:hidden}
+.rk-memory-art img{width:100%;height:100%;object-fit:cover;object-position:78% 84%}
+@media(max-width:780px){
+  .rk-nav{position:relative;padding:1rem 1rem 0}
+  .rk-logo-mark{width:46px;height:46px;font-size:1.25rem}
+  .rk-brand-text{font-size:1.28rem}
+  .rk-nav-links{display:none}
+  .rk-hero{
+    min-height:auto;display:flex;flex-direction:column;
+    padding:1.5rem 1rem 2rem;
+  }
+  .rk-hero::before{background:linear-gradient(180deg,#FAF6F0 0%,rgba(250,246,240,.9) 36%,#FAF6F0 100%)}
+  .rk-hero-art{
+    position:relative;inset:auto;order:2;width:100%;height:58vw;
+    min-height:250px;margin-top:1.5rem;border-radius:18px;overflow:hidden;
+  }
+  .rk-copy{order:1;max-width:none;width:100%}
+  .rk-title{font-size:3.05rem}
+  .rk-primary{width:100%;min-width:0}
+  .rk-how{padding:1.7rem 1rem 2.3rem;border-radius:22px 22px 0 0}
+  .rk-section-label{gap:.9rem}
+  .rk-section-label::before,.rk-section-label::after{width:52px}
+  .rk-steps{grid-template-columns:1fr;gap:1.6rem}
+  .rk-step{border-right:0;border-bottom:1px solid #E4D6CA;padding:0 0 1.6rem}
+  .rk-step:last-child{border-bottom:0}
+  .rk-memory{padding:0 1rem 2rem}
+  .rk-memory-card{grid-template-columns:1fr;min-height:0}
+  .rk-memory-copy{padding:2rem 1.4rem}
+  .rk-memory-art{min-height:250px}
 }
 .lp-final-landing{
   position:relative;width:min(100%,1024px);
@@ -746,7 +870,7 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
   border:3px solid #FAF6F0;
 }
 .lp-header,.lp-hero,.lp-features,.lp-section-hdr,.lp-cards,.lp-quote-banner,.lp-bottom-nav{display:none}
-.lp-wrap > :not(.lp-final-landing){display:none!important}
+.lp-wrap > :not(.rk-landing){display:none!important}
 /* Desktop centering */
 @media(min-width:481px){
   .lp-wrap{box-shadow:0 0 60px rgba(0,0,0,.08)}
@@ -828,6 +952,69 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
 <!-- ══════════ LANDING PAGE (pre-auth) ══════════ -->
 <div id="auth-wall">
 <div class="lp-wrap">
+
+  <section class="rk-landing" aria-label="Grandma's Keepsake">
+    <nav class="rk-nav" aria-label="Landing navigation">
+      <div class="rk-brand">
+        <div class="rk-logo-mark">♡</div>
+        <div class="rk-brand-text">Grandma's <span>Keepsake</span></div>
+      </div>
+      <div class="rk-nav-links">
+        <a href="#how-it-works">How It Works</a>
+        <a href="#how-it-works">Features</a>
+        <a href="#families">For Families</a>
+        <a href="#families">Safety</a>
+      </div>
+    </nav>
+
+    <section class="rk-hero">
+      <div class="rk-hero-art" aria-hidden="true">
+        <img src="assets/landing-final.png" alt=""/>
+      </div>
+      <div class="rk-copy">
+        <h1 class="rk-title">Her recipes are memories. <span>Keep them alive.</span></h1>
+        <div class="rk-heart">♥</div>
+        <p class="rk-subtitle">Record her voice. Share her recipes.<br/>Keep your family stories alive.</p>
+        <button class="rk-primary" onclick="signInWithGoogle()">Start your family keepsake</button>
+        <div class="auth-loading" id="auth-loading">Signing you in...</div>
+        <p class="rk-secure">▧ Private. Only shared with family.</p>
+      </div>
+    </section>
+
+    <section class="rk-how" id="how-it-works">
+      <div class="rk-section-label">HOW IT WORKS</div>
+      <div class="rk-steps">
+        <div class="rk-step">
+          <div class="rk-step-icon">♬</div>
+          <h3>1. Record</h3>
+          <p>Capture Grandma's voice, stories and recipes with ease.</p>
+        </div>
+        <div class="rk-step">
+          <div class="rk-step-icon">□</div>
+          <h3>2. Save</h3>
+          <p>We keep them safe for generations to come.</p>
+        </div>
+        <div class="rk-step">
+          <div class="rk-step-icon">♡</div>
+          <h3>3. Relive</h3>
+          <p>Listen, cook and share with your family.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="rk-memory" id="families">
+      <div class="rk-memory-card">
+        <div class="rk-memory-copy">
+          <div class="rk-heart">♥</div>
+          <h2>More than recipes.<br/>Pieces of her heart.</h2>
+          <p>Capture today. Cherish forever.</p>
+        </div>
+        <div class="rk-memory-art" aria-hidden="true">
+          <img src="assets/landing-final.png" alt=""/>
+        </div>
+      </div>
+    </section>
+  </section>
 
   <section class="lp-final-landing" aria-label="Grandma's Keepsake">
     <img class="lp-final-img" src="assets/landing-final.png" alt="Grandma's Keepsake landing page"/>
