@@ -4,8 +4,11 @@
 # Python runtime and a failing "python: command not found" start command.
 providers = ["python"]
 
+[phases.setup]
+nixPkgs = ["python311", "python311Packages.pip", "gcc", "libffi", "openssl"]
+
 [phases.install]
-cmds = ["python3 -m pip install -r requirements.txt"]
+cmds = ["python3 -m pip install --upgrade pip", "python3 -m pip install -r requirements.txt"]
 
 [start]
 cmd = "python3 -m scripts.serve"
