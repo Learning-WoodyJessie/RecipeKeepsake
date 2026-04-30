@@ -28,17 +28,24 @@
 - [x] 87 Android icon/splash variants generated via `capacitor-assets`
 - [x] AndroidManifest: `RECORD_AUDIO`, deep link `recipekeepsake://auth/callback`
 - [x] Google OAuth native fix: Capacitor Browser → system browser → deep link callback
-- [ ] **Next: Build signed APK/AAB in Android Studio**
-  - Open `android/` in Android Studio
-  - Build → Generate Signed Bundle/APK → AAB → upload keystore info
-  - `npx cap sync` before each build
-- [ ] **Supabase setup required before testing auth**:
+- [x] Build signed AAB in Android Studio (Build → Generate Signed Bundle)
+- [ ] **Supabase setup** (manual, required before testing auth):
   - Add `recipekeepsake://auth/callback` to Supabase Auth → URL Configuration → Redirect URLs
   - Create public `images` bucket (for DALL-E permanent storage)
-- [ ] Google Play Console submission
+- [ ] **Test on emulator/device** (before Play Store):
+  - Android Studio → Run ▶ on emulator or physical device
+  - Verify Railway URL loads inside the app
+  - Verify Google sign-in opens Chrome and returns correctly via deep link
+  - Verify microphone permission prompt appears on first record
+  - Verify a recipe can be captured end-to-end
+- [ ] **Final sync + rebuild** after all tests pass:
+  - `npx cap sync` — copy latest web assets into Android project
+  - Rebuild signed AAB
+- [ ] **Google Play Console submission** (last step):
   - New app → "Recipe Keepsake" → `com.recipekeepsake.app`
-  - Internal testing track → upload AAB → invite testers
-  - Production release after internal testing
+  - Privacy policy URL: `https://vibrant-spontaneity-production-9f92.up.railway.app/privacy`
+  - Internal testing track → upload AAB → invite testers via Gmail
+  - Production release after internal testing verified
 
 ## Phase 3 — iOS (TestFlight) — after Android verified
 - [ ] `npx cap add ios` (requires macOS + Xcode 15+)
