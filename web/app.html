@@ -483,54 +483,129 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
    AUTH WALL
 ═══════════════════════════════════════ */
 #auth-wall{
-  position:fixed;inset:0;background:var(--cream);
-  display:none;align-items:center;justify-content:center;
-  z-index:9999;padding:1.5rem;
+  position:fixed;inset:0;display:none;z-index:9999;
+  flex-direction:row;
+}
+/* Left banner panel */
+.auth-banner{
+  flex:1;position:relative;overflow:hidden;
+  background:linear-gradient(160deg,#6B2A10 0%,#9B3D1A 45%,#C4522A 80%,#D4724A 100%);
+  display:flex;flex-direction:column;justify-content:flex-end;padding:3rem;
+  min-height:100vh;
+}
+@media(max-width:767px){.auth-banner{display:none}}
+.auth-banner-img{
+  position:absolute;inset:0;width:100%;height:100%;
+  object-fit:cover;opacity:.18;mix-blend-mode:multiply;
+}
+.auth-banner-pattern{
+  position:absolute;inset:0;
+  background-image:radial-gradient(circle at 25% 40%,rgba(255,255,255,.08) 1px,transparent 1px),
+    radial-gradient(circle at 75% 70%,rgba(255,255,255,.05) 1px,transparent 1px);
+  background-size:48px 48px,72px 72px;
+}
+.auth-banner-content{position:relative;z-index:2}
+.auth-banner-eyebrow{
+  font-size:.65rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;
+  color:rgba(255,255,255,.55);margin-bottom:.85rem;
+}
+.auth-banner-title{
+  font-family:var(--serif);font-size:3.2rem;color:white;
+  line-height:1.15;font-weight:700;margin-bottom:.85rem;
+}
+.auth-banner-sub{
+  font-size:.9rem;color:rgba(255,255,255,.7);line-height:1.7;
+  max-width:360px;margin-bottom:2rem;
+}
+.auth-banner-pills{display:flex;flex-wrap:wrap;gap:.5rem}
+.auth-pill{
+  background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);
+  border-radius:99px;padding:.3rem .85rem;font-size:.72rem;
+  color:rgba(255,255,255,.85);backdrop-filter:blur(4px);
+}
+.auth-banner-deco{
+  position:absolute;top:2rem;right:2.5rem;
+  font-size:9rem;opacity:.07;pointer-events:none;user-select:none;line-height:1;
+}
+/* Right sign-in panel */
+.auth-panel{
+  width:440px;flex-shrink:0;background:var(--cream);
+  display:flex;align-items:center;justify-content:center;
+  padding:2.5rem 2rem;min-height:100vh;
+}
+@media(max-width:767px){
+  .auth-panel{width:100%;min-height:100vh;padding:2rem 1.5rem;flex-direction:column;justify-content:center}
 }
 .auth-card{
-  background:var(--surface);border-radius:22px;
-  padding:2.5rem 2rem;max-width:380px;width:100%;
-  box-shadow:0 4px 40px rgba(196,82,42,.12);
-  display:flex;flex-direction:column;align-items:center;text-align:center;gap:0;
+  width:100%;max-width:340px;
+  display:flex;flex-direction:column;align-items:center;text-align:center;
 }
-.auth-bowl{margin-bottom:1.1rem}
-.auth-title{font-family:var(--serif);font-size:1.9rem;color:var(--text);font-weight:700;line-height:1.15;margin-bottom:.4rem}
-.auth-sub{font-size:.85rem;color:var(--muted);margin-bottom:1.8rem;line-height:1.55}
+.auth-logo-mark{margin-bottom:1.4rem}
+.auth-title{font-family:var(--serif);font-size:1.75rem;color:var(--text);font-weight:700;line-height:1.2;margin-bottom:.4rem}
+.auth-sub{font-size:.83rem;color:var(--muted);margin-bottom:2rem;line-height:1.6}
 .auth-google-btn{
   display:flex;align-items:center;justify-content:center;gap:.75rem;
-  width:100%;padding:.82rem 1.25rem;
+  width:100%;padding:.85rem 1.25rem;
   background:white;border:1.5px solid #dadce0;border-radius:12px;
   font-size:.9rem;font-weight:500;color:#3c4043;cursor:pointer;
   font-family:var(--sans);transition:box-shadow .2s,border-color .2s;
-  margin-bottom:1.5rem;
+  margin-bottom:1.5rem;box-shadow:0 1px 4px rgba(0,0,0,.06);
 }
-.auth-google-btn:hover{box-shadow:0 2px 10px rgba(0,0,0,.12);border-color:#c6c6c6}
-.auth-fine{font-size:.68rem;color:var(--muted);line-height:1.55}
-.auth-loading{font-size:.82rem;color:var(--muted);margin-top:1rem;display:none}
+.auth-google-btn:hover{box-shadow:0 3px 12px rgba(0,0,0,.13);border-color:#bbb}
+.auth-divider{display:flex;align-items:center;gap:.75rem;width:100%;margin-bottom:1.4rem}
+.auth-divider-line{flex:1;height:1px;background:var(--border)}
+.auth-divider-text{font-size:.65rem;color:var(--muted);white-space:nowrap}
+.auth-fine{font-size:.67rem;color:var(--muted);line-height:1.6;text-align:center}
+.auth-loading{font-size:.8rem;color:var(--muted);margin-top:.85rem;display:none}
 </style>
 </head>
 <body>
 <!-- ══════════ AUTH WALL ══════════ -->
 <div id="auth-wall">
-  <div class="auth-card">
-    <div class="auth-bowl">
-      <svg width="72" height="72" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <ellipse cx="36" cy="46" rx="28" ry="12" fill="#FDEEE8"/>
-        <path d="M8 46 Q8 22 36 22 Q64 22 64 46" fill="#C4522A" opacity=".15"/>
-        <path d="M12 44 Q12 24 36 24 Q60 24 60 44" stroke="#C4522A" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-        <ellipse cx="36" cy="44" rx="24" ry="5" fill="#C4522A" opacity=".1"/>
-        <path d="M28 20 Q30 14 36 12 Q42 14 44 20" stroke="#C4522A" stroke-width="2" fill="none" stroke-linecap="round" opacity=".5"/>
-        <circle cx="36" cy="11" r="2" fill="#C4522A" opacity=".4"/>
-      </svg>
+  <!-- Left: brand banner -->
+  <div class="auth-banner">
+    <img class="auth-banner-img" src="https://images.unsplash.com/photo-1596797038530-2c107229654b?w=1200&q=80" alt="" onerror="this.style.display='none'"/>
+    <div class="auth-banner-pattern"></div>
+    <div class="auth-banner-deco">🫕</div>
+    <div class="auth-banner-content">
+      <div class="auth-banner-eyebrow">Family Recipe Archive</div>
+      <div class="auth-banner-title">Preserve the taste<br>of home, forever.</div>
+      <div class="auth-banner-sub">Record your family's recipes in their own voice. Every dish, every story — kept safe for generations to come.</div>
+      <div class="auth-banner-pills">
+        <div class="auth-pill">🎙️ Voice recordings</div>
+        <div class="auth-pill">📖 Structured recipes</div>
+        <div class="auth-pill">🌐 Translate to any language</div>
+        <div class="auth-pill">♡ Family memories</div>
+      </div>
     </div>
-    <div class="auth-title">Dadi's Recipes</div>
-    <div class="auth-sub">Your family's recipe book.<br>Preserve the taste of home, forever.</div>
-    <button class="auth-google-btn" onclick="signInWithGoogle()">
-      <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg>
-      Continue with Google
-    </button>
-    <div class="auth-loading" id="auth-loading">Signing you in…</div>
-    <div class="auth-fine">Only family members can access this app.<br>Sign in with your Google account to continue.</div>
+  </div>
+  <!-- Right: sign-in -->
+  <div class="auth-panel">
+    <div class="auth-card">
+      <div class="auth-logo-mark">
+        <svg width="52" height="52" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="36" cy="46" rx="28" ry="12" fill="#FDEEE8"/>
+          <path d="M8 46 Q8 22 36 22 Q64 22 64 46" fill="#C4522A" opacity=".15"/>
+          <path d="M12 44 Q12 24 36 24 Q60 24 60 44" stroke="#C4522A" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <ellipse cx="36" cy="44" rx="24" ry="5" fill="#C4522A" opacity=".1"/>
+          <path d="M28 20 Q30 14 36 12 Q42 14 44 20" stroke="#C4522A" stroke-width="2" fill="none" stroke-linecap="round" opacity=".5"/>
+          <circle cx="36" cy="11" r="2" fill="#C4522A" opacity=".4"/>
+        </svg>
+      </div>
+      <div class="auth-title">Dadi's Recipes</div>
+      <div class="auth-sub">Sign in to access your family's recipe book.</div>
+      <button class="auth-google-btn" onclick="signInWithGoogle()">
+        <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg>
+        Continue with Google
+      </button>
+      <div class="auth-loading" id="auth-loading">Signing you in…</div>
+      <div class="auth-divider">
+        <div class="auth-divider-line"></div>
+        <div class="auth-divider-text">Your recipes, your family only</div>
+        <div class="auth-divider-line"></div>
+      </div>
+      <div class="auth-fine">Each account has its own private recipe book.<br>Sign in with the same Google account to access yours.</div>
+    </div>
   </div>
 </div>
 
@@ -595,42 +670,19 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
     <div class="screen-wrap" id="screenWrap">
 
       <!-- ════ HOME ════ -->
-      <div class="screen active page-full" id="screen-home">
-        <!-- Full-bleed banner -->
-        <div class="home-banner">
-          <img class="home-banner-img" src="https://images.unsplash.com/photo-1596797038530-2c107229654b?w=1200&q=80" alt="" onerror="this.style.display='none'"/>
-          <div class="home-banner-pattern"></div>
-          <div class="home-banner-content">
-            <div class="banner-eyebrow">Our family archive</div>
-            <div class="banner-title">Stories from<br>our kitchen ♡</div>
-            <div class="banner-sub">Every recipe holds a memory. Every voice tells a story.</div>
-            <div class="banner-actions">
-              <button class="banner-cta" onclick="go('capture')">🎤 Capture a memory</button>
-              <button class="banner-cta-ghost" onclick="go('all-recipes')">Browse recipes</button>
+      <div class="screen active" id="screen-home">
+        <div class="page">
+          <!-- Hero -->
+          <div class="home-hero" onclick="go('capture')">
+            <img src="https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=800&q=80" alt="" onerror="this.style.opacity=0"/>
+            <div class="home-hero-overlay">
+              <div class="hero-title">Stories from<br>our kitchen ♡</div>
+              <div class="hero-sub">Recipes and stories passed down with love.</div>
+              <button class="hero-cta" onclick="event.stopPropagation();go('capture')">+ Capture a memory</button>
             </div>
           </div>
-          <div class="banner-deco">🫕</div>
-        </div>
 
-        <!-- Stats strip -->
-        <div class="stats-strip" id="stats-strip">
-          <div class="stat-item">
-            <div class="stat-num" id="stat-recipes">—</div>
-            <div class="stat-label">Recipes</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-num" id="stat-narrators">—</div>
-            <div class="stat-label">Voices</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-num" id="stat-latest">—</div>
-            <div class="stat-label">Latest</div>
-          </div>
-        </div>
-
-        <!-- Home body -->
-        <div class="home-body">
-          <!-- Recipe chips -->
+          <!-- From the kitchen -->
           <div class="section-hdr">
             <span class="section-title">From the kitchen</span>
             <button class="view-all" onclick="go('all-recipes')">View all</button>
@@ -646,20 +698,10 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
             <span class="section-title">Recently remembered</span>
           </div>
           <div id="recent-list">
-            <div class="skel" style="height:64px;margin-bottom:.6rem;border-radius:14px"></div>
-            <div class="skel" style="height:64px;margin-bottom:.6rem;border-radius:14px"></div>
+            <div class="skel" style="height:60px;margin-bottom:.55rem"></div>
+            <div class="skel" style="height:60px;margin-bottom:.55rem"></div>
           </div>
-
-          <!-- Kitchen quote -->
-          <div class="quote-card" id="home-quote" style="display:none">
-            <div class="quote-mark">"</div>
-            <div>
-              <div class="quote-text" id="quote-text"></div>
-              <div class="quote-attr" id="quote-attr"></div>
-            </div>
-          </div>
-
-          <div style="height:1.5rem"></div>
+          <div style="height:1rem"></div>
         </div>
       </div>
 
@@ -1106,60 +1148,26 @@ function narratorEmoji(name) {
   return NARRATOR_EMOJI[name] || '👤';
 }
 
-const KITCHEN_QUOTES = [
-  { text: "Cook with love, eat with joy. The secret ingredient is always in the heart.", attr: "An old family saying" },
-  { text: "A recipe has no soul. You, as the cook, must bring soul to the recipe.", attr: "From our kitchen" },
-  { text: "Food is our common ground, a universal experience.", attr: "Passed down through generations" },
-  { text: "The smell of good bread baking is the best smell there is, and it means that something is being done well.", attr: "Kitchen wisdom" },
-];
-
 function renderHome() {
-  // Stats strip
-  const narrators = new Set(allRecipes.map(r => r.narrator).filter(Boolean));
-  document.getElementById('stat-recipes').textContent = allRecipes.length || '0';
-  document.getElementById('stat-narrators').textContent = narrators.size || '0';
-  const latest = allRecipes[0];
-  document.getElementById('stat-latest').textContent = latest
-    ? formatDate(latest.recorded_at).replace(/\d{4}/,'').replace(/,\s*$/,'').trim() || '—'
-    : '—';
-
-  // Favorites chips
+  // Recipe chips
   const favRow = document.getElementById('fav-row');
   if (allRecipes.length === 0) {
-    favRow.innerHTML = `
-      <div class="fav-chip-empty" onclick="go('capture')">
-        <div class="fav-chip-empty-icon">🎤</div>
-        <div class="fav-chip-empty-label">First recipe</div>
-      </div>`;
+    favRow.innerHTML = `<div style="color:var(--muted);font-size:.8rem;padding:.5rem 0">No recipes yet — <a onclick="go('capture')" style="color:var(--accent);cursor:pointer">capture the first one</a></div>`;
   } else {
-    const chips = allRecipes.slice(0,8).map(r => `
+    favRow.innerHTML = allRecipes.slice(0,8).map(r => `
       <div class="fav-chip" onclick="openRecipe('${r.token}')">
-        ${r.image_url
-          ? `<img src="${r.image_url}" alt="${esc(r.dish_name)}" onerror="this.style.display='none'"/>`
-          : `<div style="width:100%;height:100%;background:linear-gradient(135deg,var(--cream2),var(--cream3));display:flex;align-items:center;justify-content:center;font-size:2rem">🍽️</div>`}
+        ${r.image_url ? `<img src="${r.image_url}" alt="${esc(r.dish_name)}" onerror="this.style.display='none'"/>` : `<div style="width:100%;height:100%;background:var(--cream2);display:flex;align-items:center;justify-content:center;font-size:1.8rem">🍽️</div>`}
         <div class="fav-chip-overlay"></div>
         <div class="fav-chip-name">${esc(r.dish_name || 'Untitled')}</div>
       </div>`).join('');
-    // Add a "record new" chip at the end
-    favRow.innerHTML = chips + `
-      <div class="fav-chip-empty" onclick="go('capture')">
-        <div class="fav-chip-empty-icon">＋</div>
-        <div class="fav-chip-empty-label">Add recipe</div>
-      </div>`;
   }
 
   // Recently remembered
   const recList = document.getElementById('recent-list');
   if (allRecipes.length === 0) {
-    recList.innerHTML = `
-      <div style="text-align:center;padding:2rem 1rem">
-        <div style="font-size:2.5rem;margin-bottom:.75rem">🫕</div>
-        <div style="font-family:var(--serif);font-size:1rem;color:var(--text);margin-bottom:.4rem">No memories yet</div>
-        <div style="font-size:.8rem;color:var(--muted);margin-bottom:1rem">Start by recording a recipe with a family member</div>
-        <button onclick="go('capture')" style="background:var(--accent);color:white;border:none;padding:.5rem 1.2rem;border-radius:99px;font-size:.8rem;font-weight:600;cursor:pointer;font-family:var(--sans)">🎤 Capture a memory</button>
-      </div>`;
+    recList.innerHTML = `<div style="color:var(--muted);font-size:.8rem;text-align:center;padding:1rem 0">No memories recorded yet.</div>`;
   } else {
-    recList.innerHTML = allRecipes.slice(0,5).map(r => `
+    recList.innerHTML = allRecipes.slice(0,4).map(r => `
       <div class="recent-card" onclick="openRecipe('${r.token}')">
         <div class="recent-av">${narratorEmoji(r.narrator)}</div>
         <div class="recent-info">
@@ -1168,14 +1176,6 @@ function renderHome() {
         </div>
         ${r.audio_url ? `<div class="recent-play" onclick="event.stopPropagation();openHearDadiFor('${r.token}')">▶</div>` : ''}
       </div>`).join('');
-  }
-
-  // Kitchen quote
-  if (allRecipes.length > 0) {
-    const q = KITCHEN_QUOTES[Math.floor(Math.random() * KITCHEN_QUOTES.length)];
-    document.getElementById('quote-text').textContent = q.text;
-    document.getElementById('quote-attr').textContent = '— ' + q.attr;
-    document.getElementById('home-quote').style.display = 'flex';
   }
 }
 
