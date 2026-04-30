@@ -55,10 +55,23 @@ app.add_middleware(
 
 @app.get("/")
 async def index():
-    html = _WEB_DIR / "prototype.html"
+    html = _WEB_DIR / "app.html"
     if html.exists():
         return FileResponse(html)
     return JSONResponse(content={"status": "RecipeKeepsake API running"})
+
+
+@app.get("/recipe/{token}")
+async def get_recipe_endpoint(token: str):
+    """Fetch a single recipe by share token."""
+    if not (os.environ.get("SUPABASE_URL") and os.environ.get("SUPABASE_SERVICE_KEY")):
+        raise HTTPException(status_code=503, detail="Storage not configured")
+    from tools.storage import get_recipe_by_token
+    try:
+        recipe = get_recipe_by_token(token)
+        return JSONResponse(content=recipe)
+    except Exception:
+        raise HTTPException(status_code=404, detail="Recipe not found")
 
 
 @app.get("/recipes")
