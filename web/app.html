@@ -1888,6 +1888,9 @@ function go(screen, navEl) {
 
   // Side effects
   if (screen === 'saving') startProcessingAnimation();
+  if (screen === 'home') renderHome();
+  if (screen === 'people') renderPeople();
+  if (screen === 'all-recipes') renderAllRecipes();
 }
 
 function openMobileDrawer() {
@@ -1927,14 +1930,25 @@ async function loadRecipes() {
     if (!res.ok) throw new Error('Failed');
     const data = await res.json();
     allRecipes = data.recipes || [];
+    localStorage.setItem('rk_recipes_cache', JSON.stringify(allRecipes));
     seedPeopleFromRecipes();
-    renderHome();
-    renderPeople();
-    renderAllRecipes();
   } catch (e) {
     console.warn('Could not load recipes:', e.message);
-    renderHome(); // show empty state
+    allRecipes = loadCachedRecipes();
   }
+  renderAppData();
+}
+
+function loadCachedRecipes() {
+  try { return JSON.parse(localStorage.getItem('rk_recipes_cache') || '[]'); }
+  catch { return []; }
+}
+
+function renderAppData() {
+  seedPeopleFromRecipes();
+  renderHome();
+  renderPeople();
+  renderAllRecipes();
 }
 
 // ═══════════════════════════════════════
@@ -2379,7 +2393,11 @@ async function submitAudio(blob, filename) {
 
   try {
     const authHdrs = await getAuthHeaders();
-    const res = await fetch('/capture', { method: 'POST', body: form, headers: authHdrs });
+    let res = await fetch('/capture', { method: 'POST', body: form, headers: authHdrs });
+    if (res.status === 401) {
+      const retryHdrs = await getAuthHeaders({ forceRefresh: true });
+      res = await fetch('/capture', { method: 'POST', body: form, headers: retryHdrs });
+    }
     if (!res.ok) {
       const err = await res.json().catch(() => ({ detail: 'Unknown error' }));
       throw new Error(err.detail || 'Pipeline failed');
@@ -2387,6 +2405,8 @@ async function submitAudio(blob, filename) {
     const recipe = await res.json();
     currentRecipe = recipe;
     allRecipes.unshift(recipe); // add to front
+    localStorage.setItem('rk_recipes_cache', JSON.stringify(allRecipes));
+    seedPeopleFromRecipes();
     finishProcessingAnimation();
     setTimeout(() => { renderRecipeDetail(recipe); go('recipe-detail'); }, 600);
   } catch (err) {
@@ -2772,9 +2792,17 @@ document.addEventListener('click', e => {
   if (profile && !profile.contains(e.target)) closeProfileMenu();
 });
 
-async function getAuthHeaders() {
-  const { data: { session } } = await _sbClient.auth.getSession();
-  return session ? { 'Authorization': `Bearer ${session.access_token}` } : {};
+async function getAuthHeaders(options = {}) {
+  let { data: { session } } = await _sbClient.auth.getSession();
+  const expiresSoon = session?.expires_at && (session.expires_at * 1000) < (Date.now() + 60000);
+  if (options.forceRefresh || expiresSoon) {
+    const refreshed = await _sbClient.auth.refreshSession();
+    session = refreshed.data?.session || session;
+  }
+  if (!session?.access_token) {
+    throw new Error('Session expired. Please sign in again.');
+  }
+  return { 'Authorization': `Bearer ${session.access_token}` };
 }
 
 // ═══════════════════════════════════════
