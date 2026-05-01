@@ -555,19 +555,47 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
 .cooking-mode-label{font-size:.76rem;font-weight:500;color:var(--text2)}
 
 /* ═══════════════════════════════════════
-   ADD VOICE SCREEN
+   UPLOAD RECORDING SCREEN
 ═══════════════════════════════════════ */
-.addvoice-wrap{max-width:400px;margin:0 auto;text-align:center;padding:1.5rem 1.5rem}
-.addvoice-heading{font-family:var(--serif);font-size:1.2rem;color:var(--text);margin-bottom:.32rem}
-.addvoice-sub{font-size:.75rem;color:var(--muted);line-height:1.55;margin-bottom:1.1rem}
-.drop-zone{width:100%;border:2px dashed var(--border2);border-radius:14px;padding:1.6rem 1rem;cursor:pointer;transition:border-color .2s,background .2s;margin-bottom:.75rem}
+.upload-page{display:flex;gap:2rem;align-items:flex-start;max-width:960px;margin:0 auto;padding:1.5rem 1.2rem 2rem}
+.upload-main{flex:1;min-width:0;text-align:center}
+.upload-tips-col{width:272px;flex-shrink:0}
+@media(max-width:740px){.upload-page{flex-direction:column}.upload-tips-col{width:100%}}
+.cassette-wrap{margin:0 auto 1.1rem;display:flex;align-items:center;justify-content:center;gap:.55rem}
+.cassette-waves{display:flex;align-items:center;gap:3px}
+.cassette-waves span{display:inline-block;width:3px;border-radius:2px;background:var(--accent);opacity:.65}
+.upload-hero-title{font-family:var(--serif);font-size:1.5rem;font-weight:800;color:var(--text);line-height:1.25;margin-bottom:.45rem}
+.upload-hero-sub{font-size:.83rem;color:var(--muted);line-height:1.6;margin-bottom:1.3rem;max-width:370px;margin-left:auto;margin-right:auto}
+.drop-zone{width:100%;border:2px dashed var(--border2);border-radius:16px;padding:2rem 1.2rem 1.5rem;cursor:pointer;transition:border-color .2s,background .2s;margin-bottom:.65rem;background:var(--surface)}
 .drop-zone:hover,.drop-zone.dragover{border-color:var(--accent);background:var(--accent-light)}
 .drop-zone input{display:none}
+.drop-cloud{width:50px;height:50px;border-radius:50%;background:#FFF1EC;display:flex;align-items:center;justify-content:center;margin:0 auto .85rem;font-size:1.45rem}
+.drop-main-text{font-size:.95rem;font-weight:700;color:var(--text);margin-bottom:.2rem}
+.drop-sub-text{font-size:.8rem;color:var(--muted);margin-bottom:.7rem}
+.drop-hint{font-size:.72rem;color:var(--accent);font-weight:500}
+.upload-formats{display:flex;align-items:center;justify-content:center;gap:.4rem;font-size:.72rem;color:var(--muted);margin-bottom:.8rem}
+.upload-privacy{display:flex;align-items:flex-start;gap:.7rem;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:.72rem .9rem;text-align:left;margin-bottom:1rem}
+.upload-privacy-icon{font-size:1.15rem;flex-shrink:0;margin-top:.05rem}
+.upload-privacy-title{font-size:.79rem;font-weight:700;color:var(--text);margin-bottom:.15rem}
+.upload-privacy-sub{font-size:.72rem;color:var(--muted);line-height:1.5}
+.upload-footer{font-size:.71rem;color:var(--muted);line-height:1.6}
+.upload-footer a{color:var(--accent);text-decoration:none}
+.tips-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1rem 1.1rem}
+.tips-card-title{font-size:.78rem;font-weight:700;color:var(--text);margin-bottom:.85rem}
+.tip-item{display:flex;gap:.7rem;align-items:flex-start;margin-bottom:.8rem}
+.tip-item:last-child{margin-bottom:0}
+.tip-icon{width:36px;height:36px;border-radius:50%;background:#FFF1EC;display:flex;align-items:center;justify-content:center;font-size:.88rem;flex-shrink:0}
+.tip-text-title{font-size:.77rem;font-weight:700;color:var(--text);margin-bottom:.14rem}
+.tip-text-sub{font-size:.7rem;color:var(--muted);line-height:1.5}
+/* legacy keep for drop-icon/drop-text used nowhere else now but safe to leave */
 .drop-icon{font-size:1.9rem;margin-bottom:.38rem;color:var(--muted)}
 .drop-text{font-size:.76rem;color:var(--muted)}
 .choose-btn{width:100%;padding:.75rem;background:var(--surface);border:1.5px solid var(--border);border-radius:11px;font-size:.84rem;font-weight:600;color:var(--text2);cursor:pointer;font-family:var(--sans);transition:border-color .2s;margin-bottom:.5rem}
 .choose-btn:hover{border-color:var(--accent);color:var(--accent)}
 .file-note{font-size:.63rem;color:var(--muted)}
+.addvoice-wrap{max-width:400px;margin:0 auto;text-align:center;padding:1.5rem 1.5rem}
+.addvoice-heading{font-family:var(--serif);font-size:1.2rem;color:var(--text);margin-bottom:.32rem}
+.addvoice-sub{font-size:.75rem;color:var(--muted);line-height:1.55;margin-bottom:1.1rem}
 
 /* hidden real audio element */
 #real-audio{display:none}
@@ -1578,7 +1606,7 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
         <span class="nav-icon">🎤</span> Capture a Memory
       </div>
       <div class="nav-item" data-screen="add-voice" onclick="go('add-voice',this)">
-        <span class="nav-icon">📤</span> Upload Audio
+        <span class="nav-icon">📤</span> Upload Recording
       </div>
       <div class="nav-group">Account</div>
       <div class="nav-item" onclick="signOut()">
@@ -2105,41 +2133,119 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
         </div>
       </div>
 
-      <!-- ════ ADD VOICE ════ -->
+      <!-- ════ UPLOAD RECORDING ════ -->
       <div class="screen" id="screen-add-voice">
-        <div class="page-narrow">
-          <button class="back-btn" onclick="go('capture')">← Back</button>
-          <div class="addvoice-wrap" style="padding:0">
-            <svg width="130" height="108" viewBox="0 0 130 108" style="display:block;margin:0 auto .9rem">
-              <circle cx="20" cy="30" r="5" fill="#F5A623" opacity=".7"/>
-              <circle cx="20" cy="19" r="3" fill="#C4522A" opacity=".6"/>
-              <path d="M20 28 L20 50" stroke="#C4522A" stroke-width="1.4" stroke-linecap="round" opacity=".5"/>
-              <circle cx="110" cy="25" r="5" fill="#F5A623" opacity=".7"/>
-              <path d="M110 23 L110 50" stroke="#C4522A" stroke-width="1.4" stroke-linecap="round" opacity=".5"/>
-              <rect x="26" y="34" width="78" height="63" rx="10" fill="#F5EDE2" stroke="#D4C5B5" stroke-width="1.8"/>
-              <rect x="34" y="43" width="48" height="32" rx="5" fill="white" stroke="#E8DDD0" stroke-width="1.4"/>
-              <circle cx="92" cy="54" r="2.8" fill="#E8DDD0"/>
-              <circle cx="92" cy="64" r="2.8" fill="#E8DDD0"/>
-              <circle cx="92" cy="74" r="2.8" fill="#E8DDD0"/>
-              <circle cx="92" cy="86" r="6.5" fill="#C4522A" opacity=".8"/>
-              <path d="M86 34 L94 10" stroke="#D4C5B5" stroke-width="1.8" stroke-linecap="round"/>
-              <circle cx="94" cy="10" r="2.2" fill="#C4522A" opacity=".6"/>
-              <text x="55" y="66" text-anchor="middle" font-size="18">☁️</text>
-            </svg>
-            <div class="addvoice-heading">Have an old recording?</div>
-            <div class="addvoice-sub">Upload it here and we'll turn it into a memory.</div>
-            <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()"
-                 ondragover="event.preventDefault();this.classList.add('dragover')"
-                 ondragleave="this.classList.remove('dragover')"
-                 ondrop="handleDrop(event)">
-              <input type="file" id="fileInput" accept="audio/*" onchange="handleFileSelect(event)"/>
-              <div class="drop-icon">☁️</div>
-              <div class="drop-text"><strong>Drag &amp; drop audio file here</strong></div>
-              <div class="drop-text" style="margin-top:.22rem">or click to browse</div>
-            </div>
-            <button class="choose-btn" onclick="document.getElementById('fileInput').click()">Choose file</button>
-            <div class="file-note">Supports mp3, m4a, wav, webm (Max 50MB)</div>
-          </div>
+        <div class="page-wide" style="padding-top:1.2rem">
+          <button class="back-btn" onclick="go('home')" style="margin-bottom:.5rem">← Back</button>
+          <div class="upload-page">
+
+            <!-- Main column -->
+            <div class="upload-main">
+
+              <!-- Cassette illustration -->
+              <div class="cassette-wrap">
+                <div class="cassette-waves" id="cwLeft">
+                  <span style="height:18px"></span><span style="height:28px"></span><span style="height:20px"></span>
+                  <span style="height:34px"></span><span style="height:24px"></span><span style="height:16px"></span>
+                  <span style="height:30px"></span><span style="height:22px"></span>
+                </div>
+                <svg width="100" height="76" viewBox="0 0 100 76" style="flex-shrink:0">
+                  <!-- body -->
+                  <rect x="2" y="10" width="96" height="58" rx="9" fill="#F7EDE0" stroke="#D9C9B5" stroke-width="1.6"/>
+                  <!-- top notch -->
+                  <rect x="22" y="2" width="56" height="14" rx="4" fill="#EFE0CE" stroke="#D9C9B5" stroke-width="1.4"/>
+                  <!-- window -->
+                  <rect x="18" y="22" width="64" height="32" rx="5" fill="white" stroke="#E4D5C2" stroke-width="1.2"/>
+                  <!-- left reel -->
+                  <circle cx="34" cy="38" r="10" fill="#F0E4D3" stroke="#D4C5B0" stroke-width="1.2"/>
+                  <circle cx="34" cy="38" r="4" fill="#C4522A" opacity=".7"/>
+                  <!-- right reel -->
+                  <circle cx="66" cy="38" r="10" fill="#F0E4D3" stroke="#D4C5B0" stroke-width="1.2"/>
+                  <circle cx="66" cy="38" r="4" fill="#C4522A" opacity=".7"/>
+                  <!-- tape strip -->
+                  <path d="M44 48 Q50 52 56 48" stroke="#C4A882" stroke-width="1.4" fill="none"/>
+                  <!-- bottom buttons -->
+                  <circle cx="50" cy="64" r="4" fill="#C4522A" opacity=".75"/>
+                  <circle cx="38" cy="64" r="2.5" fill="#D9C9B5"/>
+                  <circle cx="62" cy="64" r="2.5" fill="#D9C9B5"/>
+                  <!-- heart decoration -->
+                  <text x="78" y="12" font-size="9" fill="#C4522A" opacity=".8">♥</text>
+                  <text x="14" y="9" font-size="7" fill="#F5A623" opacity=".9">✦</text>
+                </svg>
+                <div class="cassette-waves" id="cwRight">
+                  <span style="height:22px"></span><span style="height:30px"></span><span style="height:16px"></span>
+                  <span style="height:34px"></span><span style="height:20px"></span><span style="height:28px"></span>
+                  <span style="height:18px"></span><span style="height:26px"></span>
+                </div>
+              </div>
+
+              <div class="upload-hero-title">Bring grandma's voice back to life</div>
+              <div class="upload-hero-sub">Upload a recording and we'll turn it into<br>a recipe memory you can keep forever.</div>
+
+              <!-- Drop zone -->
+              <div class="drop-zone" id="dropZone"
+                   onclick="document.getElementById('fileInput').click()"
+                   ondragover="event.preventDefault();this.classList.add('dragover')"
+                   ondragleave="this.classList.remove('dragover')"
+                   ondrop="handleDrop(event)">
+                <input type="file" id="fileInput" accept="audio/*,.mp3,.m4a,.wav,.webm" onchange="handleFileSelect(event)"/>
+                <div class="drop-cloud">☁️</div>
+                <div class="drop-main-text">Drag &amp; drop your audio file here</div>
+                <div class="drop-sub-text">or click anywhere to upload</div>
+                <div class="drop-hint">✦ Best results with clear voice recordings</div>
+              </div>
+
+              <!-- Format info -->
+              <div class="upload-formats">
+                <span>🎵</span>
+                <span>Supported formats: MP3, M4A, WAV &nbsp;•&nbsp; Up to 50MB</span>
+              </div>
+
+              <!-- Privacy badge -->
+              <div class="upload-privacy">
+                <span class="upload-privacy-icon">🛡️</span>
+                <div>
+                  <div class="upload-privacy-title">Your recordings are private and secure.</div>
+                  <div class="upload-privacy-sub">Only you and your family can access these memories.</div>
+                </div>
+              </div>
+
+              <!-- Footer -->
+              <div class="upload-footer">
+                Need help? Visit our <a href="#">Help Center</a> or contact us at <a href="mailto:support@dadisrecipes.com">support@dadisrecipes.com</a>
+              </div>
+
+            </div><!-- /upload-main -->
+
+            <!-- Tips sidebar -->
+            <div class="upload-tips-col">
+              <div class="tips-card">
+                <div class="tips-card-title">Tips for the best results</div>
+                <div class="tip-item">
+                  <div class="tip-icon">🎤</div>
+                  <div>
+                    <div class="tip-text-title">Clear voice</div>
+                    <div class="tip-text-sub">Record in a quiet space with minimal background noise.</div>
+                  </div>
+                </div>
+                <div class="tip-item">
+                  <div class="tip-icon">🕐</div>
+                  <div>
+                    <div class="tip-text-title">Good length</div>
+                    <div class="tip-text-sub">Recordings between 30 seconds – 15 minutes work best.</div>
+                  </div>
+                </div>
+                <div class="tip-item">
+                  <div class="tip-icon">🔊</div>
+                  <div>
+                    <div class="tip-text-title">Check before uploading</div>
+                    <div class="tip-text-sub">Play your recording once to ensure it's clear.</div>
+                  </div>
+                </div>
+              </div>
+            </div><!-- /tips-col -->
+
+          </div><!-- /upload-page -->
         </div>
       </div>
 
@@ -3102,13 +3208,15 @@ function _wzViewSavedRecipe() {
   }
 }
 
-async function submitAudio(blob, filename) {
+async function submitAudio(blob, filename, errorScreen) {
+  // errorScreen: where to go on failure — 'capture' for mic recording, 'add-voice' for upload
+  const _errScreen = errorScreen || 'capture';
   console.log('[submit] START — blob size:', blob?.size, 'type:', blob?.type, 'filename:', filename);
   go('saving');
 
   if (!blob || blob.size === 0) {
     console.error('[submit] ABORT — blob is empty or null');
-    go('capture');
+    go(_errScreen);
     showToast('Recording is empty — please try again.');
     return;
   }
@@ -3143,7 +3251,7 @@ async function submitAudio(blob, filename) {
     setTimeout(() => openReviewScreen(recipe, blob, filename), 600);
   } catch (err) {
     console.error('[submit] CATCH — message:', err.message, '\nstack:', err.stack);
-    go('capture');
+    go(_errScreen);
     showToast('Error: ' + err.message);
   }
 }
@@ -3236,14 +3344,14 @@ function discardReview() {
 // ── File upload ──
 function handleFileSelect(e) {
   const file = e.target.files[0];
-  if (file) submitAudio(file, file.name);
+  if (file) submitAudio(file, file.name, 'add-voice');
 }
 
 function handleDrop(e) {
   e.preventDefault();
   document.getElementById('dropZone').classList.remove('dragover');
   const file = e.dataTransfer.files[0];
-  if (file) submitAudio(file, file.name);
+  if (file) submitAudio(file, file.name, 'add-voice');
 }
 
 // ═══════════════════════════════════════
