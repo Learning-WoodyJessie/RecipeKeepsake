@@ -2594,6 +2594,78 @@ async function submitAudio(blob, filename) {
   }
 }
 
+// ═══════════════════════════════════════
+// REVIEW SCREEN — INLINE EDITING
+// ═══════════════════════════════════════
+
+function _renderRvIngredients(ings) {
+  const list = document.getElementById('rv-ingredients-list');
+  list.innerHTML = ings.map((ing, i) => {
+    const label = ing.quantity ? `${ing.quantity} ${ing.item}` : ing.item;
+    return `<div class="rv-list-item">
+      <span class="rv-item-num">•</span>
+      <input class="rv-item-text" value="${esc(label)}" id="rv-ing-${i}" placeholder="e.g. 1 cup rice"/>
+      <button class="rv-item-del" onclick="removeIngredient(${i})">×</button>
+    </div>`;
+  }).join('');
+}
+
+function _getRvIngredients() {
+  const list = document.getElementById('rv-ingredients-list');
+  return Array.from(list.querySelectorAll('.rv-item-text'))
+    .map(inp => inp.value.trim()).filter(Boolean)
+    .map(raw => {
+      const parts = raw.match(/^([\d\/¼-¾⅐-⅞][\d\/\s¼-¾]*(?:cup|tsp|tbsp|g|kg|ml|l|pinch|handful|piece|pieces)?\.?)\s+(.+)$/i);
+      return parts ? { quantity: parts[1].trim(), item: parts[2].trim() } : { item: raw, quantity: '' };
+    });
+}
+
+function addIngredient() {
+  const inp = document.getElementById('rv-new-ing');
+  const val = inp.value.trim();
+  if (!val) return;
+  _renderRvIngredients([..._getRvIngredients(), { item: val, quantity: '' }]);
+  inp.value = '';
+  inp.focus();
+}
+
+function removeIngredient(i) {
+  const current = _getRvIngredients();
+  current.splice(i, 1);
+  _renderRvIngredients(current);
+}
+
+function _renderRvSteps(steps) {
+  const list = document.getElementById('rv-steps-list');
+  list.innerHTML = steps.map((s, i) => `
+    <div class="rv-list-item">
+      <span class="rv-item-num">${i + 1}</span>
+      <input class="rv-item-text" value="${esc(s)}" id="rv-step-${i}" placeholder="Describe this step…"/>
+      <button class="rv-item-del" onclick="removeStep(${i})">×</button>
+    </div>`).join('');
+}
+
+function _getRvSteps() {
+  const list = document.getElementById('rv-steps-list');
+  return Array.from(list.querySelectorAll('.rv-item-text'))
+    .map(inp => inp.value.trim()).filter(Boolean);
+}
+
+function addStep() {
+  const inp = document.getElementById('rv-new-step');
+  const val = inp.value.trim();
+  if (!val) return;
+  _renderRvSteps([..._getRvSteps(), val]);
+  inp.value = '';
+  inp.focus();
+}
+
+function removeStep(i) {
+  const current = _getRvSteps();
+  current.splice(i, 1);
+  _renderRvSteps(current);
+}
+
 // ── File upload ──
 function handleFileSelect(e) {
   const file = e.target.files[0];
