@@ -1039,6 +1039,43 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
 .wm-photo-row{display:flex;align-items:center;gap:.75rem}
 .wm-photo-preview{width:44px;height:44px;border-radius:50%;background:var(--cream2);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.4rem;overflow:hidden;flex-shrink:0}
 .wm-photo-preview img{width:100%;height:100%;object-fit:cover}
+
+/* ── Review Screen ── */
+.review-page{padding:0 0 2rem;max-width:520px;margin:0 auto}
+.review-topbar{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1rem;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:10}
+.review-topbar-title{font-weight:700;font-size:.95rem;color:var(--text1)}
+.review-discard-btn{background:none;border:none;color:var(--muted);font-size:.85rem;cursor:pointer;padding:.35rem .6rem}
+.review-save-top-btn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:.38rem .85rem;font-size:.82rem;font-weight:600;cursor:pointer}
+.review-audio-bar{display:flex;align-items:center;gap:.75rem;padding:.65rem 1rem;background:var(--surface);margin:.75rem 1rem;border-radius:11px;border:1px solid var(--border)}
+.rv-play-btn{background:var(--accent);color:#fff;border:none;border-radius:50%;width:32px;height:32px;font-size:.85rem;cursor:pointer;flex-shrink:0}
+.rv-audio-label{flex:1;font-size:.82rem;color:var(--text2)}
+.rv-audio-time{font-size:.78rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.review-section{padding:.75rem 1rem;border-bottom:1px solid var(--border)}
+.review-label{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:.45rem}
+.review-hint{font-weight:400;text-transform:none;letter-spacing:0;font-size:.68rem;color:var(--accent);margin-left:.4rem}
+.review-input{width:100%;border:none;border-bottom:1.5px solid var(--border);background:transparent;font-size:1rem;font-weight:600;color:var(--text1);padding:.35rem 0;outline:none;font-family:inherit;box-sizing:border-box}
+.review-input:focus{border-bottom-color:var(--accent)}
+.review-textarea{width:100%;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text1);font-family:inherit;font-size:.85rem;padding:.55rem .7rem;outline:none;resize:vertical;box-sizing:border-box}
+.review-textarea:focus{border-color:var(--accent)}
+.rv-list{display:flex;flex-direction:column;gap:.35rem;margin-bottom:.55rem}
+.rv-list-item{display:flex;align-items:center;gap:.5rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.45rem .6rem}
+.rv-item-num{font-size:.7rem;color:var(--muted);font-weight:700;min-width:1.2rem;flex-shrink:0}
+.rv-item-text{flex:1;font-size:.84rem;color:var(--text1);border:none;background:transparent;outline:none;font-family:inherit;min-width:0}
+.rv-item-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:.8rem;padding:.1rem .3rem;flex-shrink:0}
+.rv-item-del:hover{color:#e55}
+.rv-add-row{display:flex;gap:.5rem;align-items:center}
+.rv-add-input{flex:1;border:1px solid var(--border);border-radius:8px;padding:.42rem .65rem;font-size:.84rem;background:var(--surface);color:var(--text1);font-family:inherit;outline:none}
+.rv-add-input:focus{border-color:var(--accent)}
+.rv-add-btn{background:var(--surface);border:1.5px solid var(--accent);color:var(--accent);border-radius:8px;padding:.4rem .75rem;font-size:.82rem;font-weight:600;cursor:pointer;white-space:nowrap}
+.review-transcript-details{margin:.75rem 1rem}
+.review-transcript-summary{font-size:.8rem;color:var(--muted);cursor:pointer;padding:.4rem 0;user-select:none}
+.review-transcript-body{padding:.5rem 0}
+.review-transcript-lang{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:.3rem}
+.review-transcript-text{font-size:.8rem;color:var(--text2);line-height:1.55}
+.review-bottom-bar{display:flex;gap:.75rem;padding:1rem;position:sticky;bottom:0;background:var(--bg);border-top:1px solid var(--border)}
+.rv-btn-discard{flex:1;border:1.5px solid var(--border);background:none;color:var(--text2);border-radius:11px;padding:.75rem;font-size:.9rem;cursor:pointer}
+.rv-btn-save{flex:2;background:var(--accent);color:#fff;border:none;border-radius:11px;padding:.75rem;font-size:.9rem;font-weight:700;cursor:pointer}
+.rv-btn-save:disabled{opacity:.55;cursor:not-allowed}
 </style>
 </head>
 <body>
@@ -1558,6 +1595,77 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
         </div>
       </div>
 
+      <!-- ════ REVIEW ════ -->
+      <div class="screen" id="screen-review">
+        <div class="page review-page">
+
+          <!-- Top bar -->
+          <div class="review-topbar">
+            <button class="review-discard-btn" onclick="discardReview()">✕ Discard</button>
+            <div class="review-topbar-title">Review Recipe</div>
+            <button class="review-save-top-btn" onclick="saveReviewedRecipe()">Save ✓</button>
+          </div>
+
+          <!-- Audio playback from local blob -->
+          <div class="review-audio-bar" id="rv-audio-bar" style="display:none">
+            <button class="rv-play-btn" id="rv-play-btn" onclick="toggleReviewAudio()">▶</button>
+            <div class="rv-audio-label">Listen to recording</div>
+            <div class="rv-audio-time" id="rv-duration">0:00</div>
+          </div>
+
+          <!-- Dish name -->
+          <div class="review-section">
+            <div class="review-label">Dish name</div>
+            <input type="text" id="rv-dish-name" class="review-input" placeholder="What is this dish?"/>
+          </div>
+
+          <!-- Ingredients -->
+          <div class="review-section">
+            <div class="review-label">Ingredients <span class="review-hint">tap × to remove</span></div>
+            <div id="rv-ingredients-list" class="rv-list"></div>
+            <div class="rv-add-row">
+              <input type="text" id="rv-new-ing" class="rv-add-input" placeholder="e.g. 2 cups rice"/>
+              <button class="rv-add-btn" onclick="addIngredient()">+ Add</button>
+            </div>
+          </div>
+
+          <!-- Steps -->
+          <div class="review-section">
+            <div class="review-label">Steps <span class="review-hint">tap × to remove</span></div>
+            <div id="rv-steps-list" class="rv-list"></div>
+            <div class="rv-add-row">
+              <input type="text" id="rv-new-step" class="rv-add-input" placeholder="Add a step…"/>
+              <button class="rv-add-btn" onclick="addStep()">+ Add</button>
+            </div>
+          </div>
+
+          <!-- Cook notes -->
+          <div class="review-section">
+            <div class="review-label">Dadi's notes <span class="review-hint">vague terms OK</span></div>
+            <textarea id="rv-cook-notes" class="review-textarea" placeholder="e.g. add oil until it smells right…" rows="3"></textarea>
+          </div>
+
+          <!-- Transcript collapsible reference -->
+          <details class="review-transcript-details">
+            <summary class="review-transcript-summary">🎙️ Raw transcript ▾</summary>
+            <div class="review-transcript-body">
+              <div class="review-transcript-lang">Original</div>
+              <div id="rv-transcript-raw" class="review-transcript-text"></div>
+              <div class="review-transcript-lang" style="margin-top:.75rem">English translation</div>
+              <div id="rv-transcript-english" class="review-transcript-text"></div>
+            </div>
+          </details>
+
+          <!-- Bottom action bar -->
+          <div class="review-bottom-bar">
+            <button class="rv-btn-discard" onclick="discardReview()">Discard</button>
+            <button class="rv-btn-save" id="rv-save-btn" onclick="saveReviewedRecipe()">Save Recipe ✓</button>
+          </div>
+
+          <div style="height:5rem"></div>
+        </div>
+      </div>
+
       <!-- ════ RECIPE DETAIL ════ -->
       <div class="screen" id="screen-recipe-detail">
         <div class="recipe-layout">
@@ -1851,7 +1959,7 @@ const audio = document.getElementById('real-audio');
 // ═══════════════════════════════════════
 const SCREEN_IDS = [
   'home','capture','saving','recipe-detail',
-  'people','profile','all-recipes','hear-dadi','add-voice'
+  'people','profile','all-recipes','hear-dadi','add-voice','review'
 ];
 const BOTTOM_NAV_MAP = {
   'home':'bn-home','people':'bn-people','capture':'bn-capture','all-recipes':'bn-recipes'
