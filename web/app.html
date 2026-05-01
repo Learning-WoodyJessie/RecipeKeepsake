@@ -83,7 +83,7 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
 @media(max-width:767px){
   .mobile-appbar{
     display:flex;align-items:center;gap:.65rem;min-height:58px;
-    padding:.55rem 1rem;background:rgba(253,248,243,.96);
+    padding:calc(.55rem + env(safe-area-inset-top)) 1rem .55rem;background:rgba(253,248,243,.96);
     border-bottom:1px solid var(--border);backdrop-filter:blur(12px);flex-shrink:0;
   }
   .mobile-menu-btn{
@@ -95,6 +95,12 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
   .mobile-brand{min-width:0;flex:1}
   .mobile-brand-name{font-family:var(--serif);font-size:1.05rem;font-weight:700;color:var(--accent);line-height:1}
   .mobile-brand-sub{font-size:.62rem;color:var(--muted);margin-top:.12rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mobile-app-avatar{
+    width:34px;height:34px;border-radius:50%;background:var(--accent-light);
+    color:var(--accent);display:flex;align-items:center;justify-content:center;
+    font-size:.78rem;font-weight:700;overflow:hidden;border:1px solid rgba(196,82,42,.14);
+  }
+  .mobile-app-avatar img{width:100%;height:100%;object-fit:cover}
   .mobile-drawer-backdrop{
     position:fixed;inset:0;background:rgba(45,27,14,.34);z-index:6000;
     opacity:0;pointer-events:none;transition:opacity .2s ease;display:block;
@@ -132,12 +138,13 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
 .screen.active{display:block}
 
 /* ── Bottom nav (mobile) ── */
-.bottom-nav{display:none;align-items:center;background:var(--surface);border-top:1px solid var(--border);padding:.4rem 0 .85rem;flex-shrink:0}
+.bottom-nav{display:none;align-items:center;background:var(--surface);border-top:1px solid var(--border);padding:.4rem 0 calc(.85rem + env(safe-area-inset-bottom));flex-shrink:0}
 .bn-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:.15rem;cursor:pointer;padding:.2rem 0}
 .bn-icon{font-size:1.1rem;color:var(--muted)}
 .bn-label{font-size:.56rem;color:var(--muted);font-weight:500}
 .bn-item.active .bn-icon,.bn-item.active .bn-label{color:var(--accent)}
-.bn-record{width:46px;height:46px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;margin-top:-14px;box-shadow:0 4px 14px rgba(196,82,42,.4);cursor:pointer;flex-shrink:0}
+.bn-record{width:54px;height:54px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;margin-top:-18px;box-shadow:0 7px 18px rgba(196,82,42,.38);cursor:pointer;flex-shrink:0;border:4px solid var(--surface)}
+.bn-record.active{background:var(--accent2);transform:translateY(-1px)}
 .bn-record svg{width:19px;height:19px;fill:white}
 
 /* ═══════════════════════════════════════
@@ -152,6 +159,7 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
    LAYOUT HELPERS
 ═══════════════════════════════════════ */
 .page{max-width:700px;margin:0 auto;padding:1.75rem 1.5rem}
+@media(max-width:767px){.page{padding:1.15rem 1rem 1.4rem}}
 .page-full{padding:0}
 .page-narrow{max-width:520px;margin:0 auto;padding:1.75rem 1.5rem}
 .section-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem}
@@ -228,6 +236,41 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
 
 .home-hero{display:none} /* hide old hero */
 .hero-title,.hero-sub,.hero-cta{display:none}
+
+.mobile-home-intro{display:none}
+.mobile-voices-hdr{display:none}
+.voice-row{display:none}
+@media(max-width:767px){
+  .mobile-voices-hdr{display:flex}
+  .mobile-home-intro{
+    display:block;margin-bottom:1.15rem;padding:1rem 1rem 1.05rem;border-radius:18px;
+    background:linear-gradient(135deg,#FFF7F1 0%,#FDEBE5 48%,#F8F3EA 100%);
+    border:1px solid rgba(196,82,42,.12);box-shadow:0 6px 20px rgba(45,27,14,.045);
+  }
+  .mobile-kicker{font-size:.66rem;font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:var(--muted);margin-bottom:.35rem}
+  .mobile-home-title{font-family:var(--serif);font-size:1.55rem;line-height:1.1;color:var(--text);font-weight:700;margin-bottom:.45rem}
+  .mobile-home-title span{color:#C9676A}
+  .mobile-home-copy{font-size:.82rem;line-height:1.5;color:var(--text2);max-width:19rem}
+  .mobile-primary-cta{
+    width:100%;margin-top:.9rem;border:none;border-radius:14px;background:var(--accent);color:white;
+    min-height:48px;font-family:var(--sans);font-size:.9rem;font-weight:750;cursor:pointer;
+    box-shadow:0 8px 18px rgba(196,82,42,.22);
+  }
+  .voice-row{display:flex;gap:.65rem;overflow-x:auto;scrollbar-width:none;margin:0 0 1.4rem;padding-bottom:.2rem}
+  .voice-row::-webkit-scrollbar{display:none}
+  .voice-card{
+    flex:0 0 112px;border:1px solid var(--border);border-radius:16px;background:var(--surface);
+    padding:.75rem .65rem;box-shadow:0 3px 12px rgba(45,27,14,.045);cursor:pointer;
+    min-height:110px;display:flex;flex-direction:column;justify-content:space-between;
+  }
+  .voice-card:active{transform:scale(.98)}
+  .voice-avatar{width:38px;height:38px;border-radius:50%;background:var(--accent-light);display:flex;align-items:center;justify-content:center;color:var(--accent);font-weight:750;overflow:hidden}
+  .voice-avatar img{width:100%;height:100%;object-fit:cover}
+  .voice-name{font-size:.79rem;font-weight:750;color:var(--text);margin-top:.45rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .voice-meta{font-size:.62rem;color:var(--muted);margin-top:.12rem}
+  .voice-card.add{border-style:dashed;background:rgba(255,255,255,.62);align-items:center;text-align:center;justify-content:center;gap:.45rem;color:var(--accent)}
+  .voice-add-icon{width:36px;height:36px;border-radius:50%;background:var(--accent-light);display:flex;align-items:center;justify-content:center;font-size:1.15rem;font-weight:700}
+}
 
 .fav-row{display:flex;gap:.85rem;overflow-x:auto;padding-bottom:.5rem;scrollbar-width:none;margin-bottom:1.75rem}
 .fav-row::-webkit-scrollbar{display:none}
@@ -1326,6 +1369,7 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
         <div class="mobile-brand-name">Dadi's Recipes</div>
         <div class="mobile-brand-sub">Stories. Recipes. Memories.</div>
       </div>
+      <div class="mobile-app-avatar" id="mobile-app-av">?</div>
     </div>
 
     <!-- Desktop topbar -->
@@ -1359,6 +1403,19 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
       <!-- ════ HOME ════ -->
       <div class="screen active" id="screen-home">
         <div class="page">
+          <section class="mobile-home-intro">
+            <div class="mobile-kicker" id="mobile-home-kicker">Family memory book</div>
+            <div class="mobile-home-title">Preserve one <span>memory</span> today.</div>
+            <div class="mobile-home-copy">Record a voice, save a recipe, and keep the little details your family will want later.</div>
+            <button class="mobile-primary-cta" onclick="go('capture')">Record a memory</button>
+          </section>
+
+          <div class="section-hdr mobile-voices-hdr">
+            <span class="section-title">Family voices</span>
+            <button class="view-all" onclick="go('people')">Manage</button>
+          </div>
+          <div class="voice-row" id="voice-row"></div>
+
           <!-- Hero -->
           <div class="home-hero" onclick="go('capture')">
             <img src="https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=800&q=80" alt="" onerror="this.style.opacity=0"/>
@@ -1736,7 +1793,7 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
     <nav class="bottom-nav">
       <div class="bn-item active" id="bn-home" onclick="go('home')"><div class="bn-icon">🏠</div><div class="bn-label">Home</div></div>
       <div class="bn-item" id="bn-people" onclick="go('people')"><div class="bn-icon">👥</div><div class="bn-label">People</div></div>
-      <div class="bn-record" onclick="go('capture')">
+      <div class="bn-record" id="bn-capture" onclick="go('capture')" aria-label="Record a memory">
         <svg viewBox="0 0 24 24"><path d="M12 14a3 3 0 003-3V5a3 3 0 00-6 0v6a3 3 0 003 3zm5-3a5 5 0 01-10 0H5a7 7 0 0014 0h-2z"/></svg>
       </div>
       <div class="bn-item" id="bn-recipes" onclick="go('all-recipes')"><div class="bn-icon">📖</div><div class="bn-label">Recipes</div></div>
@@ -1797,7 +1854,7 @@ const SCREEN_IDS = [
   'people','profile','all-recipes','hear-dadi','add-voice'
 ];
 const BOTTOM_NAV_MAP = {
-  'home':'bn-home','people':'bn-people','all-recipes':'bn-recipes'
+  'home':'bn-home','people':'bn-people','capture':'bn-capture','all-recipes':'bn-recipes'
 };
 
 function go(screen, navEl) {
@@ -1825,7 +1882,7 @@ function go(screen, navEl) {
   }
 
   // Bottom nav active
-  document.querySelectorAll('.bn-item').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.bn-item,.bn-record').forEach(b => b.classList.remove('active'));
   const bnId = BOTTOM_NAV_MAP[screen];
   if (bnId) document.getElementById(bnId)?.classList.add('active');
 
@@ -1889,6 +1946,8 @@ function narratorEmoji(name) {
 }
 
 function renderHome() {
+  renderFamilyVoices();
+
   // Recipe chips
   const favRow = document.getElementById('fav-row');
   if (allRecipes.length === 0) {
@@ -1917,6 +1976,59 @@ function renderHome() {
         ${r.audio_url ? `<div class="recent-play" onclick="event.stopPropagation();openHearDadiFor('${r.token}')">▶</div>` : ''}
       </div>`).join('');
   }
+}
+
+function getFamilyVoices() {
+  const map = new Map();
+  allRecipes.forEach(r => {
+    const name = r.narrator || 'Grandma';
+    const current = map.get(name) || { name, count: 0, emoji: narratorEmoji(name), photo: '', relation: '' };
+    current.count += 1;
+    map.set(name, current);
+  });
+  _loadPeople().forEach(p => {
+    const existing = map.get(p.name) || { name: p.name, count: 0 };
+    map.set(p.name, {
+      ...existing,
+      emoji: p.emoji || existing.emoji || '👤',
+      photo: p.photo || existing.photo || '',
+      relation: p.relation || existing.relation || ''
+    });
+  });
+  if (map.size === 0) {
+    ['Dadi','Nani'].forEach(name => map.set(name, { name, count: 0, emoji: narratorEmoji(name), photo: '', relation: '' }));
+  }
+  return [...map.values()].slice(0, 6);
+}
+
+function renderFamilyVoices() {
+  const row = document.getElementById('voice-row');
+  if (!row) return;
+  const voices = getFamilyVoices();
+  row.innerHTML = voices.map(v => {
+    const av = v.photo
+      ? `<img src="${esc(v.photo)}" alt="" onerror="this.parentElement.textContent='${esc(v.emoji || '👤')}'"/>`
+      : esc(v.emoji || '👤');
+    return `
+      <button class="voice-card" onclick="startCaptureFor(decodeURIComponent('${encodeURIComponent(v.name)}'))">
+        <div>
+          <div class="voice-avatar">${av}</div>
+          <div class="voice-name">${esc(v.name)}</div>
+          <div class="voice-meta">${v.count ? `${v.count} ${v.count === 1 ? 'memory' : 'memories'}` : 'Ready to record'}</div>
+        </div>
+      </button>`;
+  }).join('') + `
+    <button class="voice-card add" onclick="openAddPersonModal()">
+      <div class="voice-add-icon">+</div>
+      <div class="voice-name">Add voice</div>
+      <div class="voice-meta">Grandma, Nani, family</div>
+    </button>`;
+}
+
+function startCaptureFor(name) {
+  selectedNarrator = name;
+  go('capture');
+  setTimeout(renderNarratorChips, 0);
 }
 
 // ═══════════════════════════════════════
@@ -2199,7 +2311,7 @@ function filterSearch(q) {
 // ═══════════════════════════════════════
 function selectNarrator(el, name) {
   document.querySelectorAll('.n-chip').forEach(c => c.classList.remove('selected'));
-  el.classList.add('selected');
+  if (el) el.classList.add('selected');
   selectedNarrator = name;
 }
 
@@ -2633,6 +2745,16 @@ function updateUserUI(user) {
   drawerAvEl.innerHTML = avatarUrl
     ? `<img src="${avatarUrl}" onerror="this.parentElement.textContent='${initials}'"/>`
     : initials;
+
+  // Mobile appbar / home greeting
+  const mobileAvEl = document.getElementById('mobile-app-av');
+  if (mobileAvEl) {
+    mobileAvEl.innerHTML = avatarUrl
+      ? `<img src="${avatarUrl}" onerror="this.parentElement.textContent='${initials}'"/>`
+      : initials;
+  }
+  const kickerEl = document.getElementById('mobile-home-kicker');
+  if (kickerEl) kickerEl.textContent = `Welcome back, ${firstName}`;
 }
 
 function toggleProfileMenu() {
@@ -2720,6 +2842,8 @@ function saveNewPerson() {
   people.push({ name, relation, emoji, photo, notes });
   _savePeople(people);
   closeAddPersonModal();
+  selectedNarrator = name;
+  renderHome();
   renderPeople();
   renderNarratorChips();
   showToast(`${name} added to your family book ♡`);
@@ -2766,6 +2890,8 @@ function saveWelcomePerson() {
   people.push({ name, relation, emoji, photo, notes });
   _savePeople(people);
   closeWelcomeModal();
+  selectedNarrator = name;
+  renderHome();
   renderPeople();
   renderNarratorChips();
   showToast(`${name} added to your family book ♡`);
@@ -2782,7 +2908,7 @@ function renderNarratorChips() {
   const custom = _loadPeople();
   const all = [...defaults, ...custom.map(p => ({ name: p.name, emoji: p.emoji || '👤' }))];
   container.innerHTML = all.map((p, i) => `
-    <div class="n-chip ${i === 0 ? 'selected' : ''}" onclick="selectNarrator(this,'${esc(p.name)}')">
+    <div class="n-chip ${p.name === selectedNarrator || (!selectedNarrator && i === 0) ? 'selected' : ''}" onclick="selectNarrator(this,decodeURIComponent('${encodeURIComponent(p.name)}'))">
       <div class="n-chip-av">${p.emoji}</div>${esc(p.name)}
     </div>`).join('');
 }
