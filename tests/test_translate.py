@@ -1,5 +1,5 @@
 from unittest.mock import MagicMock
-from prompts.translate import translate_to_english, TRANSLATE_SYSTEM
+from prompts.translate import translate_to_english, build_translate_system
 
 
 def _provider(text):
@@ -25,6 +25,12 @@ class TestTranslateToEnglish:
         assert user_arg == "raw telugu text"
 
     def test_system_prompt_forbids_normalization(self):
-        """TRANSLATE_SYSTEM prompt must mention vague term preservation."""
-        assert "konjam" in TRANSLATE_SYSTEM.lower() or "vague" in TRANSLATE_SYSTEM.lower()
-        assert "normalize" in TRANSLATE_SYSTEM.lower() or "do not" in TRANSLATE_SYSTEM.lower()
+        """build_translate_system() must instruct model to preserve vague quantities."""
+        system = build_translate_system()
+        assert "normalize" in system.lower() or "do not" in system.lower()
+        assert "vague" in system.lower() or "preserve" in system.lower()
+
+    def test_system_prompt_includes_glossary(self):
+        """build_translate_system() injects the Telugu cooking glossary."""
+        system = build_translate_system()
+        assert "konchem" in system.lower()
