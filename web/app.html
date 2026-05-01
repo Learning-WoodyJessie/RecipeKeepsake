@@ -315,36 +315,61 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
 /* ═══════════════════════════════════════
    CAPTURE SCREEN
 ═══════════════════════════════════════ */
-.capture-heading{text-align:center;margin-bottom:1.4rem}
-.capture-label{font-size:.7rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:.45rem}
-.capture-big{font-family:var(--serif);font-size:1.5rem;color:var(--text);line-height:1.35;margin-bottom:.35rem}
-.capture-sub{font-size:.76rem;color:var(--muted)}
+.capture-page{display:flex;gap:2rem;align-items:flex-start;max-width:960px;margin:0 auto;padding:.5rem 1.2rem 2rem}
+.capture-main{flex:1;min-width:0}
+.capture-tips-col{width:272px;flex-shrink:0}
+@media(max-width:740px){.capture-page{flex-direction:column}.capture-tips-col{width:100%}}
+.capture-heading{text-align:center;margin-bottom:1.3rem}
+.capture-label{font-size:.66rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:.45rem}
+.capture-big{font-family:var(--serif);font-size:1.6rem;color:var(--text);line-height:1.3;margin-bottom:.38rem}
+.capture-sub{font-size:.78rem;color:var(--muted);margin-bottom:.6rem}
+.capture-divider{display:flex;align-items:center;justify-content:center;gap:.5rem;margin-top:.35rem}
+.capture-divider-line{width:48px;height:1px;background:var(--border)}
 
+.narrator-label{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--accent);margin-bottom:.5rem}
 .narrator-chips{display:flex;gap:.45rem;flex-wrap:wrap;margin-bottom:1.25rem}
-.n-chip{display:flex;align-items:center;gap:.35rem;padding:.3rem .7rem .3rem .3rem;border-radius:99px;border:1.5px solid var(--border);background:var(--surface);cursor:pointer;transition:all .18s;font-size:.76rem;font-weight:500;color:var(--text2)}
+.n-chip{display:flex;align-items:center;gap:.35rem;padding:.3rem .75rem .3rem .35rem;border-radius:99px;border:1.5px solid var(--border);background:var(--surface);cursor:pointer;transition:all .18s;font-size:.76rem;font-weight:500;color:var(--text2)}
 .n-chip.selected{border-color:var(--accent);background:var(--accent-light);color:var(--accent)}
 .n-chip-av{width:22px;height:22px;border-radius:50%;background:var(--cream2);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:.7rem;flex-shrink:0}
 .n-chip-av img{width:100%;height:100%;object-fit:cover}
 
-.mic-card{display:flex;flex-direction:column;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:2rem 1.75rem;margin-bottom:1.1rem}
+.mic-card{display:flex;flex-direction:column;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:2rem 1.75rem 1.35rem;margin-bottom:1rem}
 .mic-outer{width:116px;height:116px;border-radius:50%;border:2.5px dashed var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:border-color .3s;margin-bottom:.9rem}
 .mic-outer.recording{border-color:var(--accent);animation:pulseRing 1.2s ease-in-out infinite}
 @keyframes pulseRing{0%,100%{box-shadow:0 0 0 0 rgba(196,82,42,.15)}50%{box-shadow:0 0 0 14px rgba(196,82,42,0)}}
 .mic-inner{width:86px;height:86px;border-radius:50%;background:var(--accent-light);display:flex;align-items:center;justify-content:center;font-size:1.95rem;transition:background .3s;user-select:none}
 .mic-inner.recording{background:#FDEEE8}
-.mic-timer{font-size:1.7rem;font-weight:300;color:var(--text);letter-spacing:.05em;font-variant-numeric:tabular-nums}
-.mic-hint{font-size:.73rem;color:var(--muted);margin-top:.2rem}
+.mic-timer{font-size:1.75rem;font-weight:300;color:var(--text);letter-spacing:.05em;font-variant-numeric:tabular-nums;margin-bottom:.2rem}
+.mic-hint{font-size:.73rem;color:var(--muted)}
+.mic-wave-row{width:100%;margin-top:1.1rem;display:flex;align-items:center;justify-content:center;height:28px;gap:2.5px;overflow:hidden}
+.mic-wave-bar{width:3px;border-radius:2px;background:var(--accent);opacity:.35;transition:height .15s}
+.mic-wave-bar.active{opacity:.7;animation:mwbob var(--d,.6s) ease-in-out infinite alternate}
+@keyframes mwbob{0%{transform:scaleY(.4)}100%{transform:scaleY(1)}}
 
 .or-row{display:flex;align-items:center;gap:.7rem;margin-bottom:.7rem}
 .or-line{flex:1;height:1px;background:var(--border)}
 .or-text{font-size:.68rem;color:var(--muted)}
 
-.upload-row{display:flex;align-items:center;justify-content:space-between;padding:.75rem .9rem;background:var(--surface);border:1px solid var(--border);border-radius:11px;cursor:pointer;transition:border-color .2s;margin-bottom:.5rem}
+.upload-row{display:flex;align-items:center;justify-content:space-between;padding:.72rem .9rem;background:var(--surface);border:1px solid var(--border);border-radius:12px;cursor:pointer;transition:border-color .2s;margin-bottom:.5rem}
 .upload-row:hover{border-color:var(--accent)}
-.upload-row-left{display:flex;align-items:center;gap:.55rem;font-size:.82rem;font-weight:500;color:var(--text2)}
+.upload-row-left{display:flex;align-items:center;gap:.6rem}
+.upload-row-icon{width:34px;height:34px;border-radius:50%;background:#FFF1EC;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0}
+.upload-row-title{font-size:.82rem;font-weight:600;color:var(--text)}
+.upload-row-sub{font-size:.7rem;color:var(--muted);margin-top:.06rem}
 
-.tips-card{background:var(--amber-bg);border:1px solid rgba(245,166,35,.2);border-radius:13px;padding:.85rem 1rem}
-.tips-hdr{display:flex;align-items:center;gap:.35rem;margin-bottom:.4rem;font-size:.71rem;font-weight:700;color:var(--text2)}
+.capture-privacy{display:flex;align-items:flex-start;gap:.7rem;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:.68rem .9rem;margin-top:.65rem}
+.capture-privacy-icon{font-size:1.1rem;flex-shrink:0;margin-top:.05rem}
+.capture-privacy-title{font-size:.78rem;font-weight:700;color:var(--text);margin-bottom:.12rem}
+.capture-privacy-sub{font-size:.71rem;color:var(--muted);line-height:1.5}
+
+/* legacy tips-card kept for upload tips (reused there) */
+.tips-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1rem 1.1rem}
+.tips-card-title,.tips-hdr{font-size:.78rem;font-weight:700;color:var(--text);margin-bottom:.85rem}
+.tip-item{display:flex;gap:.7rem;align-items:flex-start;margin-bottom:.8rem}
+.tip-item:last-child{margin-bottom:0}
+.tip-icon{width:36px;height:36px;border-radius:50%;background:#FFF1EC;display:flex;align-items:center;justify-content:center;font-size:.88rem;flex-shrink:0}
+.tip-text-title{font-size:.77rem;font-weight:700;color:var(--text);margin-bottom:.14rem}
+.tip-text-sub{font-size:.7rem;color:var(--muted);line-height:1.5}
 .tip-row{display:flex;align-items:flex-start;gap:.3rem;font-size:.71rem;color:var(--muted);margin-bottom:.22rem;line-height:1.45}
 .tip-row:last-child{margin-bottom:0}
 
@@ -1714,56 +1739,150 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
 
       <!-- ════ CAPTURE ════ -->
       <div class="screen" id="screen-capture">
-        <div class="page-narrow">
-          <button class="back-btn" onclick="go('home')">← Back</button>
-          <div class="capture-heading">
-            <div class="capture-label">Capture a memory</div>
-            <div class="capture-big">What is Dadi making<br>today? <span style="color:var(--accent)">♡</span></div>
-            <div class="capture-sub">Just let her talk. We'll take care of the rest.</div>
-          </div>
+        <div class="page-wide" style="padding-top:1.2rem">
+          <button class="back-btn" onclick="go('home')" style="margin-bottom:.5rem">← Back</button>
+          <div class="capture-page">
 
-          <!-- Narrator chips -->
-          <div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:.5rem">Who is narrating?</div>
-          <div class="narrator-chips" id="narrator-chips">
-            <div class="n-chip selected" onclick="selectNarrator(this,'Dadi')">
-              <div class="n-chip-av">👵</div>Dadi
-            </div>
-            <div class="n-chip" onclick="selectNarrator(this,'Nani')">
-              <div class="n-chip-av">👩‍🦳</div>Nani
-            </div>
-            <div class="n-chip" onclick="selectNarrator(this,'Mumma')">
-              <div class="n-chip-av">👩</div>Mumma
-            </div>
-          </div>
+            <!-- Main column -->
+            <div class="capture-main">
 
-          <!-- Mic -->
-          <div class="mic-card">
-            <div class="mic-outer" id="micOuter" onclick="toggleRecording()">
-              <div class="mic-inner" id="micInner">🎤</div>
-            </div>
-            <div class="mic-timer" id="recTimer">00:00</div>
-            <div class="mic-hint" id="recHint">Tap to start recording</div>
-          </div>
+              <!-- Heading -->
+              <div class="capture-heading">
+                <div class="capture-label">Capture a memory</div>
+                <div class="capture-big">What is Dadi making today? <span style="color:var(--accent)">♡</span></div>
+                <div class="capture-sub">Just let her talk. We'll take care of the rest.</div>
+                <div class="capture-divider">
+                  <div class="capture-divider-line"></div>
+                  <span style="font-size:.75rem;color:var(--border2)">♡</span>
+                  <div class="capture-divider-line"></div>
+                </div>
+              </div>
 
-          <div class="or-row"><div class="or-line"></div><span class="or-text">or</span><div class="or-line"></div></div>
+              <!-- Narrator chips -->
+              <div class="narrator-label">Who is narrating?</div>
+              <div class="narrator-chips" id="narrator-chips">
+                <!-- populated by renderNarratorChips() -->
+                <div class="n-chip selected" onclick="selectNarrator(this,'Dadi')">
+                  <div class="n-chip-av">👵</div>Dadi
+                </div>
+                <div class="n-chip" onclick="selectNarrator(this,'Nani')">
+                  <div class="n-chip-av">👩‍🦳</div>Nani
+                </div>
+                <div class="n-chip" onclick="selectNarrator(this,'Mumma')">
+                  <div class="n-chip-av">👩</div>Mumma
+                </div>
+                <div class="n-chip" onclick="selectNarrator(this,'Ammamma')">
+                  <div class="n-chip-av">👵</div>Ammamma
+                </div>
+                <div class="n-chip" onclick="selectNarrator(this,'Grandma')">
+                  <div class="n-chip-av">👴</div>Grandma
+                </div>
+              </div>
 
-          <div class="upload-row" onclick="go('add-voice')">
-            <div class="upload-row-left"><span>📤</span> Upload audio file</div>
-            <span style="color:var(--muted)">›</span>
-          </div>
-          <div class="upload-row" onclick="showToast('Gallery coming soon')">
-            <div class="upload-row-left"><span>🖼️</span> Choose from gallery</div>
-            <span style="color:var(--muted)">›</span>
-          </div>
+              <!-- Mic card -->
+              <div class="mic-card">
+                <div class="mic-outer" id="micOuter" onclick="toggleRecording()">
+                  <div class="mic-inner" id="micInner">🎤</div>
+                </div>
+                <div class="mic-timer" id="recTimer">00:00</div>
+                <div class="mic-hint" id="recHint">Tap the microphone to start recording</div>
+                <!-- Decorative waveform -->
+                <div class="mic-wave-row" id="micWaveRow">
+                  <div class="mic-wave-bar" style="height:8px;--d:.55s"></div>
+                  <div class="mic-wave-bar" style="height:14px;--d:.7s"></div>
+                  <div class="mic-wave-bar" style="height:10px;--d:.5s"></div>
+                  <div class="mic-wave-bar" style="height:20px;--d:.65s"></div>
+                  <div class="mic-wave-bar" style="height:12px;--d:.8s"></div>
+                  <div class="mic-wave-bar" style="height:18px;--d:.45s"></div>
+                  <div class="mic-wave-bar" style="height:8px;--d:.6s"></div>
+                  <div class="mic-wave-bar" style="height:22px;--d:.75s"></div>
+                  <div class="mic-wave-bar" style="height:14px;--d:.5s"></div>
+                  <div class="mic-wave-bar" style="height:16px;--d:.7s"></div>
+                  <div class="mic-wave-bar" style="height:10px;--d:.55s"></div>
+                  <div class="mic-wave-bar" style="height:20px;--d:.65s"></div>
+                  <div class="mic-wave-bar" style="height:8px;--d:.8s"></div>
+                  <div class="mic-wave-bar" style="height:18px;--d:.45s"></div>
+                  <div class="mic-wave-bar" style="height:12px;--d:.6s"></div>
+                  <div class="mic-wave-bar" style="height:24px;--d:.75s"></div>
+                  <div class="mic-wave-bar" style="height:10px;--d:.5s"></div>
+                  <div class="mic-wave-bar" style="height:16px;--d:.7s"></div>
+                  <div class="mic-wave-bar" style="height:8px;--d:.55s"></div>
+                  <div class="mic-wave-bar" style="height:20px;--d:.65s"></div>
+                  <div class="mic-wave-bar" style="height:14px;--d:.8s"></div>
+                  <div class="mic-wave-bar" style="height:18px;--d:.45s"></div>
+                  <div class="mic-wave-bar" style="height:10px;--d:.6s"></div>
+                  <div class="mic-wave-bar" style="height:22px;--d:.75s"></div>
+                  <div class="mic-wave-bar" style="height:12px;--d:.5s"></div>
+                  <div class="mic-wave-bar" style="height:16px;--d:.7s"></div>
+                  <div class="mic-wave-bar" style="height:8px;--d:.55s"></div>
+                  <div class="mic-wave-bar" style="height:18px;--d:.65s"></div>
+                </div>
+              </div>
 
-          <div style="height:.8rem"></div>
-          <div class="tips-card">
-            <div class="tips-hdr">💡 Tips to get the best memory</div>
-            <div class="tip-row"><span style="color:var(--amber)">•</span> Ask what makes this recipe special</div>
-            <div class="tip-row"><span style="color:var(--amber)">•</span> Ask for her tips and little secrets</div>
-            <div class="tip-row"><span style="color:var(--amber)">•</span> Let her talk naturally ❤️</div>
-          </div>
-          <div style="height:1.5rem"></div>
+              <div class="or-row"><div class="or-line"></div><span class="or-text">OR</span><div class="or-line"></div></div>
+
+              <div class="upload-row" onclick="go('add-voice')">
+                <div class="upload-row-left">
+                  <div class="upload-row-icon">📤</div>
+                  <div>
+                    <div class="upload-row-title">Upload an audio file</div>
+                    <div class="upload-row-sub">Upload an existing recording</div>
+                  </div>
+                </div>
+                <span style="color:var(--muted);font-size:1rem">›</span>
+              </div>
+
+              <div class="upload-row" onclick="showToast('Gallery coming soon')">
+                <div class="upload-row-left">
+                  <div class="upload-row-icon">🖼️</div>
+                  <div>
+                    <div class="upload-row-title">Choose from gallery</div>
+                    <div class="upload-row-sub">Select an audio or video from your device</div>
+                  </div>
+                </div>
+                <span style="color:var(--muted);font-size:1rem">›</span>
+              </div>
+
+              <!-- Privacy badge -->
+              <div class="capture-privacy">
+                <span class="capture-privacy-icon">🛡️</span>
+                <div>
+                  <div class="capture-privacy-title">Your memories are private and secure.</div>
+                  <div class="capture-privacy-sub">Only you and your family can access these memories.</div>
+                </div>
+              </div>
+
+            </div><!-- /capture-main -->
+
+            <!-- Tips sidebar -->
+            <div class="capture-tips-col">
+              <div class="tips-card">
+                <div class="tips-card-title">Tips for a great memory</div>
+                <div class="tip-item">
+                  <div class="tip-icon">🎤</div>
+                  <div>
+                    <div class="tip-text-title">Ask what makes the recipe special</div>
+                    <div class="tip-text-sub">Capture the stories behind the dish.</div>
+                  </div>
+                </div>
+                <div class="tip-item">
+                  <div class="tip-icon" style="background:#FFF0F0">❤️</div>
+                  <div>
+                    <div class="tip-text-title">Ask for her tips and little secrets</div>
+                    <div class="tip-text-sub">Those little details make it priceless.</div>
+                  </div>
+                </div>
+                <div class="tip-item">
+                  <div class="tip-icon" style="background:#FFFBEC">✨</div>
+                  <div>
+                    <div class="tip-text-title">Let her talk naturally</div>
+                    <div class="tip-text-sub">The more she shares, the better!</div>
+                  </div>
+                </div>
+              </div>
+            </div><!-- /tips-col -->
+
+          </div><!-- /capture-page -->
         </div>
       </div>
 
@@ -2950,6 +3069,7 @@ async function startRecording() {
     document.getElementById('micInner').classList.add('recording');
     document.getElementById('micInner').textContent = '⏹';
     document.getElementById('recHint').textContent = 'Recording… tap to stop';
+    document.querySelectorAll('.mic-wave-bar').forEach(b => b.classList.add('active'));
 
     recInterval = setInterval(() => {
       recSeconds++;
@@ -2969,7 +3089,8 @@ function stopRecording() {
   document.getElementById('micInner').classList.remove('recording');
   document.getElementById('micInner').textContent = '🎤';
   document.getElementById('recTimer').textContent = '00:00';
-  document.getElementById('recHint').textContent = 'Tap to start recording';
+  document.getElementById('recHint').textContent = 'Tap the microphone to start recording';
+  document.querySelectorAll('.mic-wave-bar').forEach(b => b.classList.remove('active'));
   mediaRecorder?.stop();
 }
 
@@ -3877,9 +3998,11 @@ function renderNarratorChips() {
   const container = document.getElementById('narrator-chips');
   if (!container) return;
   const defaults = [
-    { name: 'Dadi', emoji: '👵' },
-    { name: 'Nani', emoji: '👩‍🦳' },
-    { name: 'Mumma', emoji: '👩' },
+    { name: 'Dadi',     emoji: '👵' },
+    { name: 'Nani',     emoji: '👩‍🦳' },
+    { name: 'Mumma',    emoji: '👩' },
+    { name: 'Ammamma',  emoji: '👵' },
+    { name: 'Grandma',  emoji: '👴' },
   ];
   const custom = _loadPeople();
   const all = [...defaults, ...custom.map(p => ({ name: p.name, emoji: p.emoji || '👤' }))];
