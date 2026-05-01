@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Dadi's Recipes</title>
+<title>Echoes of Home</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
@@ -1638,8 +1638,8 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
   <!-- ══════════ SIDEBAR ══════════ -->
   <aside class="sidebar">
     <div class="sidebar-logo">
-      <div class="logo-name">Dadi's Recipes</div>
-      <div class="logo-tag">Stories. Recipes. Memories.</div>
+      <div class="logo-name">Echoes of Home</div>
+      <div class="logo-tag">Every family carries a world.</div>
     </div>
     <nav class="sidebar-nav">
       <div class="nav-item active" data-screen="home" onclick="go('home',this)">
@@ -1679,8 +1679,8 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
     <div class="mobile-appbar">
       <button class="mobile-menu-btn" onclick="openMobileDrawer()" aria-label="Open menu">☰</button>
       <div class="mobile-brand">
-        <div class="mobile-brand-name">Dadi's Recipes</div>
-        <div class="mobile-brand-sub">Stories. Recipes. Memories.</div>
+        <div class="mobile-brand-name">Echoes of Home</div>
+        <div class="mobile-brand-sub">Every family carries a world.</div>
       </div>
       <div class="mobile-app-avatar" id="mobile-app-av">?</div>
     </div>
@@ -1725,7 +1725,7 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
               <div class="home-welcome-body">
                 <div>
                   <div class="home-welcome-title" id="home-welcome-title">Welcome home! <span style="color:var(--accent)">♡</span></div>
-                  <div class="home-welcome-sub">Every recipe has a story.<br>Every memory keeps her close.</div>
+                  <div class="home-welcome-sub">Every family carries a world.<br>Don't let it fade.</div>
                 </div>
                 <div class="home-action-btns">
                   <button class="home-action-btn" onclick="go('capture')">
@@ -1857,7 +1857,7 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
               <!-- Heading -->
               <div class="capture-heading">
                 <div class="capture-label">Capture a memory</div>
-                <div class="capture-big">What is Dadi making today? <span style="color:var(--accent)">♡</span></div>
+                <div class="capture-big" id="capture-big-title">What is she making today? <span style="color:var(--accent)">♡</span></div>
                 <div class="capture-sub">Just let her talk. We'll take care of the rest.</div>
                 <div class="capture-divider">
                   <div class="capture-divider-line"></div>
@@ -2116,7 +2116,7 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
                 <button class="wz-add-btn" onclick="wzAddStep()">+ Add</button>
               </div>
 
-              <div class="wz-notes-label">Dadi's notes <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:.68rem;color:var(--accent)">vague terms preserved</span></div>
+              <div class="wz-notes-label"><span id="wz-narrator-label">Their</span> notes <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:.68rem;color:var(--accent)">vague terms preserved</span></div>
               <textarea class="wz-notes-ta" id="wz-cook-notes" rows="3" placeholder="e.g. add oil until it smells right…"></textarea>
 
               <!-- Transcript toggle -->
@@ -2165,7 +2165,7 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
             <button class="back-btn" onclick="go('home')">← Back</button>
             <div class="recipe-hero">
               <img id="rd-img" src="" alt="" onerror="this.style.display='none'"/>
-              <div class="recipe-badge">🧡 From Dadi's kitchen</div>
+              <div class="recipe-badge" id="rd-kitchen-badge">🧡 From their kitchen</div>
               <div class="recipe-hero-btns">
                 <button class="icon-btn" id="rd-heart" onclick="toggleHeart(this)">🤍</button>
                 <button class="icon-btn" onclick="shareRecipe()">↗️</button>
@@ -2174,7 +2174,7 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
             <div class="recipe-name" id="rd-name"></div>
             <div class="hear-bar" id="hear-bar" onclick="showTab('listen', document.getElementById('tab-listen-btn'))" style="display:none">
               <div class="hear-play">▶</div>
-              <div class="hear-label">Hear Dadi say it</div>
+              <div class="hear-label" id="rd-hear-label">Hear them say it</div>
               <div class="hear-wave">
                 <div class="hear-bar-el"></div><div class="hear-bar-el"></div><div class="hear-bar-el"></div>
                 <div class="hear-bar-el"></div><div class="hear-bar-el"></div><div class="hear-bar-el"></div>
@@ -2207,7 +2207,7 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
             <!-- Tabs -->
             <div class="recipe-tabs">
               <div class="r-tab active" onclick="showTab('steps',this)">Steps</div>
-              <div class="r-tab" onclick="showTab('tip',this)">Dadi's Tip</div>
+              <div class="r-tab" onclick="showTab('tip',this)" id="rd-tip-tab">Their Tip</div>
               <div class="r-tab" id="tab-listen-btn" onclick="showTab('listen',this)" style="display:none">🎧 Listen</div>
               <div class="r-tab" onclick="showTab('transcript',this)">Transcript</div>
               <div class="r-tab" onclick="showTab('notes',this)">Notes</div>
@@ -2246,7 +2246,7 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
           </div>
           <div class="recipe-right">
             <div class="ing-card">
-              <div class="ing-card-title">Ingredients (as Dadi said)</div>
+              <div class="ing-card-title" id="rd-ing-title">Ingredients (as they said)</div>
               <div id="rd-ingredients"></div>
             </div>
             <div style="height:1rem"></div>
@@ -2297,7 +2297,7 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
                 </div>
                 <div>
                   <strong>Voice is irreplaceable</strong>
-                  <p>The way Dadi says "konjam" carries something no written recipe can.</p>
+                  <p>The way she says "konjam" carries something no written recipe can.</p>
                 </div>
               </div>
               <div class="people-tip-item">
@@ -2379,7 +2379,7 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
         <div class="page-narrow">
           <button class="back-btn" onclick="go('recipe-detail')">← Back</button>
           <div class="audio-wrap">
-            <div style="font-family:var(--serif);font-size:1.05rem;color:var(--text);margin-bottom:.2rem" id="hd-name">Hear Dadi</div>
+            <div style="font-family:var(--serif);font-size:1.05rem;color:var(--text);margin-bottom:.2rem" id="hd-name">Hear them</div>
             <div style="font-size:.68rem;color:var(--muted);margin-bottom:.85rem" id="hd-sub">Loading…</div>
             <div class="audio-photo">
               <img id="hd-photo" src="" alt="" onerror="this.style.display='none'"/>
@@ -2396,9 +2396,9 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
               <div class="play-pause" id="playPauseBtn" onclick="togglePlay()">▶</div>
               <div class="skip-btn" onclick="skipAudio(15)"><span class="skip-icon">↻</span><span class="skip-label">15</span></div>
             </div>
-            <div class="cooking-mode" onclick="showToast('Cooking with Dadi mode coming soon')">
+            <div class="cooking-mode" onclick="showToast('Cooking together mode coming soon')">
               <div style="display:flex;align-items:center;gap:.45rem">
-                <span>🍳</span><span class="cooking-mode-label">Cooking with Dadi mode</span>
+                <span>🍳</span><span class="cooking-mode-label" id="cooking-mode-label">Cooking together mode</span>
               </div>
               <span style="color:var(--muted)">⌄</span>
             </div>
@@ -2956,6 +2956,15 @@ function renderRecipeDetail(r) {
   document.getElementById('rd-name').textContent = r.dish_name || 'Untitled recipe';
   document.getElementById('rd-narrator').textContent = r.narrator || 'Grandma';
   document.getElementById('rd-date').textContent = formatDate(r.recorded_at);
+  // Dynamic narrator strings
+  const _n = r.narrator || 'Grandma';
+  const _ns = _n + "'s"; // possessive
+  const el = (id, txt) => { const e = document.getElementById(id); if (e) e.textContent = txt; };
+  el('rd-kitchen-badge', `🧡 From ${_ns} kitchen`);
+  el('rd-hear-label', `Hear ${_n} say it`);
+  el('rd-tip-tab', `${_ns} Tip`);
+  el('rd-ing-title', `Ingredients (as ${_n} said)`);
+  el('cooking-mode-label', `Cooking with ${_n} mode`);
 
   // Hear bar + Listen tab — show only if audio exists
   const hearBar = document.getElementById('hear-bar');
@@ -2964,7 +2973,7 @@ function renderRecipeDetail(r) {
     hearBar.style.display = 'flex';
     listenTabBtn.style.display = '';
     // Pre-populate listen panel labels
-    document.getElementById('lp-who').textContent = 'Hear ' + (r.narrator || 'Dadi');
+    document.getElementById('lp-who').textContent = 'Hear ' + (r.narrator || 'Grandma');
     document.getElementById('lp-dish').textContent = r.dish_name || '';
     // Wire inline audio player to same <audio> element
     audio.src = r.audio_url;
@@ -3391,6 +3400,11 @@ function selectNarrator(el, name) {
   document.querySelectorAll('.n-chip').forEach(c => c.classList.remove('selected'));
   if (el) el.classList.add('selected');
   selectedNarrator = name;
+  // Update capture title and wizard notes label with narrator's first name
+  const title = document.getElementById('capture-big-title');
+  if (title) title.innerHTML = `What is ${esc(name)} making today? <span style="color:var(--accent)">♡</span>`;
+  const wzLabel = document.getElementById('wz-narrator-label');
+  if (wzLabel) wzLabel.textContent = name + "'s";
 }
 
 function toggleRecording() {
@@ -3912,7 +3926,7 @@ function openHearDadiFor(token, recipe) {
   const r = recipe || allRecipes.find(x => x.token === token);
   if (!r?.audio_url) { showToast('No audio for this recipe'); return; }
 
-  document.getElementById('hd-name').textContent = 'Hear ' + (r.narrator || 'Dadi');
+  document.getElementById('hd-name').textContent = 'Hear ' + (r.narrator || 'Grandma');
   document.getElementById('hd-sub').textContent = r.dish_name || '';
   document.getElementById('hd-emoji').textContent = narratorEmoji(r.narrator);
 
