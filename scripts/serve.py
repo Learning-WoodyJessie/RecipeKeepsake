@@ -229,6 +229,121 @@ async def capture_endpoint(audio: UploadFile = File(...), user: dict = Depends(r
         os.unlink(tmp_path)
 
 
+@app.post("/capture/process")
+async def capture_process_endpoint(
+    audio: UploadFile = File(...),
+    user: dict = Depends(require_auth),
+):
+    """
+    Run pipeline only (Whisper + translate + structure + image).
+    Does NOT save to Supabase. Returns structured JSON for client review.
+    """
+    _check_rate_limit(user.get("id", ""))
+
+    if not os.environ.get("OPENAI_API_KEY"):
+        raise HTTPException(status_code=500, detail="OPENAI_API_KEY not set")
+
+    suffix = Path(audio.filename).suffix if audio.filename else ".webm"
+    with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
+        tmp.write(await audio.read())
+        tmp_path = tmp.name
+
+    try:
+        from scripts.capture import process_recipe
+        print(f"[serve/process] Processing {audio.filename}...")
+        recipe = process_recipe(tmp_path)
+
+        # Image generation (non-fatal)
+        image_url = ""
+        try:
+            from prompts.image import generate_dish_image
+            from tools.storage import store_image
+            raw_url = generate_dish_image(recipe.get("dish_name") or "Indian dish")
+            if raw_url and os.environ.get("SUPABASE_URL"):
+                image_url = store_image(raw_url)
+            else:
+                image_url = raw_url
+        except Exception as img_err:
+            print(f"[serve/process] Image generation failed (non-fatal): {img_err}")
+
+        recipe["image_url"] = image_url
+        print(f"[serve/process] Done: {recipe.get('dish_name')}")
+        return JSONResponse(content=recipe)
+
+    except Exception as e:
+        print(f"[serve/process] ERROR: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        try:
+            os.unlink(tmp_path)
+        except Exception:
+            pass
+
+
+@app.post("/capture/save")
+async def capture_save_endpoint(
+    audio: UploadFile = File(...),
+    recipe: str = File(...),
+    narrator: str = File(default="Grandma"),
+    user: dict = Depends(require_auth),
+):
+    """
+    Save a reviewed + edited recipe to Supabase.
+    Receives: audio file + recipe JSON string (edited by user) + narrator name.
+    """
+    import json as _json
+
+    try:
+        recipe_data = _json.loads(recipe)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid recipe JSON")
+
+    if not os.environ.get("SUPABASE_URL") or not os.environ.get("SUPABASE_SERVICE_KEY"):
+        raise HTTPException(status_code=500, detail="Supabase not configured")
+
+    suffix = Path(audio.filename).suffix if audio.filename else ".webm"
+    with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
+        tmp.write(await audio.read())
+        tmp_path = tmp.name
+
+    try:
+        from tools.storage import insert_recipe, upload_audio, _sign_audio, _client as _sb
+        import uuid
+
+        audio_filename = f"{uuid.uuid4()}{suffix}"
+        print(f"[serve/save] Uploading audio as {audio_filename}...")
+        try:
+            stored_path = upload_audio(tmp_path, audio_filename)
+        except Exception as audio_err:
+            print(f"[serve/save] Audio upload failed (non-fatal): {audio_err}")
+            stored_path = ""
+
+        saved = insert_recipe({
+            **recipe_data,
+            "audio_url": stored_path,
+            "narrator": narrator,
+            "user_id": user.get("id", ""),
+            "recorded_by_email": user.get("email", ""),
+            "recorded_by_name": (user.get("user_metadata") or {}).get("full_name", ""),
+        })
+
+        result = {**recipe_data, **saved}
+        if stored_path:
+            result["audio_url"] = _sign_audio(stored_path, _sb())
+
+        print(f"[serve/save] Saved: {saved.get('id')}")
+        return JSONResponse(content=result)
+
+    except Exception as e:
+        print(f"[serve/save] ERROR: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        try:
+            os.unlink(tmp_path)
+        except Exception:
+            pass
+
+
 class ImageRequest(BaseModel):
     dish_name: str
 
