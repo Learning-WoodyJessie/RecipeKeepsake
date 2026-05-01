@@ -44,3 +44,19 @@ class TestTranscribeAudio:
             call_kwargs = mock_client.audio.transcriptions.create.call_args[1]
 
         assert call_kwargs["model"] == "gpt-4o-transcribe"
+
+    def test_passes_initial_prompt_with_glossary(self):
+        """transcribe_audio() passes initial_prompt containing Telugu cooking terms."""
+        mock_transcript = MagicMock()
+        mock_transcript.text = "some text"
+
+        with patch("tools.transcribe.OpenAI") as mock_openai, \
+             patch("builtins.open", mock_open(read_data=b"audio bytes")):
+            mock_client = mock_openai.return_value
+            mock_client.audio.transcriptions.create.return_value = mock_transcript
+            transcribe_audio("test.m4a")
+
+            call_kwargs = mock_client.audio.transcriptions.create.call_args[1]
+
+        assert "initial_prompt" in call_kwargs
+        assert "konchem" in call_kwargs["initial_prompt"].lower()

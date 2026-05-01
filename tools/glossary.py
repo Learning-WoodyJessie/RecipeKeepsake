@@ -9,12 +9,26 @@ from pathlib import Path
 import yaml
 
 _GLOSSARY_PATH = Path(__file__).resolve().parent.parent / "data" / "telugu_cooking_terms.yaml"
+_GLOSSARY_CACHE: dict = {}  # populated below at module load
 
 
 def load_glossary() -> dict:
-    """Load the Telugu cooking glossary from YAML. Returns term → metadata dict."""
+    """Load the Telugu cooking glossary from YAML. Returns term → metadata dict.
+
+    Cached at module level so tests that patch builtins.open don't intercept
+    the YAML read (the cache is populated on first import, before any patch).
+    """
+    return _GLOSSARY_CACHE
+
+
+def _load_from_disk() -> dict:
+    """Internal: read YAML from disk. Called once at module load."""
     with open(_GLOSSARY_PATH, "r", encoding="utf-8") as f:
         return yaml.safe_load(f)
+
+
+# Populate cache at import time — before any test patches builtins.open
+_GLOSSARY_CACHE.update(_load_from_disk())
 
 
 def build_glossary_hint() -> str:
