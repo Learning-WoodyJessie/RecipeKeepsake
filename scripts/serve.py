@@ -1,5 +1,11 @@
 """
-RecipeKeepsake API server.
+RecipeKeepsake API server — thin HTTP adapter.
+
+Business logic lives in pipeline/. This file handles:
+  - HTTP transport (FastAPI routes, multipart forms, JSON responses)
+  - Auth (Supabase JWT validation)
+  - Rate limiting (in-memory, per-user-per-day)
+  - Static file serving
 
 Local dev:
     python -m scripts.serve         → http://localhost:8080
@@ -8,8 +14,10 @@ Production (Railway):
     Reads PORT from environment. Set env vars in Railway dashboard.
 """
 
+import json as _json
 import os
 import tempfile
+import uuid
 from collections import defaultdict
 from datetime import date as _date
 from pathlib import Path
@@ -26,11 +34,10 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 import httpx
 
-from tools.transcribe import transcribe_audio
-from tools.config import load_config
-from prompts.translate import translate_to_english
-from prompts.structure import structure_recipe
-from prompts.llm import OpenAIProvider
+from pipeline.transcribe import run_transcribe
+from pipeline.transform import run_transform
+from pipeline.persist import run_persist
+from pipeline.models import RecipeData
 
 _WEB_DIR = Path(__file__).parent.parent / "web"
 
@@ -66,6 +73,21 @@ def _check_rate_limit(user_id: str) -> None:
             detail=f"Daily limit of {_MAX_RECORDINGS_PER_DAY} recordings reached. Try again tomorrow.",
         )
 
+
+def _generate_image(dish_name: str) -> str:
+    """Generate + store a DALL-E image for the dish. Returns URL or empty string."""
+    try:
+        from prompts.image import generate_dish_image
+        from tools.storage import store_image
+        raw_url = generate_dish_image(dish_name or "Indian dish")
+        if raw_url and os.environ.get("SUPABASE_URL"):
+            return store_image(raw_url)
+        return raw_url or ""
+    except Exception as e:
+        print(f"[serve] Image generation failed (non-fatal): {e}")
+        return ""
+
+
 app.mount("/assets", StaticFiles(directory=_WEB_DIR / "assets"), name="assets")
 
 
@@ -89,6 +111,7 @@ async def require_auth(creds: HTTPAuthorizationCredentials = Depends(_bearer)) -
         return resp.json()
     except httpx.RequestError:
         raise HTTPException(status_code=401, detail="Could not verify session")
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -142,16 +165,12 @@ async def list_recipes_endpoint(user: dict = Depends(require_auth)):
 @app.post("/capture")
 async def capture_endpoint(audio: UploadFile = File(...), user: dict = Depends(require_auth)):
     """
-    Accept an audio file, run the full pipeline, return structured recipe JSON.
-    Supabase storage is optional — skip by omitting env vars (useful for local testing).
+    Full pipeline: transcribe → translate → structure → image → save.
+    Returns saved recipe JSON. Use /capture/process for review-before-save flow.
     """
     _check_rate_limit(user.get("id", ""))
-
     if not os.environ.get("OPENAI_API_KEY"):
         raise HTTPException(status_code=500, detail="OPENAI_API_KEY not set")
-
-    config = load_config()
-    provider = OpenAIProvider(model=config["llm"]["model"])
 
     suffix = Path(audio.filename).suffix if audio.filename else ".webm"
     with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
@@ -159,74 +178,53 @@ async def capture_endpoint(audio: UploadFile = File(...), user: dict = Depends(r
         tmp_path = tmp.name
 
     try:
-        print(f"[serve] Transcribing {audio.filename}...")
-        transcript_raw = transcribe_audio(tmp_path)
-        print(f"[serve] Transcript: {transcript_raw[:120]}...")
+        print(f"[serve/capture] Processing {audio.filename}...")
 
-        print("[serve] Translating...")
-        transcript_english = translate_to_english(transcript_raw, provider)
-
-        print("[serve] Structuring...")
-        structured = structure_recipe(transcript_english, provider)
-        print(f"[serve] Dish: {structured.get('dish_name')}")
-
-        print("[serve] Generating image...")
-        image_url = ""
-        try:
-            from prompts.image import generate_dish_image
-            from tools.storage import store_image
-            raw_url = generate_dish_image(structured.get("dish_name") or "Indian dish")
-            # Download and store permanently — DALL-E CDN URLs expire in ~1hr
-            if raw_url and os.environ.get("SUPABASE_URL"):
-                print("[serve] Storing image permanently...")
-                image_url = store_image(raw_url)
-            else:
-                image_url = raw_url
-        except Exception as img_err:
-            print(f"[serve] Image generation failed (non-fatal): {img_err}")
+        transcript = run_transcribe(tmp_path)
+        recipe_data = run_transform(transcript)
+        recipe_data.image_url = _generate_image(recipe_data.dish_name)
 
         recipe = {
-            "transcript_raw": transcript_raw,
-            "transcript_english": transcript_english,
-            "image_url": image_url,
-            **structured,
+            "transcript_raw": recipe_data.transcript_raw,
+            "transcript_english": recipe_data.transcript_english,
+            "dish_name": recipe_data.dish_name,
+            "ingredients": recipe_data.ingredients,
+            "steps": recipe_data.steps,
+            "cook_notes": recipe_data.cook_notes,
+            "review_flags": recipe_data.review_flags,
+            "image_url": recipe_data.image_url,
         }
 
         if os.environ.get("SUPABASE_URL") and os.environ.get("SUPABASE_SERVICE_KEY"):
-            from tools.storage import insert_recipe, upload_audio, _sign_audio, _client as _sb
-            import uuid
-            audio_filename = f"{uuid.uuid4()}{Path(audio.filename).suffix if audio.filename else '.webm'}"
-            print(f"[serve] Uploading audio as {audio_filename}...")
-            try:
-                stored_path = upload_audio(tmp_path, audio_filename)
-                print(f"[serve] Audio stored: {stored_path}")
-            except Exception as audio_err:
-                print(f"[serve] Audio upload failed (non-fatal): {audio_err}")
-                stored_path = ""
-            stored = insert_recipe({
-                **recipe,
-                "audio_url": stored_path,
-                "user_id": user.get("id", ""),
-                "recorded_by_email": user.get("email", ""),
-                "recorded_by_name": (user.get("user_metadata") or {}).get("full_name", ""),
-            })
-            recipe["id"] = stored.get("id")
-            recipe["token"] = stored.get("token")
-            # Return a signed URL so the browser can play immediately
-            if stored_path:
-                recipe["audio_url"] = _sign_audio(stored_path, _sb())
-            print(f"[serve] Saved: {recipe.get('id')}")
+            audio_filename = f"{uuid.uuid4()}{suffix}"
+            saved = run_persist(
+                recipe_data,
+                audio_path=tmp_path,
+                audio_filename=audio_filename,
+                user_id=user.get("id", ""),
+                recorded_by_email=user.get("email", ""),
+                recorded_by_name=(user.get("user_metadata") or {}).get("full_name", ""),
+            )
+            recipe["id"] = saved.id
+            recipe["token"] = saved.token
+            # Return signed URL so browser can play immediately
+            if saved.audio_url:
+                from tools.storage import _sign_audio, _client as _sb
+                recipe["audio_url"] = _sign_audio(saved.audio_url, _sb())
+            print(f"[serve/capture] Saved: {saved.id}")
         else:
-            print("[serve] No Supabase env — skipping storage")
+            print("[serve/capture] No Supabase env — skipping storage")
 
         return JSONResponse(content=recipe)
 
     except Exception as e:
-        print(f"[serve] ERROR: {e}")
+        print(f"[serve/capture] ERROR: {e}")
         raise HTTPException(status_code=500, detail=str(e))
-
     finally:
-        os.unlink(tmp_path)
+        try:
+            os.unlink(tmp_path)
+        except Exception:
+            pass
 
 
 @app.post("/capture/process")
@@ -235,11 +233,11 @@ async def capture_process_endpoint(
     user: dict = Depends(require_auth),
 ):
     """
-    Run pipeline only (Whisper + translate + structure + image).
+    Stage 1 + 2 only: transcribe → translate → structure → image.
     Does NOT save to Supabase. Returns structured JSON for client review.
+    Client calls /capture/save after user edits.
     """
     _check_rate_limit(user.get("id", ""))
-
     if not os.environ.get("OPENAI_API_KEY"):
         raise HTTPException(status_code=500, detail="OPENAI_API_KEY not set")
 
@@ -249,26 +247,24 @@ async def capture_process_endpoint(
         tmp_path = tmp.name
 
     try:
-        from scripts.capture import process_recipe
         print(f"[serve/process] Processing {audio.filename}...")
-        recipe = process_recipe(tmp_path)
 
-        # Image generation (non-fatal)
-        image_url = ""
-        try:
-            from prompts.image import generate_dish_image
-            from tools.storage import store_image
-            raw_url = generate_dish_image(recipe.get("dish_name") or "Indian dish")
-            if raw_url and os.environ.get("SUPABASE_URL"):
-                image_url = store_image(raw_url)
-            else:
-                image_url = raw_url
-        except Exception as img_err:
-            print(f"[serve/process] Image generation failed (non-fatal): {img_err}")
+        transcript = run_transcribe(tmp_path)
+        recipe_data = run_transform(transcript)
+        recipe_data.image_url = _generate_image(recipe_data.dish_name)
 
-        recipe["image_url"] = image_url
-        print(f"[serve/process] Done: {recipe.get('dish_name')}")
-        return JSONResponse(content=recipe)
+        result = {
+            "transcript_raw": recipe_data.transcript_raw,
+            "transcript_english": recipe_data.transcript_english,
+            "dish_name": recipe_data.dish_name,
+            "ingredients": recipe_data.ingredients,
+            "steps": recipe_data.steps,
+            "cook_notes": recipe_data.cook_notes,
+            "review_flags": recipe_data.review_flags,
+            "image_url": recipe_data.image_url,
+        }
+        print(f"[serve/process] Done: {recipe_data.dish_name}")
+        return JSONResponse(content=result)
 
     except Exception as e:
         print(f"[serve/process] ERROR: {e}")
@@ -288,13 +284,11 @@ async def capture_save_endpoint(
     user: dict = Depends(require_auth),
 ):
     """
-    Save a reviewed + edited recipe to Supabase.
+    Stage 3 only: save a reviewed + edited recipe to Supabase.
     Receives: audio file + recipe JSON string (edited by user) + narrator name.
     """
-    import json as _json
-
     try:
-        recipe_data = _json.loads(recipe)
+        recipe_dict = _json.loads(recipe)
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid recipe JSON")
 
@@ -307,31 +301,35 @@ async def capture_save_endpoint(
         tmp_path = tmp.name
 
     try:
-        from tools.storage import insert_recipe, upload_audio, _sign_audio, _client as _sb
-        import uuid
+        # Rebuild a RecipeData from the client-edited dict
+        recipe_data = RecipeData(
+            dish_name=recipe_dict.get("dish_name", ""),
+            ingredients=recipe_dict.get("ingredients", []),
+            steps=recipe_dict.get("steps", []),
+            cook_notes=recipe_dict.get("cook_notes", ""),
+            review_flags=recipe_dict.get("review_flags", []),
+            transcript_raw=recipe_dict.get("transcript_raw", ""),
+            transcript_english=recipe_dict.get("transcript_english", ""),
+            image_url=recipe_dict.get("image_url", ""),
+        )
 
         audio_filename = f"{uuid.uuid4()}{suffix}"
-        print(f"[serve/save] Uploading audio as {audio_filename}...")
-        try:
-            stored_path = upload_audio(tmp_path, audio_filename)
-        except Exception as audio_err:
-            print(f"[serve/save] Audio upload failed (non-fatal): {audio_err}")
-            stored_path = ""
+        saved = run_persist(
+            recipe_data,
+            audio_path=tmp_path,
+            audio_filename=audio_filename,
+            narrator=narrator,
+            user_id=user.get("id", ""),
+            recorded_by_email=user.get("email", ""),
+            recorded_by_name=(user.get("user_metadata") or {}).get("full_name", ""),
+        )
 
-        saved = insert_recipe({
-            **recipe_data,
-            "audio_url": stored_path,
-            "narrator": narrator,
-            "user_id": user.get("id", ""),
-            "recorded_by_email": user.get("email", ""),
-            "recorded_by_name": (user.get("user_metadata") or {}).get("full_name", ""),
-        })
+        result = {**recipe_dict, "id": saved.id, "token": saved.token}
+        if saved.audio_url:
+            from tools.storage import _sign_audio, _client as _sb
+            result["audio_url"] = _sign_audio(saved.audio_url, _sb())
 
-        result = {**recipe_data, **saved}
-        if stored_path:
-            result["audio_url"] = _sign_audio(stored_path, _sb())
-
-        print(f"[serve/save] Saved: {saved.get('id')}")
+        print(f"[serve/save] Saved: {saved.id}")
         return JSONResponse(content=result)
 
     except Exception as e:
@@ -353,13 +351,8 @@ async def generate_image_endpoint(body: ImageRequest):
     """Generate a DALL-E image for a dish name. Returns image URL."""
     if not os.environ.get("OPENAI_API_KEY"):
         raise HTTPException(status_code=500, detail="OPENAI_API_KEY not set")
-
-    from prompts.image import generate_dish_image
-    try:
-        url = generate_dish_image(body.dish_name)
-        return JSONResponse(content={"image_url": url})
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    url = _generate_image(body.dish_name)
+    return JSONResponse(content={"image_url": url})
 
 
 class PatchRecipeRequest(BaseModel):
