@@ -2666,6 +2666,75 @@ function removeStep(i) {
   _renderRvSteps(current);
 }
 
+// ═══════════════════════════════════════
+// REVIEW SCREEN — SAVE & DISCARD
+// ═══════════════════════════════════════
+
+async function saveReviewedRecipe() {
+  if (!_pendingReview) { showToast('Nothing to save.'); return; }
+
+  const btn = document.getElementById('rv-save-btn');
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+
+  const { blob, filename } = _pendingReview;
+
+  // Collect edited fields
+  const editedRecipe = {
+    dish_name:          document.getElementById('rv-dish-name').value.trim() || 'Untitled recipe',
+    ingredients:        _getRvIngredients(),
+    steps:              _getRvSteps(),
+    cook_notes:         document.getElementById('rv-cook-notes').value.trim(),
+    transcript_raw:     _pendingReview.recipe.transcript_raw || '',
+    transcript_english: _pendingReview.recipe.transcript_english || '',
+    image_url:          _pendingReview.recipe.image_url || '',
+    review_flags:       _pendingReview.recipe.review_flags || [],
+  };
+
+  // Narrator from selected chip before recording
+  const activeChip = document.querySelector('.narrator-chip.active');
+  const narrator = activeChip?.dataset?.name || 'Grandma';
+
+  const form = new FormData();
+  form.append('audio', blob, filename || 'recording.webm');
+  form.append('recipe', JSON.stringify(editedRecipe));
+  form.append('narrator', narrator);
+
+  try {
+    const authHdrs = await getAuthHeaders();
+    let res = await fetch('/capture/save', { method: 'POST', body: form, headers: authHdrs });
+    if (res.status === 401) {
+      const retryHdrs = await getAuthHeaders({ forceRefresh: true });
+      res = await fetch('/capture/save', { method: 'POST', body: form, headers: retryHdrs });
+    }
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: 'Save failed' }));
+      throw new Error(err.detail || 'Save failed');
+    }
+    const saved = await res.json();
+    currentRecipe = saved;
+    allRecipes.unshift(saved);
+    localStorage.setItem('rk_recipes_cache', JSON.stringify(allRecipes));
+    seedPeopleFromRecipes();
+    _pendingReview = null;
+    _reviewAudio.pause();
+    renderRecipeDetail(saved);
+    go('recipe-detail');
+  } catch (err) {
+    showToast('Error saving: ' + err.message);
+    btn.disabled = false;
+    btn.textContent = 'Save Recipe ✓';
+  }
+}
+
+function discardReview() {
+  if (!confirm('Discard this recording? It will not be saved.')) return;
+  _pendingReview = null;
+  _reviewAudio.pause();
+  _reviewAudio.src = '';
+  go('capture');
+}
+
 // ── File upload ──
 function handleFileSelect(e) {
   const file = e.target.files[0];
