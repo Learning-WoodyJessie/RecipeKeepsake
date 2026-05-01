@@ -478,25 +478,43 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
 /* ═══════════════════════════════════════
    PEOPLE SCREEN
 ═══════════════════════════════════════ */
+.people-page{display:flex;gap:1.8rem;align-items:flex-start}
+.people-main{flex:1;min-width:0}
+.people-tips-col{flex:0 0 210px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.2rem 1.1rem}
+@media(max-width:740px){.people-page{flex-direction:column}.people-tips-col{display:none}}
+
 .people-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.1rem}
 .people-hdr h1{font-family:var(--serif);font-size:1.4rem;color:var(--text)}
 .people-hdr p{font-size:.71rem;color:var(--muted);margin-top:.12rem}
 .add-btn{display:flex;align-items:center;gap:.22rem;background:var(--accent-light);color:var(--accent);border:1.5px solid var(--accent);border-radius:99px;padding:.3rem .75rem;font-size:.71rem;font-weight:600;cursor:pointer;font-family:var(--sans)}
 
-.people-list{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:.9rem}
-.person-row{display:flex;align-items:center;gap:.8rem;padding:.75rem 1rem;border-bottom:1px solid var(--border);cursor:pointer;transition:background .14s}
-.person-row:last-child{border-bottom:none}
-.person-row:hover{background:var(--cream)}
-.person-av{width:42px;height:42px;border-radius:50%;overflow:hidden;flex-shrink:0;background:var(--cream2);display:flex;align-items:center;justify-content:center;font-size:1.15rem}
-.person-av img{width:100%;height:100%;object-fit:cover}
-.person-name{font-size:.88rem;font-weight:600;color:var(--text)}
-.person-count{font-size:.68rem;color:var(--muted);margin-top:.08rem}
-.person-chev{margin-left:auto;color:var(--muted);font-size:.85rem}
+/* person card */
+.person-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1rem 1.1rem;margin-bottom:.65rem;transition:box-shadow .14s}
+.person-card:hover{box-shadow:0 3px 16px rgba(0,0,0,.07)}
+.person-card-top{display:flex;align-items:flex-start;gap:.85rem}
+.person-card-av{width:52px;height:52px;border-radius:50%;overflow:hidden;flex-shrink:0;background:var(--cream2);display:flex;align-items:center;justify-content:center;font-size:1.4rem}
+.person-card-av img{width:100%;height:100%;object-fit:cover}
+.person-card-info{flex:1;min-width:0}
+.person-card-name{font-size:.95rem;font-weight:700;color:var(--text);display:flex;align-items:center;flex-wrap:wrap;gap:.35rem}
+.person-rel-pill{background:var(--accent-light);color:var(--accent);border-radius:99px;font-size:.6rem;font-weight:700;padding:.1rem .55rem;white-space:nowrap}
+.person-card-bio{font-size:.74rem;color:var(--muted);margin-top:.2rem;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.person-card-footer{display:flex;align-items:center;gap:.7rem;margin-top:.7rem;flex-wrap:wrap}
+.person-stat-badge{font-size:.68rem;color:var(--text2);background:var(--cream2);border-radius:99px;padding:.15rem .55rem;display:flex;align-items:center;gap:.28rem}
+.person-card-actions{display:flex;align-items:center;gap:.38rem;margin-left:auto}
+.person-act-btn{background:none;border:1.5px solid var(--border);border-radius:8px;padding:.26rem .6rem;font-size:.68rem;color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:.3rem;font-family:var(--sans);transition:all .14s;white-space:nowrap}
+.person-act-btn:hover{border-color:var(--accent);color:var(--accent)}
+.person-act-btn.del:hover{border-color:#e53e3e;color:#e53e3e}
 
-.add-person-card{background:linear-gradient(135deg,#FDF0E8,#FAE8D8);border:1.5px dashed var(--border2);border-radius:14px;padding:.9rem 1.1rem;display:flex;align-items:center;gap:.8rem;cursor:pointer;transition:border-color .2s}
+.add-person-card{background:linear-gradient(135deg,#FDF0E8,#FAE8D8);border:1.5px dashed var(--border2);border-radius:14px;padding:.9rem 1.1rem;display:flex;align-items:center;gap:.8rem;cursor:pointer;transition:border-color .2s;margin-top:.3rem}
 .add-person-card:hover{border-color:var(--accent)}
 .add-person-card h3{font-size:.86rem;font-weight:600;color:var(--text2)}
 .add-person-card p{font-size:.7rem;color:var(--muted);margin-top:.08rem}
+
+/* people tips sidebar */
+.people-tip-item{display:flex;align-items:flex-start;gap:.65rem;margin-bottom:.85rem}
+.people-tip-icon{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.people-tip-item p{font-size:.72rem;color:var(--muted);line-height:1.5;margin-top:.1rem}
+.people-tip-item strong{font-size:.73rem;color:var(--text2);display:block}
 
 /* ═══════════════════════════════════════
    PROFILE SCREEN
@@ -2150,25 +2168,65 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
       <!-- ════ PEOPLE ════ -->
       <div class="screen" id="screen-people">
         <div class="page">
-          <div class="people-hdr">
-            <div>
-              <h1>Our People <span style="color:var(--accent)">♡</span></h1>
-              <p>Everyone who fills our kitchen with love.</p>
+          <div class="people-page">
+            <!-- Main column -->
+            <div class="people-main">
+              <div class="people-hdr">
+                <div>
+                  <h1>Our People <span style="color:var(--accent)">♡</span></h1>
+                  <p>Everyone who fills our kitchen with love.</p>
+                </div>
+                <button class="add-btn" onclick="openAddPersonModal()">+ Add Person</button>
+              </div>
+              <div id="people-list"></div>
+              <div class="add-person-card" onclick="openAddPersonModal()">
+                <div style="width:38px;height:38px;border-radius:10px;background:var(--accent-light);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/><line x1="12" y1="14" x2="12" y2="20"/><line x1="9" y1="17" x2="15" y2="17"/></svg>
+                </div>
+                <div>
+                  <h3>Add someone special</h3>
+                  <p>Preserve their recipes and stories.</p>
+                </div>
+              </div>
+              <div style="height:1.5rem"></div>
             </div>
-            <button class="add-btn" onclick="openAddPersonModal()">+ Add</button>
-          </div>
-          <div class="people-list" id="people-list">
-            <div class="skel" style="height:62px;margin:.5rem"></div>
-            <div class="skel" style="height:62px;margin:.5rem"></div>
-          </div>
-          <div class="add-person-card" onclick="openAddPersonModal()">
-            <div style="font-size:1.8rem">🤝</div>
-            <div>
-              <h3>Add someone special</h3>
-              <p>Preserve their recipes and stories.</p>
+            <!-- Sidebar -->
+            <div class="people-tips-col">
+              <div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin-bottom:1rem">Why it matters</div>
+              <div class="people-tip-item">
+                <div class="people-tip-icon" style="background:#FFF4E6">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C4522A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2"/><path d="M12 6v6l4 2"/></svg>
+                </div>
+                <div>
+                  <strong>Recipes fade fast</strong>
+                  <p>Most family recipes are lost within a generation. A voice note changes that.</p>
+                </div>
+              </div>
+              <div class="people-tip-item">
+                <div class="people-tip-icon" style="background:#FFF0F3">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#E05575" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                </div>
+                <div>
+                  <strong>Voice is irreplaceable</strong>
+                  <p>The way Dadi says "konjam" carries something no written recipe can.</p>
+                </div>
+              </div>
+              <div class="people-tip-item">
+                <div class="people-tip-icon" style="background:#FFFBEC">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D4A017" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                </div>
+                <div>
+                  <strong>Each memory is a gift</strong>
+                  <p>Your grandchildren will hear the same voice you heard growing up.</p>
+                </div>
+              </div>
+              <div style="border-top:1px solid var(--border);margin-top:.4rem;padding-top:.9rem">
+                <div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin-bottom:.6rem">Tips</div>
+                <p style="font-size:.72rem;color:var(--muted);line-height:1.55;margin-bottom:.55rem">📸 Add a photo so you can recognise them instantly in the recipe list.</p>
+                <p style="font-size:.72rem;color:var(--muted);line-height:1.55">✍️ Write a short bio — even a sentence captures their spirit.</p>
+              </div>
             </div>
           </div>
-          <div style="height:1rem"></div>
         </div>
       </div>
 
@@ -2926,7 +2984,6 @@ function renderPeople() {
     const n = r.narrator || 'Grandma';
     narMap[n] = (narMap[n] || 0) + 1;
   });
-  // Add manually added people (even if no recipes yet)
   _loadPeople().forEach(p => {
     if (!(p.name in narMap)) narMap[p.name] = 0;
   });
@@ -2935,7 +2992,7 @@ function renderPeople() {
   const narrators = Object.entries(narMap).sort((a,b) => b[1]-a[1]);
 
   if (narrators.length === 0) {
-    list.innerHTML = `<div style="padding:1rem;color:var(--muted);font-size:.82rem">No one added yet. Add a family member to get started!</div>`;
+    list.innerHTML = `<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.5rem 1.2rem;color:var(--muted);font-size:.82rem;text-align:center">No one added yet.<br>Tap <strong style="color:var(--accent)">+ Add Person</strong> to get started.</div>`;
     return;
   }
 
@@ -2947,18 +3004,80 @@ function renderPeople() {
     const relation = custom?.relation || '';
     const notes = custom?.notes || '';
     const avHtml = photo
-      ? `<img src="${esc(photo)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%" onerror="this.parentElement.textContent='${esc(emoji)}'">`
+      ? `<img src="${esc(photo)}" onerror="this.parentElement.innerHTML='${esc(emoji)}'">`
       : emoji;
+    // Latest audio for "Play sample"
+    const latestRecipe = allRecipes.filter(r => (r.narrator || 'Grandma') === name && r.audio_url)[0];
+    const playSampleBtn = latestRecipe ? `
+      <button class="person-act-btn" onclick="event.stopPropagation();_playSampleAudio('${esc(latestRecipe.token)}')" title="Play sample">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>Play
+      </button>` : '';
+    const memLabel = count === 1 ? '1 memory' : `${count} memories`;
     return `
-    <div class="person-row" onclick="openProfile('${esc(name)}')">
-      <div class="person-av">${avHtml}</div>
-      <div style="flex:1;min-width:0">
-        <div class="person-name">${esc(name)}${relation ? `<span style="font-size:.65rem;color:var(--muted);font-weight:400;margin-left:.4rem">${esc(relation)}</span>` : ''}</div>
-        <div class="person-count">${notes ? esc(notes.slice(0,48)) + (notes.length > 48 ? '…' : '') : count + ' ' + (count === 1 ? 'memory' : 'memories')}</div>
+    <div class="person-card" onclick="openProfile('${esc(name)}')">
+      <div class="person-card-top">
+        <div class="person-card-av">${avHtml}</div>
+        <div class="person-card-info">
+          <div class="person-card-name">
+            ${esc(name)}
+            ${relation ? `<span class="person-rel-pill">${esc(relation)}</span>` : ''}
+          </div>
+          ${notes ? `<div class="person-card-bio">${esc(notes)}</div>` : ''}
+        </div>
       </div>
-      <div class="person-chev">›</div>
+      <div class="person-card-footer">
+        <span class="person-stat-badge">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+          ${memLabel}
+        </span>
+        ${playSampleBtn}
+        <div class="person-card-actions">
+          <button class="person-act-btn" onclick="event.stopPropagation();openEditPersonModal('${esc(name)}')" title="Edit">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z"/></svg>Edit
+          </button>
+          <button class="person-act-btn del" onclick="event.stopPropagation();deletePerson('${esc(name)}')" title="Delete">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>Delete
+          </button>
+        </div>
+      </div>
     </div>`;
   }).join('');
+}
+
+function _playSampleAudio(token) {
+  // Open the recipe detail which has audio playback
+  openRecipe(token);
+}
+
+function deletePerson(name) {
+  if (!confirm(`Remove ${name} from your family book? Their recipes will still be saved.`)) return;
+  const people = _loadPeople().filter(p => p.name !== name);
+  _savePeople(people);
+  renderPeople();
+  renderNarratorChips();
+  showToast(`${name} removed from your family book.`);
+}
+
+let _editingPersonName = null; // null = add mode, string = edit mode
+
+function openEditPersonModal(name) {
+  const people = _loadPeople();
+  const person = people.find(p => p.name === name);
+  if (!person) return;
+  _editingPersonName = name;
+  const modal = document.getElementById('add-person-modal');
+  modal.querySelector('#apm-title').textContent = 'Edit person';
+  modal.querySelector('#apm-sub').textContent = 'Update their profile details.';
+  modal.querySelector('#apm-save-btn').textContent = 'Save changes';
+  document.getElementById('ap-name').value = person.name;
+  document.getElementById('ap-relation').value = person.relation || '';
+  document.getElementById('ap-emoji').value = person.emoji || '';
+  document.getElementById('ap-photo-url').value = person.photo && !person.photo.startsWith('data:') ? person.photo : '';
+  document.getElementById('ap-notes').value = person.notes || '';
+  document.getElementById('ap-err').textContent = '';
+  _updateApPhotoPreview(person.photo || person.emoji || '👤');
+  modal.style.display = 'flex';
+  setTimeout(() => document.getElementById('ap-name').focus(), 80);
 }
 
 function openProfile(name) {
@@ -3930,41 +4049,98 @@ function seedPeopleFromRecipes() {
 }
 
 function openAddPersonModal() {
-  document.getElementById('add-person-modal').style.display = 'flex';
+  _editingPersonName = null;
+  const modal = document.getElementById('add-person-modal');
+  modal.querySelector('#apm-title').textContent = 'Add someone special';
+  modal.querySelector('#apm-sub').textContent = "They'll appear in your narrator list when recording.";
+  modal.querySelector('#apm-save-btn').textContent = 'Add to family book ♡';
   document.getElementById('ap-name').value = '';
   document.getElementById('ap-relation').value = '';
   document.getElementById('ap-emoji').value = '';
-  document.getElementById('ap-photo').value = '';
+  document.getElementById('ap-photo-url').value = '';
   document.getElementById('ap-notes').value = '';
   document.getElementById('ap-err').textContent = '';
+  _updateApPhotoPreview('👤');
+  modal.style.display = 'flex';
   setTimeout(() => document.getElementById('ap-name').focus(), 80);
 }
 
 function closeAddPersonModal() {
   document.getElementById('add-person-modal').style.display = 'none';
+  _editingPersonName = null;
 }
 
-function saveNewPerson() {
+function _updateApPhotoPreview(photoOrEmoji) {
+  const prev = document.getElementById('ap-photo-preview');
+  if (!prev) return;
+  if (photoOrEmoji && (photoOrEmoji.startsWith('http') || photoOrEmoji.startsWith('data:'))) {
+    prev.innerHTML = `<img src="${esc(photoOrEmoji)}" style="width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid var(--border)" onerror="this.parentElement.textContent='👤'"/>`;
+  } else {
+    prev.textContent = photoOrEmoji || '👤';
+    prev.style.cssText = 'width:60px;height:60px;border-radius:50%;background:var(--cream2);display:flex;align-items:center;justify-content:center;font-size:1.6rem';
+  }
+}
+
+function _apHandleFileUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const data = e.target.result;
+    document.getElementById('ap-photo-url').value = '';
+    document.getElementById('_ap-photo-data').value = data;
+    _updateApPhotoPreview(data);
+  };
+  reader.readAsDataURL(file);
+}
+
+function savePersonModal() {
   const name = document.getElementById('ap-name').value.trim();
   const relation = document.getElementById('ap-relation').value.trim();
   const emoji = document.getElementById('ap-emoji').value.trim() || '👤';
-  const photo = document.getElementById('ap-photo').value.trim();
+  const photoUrl = document.getElementById('ap-photo-url').value.trim();
+  const photoData = document.getElementById('_ap-photo-data').value;
+  const photo = photoData || photoUrl;
   const notes = document.getElementById('ap-notes').value.trim();
   const errEl = document.getElementById('ap-err');
   if (!name) { errEl.textContent = 'Please enter a name.'; return; }
   const people = _loadPeople();
-  if (people.find(p => p.name.toLowerCase() === name.toLowerCase())) {
-    errEl.textContent = `${name} is already in your family book.`; return;
+
+  if (_editingPersonName) {
+    // Edit mode
+    const idx = people.findIndex(p => p.name === _editingPersonName);
+    if (idx === -1) { errEl.textContent = 'Person not found.'; return; }
+    // Name change — check for collision with other entries
+    if (name.toLowerCase() !== _editingPersonName.toLowerCase()) {
+      if (people.find(p => p.name.toLowerCase() === name.toLowerCase())) {
+        errEl.textContent = `${name} is already in your family book.`; return;
+      }
+    }
+    people[idx] = { ...people[idx], name, relation, emoji, photo, notes };
+    _savePeople(people);
+    closeAddPersonModal();
+    renderHome();
+    renderPeople();
+    renderNarratorChips();
+    showToast(`${name} updated ✓`);
+  } else {
+    // Add mode
+    if (people.find(p => p.name.toLowerCase() === name.toLowerCase())) {
+      errEl.textContent = `${name} is already in your family book.`; return;
+    }
+    people.push({ name, relation, emoji, photo, notes });
+    _savePeople(people);
+    closeAddPersonModal();
+    selectedNarrator = name;
+    renderHome();
+    renderPeople();
+    renderNarratorChips();
+    showToast(`${name} added to your family book ♡`);
   }
-  people.push({ name, relation, emoji, photo, notes });
-  _savePeople(people);
-  closeAddPersonModal();
-  selectedNarrator = name;
-  renderHome();
-  renderPeople();
-  renderNarratorChips();
-  showToast(`${name} added to your family book ♡`);
 }
+
+// Keep old name as alias for any inline callers
+function saveNewPerson() { savePersonModal(); }
 
 /* ── Welcome / onboarding modal ── */
 function openWelcomeModal() {
@@ -4086,36 +4262,54 @@ function renderNarratorChips() {
 </div>
 
 <div id="add-person-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:8888;align-items:center;justify-content:center;padding:1.5rem">
-  <div style="background:var(--surface);border-radius:20px;padding:2rem;max-width:380px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.18)">
-    <div style="font-family:var(--serif);font-size:1.25rem;color:var(--text);margin-bottom:.25rem">Add someone special</div>
-    <div style="font-size:.75rem;color:var(--muted);margin-bottom:1.4rem">They'll appear in your narrator list when recording.</div>
+  <div style="background:var(--surface);border-radius:20px;padding:1.8rem;max-width:400px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.18);max-height:90vh;overflow-y:auto">
+    <div id="apm-title" style="font-family:var(--serif);font-size:1.2rem;color:var(--text);margin-bottom:.2rem">Add someone special</div>
+    <div id="apm-sub" style="font-size:.73rem;color:var(--muted);margin-bottom:1.3rem">They'll appear in your narrator list when recording.</div>
 
-    <div style="margin-bottom:.85rem">
-      <label style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);display:block;margin-bottom:.35rem">Name *</label>
-      <input id="ap-name" placeholder="e.g. Dadi, Nani, Mumma…" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:10px;font-size:.88rem;font-family:var(--sans);background:var(--cream);color:var(--text);outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'" onkeydown="if(event.key==='Enter')saveNewPerson()"/>
-    </div>
-    <div style="margin-bottom:.85rem">
-      <label style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);display:block;margin-bottom:.35rem">Relationship</label>
-      <input id="ap-relation" placeholder="e.g. Grandmother, Mother, Aunt…" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:10px;font-size:.88rem;font-family:var(--sans);background:var(--cream);color:var(--text);outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
-    </div>
-    <div style="margin-bottom:.85rem;display:flex;gap:.75rem">
-      <div style="flex:0 0 80px">
-        <label style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);display:block;margin-bottom:.35rem">Emoji</label>
-        <input id="ap-emoji" placeholder="👵" maxlength="4" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:10px;font-size:1.2rem;text-align:center;background:var(--cream);color:var(--text);outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
-      </div>
+    <!-- Photo preview + upload -->
+    <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.2rem">
+      <div id="ap-photo-preview" style="width:60px;height:60px;border-radius:50%;background:var(--cream2);display:flex;align-items:center;justify-content:center;font-size:1.6rem;flex-shrink:0">👤</div>
       <div style="flex:1">
-        <label style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);display:block;margin-bottom:.35rem">Photo URL (optional)</label>
-        <input id="ap-photo" placeholder="https://…" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:10px;font-size:.82rem;font-family:var(--sans);background:var(--cream);color:var(--text);outline:none;box-sizing:border-box" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
+        <div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:.4rem">Photo</div>
+        <label style="display:inline-flex;align-items:center;gap:.35rem;background:var(--accent-light);color:var(--accent);border:1.5px solid var(--accent);border-radius:8px;padding:.28rem .65rem;font-size:.72rem;font-weight:600;cursor:pointer;font-family:var(--sans)">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          Upload photo
+          <input type="file" accept="image/*" style="display:none" onchange="_apHandleFileUpload(this)"/>
+        </label>
+        <span style="font-size:.65rem;color:var(--muted);margin-left:.4rem">or</span>
+        <input id="ap-photo-url" placeholder="paste URL…" style="margin-top:.35rem;width:100%;padding:.45rem .65rem;border:1.5px solid var(--border);border-radius:8px;font-size:.78rem;font-family:var(--sans);background:var(--cream);color:var(--text);outline:none;box-sizing:border-box" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'" oninput="if(this.value){document.getElementById('_ap-photo-data').value='';_updateApPhotoPreview(this.value)}"/>
+        <input type="hidden" id="_ap-photo-data"/>
       </div>
     </div>
-    <div style="margin-bottom:1.2rem">
-      <label style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);display:block;margin-bottom:.35rem">A little about them (optional)</label>
-      <textarea id="ap-notes" rows="2" placeholder="e.g. Makes the best rasam every Sunday…" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:10px;font-size:.82rem;font-family:var(--sans);background:var(--cream);color:var(--text);outline:none;resize:none;box-sizing:border-box" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+
+    <!-- Name -->
+    <div style="margin-bottom:.8rem">
+      <label style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);display:block;margin-bottom:.32rem">Name *</label>
+      <input id="ap-name" placeholder="e.g. Dadi, Nani, Mumma…" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:10px;font-size:.88rem;font-family:var(--sans);background:var(--cream);color:var(--text);outline:none;box-sizing:border-box" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'" onkeydown="if(event.key==='Enter')savePersonModal()"/>
     </div>
-    <div id="ap-err" style="font-size:.75rem;color:#e53e3e;margin-bottom:.75rem;min-height:1em"></div>
-    <div style="display:flex;gap:.65rem">
-      <button onclick="closeAddPersonModal()" style="flex:1;padding:.65rem;border:1.5px solid var(--border);border-radius:10px;background:none;font-size:.85rem;font-family:var(--sans);color:var(--text2);cursor:pointer">Cancel</button>
-      <button onclick="saveNewPerson()" style="flex:2;padding:.65rem;border:none;border-radius:10px;background:var(--accent);color:white;font-size:.85rem;font-weight:600;font-family:var(--sans);cursor:pointer">Add to family book ♡</button>
+
+    <!-- Relationship + Emoji -->
+    <div style="display:flex;gap:.7rem;margin-bottom:.8rem">
+      <div style="flex:1">
+        <label style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);display:block;margin-bottom:.32rem">Relationship</label>
+        <input id="ap-relation" placeholder="e.g. Grandmother, Mother…" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:10px;font-size:.85rem;font-family:var(--sans);background:var(--cream);color:var(--text);outline:none;box-sizing:border-box" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
+      </div>
+      <div style="flex:0 0 72px">
+        <label style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);display:block;margin-bottom:.32rem">Emoji</label>
+        <input id="ap-emoji" placeholder="👵" maxlength="4" style="width:100%;padding:.6rem .5rem;border:1.5px solid var(--border);border-radius:10px;font-size:1.2rem;text-align:center;background:var(--cream);color:var(--text);outline:none;box-sizing:border-box" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
+      </div>
+    </div>
+
+    <!-- Bio -->
+    <div style="margin-bottom:1.1rem">
+      <label style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);display:block;margin-bottom:.32rem">Bio (optional)</label>
+      <textarea id="ap-notes" rows="2" placeholder="e.g. Makes the best rasam every Sunday morning…" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:10px;font-size:.82rem;font-family:var(--sans);background:var(--cream);color:var(--text);outline:none;resize:none;box-sizing:border-box" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+    </div>
+
+    <div id="ap-err" style="font-size:.75rem;color:#e53e3e;margin-bottom:.7rem;min-height:1em"></div>
+    <div style="display:flex;gap:.6rem">
+      <button onclick="closeAddPersonModal()" style="flex:1;padding:.65rem;border:1.5px solid var(--border);border-radius:10px;background:none;font-size:.82rem;font-family:var(--sans);color:var(--text2);cursor:pointer">Cancel</button>
+      <button id="apm-save-btn" onclick="savePersonModal()" style="flex:2;padding:.65rem;border:none;border-radius:10px;background:var(--accent);color:white;font-size:.85rem;font-weight:600;font-family:var(--sans);cursor:pointer">Add to family book ♡</button>
     </div>
   </div>
 </div>
