@@ -1,0 +1,53 @@
+# Telugu cooking vocabulary — living glossary
+# Add terms as they come up in narrations.
+# variants: common misspellings / romanisations the speech model may produce.
+
+konchem:
+  meaning: "a little / a small amount"
+  variants: [konjam, konjem, koncham, konchm, gonchem]
+  use: quantity
+
+koddiga:
+  meaning: "a small amount (slightly more than konchem)"
+  variants: [kodiga, kodigaa]
+  use: quantity
+
+chaalu:
+  meaning: "enough / that's sufficient"
+  variants: [chalu, saalu, chaalu]
+  use: quantity
+
+sari:
+  meaning: "correct / just right (as a measurement)"
+  variants: [saari]
+  use: quantity
+
+veyinchu:
+  meaning: "fry / sauté"
+  variants: [veyyinchu, veyincu, veyinchu]
+  use: technique
+
+popu:
+  meaning: "tempering / tadka (blooming spices in hot oil)"
+  variants: [thaalimp, thaligimpu, thaalikampu]
+  use: technique
+
+vaasnasthundi:
+  meaning: "until it smells right / fragrant"
+  variants: [vasna vastundi, vaasana vastundi, vaasna vasthundi]
+  use: doneness_cue
+
+paakam:
+  meaning: "the right consistency (syrup or sauce stage)"
+  variants: [pakam, paaakam, paakamu]
+  use: doneness_cue
+
+nalupukollu:
+  meaning: "roast and grind"
+  variants: [nalupukolupu, nalupukoni]
+  use: technique
+
+neyyi:
+  meaning: "ghee (clarified butter)"
+  variants: [neyi, neyyi, ghee]
+  use: ingredient
