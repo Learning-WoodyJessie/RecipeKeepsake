@@ -6,6 +6,32 @@ from prompts.llm import OpenAIProvider
 from tools.storage import insert_recipe
 
 
+def process_recipe(audio_path: str) -> dict:
+    """
+    Run the pipeline without saving to Supabase.
+    Returns: transcript_raw, transcript_english, dish_name, ingredients,
+             steps, cook_notes, review_flags.
+    No id, token, or audio_url — those come after the user reviews.
+    """
+    config = load_config()
+    provider = OpenAIProvider(model=config["llm"]["model"])
+
+    print("Transcribing...")
+    transcript_raw = transcribe_audio(audio_path)
+
+    print("Translating...")
+    transcript_english = translate_to_english(transcript_raw, provider)
+
+    print("Structuring...")
+    structured = structure_recipe(transcript_english, provider)
+
+    return {
+        "transcript_raw": transcript_raw,
+        "transcript_english": transcript_english,
+        **structured,
+    }
+
+
 def capture(audio_path: str, audio_url: str) -> dict:
     """
     Orchestrate the full pipeline:

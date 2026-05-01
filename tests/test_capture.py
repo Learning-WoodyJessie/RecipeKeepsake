@@ -1,5 +1,5 @@
 from unittest.mock import patch
-from scripts.capture import capture
+from scripts.capture import capture, process_recipe
 
 _STRUCTURED = {
     "dish_name": "Pesarattu",
@@ -48,6 +48,49 @@ class TestCapture:
 
         assert call_order == ["transcribe", "translate", "structure", "insert"]
 
+class TestProcessRecipe:
+    def test_returns_pipeline_fields_without_insert(self):
+        """process_recipe() returns structured data and does NOT call insert_recipe."""
+        with patch("scripts.capture.transcribe_audio", return_value="raw telugu"), \
+             patch("scripts.capture.translate_to_english", return_value="english"), \
+             patch("scripts.capture.structure_recipe", return_value={
+                 "dish_name": "Pesarattu",
+                 "ingredients": [{"item": "moong dal", "quantity": "1 cup"}],
+                 "steps": ["Soak", "Grind"],
+                 "cook_notes": "add oil till it smells right",
+                 "review_flags": [],
+             }), \
+             patch("scripts.capture.insert_recipe") as mock_insert, \
+             patch("scripts.capture.OpenAIProvider"):
+            result = process_recipe("audio.m4a")
+
+        mock_insert.assert_not_called()
+        assert result["dish_name"] == "Pesarattu"
+        assert result["transcript_raw"] == "raw telugu"
+        assert result["transcript_english"] == "english"
+        assert "id" not in result
+        assert "token" not in result
+        assert "audio_url" not in result
+
+    def test_pipeline_order_without_insert(self):
+        """process_recipe() calls transcribe → translate → structure in order."""
+        call_order = []
+        with patch("scripts.capture.transcribe_audio",
+                   side_effect=lambda *a, **k: call_order.append("transcribe") or "raw"), \
+             patch("scripts.capture.translate_to_english",
+                   side_effect=lambda *a, **k: call_order.append("translate") or "english"), \
+             patch("scripts.capture.structure_recipe",
+                   side_effect=lambda *a, **k: call_order.append("structure") or {
+                       "dish_name": "x", "ingredients": [], "steps": [],
+                       "cook_notes": "", "review_flags": []}), \
+             patch("scripts.capture.insert_recipe"), \
+             patch("scripts.capture.OpenAIProvider"):
+            process_recipe("audio.m4a")
+
+        assert call_order == ["transcribe", "translate", "structure"]
+
+
+class TestCaptureAudioUrl:
     def test_audio_url_and_transcripts_stored(self):
         """capture() includes audio_url, transcript_raw, transcript_english in the insert payload."""
         with patch("scripts.capture.transcribe_audio", return_value="raw telugu"), \
