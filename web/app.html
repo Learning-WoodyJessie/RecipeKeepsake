@@ -594,7 +594,8 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
 .drop-zone{width:100%;border:2px dashed var(--border2);border-radius:16px;padding:2rem 1.2rem 1.5rem;cursor:pointer;transition:border-color .2s,background .2s;margin-bottom:.65rem;background:var(--surface)}
 .drop-zone:hover,.drop-zone.dragover{border-color:var(--accent);background:var(--accent-light)}
 .drop-zone input{display:none}
-.drop-cloud{width:50px;height:50px;border-radius:50%;background:#FFF1EC;display:flex;align-items:center;justify-content:center;margin:0 auto .85rem;font-size:1.45rem}
+.drop-cloud{width:52px;height:52px;border-radius:50%;background:#FFF1EC;display:flex;align-items:center;justify-content:center;margin:0 auto .85rem}
+.tip-icon svg,.drop-cloud svg{display:block}
 .drop-main-text{font-size:.95rem;font-weight:700;color:var(--text);margin-bottom:.2rem}
 .drop-sub-text{font-size:.8rem;color:var(--muted);margin-bottom:.7rem}
 .drop-hint{font-size:.72rem;color:var(--accent);font-weight:500}
@@ -1859,21 +1860,27 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
               <div class="tips-card">
                 <div class="tips-card-title">Tips for a great memory</div>
                 <div class="tip-item">
-                  <div class="tip-icon">🎤</div>
+                  <div class="tip-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C4522A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                  </div>
                   <div>
                     <div class="tip-text-title">Ask what makes the recipe special</div>
                     <div class="tip-text-sub">Capture the stories behind the dish.</div>
                   </div>
                 </div>
                 <div class="tip-item">
-                  <div class="tip-icon" style="background:#FFF0F0">❤️</div>
+                  <div class="tip-icon" style="background:#FFF0F3">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E05575" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                  </div>
                   <div>
                     <div class="tip-text-title">Ask for her tips and little secrets</div>
                     <div class="tip-text-sub">Those little details make it priceless.</div>
                   </div>
                 </div>
                 <div class="tip-item">
-                  <div class="tip-icon" style="background:#FFFBEC">✨</div>
+                  <div class="tip-icon" style="background:#FFFBEC">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D4A017" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                  </div>
                   <div>
                     <div class="tip-text-title">Let her talk naturally</div>
                     <div class="tip-text-sub">The more she shares, the better!</div>
@@ -2308,7 +2315,12 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
                    ondragleave="this.classList.remove('dragover')"
                    ondrop="handleDrop(event)">
                 <input type="file" id="fileInput" accept="audio/*,.mp3,.m4a,.wav,.webm" onchange="handleFileSelect(event)"/>
-                <div class="drop-cloud">☁️</div>
+                <div class="drop-cloud">
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#C4522A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/>
+                    <path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/>
+                  </svg>
+                </div>
                 <div class="drop-main-text">Drag &amp; drop your audio file here</div>
                 <div class="drop-sub-text">or click anywhere to upload</div>
                 <div class="drop-hint">✦ Best results with clear voice recordings</div>
@@ -2316,13 +2328,15 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
 
               <!-- Format info -->
               <div class="upload-formats">
-                <span>🎵</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
                 <span>Supported formats: MP3, M4A, WAV &nbsp;•&nbsp; Up to 50MB</span>
               </div>
 
               <!-- Privacy badge -->
               <div class="upload-privacy">
-                <span class="upload-privacy-icon">🛡️</span>
+                <span class="upload-privacy-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C4522A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </span>
                 <div>
                   <div class="upload-privacy-title">Your recordings are private and secure.</div>
                   <div class="upload-privacy-sub">Only you and your family can access these memories.</div>
@@ -2341,21 +2355,27 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
               <div class="tips-card">
                 <div class="tips-card-title">Tips for the best results</div>
                 <div class="tip-item">
-                  <div class="tip-icon">🎤</div>
+                  <div class="tip-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C4522A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                  </div>
                   <div>
                     <div class="tip-text-title">Clear voice</div>
                     <div class="tip-text-sub">Record in a quiet space with minimal background noise.</div>
                   </div>
                 </div>
                 <div class="tip-item">
-                  <div class="tip-icon">🕐</div>
+                  <div class="tip-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C4522A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  </div>
                   <div>
                     <div class="tip-text-title">Good length</div>
                     <div class="tip-text-sub">Recordings between 30 seconds – 15 minutes work best.</div>
                   </div>
                 </div>
                 <div class="tip-item">
-                  <div class="tip-icon">🔊</div>
+                  <div class="tip-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C4522A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                  </div>
                   <div>
                     <div class="tip-text-title">Check before uploading</div>
                     <div class="tip-text-sub">Play your recording once to ensure it's clear.</div>
