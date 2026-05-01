@@ -29,6 +29,6 @@ def transcribe_audio(audio_path: str) -> str:
             model="gpt-4o-transcribe",
             file=f,
             language="te",
-            initial_prompt=prompt,
+            prompt=prompt,
         )
     return transcript.text

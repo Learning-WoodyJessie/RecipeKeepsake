@@ -58,5 +58,5 @@ class TestTranscribeAudio:
 
             call_kwargs = mock_client.audio.transcriptions.create.call_args[1]
 
-        assert "initial_prompt" in call_kwargs
-        assert "konchem" in call_kwargs["initial_prompt"].lower()
+        assert "prompt" in call_kwargs
+        assert "konchem" in call_kwargs["prompt"].lower()
