@@ -372,6 +372,83 @@ async def patch_recipe_endpoint(token: str, body: PatchRecipeRequest, user: dict
         raise HTTPException(status_code=500, detail=str(e))
 
 
+_TRANSLATE_SUPPORTED = {"en", "te", "hi", "kn", "es", "fr"}
+
+
+@app.get("/recipe/{token}/translate")
+async def translate_recipe_endpoint(token: str, lang: str = "en"):
+    """
+    Return recipe fields translated into the requested language.
+
+    First call per language translates via LLM (~2-3s); subsequent calls
+    return from Supabase cache instantly. English always returns stored
+    fields directly — no LLM call.
+    """
+    lang = lang.lower()
+    if lang not in _TRANSLATE_SUPPORTED:
+        raise HTTPException(status_code=400, detail=f"Unsupported language: {lang}")
+
+    if not (os.environ.get("SUPABASE_URL") and os.environ.get("SUPABASE_SERVICE_KEY")):
+        raise HTTPException(status_code=503, detail="Storage not configured")
+
+    from tools.storage import get_recipe_by_token, get_cached_translation, cache_translation
+    from prompts.translate_recipe import translate_recipe_fields
+    from prompts.llm import OpenAIProvider
+    from data.config import load_config
+
+    try:
+        recipe = get_recipe_by_token(token)
+    except Exception:
+        raise HTTPException(status_code=404, detail="Recipe not found")
+
+    # English is always available — return stored fields directly, no LLM call
+    if lang == "en":
+        return JSONResponse(content={
+            "lang": "en",
+            "dish_name": recipe.get("dish_name", ""),
+            "ingredients": recipe.get("ingredients", []),
+            "steps": recipe.get("steps", []),
+            "cook_notes": recipe.get("cook_notes", ""),
+        })
+
+    # Check server-side cache first
+    try:
+        cached = get_cached_translation(token, lang)
+        if cached:
+            return JSONResponse(content={"lang": lang, **cached})
+    except Exception as e:
+        print(f"[translate] Cache read failed (non-fatal): {e}")
+
+    # Translate via LLM
+    if not os.environ.get("OPENAI_API_KEY"):
+        raise HTTPException(status_code=503, detail="OPENAI_API_KEY not set")
+
+    config = load_config()
+    model = config.get("llm", {}).get("model", "gpt-4o")
+    provider = OpenAIProvider(model=model)
+
+    fields = {
+        "dish_name": recipe.get("dish_name", ""),
+        "ingredients": recipe.get("ingredients", []),
+        "steps": recipe.get("steps", []),
+        "cook_notes": recipe.get("cook_notes", ""),
+    }
+
+    try:
+        translated = translate_recipe_fields(fields, lang, provider)
+    except Exception as e:
+        print(f"[translate] LLM error: {e}")
+        raise HTTPException(status_code=500, detail="Translation failed — try again")
+
+    # Write to cache — non-fatal, don't fail the request if Supabase write fails
+    try:
+        cache_translation(token, lang, translated)
+    except Exception as e:
+        print(f"[translate] Cache write failed (non-fatal): {e}")
+
+    return JSONResponse(content={"lang": lang, **translated})
+
+
 if __name__ == "__main__":
     import uvicorn
     port = int(os.environ.get("PORT", 8080))
