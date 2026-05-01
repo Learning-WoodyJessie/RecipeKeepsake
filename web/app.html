@@ -1251,6 +1251,29 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
 .wz-saved-dish{font-size:.95rem;font-weight:700;color:var(--text);margin-bottom:.35rem}
 .wz-saved-meta{font-size:.75rem;color:var(--muted)}
 .wz-btn-view{width:100%;background:var(--accent);color:#fff;border:none;border-radius:12px;padding:.82rem;font-size:.95rem;font-weight:700;cursor:pointer;font-family:var(--sans)}
+
+/* ── Language dropdown ── */
+.lang-dropdown-wrap{position:relative;margin-bottom:.85rem}
+.lang-select-btn{display:flex;align-items:center;gap:.5rem;border:1.5px solid var(--border);border-radius:10px;padding:.42rem .75rem;font-size:.8rem;font-weight:600;background:var(--surface);color:var(--text2);cursor:pointer;font-family:var(--sans);transition:border-color .2s,color .2s;width:100%;text-align:left}
+.lang-select-btn:hover,.lang-select-btn.lsb-open{border-color:var(--accent);color:var(--accent)}
+.lang-select-btn .lsb-flag{font-size:.9rem}
+.lang-select-btn .lsb-name{flex:1}
+.lang-select-btn .lsb-chevron{font-size:.65rem;color:var(--muted);transition:transform .2s}
+.lang-select-btn.lsb-open .lsb-chevron{transform:rotate(180deg)}
+.lang-select-btn .lsb-spinner{width:12px;height:12px;border-radius:50%;border:1.5px solid var(--accent);border-top-color:transparent;animation:lspin .7s linear infinite;display:none;flex-shrink:0}
+.lang-select-btn.lsb-loading .lsb-spinner{display:inline-block}
+.lang-select-btn.lsb-loading .lsb-flag,.lang-select-btn.lsb-loading .lsb-chevron{display:none}
+.lang-select-btn.lsb-loading{pointer-events:none;border-color:var(--accent)}
+@keyframes lspin{to{transform:rotate(360deg)}}
+.lang-dropdown-menu{display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:200;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.12)}
+.lang-dropdown-menu.ldm-open{display:block}
+.lang-opt{display:flex;align-items:center;gap:.55rem;padding:.52rem .75rem;font-size:.8rem;font-weight:500;color:var(--text2);cursor:pointer;font-family:var(--sans);border-bottom:1px solid var(--border);transition:background .15s}
+.lang-opt:last-child{border-bottom:none}
+.lang-opt:hover{background:var(--cream2)}
+.lang-opt.lo-active{background:#FFF1EC;color:var(--accent);font-weight:700}
+.lang-opt .lo-check{margin-left:auto;font-size:.72rem;display:none}
+.lang-opt.lo-active .lo-check{display:inline}
+.lang-translating .step-text,.lang-translating .ing-item,.lang-translating .tip-block-text{opacity:.22;transition:opacity .2s}
 </style>
 </head>
 <body>
@@ -1903,6 +1926,23 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
               <div class="meta-pill"><span style="font-size:.85rem">👤</span><span class="meta-pill-val" id="rd-narrator"></span></div>
               <div class="meta-pill"><span style="font-size:.85rem">📅</span><span class="meta-pill-val" id="rd-date"></span></div>
             </div>
+            <!-- Language switcher -->
+            <div class="lang-dropdown-wrap" id="lang-dropdown-wrap">
+              <button class="lang-select-btn" id="lang-select-btn" onclick="toggleLangDropdown(event)">
+                <span class="lsb-spinner"></span>
+                <span class="lsb-flag" id="lsb-flag">🇬🇧</span>
+                <span class="lsb-name" id="lsb-name">English</span>
+                <span class="lsb-chevron">▼</span>
+              </button>
+              <div class="lang-dropdown-menu" id="lang-dropdown-menu">
+                <div class="lang-opt lo-active" data-lang="en" onclick="switchLang('en')"><span>🇬🇧</span><span style="flex:1">English</span><span class="lo-check">✓</span></div>
+                <div class="lang-opt" data-lang="te" onclick="switchLang('te')"><span>🇮🇳</span><span style="flex:1">Telugu</span><span class="lo-check">✓</span></div>
+                <div class="lang-opt" data-lang="hi" onclick="switchLang('hi')"><span>🇮🇳</span><span style="flex:1">Hindi</span><span class="lo-check">✓</span></div>
+                <div class="lang-opt" data-lang="kn" onclick="switchLang('kn')"><span>🇮🇳</span><span style="flex:1">Kannada</span><span class="lo-check">✓</span></div>
+                <div class="lang-opt" data-lang="es" onclick="switchLang('es')"><span>🇪🇸</span><span style="flex:1">Spanish</span><span class="lo-check">✓</span></div>
+                <div class="lang-opt" data-lang="fr" onclick="switchLang('fr')"><span>🇫🇷</span><span style="flex:1">French</span><span class="lo-check">✓</span></div>
+              </div>
+            </div>
             <!-- Tabs -->
             <div class="recipe-tabs">
               <div class="r-tab active" onclick="showTab('steps',this)">Steps</div>
@@ -2484,6 +2524,9 @@ function renderRecipeDetail(r) {
   document.getElementById('tab-steps').classList.add('active');
   document.querySelectorAll('.r-tab').forEach(t => t.classList.remove('active'));
   document.querySelector('.r-tab').classList.add('active');
+
+  // Reset language switcher to English for the new recipe
+  resetLangSwitcher();
 }
 
 function showTab(name, el) {
@@ -2492,6 +2535,130 @@ function showTab(name, el) {
   document.getElementById('tab-' + name).classList.add('active');
   if (el) el.classList.add('active');
 }
+
+// ── Language switcher ──
+const _LANG_META = {
+  en: { flag: '🇬🇧', name: 'English' },
+  te: { flag: '🇮🇳', name: 'Telugu' },
+  hi: { flag: '🇮🇳', name: 'Hindi' },
+  kn: { flag: '🇮🇳', name: 'Kannada' },
+  es: { flag: '🇪🇸', name: 'Spanish' },
+  fr: { flag: '🇫🇷', name: 'French' },
+};
+// Client-side cache: { "token:lang": { dish_name, ingredients, steps, cook_notes } }
+const _translationCache = {};
+let _currentLang = 'en';
+let _langLoading = false;
+
+function toggleLangDropdown(e) {
+  if (_langLoading) return;
+  e && e.stopPropagation();
+  const menu = document.getElementById('lang-dropdown-menu');
+  const btn  = document.getElementById('lang-select-btn');
+  const open = !menu.classList.contains('ldm-open');
+  menu.classList.toggle('ldm-open', open);
+  btn.classList.toggle('lsb-open', open);
+}
+
+function _closeLangDropdown() {
+  document.getElementById('lang-dropdown-menu')?.classList.remove('ldm-open');
+  document.getElementById('lang-select-btn')?.classList.remove('lsb-open');
+}
+
+function _setLangActive(lang) {
+  document.querySelectorAll('.lang-opt').forEach(o => {
+    o.classList.toggle('lo-active', o.dataset.lang === lang);
+  });
+  const meta = _LANG_META[lang] || { flag: '🌐', name: lang.toUpperCase() };
+  document.getElementById('lsb-flag').textContent = meta.flag;
+  document.getElementById('lsb-name').textContent = meta.name;
+}
+
+function _applyTranslation(data) {
+  // Dish name
+  document.getElementById('rd-name').textContent = data.dish_name || '';
+
+  // Steps
+  const steps = data.steps || [];
+  document.getElementById('rd-steps').innerHTML = steps.length
+    ? steps.map((s, i) => `<div class="step-row"><div class="step-num">${i+1}</div><div class="step-text">${esc(s)}</div></div>`).join('')
+    : `<div style="color:var(--muted);font-size:.82rem;padding:.5rem 0">No steps available.</div>`;
+
+  // Cook notes
+  document.getElementById('rd-tip').innerHTML = data.cook_notes
+    ? `<div class="tip-block" style="margin-top:.5rem"><div style="font-size:1.1rem;margin-bottom:.35rem">💡</div><div class="tip-block-text">"${esc(data.cook_notes)}"</div></div>`
+    : `<div style="color:var(--muted);font-size:.82rem;padding:.5rem 0">No tips recorded.</div>`;
+
+  // Ingredients
+  const ings = data.ingredients || [];
+  document.getElementById('rd-ingredients').innerHTML = ings.length
+    ? ings.map(ing => `<div class="ing-item"><span class="ing-dot">•</span>${esc(ing.quantity ? ing.quantity + ' ' + ing.item : (ing.qty ? ing.qty + ' ' + ing.name : ing.item || ing.name || ''))}</div>`).join('')
+    : `<div style="color:var(--muted);font-size:.8rem">No ingredients listed.</div>`;
+}
+
+async function switchLang(lang) {
+  _closeLangDropdown();
+  if (lang === _currentLang || _langLoading) return;
+
+  const cacheKey = `${currentRecipe?.token}:${lang}`;
+
+  // Client-side cache hit — instant, no network call
+  if (_translationCache[cacheKey]) {
+    _currentLang = lang;
+    _setLangActive(lang);
+    _applyTranslation(_translationCache[cacheKey]);
+    return;
+  }
+
+  // English always instant — restore from currentRecipe
+  if (lang === 'en') {
+    _currentLang = 'en';
+    _setLangActive('en');
+    _applyTranslation({
+      dish_name:   currentRecipe.dish_name,
+      ingredients: currentRecipe.ingredients,
+      steps:       currentRecipe.steps,
+      cook_notes:  currentRecipe.cook_notes,
+    });
+    return;
+  }
+
+  // First fetch for this language — call server
+  _langLoading = true;
+  document.getElementById('lang-select-btn')?.classList.add('lsb-loading');
+  document.querySelector('.recipe-layout')?.classList.add('lang-translating');
+
+  try {
+    const res = await fetch(`/recipe/${currentRecipe.token}/translate?lang=${lang}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    _translationCache[cacheKey] = data;
+    _currentLang = lang;
+    _setLangActive(lang);
+    _applyTranslation(data);
+  } catch (err) {
+    console.error('[switchLang]', err);
+    showToast("Couldn't translate right now — try again");
+  } finally {
+    _langLoading = false;
+    document.getElementById('lang-select-btn')?.classList.remove('lsb-loading');
+    document.querySelector('.recipe-layout')?.classList.remove('lang-translating');
+  }
+}
+
+function resetLangSwitcher() {
+  _currentLang = 'en';
+  _langLoading = false;
+  _closeLangDropdown();
+  _setLangActive('en');
+}
+
+// Close dropdown on outside click
+document.addEventListener('click', e => {
+  if (!document.getElementById('lang-dropdown-wrap')?.contains(e.target)) {
+    _closeLangDropdown();
+  }
+});
 
 function shareRecipe() {
   if (!currentRecipe) return;
