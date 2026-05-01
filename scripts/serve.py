@@ -372,6 +372,27 @@ async def patch_recipe_endpoint(token: str, body: PatchRecipeRequest, user: dict
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.delete("/recipe/{token}")
+async def delete_recipe_endpoint(token: str, user: dict = Depends(require_auth)):
+    """Hard-delete a recipe. Caller must own the recipe (user_id check)."""
+    if not (os.environ.get("SUPABASE_URL") and os.environ.get("SUPABASE_SERVICE_KEY")):
+        raise HTTPException(status_code=503, detail="Storage not configured")
+    from tools.storage import get_recipe_by_token, delete_recipe
+    try:
+        recipe = get_recipe_by_token(token)
+    except Exception:
+        raise HTTPException(status_code=404, detail="Recipe not found")
+    # Ownership check — unauthenticated local dev (empty user dict) skips check
+    user_id = user.get("id", "")
+    if user_id and recipe.get("user_id") and recipe["user_id"] != user_id:
+        raise HTTPException(status_code=403, detail="Not your recipe")
+    try:
+        delete_recipe(token)
+        return JSONResponse(content={"deleted": token})
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 _TRANSLATE_SUPPORTED = {"en", "te", "hi", "kn", "es", "fr"}
 
 

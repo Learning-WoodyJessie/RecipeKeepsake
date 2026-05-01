@@ -415,6 +415,28 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
 .recipe-badge{position:absolute;top:.8rem;left:.8rem;background:var(--amber);color:white;padding:.28rem .62rem;border-radius:99px;font-size:.67rem;font-weight:700}
 .recipe-hero-btns{position:absolute;top:.8rem;right:.8rem;display:flex;gap:.4rem}
 .icon-btn{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.92);border:none;display:flex;align-items:center;justify-content:center;font-size:.78rem;cursor:pointer}
+.icon-btn.delete-btn{transition:background .2s}
+.icon-btn.delete-btn:hover{background:rgba(229,62,62,.12)}
+
+/* ── Delete confirmation banner ── */
+.delete-confirm-banner{
+  display:none;align-items:flex-start;gap:.85rem;
+  background:#FFF5F5;border:1.5px solid #FEB2B2;border-radius:14px;
+  padding:1rem 1.1rem;margin-top:.9rem;
+  animation:slideDown .18s ease;
+}
+.delete-confirm-banner.open{display:flex}
+@keyframes slideDown{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.dcb-icon{width:36px;height:36px;border-radius:50%;background:#FED7D7;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:.05rem}
+.dcb-body{flex:1;min-width:0}
+.dcb-title{font-size:.85rem;font-weight:700;color:#C53030;margin-bottom:.2rem}
+.dcb-sub{font-size:.73rem;color:#742A2A;line-height:1.5;margin-bottom:.75rem}
+.dcb-actions{display:flex;gap:.5rem}
+.dcb-cancel{flex:1;padding:.52rem;border:1.5px solid #FEB2B2;border-radius:9px;background:white;font-size:.78rem;font-weight:600;color:#742A2A;cursor:pointer;font-family:var(--sans);transition:background .14s}
+.dcb-cancel:hover{background:#FFF5F5}
+.dcb-delete{flex:2;padding:.52rem;border:none;border-radius:9px;background:#E53E3E;color:white;font-size:.78rem;font-weight:700;cursor:pointer;font-family:var(--sans);transition:background .14s;display:flex;align-items:center;justify-content:center;gap:.35rem}
+.dcb-delete:hover{background:#C53030}
+.dcb-delete.loading{opacity:.7;pointer-events:none}
 
 .recipe-name{font-family:var(--serif);font-size:1.6rem;color:var(--text);font-weight:700;margin-bottom:.85rem}
 
@@ -2169,6 +2191,9 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
               <div class="recipe-hero-btns">
                 <button class="icon-btn" id="rd-heart" onclick="toggleHeart(this)">🤍</button>
                 <button class="icon-btn" onclick="shareRecipe()">↗️</button>
+                <button class="icon-btn delete-btn" onclick="openDeleteConfirm()" title="Delete recipe">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#E53E3E" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                </button>
               </div>
             </div>
             <div class="recipe-name" id="rd-name"></div>
@@ -2204,6 +2229,24 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
                 <div class="lang-opt" data-lang="fr" onclick="switchLang('fr')"><span>🇫🇷</span><span style="flex:1">French</span><span class="lo-check">✓</span></div>
               </div>
             </div>
+            <!-- Delete confirmation banner -->
+            <div class="delete-confirm-banner" id="delete-confirm-banner">
+              <div class="dcb-icon">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#C53030" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+              </div>
+              <div class="dcb-body">
+                <div class="dcb-title">Delete "<span id="dcb-dish-name"></span>"?</div>
+                <div class="dcb-sub">This memory and its voice recording will be permanently removed. This cannot be undone.</div>
+                <div class="dcb-actions">
+                  <button class="dcb-cancel" onclick="closeDeleteConfirm()">Cancel</button>
+                  <button class="dcb-delete" id="dcb-confirm-btn" onclick="confirmDeleteRecipe()">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+                    Delete forever
+                  </button>
+                </div>
+              </div>
+            </div>
+
             <!-- Tabs -->
             <div class="recipe-tabs">
               <div class="r-tab active" onclick="showTab('steps',this)">Steps</div>
@@ -2609,6 +2652,8 @@ const BOTTOM_NAV_MAP = {
 
 function go(screen, navEl) {
   closeMobileDrawer();
+  // Dismiss delete confirmation if navigating away from recipe
+  if (screen !== 'recipe-detail') closeDeleteConfirm();
 
   // Hide all
   SCREEN_IDS.forEach(id => {
@@ -3195,6 +3240,55 @@ function shareRecipe() {
   } else {
     const text = `🍽️ ${currentRecipe.dish_name || 'A family recipe'} — narrated by ${currentRecipe.narrator || 'Grandma'}\n\n${url}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`);
+  }
+}
+
+// ═══════════════════════════════════════
+// DELETE RECIPE
+// ═══════════════════════════════════════
+function openDeleteConfirm() {
+  if (!currentRecipe) return;
+  const banner = document.getElementById('delete-confirm-banner');
+  const dishEl = document.getElementById('dcb-dish-name');
+  if (dishEl) dishEl.textContent = currentRecipe.dish_name || 'this recipe';
+  // Reset button state
+  const btn = document.getElementById('dcb-confirm-btn');
+  if (btn) { btn.classList.remove('loading'); btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg> Delete forever`; }
+  banner.classList.add('open');
+  banner.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function closeDeleteConfirm() {
+  document.getElementById('delete-confirm-banner')?.classList.remove('open');
+}
+
+async function confirmDeleteRecipe() {
+  if (!currentRecipe) return;
+  const token = currentRecipe.token;
+  const btn = document.getElementById('dcb-confirm-btn');
+  if (btn) { btn.classList.add('loading'); btn.textContent = 'Deleting…'; }
+
+  try {
+    let headers = { 'Content-Type': 'application/json' };
+    try { headers = { ...headers, ...(await getAuthHeaders()) }; } catch (_) {}
+
+    const res = await fetch(`/recipe/${token}`, { method: 'DELETE', headers });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || 'Delete failed');
+    }
+
+    // Remove from local cache
+    allRecipes = allRecipes.filter(r => r.token !== token);
+
+    closeDeleteConfirm();
+    go('home');
+    renderHome();
+    showToast('Memory deleted.');
+  } catch (e) {
+    console.error('[delete]', e);
+    if (btn) { btn.classList.remove('loading'); btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg> Delete forever`; }
+    showToast('Could not delete — try again.');
   }
 }
 

@@ -128,6 +128,11 @@ def get_cached_translation(token: str, lang: str) -> dict | None:
     return translations.get(lang)
 
 
+def delete_recipe(token: str) -> None:
+    """Hard-delete a recipe row by share token."""
+    _client().table("recipes").delete().eq("token", token).execute()
+
+
 def cache_translation(token: str, lang: str, data: dict) -> None:
     """Merge translated fields into the translations JSONB column for this recipe.
 
