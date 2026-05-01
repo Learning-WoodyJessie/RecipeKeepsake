@@ -1945,6 +1945,8 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
 // ═══════════════════════════════════════
 let allRecipes = [];
 let currentRecipe = null;
+let _pendingReview = null;   // { blob, filename, recipe } — held between /process and /save
+const _reviewAudio = new Audio();
 let selectedNarrator = 'Dadi';
 let recInterval = null;
 let recSeconds = 0;
@@ -2493,6 +2495,59 @@ function stopRecording() {
 // ═══════════════════════════════════════
 // PIPELINE SUBMISSION
 // ═══════════════════════════════════════
+
+function openReviewScreen(recipe, blob, filename) {
+  _pendingReview = { blob, filename, recipe };
+
+  // Dish name
+  document.getElementById('rv-dish-name').value = recipe.dish_name || '';
+
+  // Ingredients + steps
+  _renderRvIngredients(recipe.ingredients || []);
+  _renderRvSteps(recipe.steps || []);
+
+  // Cook notes
+  document.getElementById('rv-cook-notes').value = recipe.cook_notes || '';
+
+  // Transcript
+  document.getElementById('rv-transcript-raw').textContent = recipe.transcript_raw || '(none)';
+  document.getElementById('rv-transcript-english').textContent = recipe.transcript_english || '(none)';
+
+  // Audio playback from local blob
+  if (blob && blob.size > 0) {
+    const blobUrl = URL.createObjectURL(blob);
+    _reviewAudio.src = blobUrl;
+    _reviewAudio.load();
+    _reviewAudio.onloadedmetadata = () => {
+      document.getElementById('rv-duration').textContent = formatAudioTime(_reviewAudio.duration);
+    };
+    _reviewAudio.onended = () => {
+      document.getElementById('rv-play-btn').textContent = '▶';
+    };
+    document.getElementById('rv-audio-bar').style.display = 'flex';
+  } else {
+    document.getElementById('rv-audio-bar').style.display = 'none';
+  }
+
+  // Reset save button
+  const btn = document.getElementById('rv-save-btn');
+  btn.disabled = false;
+  btn.textContent = 'Save Recipe ✓';
+
+  go('review');
+}
+
+function toggleReviewAudio() {
+  const btn = document.getElementById('rv-play-btn');
+  if (_reviewAudio.paused) {
+    _reviewAudio.play();
+    btn.textContent = '⏸';
+  } else {
+    _reviewAudio.pause();
+    btn.textContent = '▶';
+  }
+}
+
 async function submitAudio(blob, filename) {
   console.log('[submit] START — blob size:', blob?.size, 'type:', blob?.type, 'filename:', filename);
   go('saving');
@@ -2513,14 +2568,14 @@ async function submitAudio(blob, filename) {
     const authHdrs = await getAuthHeaders();
     console.log('[submit] auth headers obtained, has Authorization:', !!authHdrs['Authorization']);
 
-    console.log('[submit] POSTing to /capture...');
-    let res = await fetch('/capture', { method: 'POST', body: form, headers: authHdrs });
+    console.log('[submit] POSTing to /capture/process...');
+    let res = await fetch('/capture/process', { method: 'POST', body: form, headers: authHdrs });
     console.log('[submit] fetch response status:', res.status);
 
     if (res.status === 401) {
       console.log('[submit] 401 — refreshing session and retrying...');
       const retryHdrs = await getAuthHeaders({ forceRefresh: true });
-      res = await fetch('/capture', { method: 'POST', body: form, headers: retryHdrs });
+      res = await fetch('/capture/process', { method: 'POST', body: form, headers: retryHdrs });
       console.log('[submit] retry response status:', res.status);
     }
     if (!res.ok) {
@@ -2529,13 +2584,9 @@ async function submitAudio(blob, filename) {
       throw new Error(err.detail || 'Pipeline failed');
     }
     const recipe = await res.json();
-    console.log('[submit] SUCCESS — recipe id:', recipe?.id, 'dish:', recipe?.dish_name);
-    currentRecipe = recipe;
-    allRecipes.unshift(recipe); // add to front
-    localStorage.setItem('rk_recipes_cache', JSON.stringify(allRecipes));
-    seedPeopleFromRecipes();
+    console.log('[submit] pipeline done — dish:', recipe?.dish_name, '— opening review');
     finishProcessingAnimation();
-    setTimeout(() => { renderRecipeDetail(recipe); go('recipe-detail'); }, 600);
+    setTimeout(() => openReviewScreen(recipe, blob, filename), 600);
   } catch (err) {
     console.error('[submit] CATCH — message:', err.message, '\nstack:', err.stack);
     go('capture');
