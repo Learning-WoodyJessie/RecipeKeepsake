@@ -8,7 +8,7 @@ providers = ["python"]
 nixPkgs = ["python311", "python311Packages.pip", "gcc", "libffi", "openssl"]
 
 [phases.install]
-cmds = ["pip install --no-cache-dir -r requirements.txt"]
+cmds = ["python3 -m venv /opt/venv", "/opt/venv/bin/pip install --no-cache-dir -r requirements.txt"]
 
 [start]
-cmd = "python3 -m scripts.serve"
+cmd = "/opt/venv/bin/python -m scripts.serve"
