@@ -2386,23 +2386,42 @@ function stopRecording() {
 // PIPELINE SUBMISSION
 // ═══════════════════════════════════════
 async function submitAudio(blob, filename) {
+  console.log('[submit] START — blob size:', blob?.size, 'type:', blob?.type, 'filename:', filename);
   go('saving');
+
+  if (!blob || blob.size === 0) {
+    console.error('[submit] ABORT — blob is empty or null');
+    go('capture');
+    showToast('Recording is empty — please try again.');
+    return;
+  }
 
   const form = new FormData();
   form.append('audio', blob, filename || 'recording.webm');
+  console.log('[submit] FormData created, appended audio');
 
   try {
+    console.log('[submit] calling getAuthHeaders...');
     const authHdrs = await getAuthHeaders();
+    console.log('[submit] auth headers obtained, has Authorization:', !!authHdrs['Authorization']);
+
+    console.log('[submit] POSTing to /capture...');
     let res = await fetch('/capture', { method: 'POST', body: form, headers: authHdrs });
+    console.log('[submit] fetch response status:', res.status);
+
     if (res.status === 401) {
+      console.log('[submit] 401 — refreshing session and retrying...');
       const retryHdrs = await getAuthHeaders({ forceRefresh: true });
       res = await fetch('/capture', { method: 'POST', body: form, headers: retryHdrs });
+      console.log('[submit] retry response status:', res.status);
     }
     if (!res.ok) {
       const err = await res.json().catch(() => ({ detail: 'Unknown error' }));
+      console.error('[submit] server error:', res.status, JSON.stringify(err));
       throw new Error(err.detail || 'Pipeline failed');
     }
     const recipe = await res.json();
+    console.log('[submit] SUCCESS — recipe id:', recipe?.id, 'dish:', recipe?.dish_name);
     currentRecipe = recipe;
     allRecipes.unshift(recipe); // add to front
     localStorage.setItem('rk_recipes_cache', JSON.stringify(allRecipes));
@@ -2410,6 +2429,7 @@ async function submitAudio(blob, filename) {
     finishProcessingAnimation();
     setTimeout(() => { renderRecipeDetail(recipe); go('recipe-detail'); }, 600);
   } catch (err) {
+    console.error('[submit] CATCH — message:', err.message, '\nstack:', err.stack);
     go('capture');
     showToast('Error: ' + err.message);
   }
