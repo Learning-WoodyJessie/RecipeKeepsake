@@ -118,3 +118,23 @@ def list_recipes(user_id: str) -> list:
         if r.get("audio_url"):
             r["audio_url"] = _sign_audio(r["audio_url"], sb)
     return recipes
+
+
+def get_cached_translation(token: str, lang: str) -> dict | None:
+    """Return a cached translation for (token, lang) or None if not yet translated."""
+    sb = _client()
+    result = sb.table("recipes").select("translations").eq("token", token).single().execute()
+    translations = result.data.get("translations") or {}
+    return translations.get(lang)
+
+
+def cache_translation(token: str, lang: str, data: dict) -> None:
+    """Merge translated fields into the translations JSONB column for this recipe.
+
+    Fetches existing translations first so other languages are preserved.
+    """
+    sb = _client()
+    result = sb.table("recipes").select("translations").eq("token", token).single().execute()
+    existing = result.data.get("translations") or {}
+    existing[lang] = data
+    sb.table("recipes").update({"translations": existing}).eq("token", token).execute()
