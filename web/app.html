@@ -73,7 +73,7 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
 .search-wrap input{background:transparent;border:none;outline:none;font-size:.82rem;color:var(--text);font-family:var(--sans);width:100%}
 .search-wrap input::placeholder{color:var(--muted)}
 .topbar-right{margin-left:auto;display:flex;align-items:center;gap:.5rem}
-.topbar-greeting{font-size:.78rem;color:var(--muted)}
+.topbar-greeting{font-size:.82rem;color:var(--text2);font-weight:500}
 .topbar-bell{background:none;border:none;cursor:pointer;font-size:1.05rem;color:var(--muted)}
 
 /* ── Mobile appbar + drawer ── */
@@ -191,78 +191,104 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
 /* ═══════════════════════════════════════
    HOME SCREEN
 ═══════════════════════════════════════ */
-/* ── Home banner ── */
-.home-banner{
-  position:relative;width:100%;height:300px;overflow:hidden;
-  background:linear-gradient(135deg,#6B2A10 0%,#9B3D1A 40%,#C4522A 75%,#D4724A 100%);
-  flex-shrink:0;
-}
-@media(max-width:767px){.home-banner{height:240px}}
-.home-banner-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.22;mix-blend-mode:multiply}
-.home-banner-pattern{
-  position:absolute;inset:0;opacity:.06;
-  background-image:radial-gradient(circle at 20% 50%,white 1px,transparent 1px),
-    radial-gradient(circle at 80% 20%,white 1px,transparent 1px),
-    radial-gradient(circle at 60% 80%,white 1px,transparent 1px);
-  background-size:40px 40px,60px 60px,30px 30px;
-}
-.home-banner-content{
-  position:relative;z-index:2;height:100%;padding:2rem 2.2rem;
-  display:flex;flex-direction:column;justify-content:flex-end;
-}
-@media(max-width:767px){.home-banner-content{padding:1.4rem 1.25rem}}
-.banner-eyebrow{font-size:.65rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.65);margin-bottom:.5rem}
-.banner-title{font-family:var(--serif);font-size:2.4rem;color:white;line-height:1.18;font-weight:700;margin-bottom:.5rem}
-@media(max-width:767px){.banner-title{font-size:1.75rem}}
-.banner-sub{font-size:.82rem;color:rgba(255,255,255,.72);margin-bottom:1.25rem;line-height:1.55;max-width:420px}
-.banner-actions{display:flex;gap:.7rem;align-items:center;flex-wrap:wrap}
-.banner-cta{background:white;color:var(--accent);border:none;padding:.55rem 1.3rem;border-radius:99px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:var(--sans);transition:transform .15s,box-shadow .15s;box-shadow:0 4px 14px rgba(0,0,0,.18)}
-.banner-cta:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(0,0,0,.22)}
-.banner-cta-ghost{background:rgba(255,255,255,.15);color:white;border:1.5px solid rgba(255,255,255,.4);padding:.52rem 1.15rem;border-radius:99px;font-size:.82rem;font-weight:600;cursor:pointer;font-family:var(--sans);backdrop-filter:blur(4px);transition:background .15s}
-.banner-cta-ghost:hover{background:rgba(255,255,255,.25)}
-.banner-deco{position:absolute;right:2.5rem;bottom:1.5rem;opacity:.12;font-size:7rem;line-height:1;pointer-events:none;user-select:none}
-@media(max-width:767px){.banner-deco{display:none}}
+/* ── Two-column page layout ── */
+.home-page-wrap{display:flex;gap:1.8rem;align-items:flex-start;padding:1.6rem 1.8rem;max-width:1200px}
+.home-main-col{flex:1;min-width:0}
+.home-right-col{flex:0 0 238px}
+@media(max-width:1000px){.home-right-col{display:none}}
+@media(max-width:767px){.home-page-wrap{padding:1rem;flex-direction:column}}
 
-/* ── Stats strip ── */
-.stats-strip{display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--surface)}
-.stat-item{flex:1;padding:.85rem 1rem;text-align:center;border-right:1px solid var(--border)}
-.stat-item:last-child{border-right:none}
-.stat-num{font-family:var(--serif);font-size:1.45rem;color:var(--accent);font-weight:700;line-height:1}
-.stat-label{font-size:.62rem;color:var(--muted);margin-top:.2rem;font-weight:500;text-transform:uppercase;letter-spacing:.06em}
+/* ── Welcome card ── */
+.home-welcome-card{display:flex;align-items:stretch;background:linear-gradient(135deg,#FFF9F5 0%,#FDF0E6 60%,#F8EAD8 100%);border:1px solid rgba(196,82,42,.12);border-radius:20px;overflow:hidden;margin-bottom:1.6rem;min-height:172px;box-shadow:0 4px 18px rgba(45,27,14,.055)}
+.home-welcome-body{flex:1;padding:1.5rem 1.5rem 1.4rem;display:flex;flex-direction:column;justify-content:space-between;min-width:0}
+.home-welcome-title{font-family:var(--serif);font-size:1.65rem;color:var(--text);line-height:1.2;font-weight:700;margin-bottom:.32rem}
+.home-welcome-sub{font-size:.8rem;color:var(--muted);line-height:1.6;margin-bottom:1.1rem}
+.home-action-btns{display:flex;gap:.65rem;flex-wrap:wrap}
+.home-action-btn{display:flex;align-items:center;gap:.55rem;background:white;border:1.5px solid rgba(196,82,42,.22);border-radius:14px;padding:.55rem .9rem .55rem .6rem;cursor:pointer;font-family:var(--sans);transition:all .15s;box-shadow:0 2px 8px rgba(45,27,14,.06);text-align:left}
+.home-action-btn:hover{border-color:var(--accent);box-shadow:0 4px 14px rgba(196,82,42,.14);transform:translateY(-1px)}
+.home-action-btn-icon{width:30px;height:30px;border-radius:9px;background:var(--accent-light);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.home-action-btn-label{font-size:.78rem;font-weight:700;color:var(--accent);display:block;line-height:1.2}
+.home-action-btn-sub{font-size:.65rem;color:var(--muted);display:block;margin-top:.1rem;line-height:1.3}
+.home-welcome-illus{flex:0 0 210px;background:linear-gradient(160deg,#FDE8D0 0%,#F5D4B0 100%);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
+@media(max-width:860px){.home-welcome-illus{flex:0 0 150px}}
+@media(max-width:680px){.home-welcome-illus{display:none}}
+.hwi-frame{position:relative;transform:rotate(-4deg);background:white;padding:7px 7px 28px;box-shadow:0 8px 24px rgba(45,27,14,.22);border-radius:3px}
+.hwi-frame img{width:110px;height:82px;object-fit:cover;display:block;border-radius:1px}
+.hwi-caption{position:absolute;bottom:5px;left:0;right:0;text-align:center;font-size:.55rem;color:#8B6A4A;font-style:italic;line-height:1.3}
+.hwi-frame2{position:absolute;top:16px;right:14px;transform:rotate(5deg);background:white;padding:5px 5px 22px;box-shadow:0 5px 16px rgba(45,27,14,.18);border-radius:3px;z-index:0}
+.hwi-frame2 img{width:72px;height:56px;object-fit:cover;display:block;border-radius:1px}
 
-/* ── Home body ── */
-.home-body{padding:1.6rem 2rem}
-@media(max-width:767px){.home-body{padding:1.2rem 1rem}}
+/* ── Section headers ── */
+.home-section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:.85rem}
+.home-section-title{font-family:var(--serif);font-size:1.05rem;color:var(--text);font-weight:700}
+.home-section-right{display:flex;align-items:center;gap:.65rem}
+.home-sort-btn{display:inline-flex;align-items:center;gap:.28rem;background:var(--surface);border:1.5px solid var(--border);border-radius:99px;padding:.22rem .65rem;font-size:.7rem;font-weight:600;color:var(--text2);cursor:pointer;font-family:var(--sans);transition:all .14s}
+.home-sort-btn:hover{border-color:var(--accent);color:var(--accent)}
+.home-view-all{font-size:.72rem;color:var(--accent);font-weight:600;background:none;border:none;cursor:pointer;font-family:var(--sans);display:flex;align-items:center;gap:.15rem}
+.home-view-all:hover{text-decoration:underline}
 
-.home-hero{display:none} /* hide old hero */
+/* ── Favorites scroll row ── */
+.fav-scroll-row{display:flex;gap:.85rem;overflow-x:auto;padding-bottom:.5rem;scrollbar-width:none;margin-bottom:1.6rem}
+.fav-scroll-row::-webkit-scrollbar{display:none}
+.fav-card{flex:0 0 162px;border-radius:14px;background:var(--surface);border:1px solid var(--border);overflow:hidden;cursor:pointer;transition:transform .15s,box-shadow .15s;flex-shrink:0}
+.fav-card:hover{transform:translateY(-2px);box-shadow:0 5px 18px rgba(0,0,0,.09)}
+.fav-card-img{position:relative;height:104px;overflow:hidden;background:var(--cream2);display:flex;align-items:center;justify-content:center;font-size:2rem}
+.fav-card-img img{width:100%;height:100%;object-fit:cover}
+.fav-card-heart{position:absolute;top:.42rem;right:.42rem;width:27px;height:27px;border-radius:50%;background:rgba(255,255,255,.9);display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;box-shadow:0 1px 4px rgba(0,0,0,.14);transition:transform .15s;padding:0}
+.fav-card-heart:active{transform:scale(1.25)}
+.fav-card-body{padding:.55rem .7rem .65rem}
+.fav-card-name{font-size:.8rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fav-card-who{display:flex;align-items:center;gap:.35rem;margin-top:.3rem}
+.fav-card-av{width:18px;height:18px;border-radius:50%;overflow:hidden;background:var(--cream2);display:flex;align-items:center;justify-content:center;font-size:.52rem;flex-shrink:0}
+.fav-card-av img{width:100%;height:100%;object-fit:cover}
+.fav-card-narrator{font-size:.67rem;color:var(--muted)}
+
+/* ── Recent memories list ── */
+.recent-memory-row{display:flex;align-items:center;gap:.8rem;padding:.75rem .85rem;background:var(--surface);border-radius:14px;border:1px solid var(--border);margin-bottom:.5rem;cursor:pointer;transition:box-shadow .14s}
+.recent-memory-row:hover{box-shadow:0 3px 14px rgba(0,0,0,.07)}
+.recent-mem-av{width:44px;height:44px;border-radius:50%;overflow:hidden;flex-shrink:0;background:var(--cream2);display:flex;align-items:center;justify-content:center;font-size:1.1rem}
+.recent-mem-av img{width:100%;height:100%;object-fit:cover}
+.recent-mem-info{min-width:0;flex:0 0 148px}
+.recent-mem-name{font-size:.83rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.recent-mem-who{font-size:.66rem;color:var(--muted);margin-top:.1rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.recent-mem-wave{flex:1;display:flex;align-items:center;gap:2px;height:24px;overflow:hidden;padding:0 .3rem}
+.rmw-bar{width:3px;border-radius:99px;flex-shrink:0;background:var(--accent-light)}
+.recent-mem-dur{font-size:.67rem;color:var(--muted);font-variant-numeric:tabular-nums;flex-shrink:0;min-width:30px;text-align:right}
+.recent-mem-heart{background:none;border:none;cursor:pointer;padding:.1rem .2rem;flex-shrink:0;transition:transform .15s;line-height:1}
+.recent-mem-heart:active{transform:scale(1.3)}
+.recent-mem-play{width:33px;height:33px;border-radius:50%;background:none;border:1.5px solid var(--accent);color:var(--accent);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all .15s;padding:0}
+.recent-mem-play:hover{background:var(--accent);color:white}
+
+/* ── Right sidebar ── */
+.home-quote-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:1.4rem 1.3rem;margin-bottom:1rem}
+.home-quote-mark{font-family:var(--serif);font-size:2.8rem;color:var(--accent);line-height:.75;margin-bottom:.55rem}
+.home-quote-text{font-family:var(--serif);font-size:.95rem;color:var(--text);line-height:1.65;font-style:italic}
+.home-tips-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:1.2rem 1.1rem}
+.home-tips-title{font-size:.67rem;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin-bottom:.95rem}
+.home-tip-row{display:flex;align-items:flex-start;gap:.65rem;margin-bottom:.85rem}
+.home-tip-icon{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.home-tip-title{font-size:.76rem;font-weight:700;color:var(--text2);line-height:1.3}
+.home-tip-sub{font-size:.69rem;color:var(--muted);margin-top:.15rem;line-height:1.45}
+.home-learn-more{font-size:.72rem;color:var(--accent);font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:.2rem;margin-top:.5rem;background:none;border:none;font-family:var(--sans);padding:0}
+.home-learn-more:hover{text-decoration:underline}
+
+/* ── Legacy classes kept for mobile voice row ── */
+.home-hero{display:none}
 .hero-title,.hero-sub,.hero-cta{display:none}
-
 .mobile-home-intro{display:none}
 .mobile-voices-hdr{display:none}
 .voice-row{display:none}
 @media(max-width:767px){
   .mobile-voices-hdr{display:flex}
-  .mobile-home-intro{
-    display:block;margin-bottom:1.15rem;padding:1rem 1rem 1.05rem;border-radius:18px;
-    background:linear-gradient(135deg,#FFF7F1 0%,#FDEBE5 48%,#F8F3EA 100%);
-    border:1px solid rgba(196,82,42,.12);box-shadow:0 6px 20px rgba(45,27,14,.045);
-  }
+  .mobile-home-intro{display:block;margin-bottom:1.15rem;padding:1rem 1rem 1.05rem;border-radius:18px;background:linear-gradient(135deg,#FFF7F1 0%,#FDEBE5 48%,#F8F3EA 100%);border:1px solid rgba(196,82,42,.12)}
   .mobile-kicker{font-size:.66rem;font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:var(--muted);margin-bottom:.35rem}
   .mobile-home-title{font-family:var(--serif);font-size:1.55rem;line-height:1.1;color:var(--text);font-weight:700;margin-bottom:.45rem}
   .mobile-home-title span{color:#C9676A}
-  .mobile-home-copy{font-size:.82rem;line-height:1.5;color:var(--text2);max-width:19rem}
-  .mobile-primary-cta{
-    width:100%;margin-top:.9rem;border:none;border-radius:14px;background:var(--accent);color:white;
-    min-height:48px;font-family:var(--sans);font-size:.9rem;font-weight:750;cursor:pointer;
-    box-shadow:0 8px 18px rgba(196,82,42,.22);
-  }
+  .mobile-home-copy{font-size:.82rem;line-height:1.5;color:var(--text2)}
+  .mobile-primary-cta{width:100%;margin-top:.9rem;border:none;border-radius:14px;background:var(--accent);color:white;min-height:48px;font-family:var(--sans);font-size:.9rem;font-weight:750;cursor:pointer}
   .voice-row{display:flex;gap:.65rem;overflow-x:auto;scrollbar-width:none;margin:0 0 1.4rem;padding-bottom:.2rem}
   .voice-row::-webkit-scrollbar{display:none}
-  .voice-card{
-    flex:0 0 112px;border:1px solid var(--border);border-radius:16px;background:var(--surface);
-    padding:.75rem .65rem;box-shadow:0 3px 12px rgba(45,27,14,.045);cursor:pointer;
-    min-height:110px;display:flex;flex-direction:column;justify-content:space-between;
-  }
+  .voice-card{flex:0 0 112px;border:1px solid var(--border);border-radius:16px;background:var(--surface);padding:.75rem .65rem;cursor:pointer;min-height:110px;display:flex;flex-direction:column;justify-content:space-between}
   .voice-card:active{transform:scale(.98)}
   .voice-avatar{width:38px;height:38px;border-radius:50%;background:var(--accent-light);display:flex;align-items:center;justify-content:center;color:var(--accent);font-weight:750;overflow:hidden}
   .voice-avatar img{width:100%;height:100%;object-fit:cover}
@@ -271,29 +297,7 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
   .voice-card.add{border-style:dashed;background:rgba(255,255,255,.62);align-items:center;text-align:center;justify-content:center;gap:.45rem;color:var(--accent)}
   .voice-add-icon{width:36px;height:36px;border-radius:50%;background:var(--accent-light);display:flex;align-items:center;justify-content:center;font-size:1.15rem;font-weight:700}
 }
-
-.fav-row{display:flex;gap:.85rem;overflow-x:auto;padding-bottom:.5rem;scrollbar-width:none;margin-bottom:1.75rem}
-.fav-row::-webkit-scrollbar{display:none}
-.fav-chip{flex-shrink:0;border-radius:16px;overflow:hidden;cursor:pointer;position:relative;width:120px;height:90px;box-shadow:0 3px 12px rgba(0,0,0,.12);transition:transform .18s,box-shadow .18s}
-.fav-chip:hover{transform:translateY(-3px);box-shadow:0 6px 20px rgba(0,0,0,.16)}
-.fav-chip img{width:100%;height:100%;object-fit:cover}
-.fav-chip-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.68) 0%,rgba(0,0,0,.1) 55%,transparent 100%)}
-.fav-chip-name{position:absolute;bottom:.45rem;left:.5rem;right:.5rem;font-size:.65rem;font-weight:600;color:white;line-height:1.2}
-.fav-chip-heart{position:absolute;top:.35rem;right:.38rem;font-size:.72rem}
-.fav-chip-empty{flex-shrink:0;width:120px;height:90px;border-radius:16px;background:var(--cream2);border:2px dashed var(--border2);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;gap:.3rem;transition:border-color .15s}
-.fav-chip-empty:hover{border-color:var(--accent)}
-.fav-chip-empty-icon{font-size:1.3rem;opacity:.5}
-.fav-chip-empty-label{font-size:.6rem;color:var(--muted);font-weight:500}
-
-.recent-card{display:flex;align-items:center;gap:.85rem;padding:.75rem .9rem;background:var(--surface);border:1px solid var(--border);border-radius:14px;cursor:pointer;transition:box-shadow .15s,border-color .15s;margin-bottom:.6rem}
-.recent-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.07);border-color:var(--border2)}
-
-/* ── Quote card ── */
-.quote-card{background:linear-gradient(135deg,var(--accent-light),#FDF5F0);border:1px solid rgba(196,82,42,.15);border-radius:16px;padding:1.25rem 1.4rem;margin-top:1.75rem;display:flex;gap:1rem;align-items:flex-start}
-.quote-mark{font-family:var(--serif);font-size:3rem;color:var(--accent);opacity:.3;line-height:.8;flex-shrink:0}
-.quote-text{font-family:var(--serif);font-size:.92rem;color:var(--text2);font-style:italic;line-height:1.65}
-.quote-attr{font-size:.68rem;color:var(--muted);margin-top:.4rem}
-
+/* legacy fav/recent classes (kept for any stale refs) */
 .fav-row{display:flex;gap:.7rem;overflow-x:auto;padding-bottom:.4rem;scrollbar-width:none;margin-bottom:1.5rem}
 .fav-row::-webkit-scrollbar{display:none}
 .fav-chip{flex-shrink:0;border-radius:13px;overflow:hidden;cursor:pointer;position:relative;width:95px;height:74px;box-shadow:0 2px 8px rgba(0,0,0,.1);transition:transform .15s}
@@ -301,8 +305,6 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
 .fav-chip img{width:100%;height:100%;object-fit:cover}
 .fav-chip-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.6),transparent 55%)}
 .fav-chip-name{position:absolute;bottom:.38rem;left:.42rem;right:.42rem;font-size:.63rem;font-weight:600;color:white;line-height:1.2}
-.fav-chip-heart{position:absolute;top:.32rem;right:.32rem;font-size:.7rem}
-
 .recent-card{display:flex;align-items:center;gap:.8rem;padding:.65rem .8rem;background:var(--surface);border:1px solid var(--border);border-radius:13px;cursor:pointer;transition:box-shadow .15s;margin-bottom:.55rem}
 .recent-card:hover{box-shadow:0 4px 14px rgba(0,0,0,.07)}
 .recent-av{width:40px;height:40px;border-radius:50%;overflow:hidden;flex-shrink:0;background:var(--cream2);display:flex;align-items:center;justify-content:center;font-size:1rem}
@@ -311,6 +313,10 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
 .recent-dish{font-size:.86rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .recent-when{font-size:.68rem;color:var(--muted);margin-top:.08rem}
 .recent-play{width:30px;height:30px;border-radius:50%;background:var(--accent-light);border:1.5px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:.65rem;color:var(--accent);cursor:pointer;flex-shrink:0}
+.quote-card{background:linear-gradient(135deg,var(--accent-light),#FDF5F0);border:1px solid rgba(196,82,42,.15);border-radius:16px;padding:1.25rem 1.4rem;margin-top:1.75rem;display:flex;gap:1rem;align-items:flex-start}
+.quote-mark{font-family:var(--serif);font-size:3rem;color:var(--accent);opacity:.3;line-height:.8;flex-shrink:0}
+.quote-text{font-family:var(--serif);font-size:.92rem;color:var(--text2);font-style:italic;line-height:1.65}
+.quote-attr{font-size:.68rem;color:var(--muted);margin-top:.4rem}
 
 /* ═══════════════════════════════════════
    CAPTURE SCREEN
@@ -1709,50 +1715,133 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
 
       <!-- ════ HOME ════ -->
       <div class="screen active" id="screen-home">
-        <div class="page">
-          <section class="mobile-home-intro">
-            <div class="mobile-kicker" id="mobile-home-kicker">Family memory book</div>
-            <div class="mobile-home-title">Preserve one <span>memory</span> today.</div>
-            <div class="mobile-home-copy">Record a voice, save a recipe, and keep the little details your family will want later.</div>
-            <button class="mobile-primary-cta" onclick="go('capture')">Record a memory</button>
-          </section>
+        <div class="home-page-wrap">
 
-          <div class="section-hdr mobile-voices-hdr">
-            <span class="section-title">Family voices</span>
-            <button class="view-all" onclick="go('people')">Manage</button>
+          <!-- ── Main column ── -->
+          <div class="home-main-col">
+
+            <!-- Welcome card -->
+            <div class="home-welcome-card">
+              <div class="home-welcome-body">
+                <div>
+                  <div class="home-welcome-title" id="home-welcome-title">Welcome home! <span style="color:var(--accent)">♡</span></div>
+                  <div class="home-welcome-sub">Every recipe has a story.<br>Every memory keeps her close.</div>
+                </div>
+                <div class="home-action-btns">
+                  <button class="home-action-btn" onclick="go('capture')">
+                    <div class="home-action-btn-icon">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+                    </div>
+                    <div>
+                      <span class="home-action-btn-label">Record a memory</span>
+                      <span class="home-action-btn-sub">Capture a voice,<br>a story, a moment</span>
+                    </div>
+                  </button>
+                  <button class="home-action-btn" onclick="go('add-voice')">
+                    <div class="home-action-btn-icon">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+                    </div>
+                    <div>
+                      <span class="home-action-btn-label">Upload audio</span>
+                      <span class="home-action-btn-sub">Use an existing<br>recording</span>
+                    </div>
+                  </button>
+                </div>
+              </div>
+              <!-- Illustration -->
+              <div class="home-welcome-illus">
+                <div class="hwi-frame2">
+                  <img src="https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=200&q=75" alt="" onerror="this.style.display='none'"/>
+                </div>
+                <div class="hwi-frame" style="position:relative;z-index:1">
+                  <img src="https://images.unsplash.com/photo-1596797038530-2c107229654b?w=200&q=75" alt="" onerror="this.style.display='none'"/>
+                  <div class="hwi-caption">Capture today.<br>Cherish forever.</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Mobile voice row (hidden on desktop) -->
+            <section class="mobile-home-intro">
+              <div class="mobile-kicker" id="mobile-home-kicker">Family memory book</div>
+              <div class="mobile-home-title">Preserve one <span>memory</span> today.</div>
+              <div class="mobile-home-copy">Record a voice, save a recipe, and keep the little details your family will want later.</div>
+              <button class="mobile-primary-cta" onclick="go('capture')">Record a memory</button>
+            </section>
+            <div class="section-hdr mobile-voices-hdr">
+              <span class="section-title">Family voices</span>
+              <button class="view-all" onclick="go('people')">Manage</button>
+            </div>
+            <div class="voice-row" id="voice-row"></div>
+
+            <!-- Your favorites -->
+            <div class="home-section-hdr">
+              <span class="home-section-title">Your favorites <span style="color:var(--accent)">♡</span></span>
+              <div class="home-section-right">
+                <button class="home-sort-btn" id="home-sort-btn" onclick="toggleFavSort()">
+                  Sort by: <span id="home-sort-label">Favorites</span>
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <button class="home-view-all" onclick="go('all-recipes')">View all ›</button>
+              </div>
+            </div>
+            <div class="fav-scroll-row" id="fav-scroll-row">
+              <div class="skel" style="width:162px;height:140px;flex-shrink:0;border-radius:14px"></div>
+              <div class="skel" style="width:162px;height:140px;flex-shrink:0;border-radius:14px"></div>
+              <div class="skel" style="width:162px;height:140px;flex-shrink:0;border-radius:14px"></div>
+            </div>
+
+            <!-- Recent memories -->
+            <div class="home-section-hdr" style="margin-top:.3rem">
+              <span class="home-section-title">Recent memories</span>
+              <button class="home-view-all" onclick="go('all-recipes')">View all ›</button>
+            </div>
+            <div id="recent-memories-list">
+              <div class="skel" style="height:68px;margin-bottom:.5rem;border-radius:14px"></div>
+              <div class="skel" style="height:68px;margin-bottom:.5rem;border-radius:14px"></div>
+            </div>
+            <div style="height:1.5rem"></div>
           </div>
-          <div class="voice-row" id="voice-row"></div>
 
-          <!-- Hero -->
-          <div class="home-hero" onclick="go('capture')">
-            <img src="https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=800&q=80" alt="" onerror="this.style.opacity=0"/>
-            <div class="home-hero-overlay">
-              <div class="hero-title">Stories from<br>our kitchen ♡</div>
-              <div class="hero-sub">Recipes and stories passed down with love.</div>
-              <button class="hero-cta" onclick="event.stopPropagation();go('capture')">+ Capture a memory</button>
+          <!-- ── Right sidebar ── -->
+          <div class="home-right-col">
+            <div class="home-quote-card">
+              <div class="home-quote-mark">"</div>
+              <div class="home-quote-text">The stories she tells today are the recipes you'll cherish forever.</div>
+              <div style="margin-top:.9rem;color:var(--accent);font-size:.9rem">♡</div>
+            </div>
+            <div class="home-tips-card">
+              <div class="home-tips-title">Tips for a great memory</div>
+              <div class="home-tip-row">
+                <div class="home-tip-icon" style="background:#FFF4E6">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C4522A" stroke-width="2" stroke-linecap="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/></svg>
+                </div>
+                <div>
+                  <div class="home-tip-title">Ask what makes the recipe special</div>
+                  <div class="home-tip-sub">Capture the stories behind the dish.</div>
+                </div>
+              </div>
+              <div class="home-tip-row">
+                <div class="home-tip-icon" style="background:#FFF0F3">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#E05575" stroke-width="2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                </div>
+                <div>
+                  <div class="home-tip-title">Ask for her tips and little secrets</div>
+                  <div class="home-tip-sub">Those little details make it priceless.</div>
+                </div>
+              </div>
+              <div class="home-tip-row" style="margin-bottom:.4rem">
+                <div class="home-tip-icon" style="background:#FFFBEC">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D4A017" stroke-width="2" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                </div>
+                <div>
+                  <div class="home-tip-title">Let her talk naturally</div>
+                  <div class="home-tip-sub">The more she shares, the better!</div>
+                </div>
+              </div>
+              <button class="home-learn-more" onclick="go('capture')">Learn more ›</button>
             </div>
           </div>
 
-          <!-- From the kitchen -->
-          <div class="section-hdr">
-            <span class="section-title">From the kitchen</span>
-            <button class="view-all" onclick="go('all-recipes')">View all</button>
-          </div>
-          <div class="fav-row" id="fav-row">
-            <div class="skel" style="width:120px;height:90px;flex-shrink:0;border-radius:16px"></div>
-            <div class="skel" style="width:120px;height:90px;flex-shrink:0;border-radius:16px"></div>
-            <div class="skel" style="width:120px;height:90px;flex-shrink:0;border-radius:16px"></div>
-          </div>
-
-          <!-- Recently remembered -->
-          <div class="section-hdr">
-            <span class="section-title">Recently remembered</span>
-          </div>
-          <div id="recent-list">
-            <div class="skel" style="height:60px;margin-bottom:.55rem"></div>
-            <div class="skel" style="height:60px;margin-bottom:.55rem"></div>
-          </div>
-          <div style="height:1rem"></div>
         </div>
       </div>
 
@@ -2620,37 +2709,163 @@ function narratorEmoji(name) {
   return NARRATOR_EMOJI[name] || '👤';
 }
 
+// ── Favorites persistence ──
+function _loadFavorites() {
+  try { return new Set(JSON.parse(localStorage.getItem('rk_favorites') || '[]')); }
+  catch { return new Set(); }
+}
+function _saveFavorites(set) {
+  localStorage.setItem('rk_favorites', JSON.stringify([...set]));
+}
+
+let _favSortMode = 'favorites'; // 'favorites' | 'recent'
+
+function toggleFavSort() {
+  _favSortMode = _favSortMode === 'favorites' ? 'recent' : 'favorites';
+  const lbl = document.getElementById('home-sort-label');
+  if (lbl) lbl.textContent = _favSortMode === 'favorites' ? 'Favorites' : 'Recent';
+  _renderFavRow();
+}
+
+function toggleFavorite(token, e) {
+  if (e) { e.stopPropagation(); e.preventDefault(); }
+  const favs = _loadFavorites();
+  if (favs.has(token)) favs.delete(token); else favs.add(token);
+  _saveFavorites(favs);
+  _renderFavRow();
+  _renderRecentMemories();
+}
+
+// Waveform bar heights — deterministic from token string
+function _waveHeights(token, count) {
+  const seed = token ? token.split('').reduce((a,c) => a + c.charCodeAt(0), 0) : 42;
+  const out = [];
+  for (let i = 0; i < count; i++) {
+    const v = Math.abs(Math.sin(seed * 0.13 + i * 0.7 + i * i * 0.03)) * 20 + 4;
+    out.push(Math.round(v));
+  }
+  return out;
+}
+
+function _personInfo(name) {
+  const people = _loadPeople();
+  return people.find(p => p.name === name) || {};
+}
+
+function _personAvHtml(name, size) {
+  const p = _personInfo(name);
+  const emoji = p.emoji || narratorEmoji(name);
+  const photo = p.photo || '';
+  const sz = size || 44;
+  if (photo) {
+    return `<img src="${esc(photo)}" style="width:${sz}px;height:${sz}px;border-radius:50%;object-fit:cover" onerror="this.outerHTML='<span style=\\"font-size:${sz*.45}px\\">${esc(emoji)}</span>'"/>`;
+  }
+  return `<span style="font-size:${sz*.45}px">${esc(emoji)}</span>`;
+}
+
+function _renderFavRow() {
+  const favRow = document.getElementById('fav-scroll-row');
+  if (!favRow) return;
+  const favs = _loadFavorites();
+
+  if (allRecipes.length === 0) {
+    favRow.innerHTML = `<div style="color:var(--muted);font-size:.8rem;padding:.5rem 0">No recipes yet — <a onclick="go('capture')" style="color:var(--accent);cursor:pointer">capture the first one</a></div>`;
+    return;
+  }
+
+  let sorted = [...allRecipes];
+  if (_favSortMode === 'favorites') {
+    sorted.sort((a, b) => {
+      const af = favs.has(a.token) ? 1 : 0, bf = favs.has(b.token) ? 1 : 0;
+      return bf - af;
+    });
+  }
+  const shown = sorted.slice(0, 8);
+
+  favRow.innerHTML = shown.map(r => {
+    const isFav = favs.has(r.token);
+    const heartColor = isFav ? '#C4522A' : 'rgba(45,27,14,.3)';
+    const heartFill = isFav ? '#C4522A' : 'none';
+    const avHtml = _personAvHtml(r.narrator || 'Grandma', 18);
+    return `
+    <div class="fav-card" onclick="openRecipe('${r.token}')">
+      <div class="fav-card-img">
+        ${r.image_url ? `<img src="${esc(r.image_url)}" alt="${esc(r.dish_name)}" onerror="this.style.display='none'"/>` : '🍽️'}
+        <button class="fav-card-heart" onclick="toggleFavorite('${r.token}',event)" title="${isFav ? 'Unfavourite' : 'Favourite'}">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="${heartFill}" stroke="${heartColor}" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        </button>
+      </div>
+      <div class="fav-card-body">
+        <div class="fav-card-name">${esc(r.dish_name || 'Untitled')}</div>
+        <div class="fav-card-who">
+          <div class="fav-card-av">${avHtml}</div>
+          <span class="fav-card-narrator">${esc(r.narrator || 'Grandma')}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function _renderRecentMemories() {
+  const el = document.getElementById('recent-memories-list');
+  if (!el) return;
+  const favs = _loadFavorites();
+
+  if (allRecipes.length === 0) {
+    el.innerHTML = `<div style="color:var(--muted);font-size:.8rem;text-align:center;padding:1.5rem 0">No memories recorded yet.</div>`;
+    return;
+  }
+
+  el.innerHTML = allRecipes.slice(0, 5).map(r => {
+    const isFav = favs.has(r.token);
+    const heartColor = isFav ? 'var(--accent)' : 'var(--muted)';
+    const heartFill = isFav ? 'var(--accent)' : 'none';
+    const avHtml = _personAvHtml(r.narrator || 'Grandma', 44);
+    const heights = _waveHeights(r.token, 26);
+    const waveBars = heights.map(h =>
+      `<div class="rmw-bar" style="height:${h}px;opacity:${.3 + h/32}"></div>`
+    ).join('');
+    const dur = r.duration ? _formatDuration(r.duration) : '';
+    return `
+    <div class="recent-memory-row" onclick="openRecipe('${r.token}')">
+      <div class="recent-mem-av">${avHtml}</div>
+      <div class="recent-mem-info">
+        <div class="recent-mem-name">${esc(r.dish_name || 'Untitled')}</div>
+        <div class="recent-mem-who">${esc(r.narrator || 'Grandma')} · ${formatDate(r.recorded_at)}</div>
+      </div>
+      <div class="recent-mem-wave">${waveBars}</div>
+      ${dur ? `<div class="recent-mem-dur">${dur}</div>` : ''}
+      <button class="recent-mem-heart" onclick="toggleFavorite('${r.token}',event)" title="${isFav ? 'Unfavourite' : 'Favourite'}">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="${heartFill}" stroke="${heartColor}" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      </button>
+      ${r.audio_url ? `
+      <button class="recent-mem-play" onclick="event.stopPropagation();openHearDadiFor('${r.token}')" title="Play">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      </button>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function _formatDuration(seconds) {
+  if (!seconds || isNaN(seconds)) return '';
+  const m = Math.floor(seconds / 60), s = Math.floor(seconds % 60);
+  return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
 function renderHome() {
   renderFamilyVoices();
 
-  // Recipe chips
-  const favRow = document.getElementById('fav-row');
-  if (allRecipes.length === 0) {
-    favRow.innerHTML = `<div style="color:var(--muted);font-size:.8rem;padding:.5rem 0">No recipes yet — <a onclick="go('capture')" style="color:var(--accent);cursor:pointer">capture the first one</a></div>`;
-  } else {
-    favRow.innerHTML = allRecipes.slice(0,8).map(r => `
-      <div class="fav-chip" onclick="openRecipe('${r.token}')">
-        ${r.image_url ? `<img src="${r.image_url}" alt="${esc(r.dish_name)}" onerror="this.style.display='none'"/>` : `<div style="width:100%;height:100%;background:var(--cream2);display:flex;align-items:center;justify-content:center;font-size:1.8rem">🍽️</div>`}
-        <div class="fav-chip-overlay"></div>
-        <div class="fav-chip-name">${esc(r.dish_name || 'Untitled')}</div>
-      </div>`).join('');
+  // Update welcome title with user's first name
+  const titleEl = document.getElementById('home-welcome-title');
+  if (titleEl) {
+    const name = document.getElementById('sidebar-name')?.textContent?.split(' ')[0];
+    if (name && name !== '…') {
+      titleEl.innerHTML = `Welcome home, ${esc(name)}! <span style="color:var(--accent)">♡</span>`;
+    }
   }
 
-  // Recently remembered
-  const recList = document.getElementById('recent-list');
-  if (allRecipes.length === 0) {
-    recList.innerHTML = `<div style="color:var(--muted);font-size:.8rem;text-align:center;padding:1rem 0">No memories recorded yet.</div>`;
-  } else {
-    recList.innerHTML = allRecipes.slice(0,4).map(r => `
-      <div class="recent-card" onclick="openRecipe('${r.token}')">
-        <div class="recent-av">${narratorEmoji(r.narrator)}</div>
-        <div class="recent-info">
-          <div class="recent-dish">${esc(r.dish_name || 'Untitled')}</div>
-          <div class="recent-when">Recorded ${formatDate(r.recorded_at)} · ${esc(r.narrator || 'Grandma')}</div>
-        </div>
-        ${r.audio_url ? `<div class="recent-play" onclick="event.stopPropagation();openHearDadiFor('${r.token}')">▶</div>` : ''}
-      </div>`).join('');
-  }
+  _renderFavRow();
+  _renderRecentMemories();
 }
 
 function getFamilyVoices() {
