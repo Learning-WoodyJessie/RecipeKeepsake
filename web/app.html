@@ -1076,6 +1076,181 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
 .rv-btn-discard{flex:1;border:1.5px solid var(--border);background:none;color:var(--text2);border-radius:11px;padding:.75rem;font-size:.9rem;cursor:pointer}
 .rv-btn-save{flex:2;background:var(--accent);color:#fff;border:none;border-radius:11px;padding:.75rem;font-size:.9rem;font-weight:700;cursor:pointer}
 .rv-btn-save:disabled{opacity:.55;cursor:not-allowed}
+
+/* ═══════════════════════════════════════
+   WIZARD — grandma spinner + 3-step review
+═══════════════════════════════════════ */
+
+/* Grandma spinner */
+.grandma-loader{position:relative;width:96px;height:96px;margin:0 auto}
+.grandma-icon{
+  position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  width:68px;height:68px;border-radius:50%;
+  background-image:url('assets/landing-logo.png');
+  background-size:360% auto;background-position:7% 45%;
+  background-repeat:no-repeat;background-color:var(--cream2);
+  animation:dadibob 2s ease-in-out infinite;z-index:2;
+}
+.grandma-ring{
+  position:absolute;inset:0;border-radius:50%;
+  border:3px solid var(--cream2);border-top-color:var(--accent);
+  animation:dadispin 1.4s linear infinite;
+}
+.grandma-ring2{
+  position:absolute;inset:6px;border-radius:50%;
+  border:2px solid var(--cream2);border-bottom-color:#FDDACC;
+  animation:dadispin 2.4s linear infinite reverse;
+}
+@keyframes dadispin{to{transform:rotate(360deg)}}
+@keyframes dadibob{0%,100%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-57%) scale(1.04)}}
+
+/* Saving messages */
+.wz-saving-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.4rem;padding:2rem;flex:1;text-align:center}
+.wz-saving-title{font-size:1rem;font-weight:700;color:var(--text);margin-bottom:.3rem}
+.wz-saving-rotating{font-size:.82rem;color:var(--accent);font-style:italic;animation:wzFadeMsg .6s ease}
+@keyframes wzFadeMsg{0%{opacity:0;transform:translateY(4px)}100%{opacity:1;transform:translateY(0)}}
+.wz-saving-msg-wrap{text-align:center;min-height:2.8rem}
+
+/* Processing dots (new style) */
+.wz-proc-list{width:100%;max-width:260px;display:flex;flex-direction:column;gap:.55rem}
+.wz-proc-item{display:flex;align-items:center;gap:.6rem;font-size:.81rem;color:var(--muted)}
+.wz-proc-item.wz-done{color:var(--green)}
+.wz-proc-item.wz-active{color:var(--text);font-weight:600}
+.wz-proc-dot{width:20px;height:20px;border-radius:50%;flex-shrink:0;background:var(--cream2);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.65rem}
+.wz-proc-item.wz-done .wz-proc-dot{background:var(--green-bg);border-color:var(--green);color:var(--green)}
+.wz-proc-item.wz-active .wz-proc-dot{background:var(--accent);border-color:var(--accent);color:#fff;animation:wzPulseDot 1s ease-in-out infinite}
+@keyframes wzPulseDot{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+
+/* Wizard shell */
+.wz-shell{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.wz-progress{padding:.85rem 1.2rem .7rem;background:var(--cream);border-bottom:1px solid var(--border);flex-shrink:0}
+.wz-step-label{display:flex;justify-content:space-between;align-items:center;margin-bottom:.55rem}
+.wz-step-name{font-size:.78rem;font-weight:700;color:var(--text)}
+.wz-step-count{font-size:.72rem;color:var(--muted)}
+.wz-track{height:4px;background:var(--cream2);border-radius:99px;overflow:hidden}
+.wz-fill{height:100%;background:var(--accent);border-radius:99px;transition:width .4s cubic-bezier(.4,0,.2,1)}
+.wz-dots{display:flex;gap:.45rem;margin-top:.55rem}
+.wz-dot{width:6px;height:6px;border-radius:50%;background:var(--border);transition:all .3s}
+.wz-dot.wz-done{background:var(--accent);opacity:.45}
+.wz-dot.wz-active{background:var(--accent);width:18px}
+
+/* AI badge */
+.wz-badge{
+  margin:.75rem 1.2rem .25rem;
+  background:#FFF5F0;border:1px solid #FDDACC;border-radius:10px;
+  padding:.6rem .85rem;display:flex;align-items:center;gap:.55rem;
+  font-size:.78rem;color:#9A3412;font-weight:500;line-height:1.4;flex-shrink:0;
+}
+.wz-brand-sm{
+  display:inline-flex;width:22px;height:22px;border-radius:50%;
+  background-image:url('assets/landing-logo.png');background-size:360% auto;
+  background-position:7% 45%;background-repeat:no-repeat;background-color:var(--cream2);
+  flex-shrink:0;
+}
+
+/* Step panels */
+.wz-body{flex:1;overflow-y:auto;padding:0 0 1rem}
+.wz-body::-webkit-scrollbar{width:3px}
+.wz-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px}
+.wz-panel{display:none;padding:.75rem 1.2rem}
+.wz-panel.wz-active{display:block}
+.wz-question{font-size:1.05rem;font-weight:700;color:var(--text);margin-bottom:1rem;line-height:1.35}
+
+/* Audio player */
+.wz-audio-bar{
+  background:var(--surface);border:1px solid var(--border);border-radius:12px;
+  padding:.7rem .9rem;display:flex;align-items:center;gap:.75rem;margin-bottom:1rem;cursor:pointer;
+}
+.wz-audio-play{
+  width:36px;height:36px;border-radius:50%;background:var(--accent);color:#fff;
+  border:none;font-size:.9rem;cursor:pointer;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+}
+.wz-wave{flex:1;display:flex;align-items:center;gap:2px;height:24px}
+.wz-bar{width:3px;background:var(--accent);border-radius:99px;opacity:.35;animation:wzWave 1.2s ease-in-out infinite}
+.wz-bar:nth-child(1){height:8px;animation-delay:0s}.wz-bar:nth-child(2){height:14px;animation-delay:.1s}.wz-bar:nth-child(3){height:20px;animation-delay:.2s}.wz-bar:nth-child(4){height:12px;animation-delay:.3s}.wz-bar:nth-child(5){height:18px;animation-delay:.4s}.wz-bar:nth-child(6){height:10px;animation-delay:.5s}.wz-bar:nth-child(7){height:22px;animation-delay:.6s}.wz-bar:nth-child(8){height:14px;animation-delay:.7s}.wz-bar:nth-child(9){height:8px;animation-delay:.8s}.wz-bar:nth-child(10){height:16px;animation-delay:.9s}
+@keyframes wzWave{0%,100%{opacity:.2}50%{opacity:.7}}
+.wz-audio-time{font-size:.78rem;color:var(--muted);font-variant-numeric:tabular-nums}
+
+/* Dish field */
+.wz-dish-wrap{position:relative;margin-bottom:.5rem}
+.wz-dish-input{width:100%;font-size:1.25rem;font-weight:700;color:var(--text);border:none;border-bottom:2px solid var(--accent);background:transparent;padding:.4rem 2rem .4rem 0;outline:none;font-family:var(--sans)}
+.wz-dish-hint{font-size:.72rem;color:var(--muted);margin-top:.35rem}
+
+/* Narrator row */
+.wz-narrator-row{display:flex;align-items:center;gap:.5rem;margin-top:.9rem;padding-top:.9rem;border-top:1px solid var(--border);font-size:.8rem;color:var(--text2)}
+.wz-narrator-chip{background:var(--cream2);border:1px solid var(--border);border-radius:20px;padding:.25rem .7rem;font-size:.75rem;color:var(--text2);font-weight:500}
+
+/* Confidence chips */
+.wz-chip-row{display:flex;gap:.4rem;margin-bottom:.75rem;flex-wrap:wrap}
+.wz-chip{display:flex;align-items:center;gap:.3rem;border-radius:20px;padding:.22rem .6rem;font-size:.7rem;font-weight:600}
+.wz-chip.high{background:var(--green-bg);color:var(--green);border:1px solid #BBF7D0}
+.wz-chip.med{background:var(--amber-bg);color:var(--amber);border:1px solid #FDE68A}
+.wz-chip.low{background:#FEF2F2;color:#DC2626;border:1px solid #FECACA}
+
+/* Ingredients */
+.wz-ing-list{display:flex;flex-direction:column;gap:.4rem;margin-bottom:.75rem}
+.wz-ing-item{display:flex;align-items:center;gap:.5rem;background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:.5rem .65rem}
+.wz-ing-item.wz-flagged{border-color:#FDE68A;background:#FFFBEB}
+.wz-ing-dot{color:var(--accent);font-size:.8rem;flex-shrink:0;font-weight:700}
+.wz-ing-text{flex:1;font-size:.85rem;color:var(--text);border:none;background:transparent;outline:none;font-family:var(--sans)}
+.wz-ing-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:.85rem;padding:.1rem .3rem;flex-shrink:0}
+.wz-ing-flag{font-size:.62rem;background:var(--amber);color:#fff;border-radius:4px;padding:.1rem .3rem;flex-shrink:0;font-weight:700}
+.wz-flag-note{font-size:.72rem;color:var(--amber);margin-bottom:.6rem;padding:.4rem .6rem;background:#FFFBEB;border-radius:7px;border:1px solid #FDE68A}
+
+/* Steps */
+.wz-steps-list{display:flex;flex-direction:column;gap:.4rem;margin-bottom:.75rem}
+.wz-step-item{display:flex;align-items:flex-start;gap:.5rem;background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:.5rem .65rem}
+.wz-step-num{font-size:.7rem;font-weight:800;color:var(--accent);background:var(--cream2);border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:.1rem}
+.wz-step-text{flex:1;font-size:.84rem;color:var(--text);line-height:1.45;border:none;background:transparent;outline:none;font-family:var(--sans);resize:none;min-height:1.4rem}
+.wz-step-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:.85rem;padding:.1rem .3rem}
+
+/* Add row */
+.wz-add-row{display:flex;gap:.5rem;align-items:center;margin-top:.25rem}
+.wz-add-input{flex:1;border:1px solid var(--border);border-radius:8px;padding:.45rem .7rem;font-size:.84rem;background:var(--surface);color:var(--text);font-family:var(--sans);outline:none}
+.wz-add-input:focus{border-color:var(--accent)}
+.wz-add-btn{background:var(--surface);border:1.5px solid var(--accent);color:var(--accent);border-radius:8px;padding:.42rem .8rem;font-size:.82rem;font-weight:600;cursor:pointer;white-space:nowrap}
+
+/* Cook notes */
+.wz-notes-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin:.75rem 0 .4rem}
+.wz-notes-ta{width:100%;border:1px solid var(--border);border-radius:9px;background:var(--surface);color:var(--text);font-family:var(--sans);font-size:.84rem;padding:.55rem .7rem;outline:none;resize:none;line-height:1.5}
+.wz-notes-ta:focus{border-color:var(--accent)}
+
+/* Transcript */
+.wz-trans-toggle{display:flex;align-items:center;gap:.4rem;font-size:.75rem;color:var(--muted);cursor:pointer;margin:.75rem 0 .4rem;user-select:none;background:none;border:none;font-family:var(--sans);padding:0}
+.wz-trans-box{background:var(--cream2);border-radius:9px;padding:.65rem .75rem;font-size:.75rem;color:var(--text2);line-height:1.55;display:none}
+.wz-trans-box.open{display:block}
+.wz-trans-lang{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:.25rem}
+.wz-trans-divider{margin:.5rem 0;border:none;border-top:1px solid var(--border)}
+
+/* Wizard footer */
+.wz-footer{border-top:1px solid var(--border);padding:.85rem 1.2rem;display:flex;flex-direction:column;gap:0;background:var(--cream);flex-shrink:0}
+.wz-footer-btns{display:flex;gap:.65rem}
+.wz-btn-back{flex:1;border:1.5px solid var(--border);background:none;color:var(--text2);border-radius:12px;padding:.72rem;font-size:.88rem;cursor:pointer;font-family:var(--sans)}
+.wz-btn-next{flex:2;background:var(--accent);color:#fff;border:none;border-radius:12px;padding:.72rem;font-size:.9rem;font-weight:700;cursor:pointer;font-family:var(--sans);display:flex;align-items:center;justify-content:center;gap:.4rem;transition:background .15s}
+.wz-btn-next:hover{background:var(--accent2)}
+.wz-btn-next.save-final{background:var(--green)}
+.wz-btn-next.save-final:hover{background:#166534}
+.wz-btn-retake{background:none;border:none;color:var(--muted);font-size:.78rem;cursor:pointer;font-family:var(--sans);text-decoration:underline;text-underline-offset:2px;text-align:center;margin-top:.4rem;padding:.2rem 0}
+
+/* Save confirmation */
+.wz-saved-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;padding:2rem;text-align:center;flex:1}
+.wz-saved-icon{
+  width:88px;height:88px;border-radius:50%;
+  background-image:url('assets/landing-logo.png');background-size:360% auto;
+  background-position:7% 45%;background-repeat:no-repeat;background-color:var(--cream2);
+  border:3px solid #FDDACC;box-shadow:0 4px 20px rgba(196,82,42,.15);
+  animation:wzPop .5s cubic-bezier(.34,1.56,.64,1);
+  margin:0 auto;
+}
+@keyframes wzPop{0%{transform:scale(0)}100%{transform:scale(1)}}
+.wz-saved-title{font-size:1.2rem;font-weight:800;color:var(--text)}
+.wz-saved-sub{font-size:.85rem;color:var(--muted);line-height:1.5}
+.wz-saved-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1rem;width:100%;text-align:left}
+.wz-saved-dish{font-size:.95rem;font-weight:700;color:var(--text);margin-bottom:.35rem}
+.wz-saved-meta{font-size:.75rem;color:var(--muted)}
+.wz-btn-view{width:100%;background:var(--accent);color:#fff;border:none;border-radius:12px;padding:.82rem;font-size:.95rem;font-weight:700;cursor:pointer;font-family:var(--sans)}
 </style>
 </head>
 <body>
@@ -1541,128 +1716,161 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
         </div>
       </div>
 
-      <!-- ════ SAVING ════ -->
+      <!-- ════ SAVING — grandma spinner ════ -->
       <div class="screen" id="screen-saving">
-        <div class="saving-wrap">
-          <div class="saving-title">Saving this memory… <span class="saving-sparkle">✨</span></div>
-          <div class="saving-sub">Just a few more moments</div>
-
-          <!-- Bowl SVG -->
-          <svg width="100" height="88" viewBox="0 0 100 88" style="display:block;margin:.6rem auto 1.3rem">
-            <g id="steam" style="animation:steamRise 2s ease-in-out infinite">
-              <path d="M36 18 C36 10 42 10 42 18 C42 26 48 26 48 18" stroke="#C4522A" stroke-width="1.8" stroke-linecap="round" fill="none" opacity=".6"/>
-              <path d="M50 14 C50 6 56 6 56 14 C56 22 62 22 62 14" stroke="#C4522A" stroke-width="1.8" stroke-linecap="round" fill="none" opacity=".45"/>
-            </g>
-            <style>@keyframes steamRise{0%,100%{transform:translateY(0);opacity:.8}50%{transform:translateY(-6px);opacity:.35}}</style>
-            <ellipse cx="50" cy="62" rx="38" ry="12" fill="#E8DDD0"/>
-            <ellipse cx="50" cy="54" rx="38" ry="10" fill="#F5EDE2"/>
-            <ellipse cx="50" cy="54" rx="38" ry="10" stroke="#D4C5B5" stroke-width="1.4" fill="none"/>
-            <ellipse cx="50" cy="53" rx="28" ry="7" fill="#C4522A" opacity=".18"/>
-            <path d="M72 44 L82 30" stroke="#A8421E" stroke-width="2.2" stroke-linecap="round"/>
-            <circle cx="71" cy="45" r="4" fill="#C4522A" opacity=".75"/>
-            <text x="17" y="36" font-size="10">⭐</text>
-            <text x="76" y="50" font-size="8">✨</text>
-          </svg>
-
-          <div class="proc-list">
-            <div class="proc-item done" id="proc-1">
-              <div class="proc-icon">🎧</div>
-              <div class="proc-label">Listening to Dadi's story</div>
-              <span class="proc-check">✓</span>
+        <div class="wz-saving-wrap">
+          <div class="grandma-loader">
+            <div class="grandma-ring"></div>
+            <div class="grandma-ring2"></div>
+            <div class="grandma-icon"></div>
+          </div>
+          <div class="wz-saving-msg-wrap">
+            <div class="wz-saving-title" id="wz-saving-title">Listening to every word…</div>
+            <div class="wz-saving-rotating" id="wz-saving-rotating">"The secret is in the slow cooking"</div>
+          </div>
+          <div class="wz-proc-list">
+            <div class="wz-proc-item wz-done" id="wz-p1">
+              <div class="wz-proc-dot">✓</div> Transcribing audio
             </div>
-            <div class="proc-item done" id="proc-2">
-              <div class="proc-icon">✏️</div>
-              <div class="proc-label">Writing down her words</div>
-              <span class="proc-check">✓</span>
+            <div class="wz-proc-item wz-done" id="wz-p2">
+              <div class="wz-proc-dot">✓</div> Translating to English
             </div>
-            <div class="proc-item active" id="proc-3">
-              <div class="proc-icon">🍲</div>
-              <div class="proc-label">Understanding her recipe</div>
-              <span class="proc-check pending">○</span>
+            <div class="wz-proc-item wz-active" id="wz-p3">
+              <div class="wz-proc-dot">3</div> Finding the recipe
             </div>
-            <div class="proc-item pending" id="proc-4">
-              <div class="proc-icon">💝</div>
-              <div class="proc-label">Adding her tips and secrets</div>
-              <span class="proc-check pending">○</span>
-            </div>
-            <div class="proc-item pending" id="proc-5">
-              <div class="proc-icon">📖</div>
-              <div class="proc-label">Saving this memory forever</div>
-              <span class="proc-check pending">○</span>
+            <div class="wz-proc-item" id="wz-p4">
+              <div class="wz-proc-dot">4</div> Painting the dish
             </div>
           </div>
-          <div class="saving-note">This may take a few moments ✨<br>We promise it's worth the wait.</div>
         </div>
       </div>
 
-      <!-- ════ REVIEW ════ -->
+      <!-- ════ REVIEW — 3-step wizard ════ -->
       <div class="screen" id="screen-review">
-        <div class="page review-page">
+        <div class="wz-shell">
 
-          <!-- Top bar -->
-          <div class="review-topbar">
-            <button class="review-discard-btn" onclick="discardReview()">✕ Discard</button>
-            <div class="review-topbar-title">Review Recipe</div>
-            <button class="review-save-top-btn" onclick="saveReviewedRecipe()">Save ✓</button>
-          </div>
-
-          <!-- Audio playback from local blob -->
-          <div class="review-audio-bar" id="rv-audio-bar" style="display:none">
-            <button class="rv-play-btn" id="rv-play-btn" onclick="toggleReviewAudio()">▶</button>
-            <div class="rv-audio-label">Listen to recording</div>
-            <div class="rv-audio-time" id="rv-duration">0:00</div>
-          </div>
-
-          <!-- Dish name -->
-          <div class="review-section">
-            <div class="review-label">Dish name</div>
-            <input type="text" id="rv-dish-name" class="review-input" placeholder="What is this dish?"/>
-          </div>
-
-          <!-- Ingredients -->
-          <div class="review-section">
-            <div class="review-label">Ingredients <span class="review-hint">tap × to remove</span></div>
-            <div id="rv-ingredients-list" class="rv-list"></div>
-            <div class="rv-add-row">
-              <input type="text" id="rv-new-ing" class="rv-add-input" placeholder="e.g. 2 cups rice"/>
-              <button class="rv-add-btn" onclick="addIngredient()">+ Add</button>
+          <!-- Progress bar -->
+          <div class="wz-progress">
+            <div class="wz-step-label">
+              <div class="wz-step-name" id="wz-step-name">Is this the right dish?</div>
+              <div class="wz-step-count" id="wz-step-count">Step 1 of 3</div>
+            </div>
+            <div class="wz-track">
+              <div class="wz-fill" id="wz-fill" style="width:33%"></div>
+            </div>
+            <div class="wz-dots">
+              <div class="wz-dot wz-active" id="wz-dot-1"></div>
+              <div class="wz-dot" id="wz-dot-2"></div>
+              <div class="wz-dot" id="wz-dot-3"></div>
             </div>
           </div>
 
-          <!-- Steps -->
-          <div class="review-section">
-            <div class="review-label">Steps <span class="review-hint">tap × to remove</span></div>
-            <div id="rv-steps-list" class="rv-list"></div>
-            <div class="rv-add-row">
-              <input type="text" id="rv-new-step" class="rv-add-input" placeholder="Add a step…"/>
-              <button class="rv-add-btn" onclick="addStep()">+ Add</button>
+          <!-- AI badge -->
+          <div class="wz-badge">
+            <span class="wz-brand-sm"></span>
+            Family recipes are treasures — give it one last look.
+          </div>
+
+          <!-- Scrollable body -->
+          <div class="wz-body">
+
+            <!-- Step 1: Dish + Audio -->
+            <div class="wz-panel wz-active" id="wz-panel-1">
+              <div style="height:.5rem"></div>
+              <div class="wz-question">Does this sound right?</div>
+
+              <!-- Audio player -->
+              <div class="wz-audio-bar" id="wz-audio-bar" style="display:none" onclick="toggleWzAudio(this)">
+                <button class="wz-audio-play" id="wz-play-btn">▶</button>
+                <div class="wz-wave">
+                  <div class="wz-bar"></div><div class="wz-bar"></div>
+                  <div class="wz-bar"></div><div class="wz-bar"></div>
+                  <div class="wz-bar"></div><div class="wz-bar"></div>
+                  <div class="wz-bar"></div><div class="wz-bar"></div>
+                  <div class="wz-bar"></div><div class="wz-bar"></div>
+                </div>
+                <div class="wz-audio-time" id="wz-duration">0:00</div>
+              </div>
+
+              <!-- Confidence chips (populated by JS) -->
+              <div class="wz-chip-row" id="wz-chip-row-1"></div>
+
+              <!-- Dish name field -->
+              <div class="wz-dish-wrap">
+                <input class="wz-dish-input" id="wz-dish-name" placeholder="Dish name…"/>
+              </div>
+              <div class="wz-dish-hint">Tap to edit the dish name</div>
+
+              <!-- Narrator -->
+              <div class="wz-narrator-row">
+                <span>Narrated by</span>
+                <div class="wz-narrator-chip" id="wz-narrator-chip">👵 Dadi</div>
+              </div>
             </div>
-          </div>
 
-          <!-- Cook notes -->
-          <div class="review-section">
-            <div class="review-label">Dadi's notes <span class="review-hint">vague terms OK</span></div>
-            <textarea id="rv-cook-notes" class="review-textarea" placeholder="e.g. add oil until it smells right…" rows="3"></textarea>
-          </div>
-
-          <!-- Transcript collapsible reference -->
-          <details class="review-transcript-details">
-            <summary class="review-transcript-summary">🎙️ Raw transcript ▾</summary>
-            <div class="review-transcript-body">
-              <div class="review-transcript-lang">Original</div>
-              <div id="rv-transcript-raw" class="review-transcript-text"></div>
-              <div class="review-transcript-lang" style="margin-top:.75rem">English translation</div>
-              <div id="rv-transcript-english" class="review-transcript-text"></div>
+            <!-- Step 2: Ingredients -->
+            <div class="wz-panel" id="wz-panel-2">
+              <div style="height:.5rem"></div>
+              <div class="wz-question">Do the ingredients look right?</div>
+              <div class="wz-chip-row" id="wz-chip-row-2"></div>
+              <div class="wz-ing-list" id="wz-ing-list"></div>
+              <div class="wz-flag-note" id="wz-flag-note" style="display:none"></div>
+              <div class="wz-add-row">
+                <input class="wz-add-input" id="wz-new-ing" placeholder="Add an ingredient…"/>
+                <button class="wz-add-btn" onclick="wzAddIngredient()">+ Add</button>
+              </div>
             </div>
-          </details>
 
-          <!-- Bottom action bar -->
-          <div class="review-bottom-bar">
-            <button class="rv-btn-discard" onclick="discardReview()">Discard</button>
-            <button class="rv-btn-save" id="rv-save-btn" onclick="saveReviewedRecipe()">Save Recipe ✓</button>
+            <!-- Step 3: Steps + notes -->
+            <div class="wz-panel" id="wz-panel-3">
+              <div style="height:.5rem"></div>
+              <div class="wz-question">Do the steps look right?</div>
+              <div class="wz-chip-row" id="wz-chip-row-3"></div>
+              <div class="wz-steps-list" id="wz-steps-list"></div>
+              <div class="wz-add-row">
+                <input class="wz-add-input" id="wz-new-step" placeholder="Add a step…"/>
+                <button class="wz-add-btn" onclick="wzAddStep()">+ Add</button>
+              </div>
+
+              <div class="wz-notes-label">Dadi's notes <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:.68rem;color:var(--accent)">vague terms preserved</span></div>
+              <textarea class="wz-notes-ta" id="wz-cook-notes" rows="3" placeholder="e.g. add oil until it smells right…"></textarea>
+
+              <!-- Transcript toggle -->
+              <button class="wz-trans-toggle" onclick="wzToggleTranscript()">
+                <span id="wz-trans-arrow">▶</span> 🎙️ Raw transcript for reference
+              </button>
+              <div class="wz-trans-box" id="wz-trans-box">
+                <div class="wz-trans-lang">Original (Telugu)</div>
+                <div id="wz-transcript-raw"></div>
+                <hr class="wz-trans-divider"/>
+                <div class="wz-trans-lang">English translation</div>
+                <div id="wz-transcript-english"></div>
+              </div>
+            </div>
+
+          </div><!-- end wz-body -->
+
+          <!-- Footer -->
+          <div class="wz-footer">
+            <div class="wz-footer-btns">
+              <button class="wz-btn-back" id="wz-btn-back" onclick="wzPrevStep()" style="display:none">← Back</button>
+              <button class="wz-btn-next" id="wz-btn-next" onclick="wzNextStep()">Looks right &nbsp;→</button>
+            </div>
+            <button class="wz-btn-retake" onclick="discardReview()">↩ Retake recording</button>
           </div>
 
-          <div style="height:5rem"></div>
+        </div><!-- end wz-shell -->
+
+        <!-- Save confirmation (shown after successful save) -->
+        <div class="wz-saved-wrap" id="wz-saved-wrap" style="display:none">
+          <div class="wz-saved-icon"></div>
+          <div class="wz-saved-title">Preserved forever 🤍</div>
+          <div class="wz-saved-sub">This recipe is now part of your family's story.<br/>Future generations will cook this.</div>
+          <div class="wz-saved-card">
+            <div class="wz-saved-dish" id="wz-saved-dish">—</div>
+            <div class="wz-saved-meta" id="wz-saved-meta"></div>
+          </div>
+          <button class="wz-btn-view" onclick="_wzViewSavedRecipe()">View recipe →</button>
         </div>
       </div>
 
@@ -2496,55 +2704,234 @@ function stopRecording() {
 // PIPELINE SUBMISSION
 // ═══════════════════════════════════════
 
+// ═══════════════════════════════════════
+// WIZARD — state
+// ═══════════════════════════════════════
+let _wzStep = 1;
+let _wzSavedRecipe = null;
+
+const _WZ_STEPS = [
+  null,
+  { name: "Is this the right dish?",        count: "Step 1 of 3", pct: "33%"  },
+  { name: "Do the ingredients look right?", count: "Step 2 of 3", pct: "66%"  },
+  { name: "Do the steps look right?",       count: "Step 3 of 3", pct: "100%" },
+];
+
 function openReviewScreen(recipe, blob, filename) {
   _pendingReview = { blob, filename, recipe };
+  _wzSavedRecipe = null;
+
+  // Hide saved wrap, show wizard shell
+  document.getElementById('wz-saved-wrap').style.display = 'none';
+  document.querySelector('#screen-review .wz-shell').style.display = 'flex';
 
   // Dish name
-  document.getElementById('rv-dish-name').value = recipe.dish_name || '';
+  document.getElementById('wz-dish-name').value = recipe.dish_name || '';
 
-  // Ingredients + steps
-  _renderRvIngredients(recipe.ingredients || []);
-  _renderRvSteps(recipe.steps || []);
+  // Narrator
+  const activeChip = document.querySelector('.narrator-chip.active');
+  const narratorName = activeChip?.dataset?.name || 'Dadi';
+  document.getElementById('wz-narrator-chip').textContent = narratorEmoji(narratorName) + ' ' + narratorName;
 
-  // Cook notes
-  document.getElementById('rv-cook-notes').value = recipe.cook_notes || '';
+  // Ingredients
+  _wzRenderIngredients(recipe.ingredients || []);
+  _wzBuildIngChips(recipe.ingredients || [], recipe.review_flags || []);
+
+  // Steps + notes
+  _wzRenderSteps(recipe.steps || []);
+  document.getElementById('wz-cook-notes').value = recipe.cook_notes || '';
+  _wzBuildStepChips(recipe.steps || [], recipe.cook_notes || '');
 
   // Transcript
-  document.getElementById('rv-transcript-raw').textContent = recipe.transcript_raw || '(none)';
-  document.getElementById('rv-transcript-english').textContent = recipe.transcript_english || '(none)';
+  document.getElementById('wz-transcript-raw').textContent = recipe.transcript_raw || '(none)';
+  document.getElementById('wz-transcript-english').textContent = recipe.transcript_english || '(none)';
 
-  // Audio playback from local blob
+  // Audio
   if (blob && blob.size > 0) {
     const blobUrl = URL.createObjectURL(blob);
     _reviewAudio.src = blobUrl;
     _reviewAudio.load();
     _reviewAudio.onloadedmetadata = () => {
-      document.getElementById('rv-duration').textContent = formatAudioTime(_reviewAudio.duration);
+      document.getElementById('wz-duration').textContent = formatAudioTime(_reviewAudio.duration);
     };
     _reviewAudio.onended = () => {
-      document.getElementById('rv-play-btn').textContent = '▶';
+      document.getElementById('wz-play-btn').textContent = '▶';
     };
-    document.getElementById('rv-audio-bar').style.display = 'flex';
+    document.getElementById('wz-audio-bar').style.display = 'flex';
   } else {
-    document.getElementById('rv-audio-bar').style.display = 'none';
+    document.getElementById('wz-audio-bar').style.display = 'none';
   }
 
-  // Reset save button
-  const btn = document.getElementById('rv-save-btn');
-  btn.disabled = false;
-  btn.textContent = 'Save Recipe ✓';
+  // Dish name confidence chip
+  const dishConfident = !!(recipe.dish_name && recipe.dish_name.length > 2);
+  document.getElementById('wz-chip-row-1').innerHTML =
+    `<span class="wz-chip ${dishConfident ? 'high' : 'med'}">${dishConfident ? '✓' : '⚠'} Dish name ${dishConfident ? 'found' : 'uncertain'}</span>` +
+    `<span class="wz-chip high">✓ Language: Telugu</span>`;
 
+  // Review flags note
+  const flags = recipe.review_flags || [];
+  const flagNote = document.getElementById('wz-flag-note');
+  if (flags.length) {
+    flagNote.style.display = 'block';
+    flagNote.textContent = '⚠ ' + flags[0];
+  } else {
+    flagNote.style.display = 'none';
+  }
+
+  _wzGoToStep(1);
   go('review');
 }
 
-function toggleReviewAudio() {
-  const btn = document.getElementById('rv-play-btn');
+function _wzBuildIngChips(ings, flags) {
+  const hasFlagged = ings.some(ing => {
+    const label = ing.quantity ? `${ing.quantity} ${ing.item}` : ing.item;
+    return flags.some(f => f.toLowerCase().includes(ing.item?.toLowerCase() || ''));
+  });
+  document.getElementById('wz-chip-row-2').innerHTML =
+    `<span class="wz-chip high">✓ ${ings.length} ingredient${ings.length !== 1 ? 's' : ''} found</span>` +
+    (hasFlagged ? `<span class="wz-chip med">⚠ 1 needs attention</span>` : '');
+}
+
+function _wzBuildStepChips(steps, notes) {
+  document.getElementById('wz-chip-row-3').innerHTML =
+    `<span class="wz-chip high">✓ ${steps.length} step${steps.length !== 1 ? 's' : ''} found</span>` +
+    (notes ? `<span class="wz-chip high">✓ Cook notes preserved</span>` : '');
+}
+
+function _wzGoToStep(n) {
+  _wzStep = n;
+  const meta = _WZ_STEPS[n];
+  document.getElementById('wz-step-name').textContent = meta.name;
+  document.getElementById('wz-step-count').textContent = meta.count;
+  document.getElementById('wz-fill').style.width = meta.pct;
+
+  for (let i = 1; i <= 3; i++) {
+    const dot = document.getElementById('wz-dot-' + i);
+    dot.className = 'wz-dot' + (i < n ? ' wz-done' : i === n ? ' wz-active' : '');
+  }
+  for (let i = 1; i <= 3; i++) {
+    document.getElementById('wz-panel-' + i).className = 'wz-panel' + (i === n ? ' wz-active' : '');
+  }
+  document.getElementById('wz-btn-back').style.display = n > 1 ? 'block' : 'none';
+
+  const btnNext = document.getElementById('wz-btn-next');
+  if (n < 3) {
+    btnNext.innerHTML = 'Looks right &nbsp;→';
+    btnNext.className = 'wz-btn-next';
+  } else {
+    btnNext.innerHTML = '💾 Save Forever';
+    btnNext.className = 'wz-btn-next save-final';
+  }
+}
+
+function wzNextStep() {
+  if (_wzStep < 3) {
+    _wzGoToStep(_wzStep + 1);
+  } else {
+    saveReviewedRecipe();
+  }
+}
+
+function wzPrevStep() {
+  if (_wzStep > 1) _wzGoToStep(_wzStep - 1);
+}
+
+function toggleWzAudio(el) {
+  const btn = document.getElementById('wz-play-btn');
   if (_reviewAudio.paused) {
     _reviewAudio.play();
     btn.textContent = '⏸';
+    el.querySelectorAll('.wz-bar').forEach(b => { b.style.opacity = '1'; });
   } else {
     _reviewAudio.pause();
     btn.textContent = '▶';
+    el.querySelectorAll('.wz-bar').forEach(b => { b.style.opacity = '0.35'; });
+  }
+}
+
+function wzToggleTranscript() {
+  const box = document.getElementById('wz-trans-box');
+  const arrow = document.getElementById('wz-trans-arrow');
+  box.classList.toggle('open');
+  arrow.textContent = box.classList.contains('open') ? '▼' : '▶';
+}
+
+// ═══════════════════════════════════════
+// WIZARD — ingredient/step rendering
+// ═══════════════════════════════════════
+
+function _wzRenderIngredients(ings) {
+  const list = document.getElementById('wz-ing-list');
+  const flags = _pendingReview?.recipe?.review_flags || [];
+  list.innerHTML = ings.map((ing, i) => {
+    const label = ing.quantity ? `${ing.quantity} ${ing.item}` : ing.item;
+    const isFlagged = flags.some(f => f.toLowerCase().includes((ing.item || '').toLowerCase().substring(0, 5)));
+    return `<div class="wz-ing-item${isFlagged ? ' wz-flagged' : ''}">
+      <span class="wz-ing-dot">•</span>
+      <input class="wz-ing-text" value="${esc(label)}" id="wz-ing-${i}" placeholder="e.g. 1 cup rice"/>
+      ${isFlagged ? '<span class="wz-ing-flag">?</span>' : ''}
+      <button class="wz-ing-del" onclick="wzRemoveIngredient(${i})">×</button>
+    </div>`;
+  }).join('');
+}
+
+function _wzGetIngredients() {
+  return Array.from(document.getElementById('wz-ing-list').querySelectorAll('.wz-ing-text'))
+    .map(inp => inp.value.trim()).filter(Boolean)
+    .map(raw => {
+      const parts = raw.match(/^([\d\/¼-¾⅐-⅞][\d\/\s¼-¾]*(?:cup|tsp|tbsp|g|kg|ml|l|pinch|handful|piece|pieces)?\.?)\s+(.+)$/i);
+      return parts ? { quantity: parts[1].trim(), item: parts[2].trim() } : { item: raw, quantity: '' };
+    });
+}
+
+function wzAddIngredient() {
+  const inp = document.getElementById('wz-new-ing');
+  const val = inp.value.trim();
+  if (!val) return;
+  _wzRenderIngredients([..._wzGetIngredients(), { item: val, quantity: '' }]);
+  inp.value = '';
+  inp.focus();
+}
+
+function wzRemoveIngredient(i) {
+  const current = _wzGetIngredients();
+  current.splice(i, 1);
+  _wzRenderIngredients(current);
+}
+
+function _wzRenderSteps(steps) {
+  document.getElementById('wz-steps-list').innerHTML = steps.map((s, i) => `
+    <div class="wz-step-item">
+      <div class="wz-step-num">${i + 1}</div>
+      <textarea class="wz-step-text" id="wz-step-${i}" rows="2">${esc(s)}</textarea>
+      <button class="wz-step-del" onclick="wzRemoveStep(${i})">×</button>
+    </div>`).join('');
+}
+
+function _wzGetSteps() {
+  return Array.from(document.getElementById('wz-steps-list').querySelectorAll('.wz-step-text'))
+    .map(t => t.value.trim()).filter(Boolean);
+}
+
+function wzAddStep() {
+  const inp = document.getElementById('wz-new-step');
+  const val = inp.value.trim();
+  if (!val) return;
+  _wzRenderSteps([..._wzGetSteps(), val]);
+  inp.value = '';
+  inp.focus();
+}
+
+function wzRemoveStep(i) {
+  const current = _wzGetSteps();
+  current.splice(i, 1);
+  _wzRenderSteps(current);
+}
+
+function _wzViewSavedRecipe() {
+  if (_wzSavedRecipe) {
+    renderRecipeDetail(_wzSavedRecipe);
+    go('recipe-detail');
   }
 }
 
@@ -2595,96 +2982,24 @@ async function submitAudio(blob, filename) {
 }
 
 // ═══════════════════════════════════════
-// REVIEW SCREEN — INLINE EDITING
-// ═══════════════════════════════════════
-
-function _renderRvIngredients(ings) {
-  const list = document.getElementById('rv-ingredients-list');
-  list.innerHTML = ings.map((ing, i) => {
-    const label = ing.quantity ? `${ing.quantity} ${ing.item}` : ing.item;
-    return `<div class="rv-list-item">
-      <span class="rv-item-num">•</span>
-      <input class="rv-item-text" value="${esc(label)}" id="rv-ing-${i}" placeholder="e.g. 1 cup rice"/>
-      <button class="rv-item-del" onclick="removeIngredient(${i})">×</button>
-    </div>`;
-  }).join('');
-}
-
-function _getRvIngredients() {
-  const list = document.getElementById('rv-ingredients-list');
-  return Array.from(list.querySelectorAll('.rv-item-text'))
-    .map(inp => inp.value.trim()).filter(Boolean)
-    .map(raw => {
-      const parts = raw.match(/^([\d\/¼-¾⅐-⅞][\d\/\s¼-¾]*(?:cup|tsp|tbsp|g|kg|ml|l|pinch|handful|piece|pieces)?\.?)\s+(.+)$/i);
-      return parts ? { quantity: parts[1].trim(), item: parts[2].trim() } : { item: raw, quantity: '' };
-    });
-}
-
-function addIngredient() {
-  const inp = document.getElementById('rv-new-ing');
-  const val = inp.value.trim();
-  if (!val) return;
-  _renderRvIngredients([..._getRvIngredients(), { item: val, quantity: '' }]);
-  inp.value = '';
-  inp.focus();
-}
-
-function removeIngredient(i) {
-  const current = _getRvIngredients();
-  current.splice(i, 1);
-  _renderRvIngredients(current);
-}
-
-function _renderRvSteps(steps) {
-  const list = document.getElementById('rv-steps-list');
-  list.innerHTML = steps.map((s, i) => `
-    <div class="rv-list-item">
-      <span class="rv-item-num">${i + 1}</span>
-      <input class="rv-item-text" value="${esc(s)}" id="rv-step-${i}" placeholder="Describe this step…"/>
-      <button class="rv-item-del" onclick="removeStep(${i})">×</button>
-    </div>`).join('');
-}
-
-function _getRvSteps() {
-  const list = document.getElementById('rv-steps-list');
-  return Array.from(list.querySelectorAll('.rv-item-text'))
-    .map(inp => inp.value.trim()).filter(Boolean);
-}
-
-function addStep() {
-  const inp = document.getElementById('rv-new-step');
-  const val = inp.value.trim();
-  if (!val) return;
-  _renderRvSteps([..._getRvSteps(), val]);
-  inp.value = '';
-  inp.focus();
-}
-
-function removeStep(i) {
-  const current = _getRvSteps();
-  current.splice(i, 1);
-  _renderRvSteps(current);
-}
-
-// ═══════════════════════════════════════
-// REVIEW SCREEN — SAVE & DISCARD
+// WIZARD — SAVE & DISCARD
 // ═══════════════════════════════════════
 
 async function saveReviewedRecipe() {
   if (!_pendingReview) { showToast('Nothing to save.'); return; }
 
-  const btn = document.getElementById('rv-save-btn');
-  btn.disabled = true;
-  btn.textContent = 'Saving…';
+  const btnNext = document.getElementById('wz-btn-next');
+  btnNext.disabled = true;
+  btnNext.innerHTML = '⏳ Saving…';
 
   const { blob, filename } = _pendingReview;
 
-  // Collect edited fields
+  // Collect edited fields from wizard inputs
   const editedRecipe = {
-    dish_name:          document.getElementById('rv-dish-name').value.trim() || 'Untitled recipe',
-    ingredients:        _getRvIngredients(),
-    steps:              _getRvSteps(),
-    cook_notes:         document.getElementById('rv-cook-notes').value.trim(),
+    dish_name:          document.getElementById('wz-dish-name').value.trim() || 'Untitled recipe',
+    ingredients:        _wzGetIngredients(),
+    steps:              _wzGetSteps(),
+    cook_notes:         document.getElementById('wz-cook-notes').value.trim(),
     transcript_raw:     _pendingReview.recipe.transcript_raw || '',
     transcript_english: _pendingReview.recipe.transcript_english || '',
     image_url:          _pendingReview.recipe.image_url || '',
@@ -2712,26 +3027,42 @@ async function saveReviewedRecipe() {
       throw new Error(err.detail || 'Save failed');
     }
     const saved = await res.json();
+    _wzSavedRecipe = saved;
     currentRecipe = saved;
     allRecipes.unshift(saved);
     localStorage.setItem('rk_recipes_cache', JSON.stringify(allRecipes));
     seedPeopleFromRecipes();
     _pendingReview = null;
     _reviewAudio.pause();
+
+    // Show the "Preserved forever" confirmation inside the review screen
+    document.querySelector('#screen-review .wz-shell').style.display = 'none';
+    const savedWrap = document.getElementById('wz-saved-wrap');
+    savedWrap.style.display = 'flex';
+    document.getElementById('wz-saved-dish').textContent = saved.dish_name || editedRecipe.dish_name;
+    const ingCount = (saved.ingredients || editedRecipe.ingredients).length;
+    const stepCount = (saved.steps || editedRecipe.steps).length;
+    document.getElementById('wz-saved-meta').textContent =
+      `👵 ${narrator} · ${ingCount} ingredient${ingCount !== 1 ? 's' : ''} · ${stepCount} step${stepCount !== 1 ? 's' : ''} · just now`;
+
     renderRecipeDetail(saved);
-    go('recipe-detail');
   } catch (err) {
     showToast('Error saving: ' + err.message);
-    btn.disabled = false;
-    btn.textContent = 'Save Recipe ✓';
+    btnNext.disabled = false;
+    btnNext.innerHTML = '💾 Save Forever';
+    btnNext.className = 'wz-btn-next save-final';
   }
 }
 
 function discardReview() {
-  if (!confirm('Discard this recording? It will not be saved.')) return;
+  if (!confirm('Retake recording? This one will not be saved.')) return;
   _pendingReview = null;
   _reviewAudio.pause();
   _reviewAudio.src = '';
+  // Restore wizard shell in case save confirm was shown
+  const wzShell = document.querySelector('#screen-review .wz-shell');
+  if (wzShell) wzShell.style.display = 'flex';
+  document.getElementById('wz-saved-wrap').style.display = 'none';
   go('capture');
 }
 
@@ -2749,52 +3080,74 @@ function handleDrop(e) {
 }
 
 // ═══════════════════════════════════════
-// PROCESSING ANIMATION
+// PROCESSING ANIMATION — grandma spinner
 // ═══════════════════════════════════════
 let processingDone = false;
 let processingTimers = [];
+let _savingMsgTimer = null;
+
+const SAVING_MESSAGES = [
+  { title: "Listening to every word…",       sub: '"The secret is in the slow cooking"' },
+  { title: "Catching the Telugu…",            sub: '"A little of this, a little of that"' },
+  { title: "Translating with love…",          sub: '"Until it smells right, you\'ll know"' },
+  { title: "Finding the ingredients…",        sub: '"Konchem salt, konchem patience"' },
+  { title: "Writing down the steps…",         sub: '"Watch the colour, not the clock"' },
+  { title: "Almost ready to review…",         sub: '"This one is for the grandchildren"' },
+];
+let _savingMsgIdx = 0;
+
+function _wzSetMsg(i) {
+  const titleEl = document.getElementById('wz-saving-title');
+  const subEl = document.getElementById('wz-saving-rotating');
+  if (!titleEl || !subEl) return;
+  subEl.style.animation = 'none';
+  subEl.offsetHeight; // reflow
+  subEl.style.animation = 'wzFadeMsg .5s ease';
+  titleEl.textContent = SAVING_MESSAGES[i].title;
+  subEl.textContent = SAVING_MESSAGES[i].sub;
+}
+
+function _startSavingMessages() {
+  _savingMsgIdx = 0;
+  _wzSetMsg(0);
+  _savingMsgTimer = setInterval(() => {
+    _savingMsgIdx = (_savingMsgIdx + 1) % SAVING_MESSAGES.length;
+    _wzSetMsg(_savingMsgIdx);
+  }, 2200);
+}
+
+function _stopSavingMessages() {
+  clearInterval(_savingMsgTimer);
+}
+
+function _wzSetProcState(id, state) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.className = 'wz-proc-item' + (state === 'done' ? ' wz-done' : state === 'active' ? ' wz-active' : '');
+  const dot = el.querySelector('.wz-proc-dot');
+  if (dot) dot.textContent = state === 'done' ? '✓' : el.dataset.num || '';
+}
 
 function startProcessingAnimation() {
   processingDone = false;
   processingTimers.forEach(clearTimeout);
   processingTimers = [];
 
-  const reset = id => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.className = 'proc-item pending';
-    const c = el.querySelector('.proc-check');
-    if (c) { c.textContent = '○'; c.className = 'proc-check pending'; }
-  };
-  const done = id => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.className = 'proc-item done';
-    const c = el.querySelector('.proc-check');
-    if (c) { c.textContent = '✓'; c.className = 'proc-check'; }
-  };
-  const active = id => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.className = 'proc-item active';
-  };
+  // Set initial states: 1 done, 2 done, 3 active, 4 pending
+  _wzSetProcState('wz-p1', 'done');
+  _wzSetProcState('wz-p2', 'done');
+  _wzSetProcState('wz-p3', 'active');
+  _wzSetProcState('wz-p4', '');
 
-  ['proc-1','proc-2','proc-3','proc-4','proc-5'].forEach(reset);
-  done('proc-1'); done('proc-2'); active('proc-3');
-
-  processingTimers.push(setTimeout(() => { if (!processingDone) { done('proc-3'); active('proc-4'); } }, 2000));
-  processingTimers.push(setTimeout(() => { if (!processingDone) { done('proc-4'); active('proc-5'); } }, 4000));
+  _startSavingMessages();
+  processingTimers.push(setTimeout(() => { if (!processingDone) { _wzSetProcState('wz-p3', 'done'); _wzSetProcState('wz-p4', 'active'); } }, 3000));
 }
 
 function finishProcessingAnimation() {
   processingDone = true;
-  ['proc-3','proc-4','proc-5'].forEach(id => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.className = 'proc-item done';
-    const c = el.querySelector('.proc-check');
-    if (c) { c.textContent = '✓'; c.className = 'proc-check'; }
-  });
+  _stopSavingMessages();
+  _wzSetProcState('wz-p3', 'done');
+  _wzSetProcState('wz-p4', 'done');
 }
 
 // ═══════════════════════════════════════
