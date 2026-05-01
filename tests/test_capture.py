@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 from scripts.capture import capture, process_recipe
 
 _STRUCTURED = {
@@ -88,6 +88,54 @@ class TestProcessRecipe:
             process_recipe("audio.m4a")
 
         assert call_order == ["transcribe", "translate", "structure"]
+
+
+class TestRunPersist:
+    def test_returns_saved_recipe(self, tmp_path):
+        """run_persist() uploads audio and inserts recipe, returns SavedRecipe."""
+        from pipeline.persist import run_persist
+        from pipeline.models import RecipeData, SavedRecipe
+
+        recipe = RecipeData(
+            dish_name="Pesarattu",
+            ingredients=[],
+            steps=[],
+            cook_notes="",
+            review_flags=[],
+            transcript_raw="raw",
+            transcript_english="eng",
+        )
+
+        audio_file = tmp_path / "test.webm"
+        audio_file.write_bytes(b"fake audio")
+
+        with patch("pipeline.persist.upload_audio", return_value="audio/test.webm"), \
+             patch("pipeline.persist.insert_recipe", return_value={"id": "u1", "token": "t1"}):
+            result = run_persist(recipe, audio_path=str(audio_file), audio_filename="test.webm")
+
+        assert isinstance(result, SavedRecipe)
+        assert result.id == "u1"
+        assert result.token == "t1"
+        assert result.audio_url == "audio/test.webm"
+
+    def test_audio_upload_failure_is_nonfatal(self, tmp_path):
+        """run_persist() saves recipe even when audio upload throws."""
+        from pipeline.persist import run_persist
+        from pipeline.models import RecipeData
+
+        recipe = RecipeData(
+            dish_name="Test", ingredients=[], steps=[], cook_notes="",
+            review_flags=[], transcript_raw="", transcript_english="",
+        )
+        audio_file = tmp_path / "test.webm"
+        audio_file.write_bytes(b"fake")
+
+        with patch("pipeline.persist.upload_audio", side_effect=Exception("Storage down")), \
+             patch("pipeline.persist.insert_recipe", return_value={"id": "u2", "token": "t2"}):
+            result = run_persist(recipe, audio_path=str(audio_file), audio_filename="test.webm")
+
+        assert result.id == "u2"
+        assert result.audio_url == ""  # empty — upload failed
 
 
 class TestCaptureAudioUrl:
