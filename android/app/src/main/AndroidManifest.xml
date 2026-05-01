@@ -28,9 +28,6 @@
             </intent-filter>
         </activity>
 
-        <!-- Declare microphone attribution tag for Android 12+ AppOps -->
-        <attribution android:tag="microphone" android:label="Voice recording for recipes"/>
-
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
