@@ -175,6 +175,19 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
 /* ── Home body ── */
 .home-body{padding:1.6rem 2rem}
 @media(max-width:767px){.home-body{padding:1.2rem 1rem}}
+.mobile-quick-actions{display:none}
+@media(max-width:767px){
+  .mobile-quick-actions{
+    display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin:0 0 1rem;
+  }
+  .mobile-action-btn{
+    border:1px solid var(--border);border-radius:13px;background:var(--surface);
+    color:var(--text2);font-family:var(--sans);font-size:.78rem;font-weight:650;
+    padding:.75rem .55rem;box-shadow:0 2px 10px rgba(0,0,0,.04);
+    display:flex;align-items:center;justify-content:center;gap:.35rem;
+  }
+  .mobile-action-btn.primary{background:var(--accent);border-color:var(--accent);color:white}
+}
 
 .home-hero{display:none} /* hide old hero */
 .hero-title,.hero-sub,.hero-cta{display:none}
@@ -1311,6 +1324,14 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
           </div>
 
           <!-- From the kitchen -->
+          <div class="mobile-quick-actions">
+            <button class="mobile-action-btn primary" onclick="go('capture')">🎤 Record</button>
+            <button class="mobile-action-btn" onclick="openAddPersonModal()">👵 Add Grandma</button>
+            <button class="mobile-action-btn" onclick="go('people')">👥 Family</button>
+            <button class="mobile-action-btn" onclick="go('add-voice')">📤 Upload</button>
+          </div>
+
+          <!-- From the kitchen -->
           <div class="section-hdr">
             <span class="section-title">From the kitchen</span>
             <button class="view-all" onclick="go('all-recipes')">View all</button>
@@ -1681,7 +1702,7 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
         <svg viewBox="0 0 24 24"><path d="M12 14a3 3 0 003-3V5a3 3 0 00-6 0v6a3 3 0 003 3zm5-3a5 5 0 01-10 0H5a7 7 0 0014 0h-2z"/></svg>
       </div>
       <div class="bn-item" id="bn-recipes" onclick="go('all-recipes')"><div class="bn-icon">📖</div><div class="bn-label">Recipes</div></div>
-      <div class="bn-item" onclick="showToast('Profile coming soon')"><div class="bn-icon">👤</div><div class="bn-label">Me</div></div>
+      <div class="bn-item" onclick="openAddPersonModal()"><div class="bn-icon">＋</div><div class="bn-label">Add</div></div>
     </nav>
 
   </div><!-- /main -->
@@ -1759,6 +1780,7 @@ async function loadRecipes() {
     if (!res.ok) throw new Error('Failed');
     const data = await res.json();
     allRecipes = data.recipes || [];
+    seedPeopleFromRecipes();
     renderHome();
     renderPeople();
     renderAllRecipes();
@@ -2435,7 +2457,7 @@ async function onSignedIn(user) {
   await loadRecipes();
   handleUrlParams();
   // First-time welcome: if no people added yet, prompt to add first narrator
-  if (_loadPeople().length === 0 && !localStorage.getItem('rk_welcomed')) {
+  if (allRecipes.length === 0 && _loadPeople().length === 0 && !localStorage.getItem('rk_welcomed')) {
     setTimeout(openWelcomeModal, 700);
   }
 }
@@ -2553,6 +2575,22 @@ function _loadPeople() {
 }
 function _savePeople(arr) {
   localStorage.setItem('rk_people', JSON.stringify(arr));
+}
+
+function seedPeopleFromRecipes() {
+  if (!allRecipes.length) return;
+  const people = _loadPeople();
+  const existing = new Set(people.map(p => p.name.toLowerCase()));
+  let changed = false;
+  allRecipes.forEach(r => {
+    const name = r.narrator || 'Grandma';
+    if (!existing.has(name.toLowerCase())) {
+      people.push({ name, relation: '', emoji: narratorEmoji(name), photo: '', notes: '' });
+      existing.add(name.toLowerCase());
+      changed = true;
+    }
+  });
+  if (changed) _savePeople(people);
 }
 
 function openAddPersonModal() {
