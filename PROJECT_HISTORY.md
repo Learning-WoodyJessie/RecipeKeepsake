@@ -1,6 +1,14 @@
-# RecipeKeepsake — Project History
+# Echoes of Home — Project History
 
 One-paragraph summary per session. Most recent first.
+
+---
+
+## 2026-05-01 — Session 4: Web App Polish + Echoes of Home pivot
+
+Major UI overhaul across five screens and a product rename. **Our People** screen rebuilt as a two-column card layout with full CRUD — add/edit/delete person with photo upload (file → base64) or URL paste, unified modal with dynamic title/button. **Home screen** redesigned: welcome card with polaroid illustration, horizontal favorites scroll row (persisted in `localStorage['rk_favorites']`), recent memories list with deterministic waveform bars per token, right sidebar with quote card and tips. **Capture a Memory** and **Upload Recording** screens redesigned with two-column layouts, tips sidebars, waveform visualiser, and narrator chips. **App renamed** from "Dadi's Recipes" to "Echoes of Home" with tagline *"Every family carries a world. Don't let it fade."* — all narrator-specific strings (`rd-kitchen-badge`, `rd-hear-label`, `rd-tip-tab`, `rd-ing-title`, `cooking-mode-label`) made dynamic from `r.narrator` at render time. **Delete recipe** implemented: trash icon → slide-in red confirmation banner with dish name, `DELETE /recipe/{token}` endpoint with ownership check, `tools/storage.delete_recipe()`. **Translation 500 fix**: GPT-4o returning markdown-fenced JSON despite instructions — fixed with `json_mode=True` (→ `response_format: json_object`) + fence-strip fallback in `translate_recipe.py`; same pattern already existed in `structure.py`. **No-cache headers** added on `app.html` FileResponse — prevents Railway CDN + mobile browser (including incognito) serving stale versions. **Memories nav scaffold**: sidebar now has a "Memories" group heading with "All Recipes" nested under it, setting up the structure for Remedies, Stories, Songs, Wisdom.
+
+**Status at end of session:** All Phase 1 + 1.5 web features complete and live on Railway. Memories nav structure in place. Android app paused (needs app rename + re-sync + testing before Play Store). Next: brainstorm Memories expansion (Phase 4).
 
 ---
 
@@ -12,8 +20,16 @@ Principal architect review: produced `docs/ARCHITECTURE.md` with PRD, full syste
 
 ---
 
+## 2026-04-30 — Session 2: Phase 1 Web App Build
+
+Built the full Phase 1 web application on top of the Phase 0 pipeline. Three-step review wizard: audio submitted → grandma spinner with rotating encouragement messages → editable review screen (inline ingredient and step editing) → "Preserved forever" confirmation card. Pipeline refactored into typed dataclasses (`TranscriptResult`, `RecipeData`, `SavedRecipe`) and a thin HTTP adapter so `serve.py` delegates to `pipeline/` package rather than doing pipeline logic itself. Two FastAPI endpoints added: `POST /capture/process` (transcribe + translate + structure, no save) and `POST /capture/save` (persist reviewed recipe to Supabase). Telugu cooking glossary YAML (`data/glossary.yaml`) built and injected into both Whisper `initial_prompt` and the Call A translation system prompt — improves term recognition for Tamil/Telugu cooking vocabulary. Transcription engine updated to `gpt-4o-transcribe` with `language=te` (Whisper-1 was misdetecting Telugu as Hindi). DALL-E image generation added (`prompts/image.py`) with permanent Supabase storage so DALL-E CDN expiry doesn't break cards. Language switcher built: `prompts/translate_recipe.py` translates structured fields into EN/TE/HI/KN/ES/FR; `GET /recipe/{token}/translate?lang=` endpoint with Supabase `translations` JSONB column caching; client-side `_translationCache` for instant re-switching without re-fetching. Upload Recording screen built alongside Capture — same wizard flow, different entry point.
+
+**Status at end of session:** Full capture-to-card pipeline working end-to-end. Language switcher live. Ready for UI polish (Session 4) and Android packaging (Session 3).
+
+---
+
 ## 2026-04-29 — Session 1: Bootstrap + Brainstorm
 
-Bootstrapped the project from scratch. Created the full SDLC scaffold: `CLAUDE.md`, `docs/ROADMAP.md`, `.agent/decisions.log`, `.agent/gotchas.md`, `.agent/workflows/` with all 8 workflow files (`/start`, `/brainstorm`, `/plan`, `/build`, `/audit`, `/kaizen`, `/log`, `/closeout`). Ran `/brainstorm` for the core pipeline feature — completed all 6 design steps. Key decisions made: voice-first Telugu capture (not OCR/video), two-step LLM pipeline (translate separate from structure to preserve vague measurements), Supabase for storage, human review before every share, WhatsApp link sharing (`/recipe/[token]`), Phase 0 = CLI only. PRD saved to `docs/plans/2026-04-29-core-pipeline-design.md`. All decisions appended to `.agent/decisions.log`. Also fixed slash commands — copied workflows from `.agent/workflows/` to `.claude/commands/` so `/brainstorm`, `/plan`, etc. work natively in Claude Code.
+Bootstrapped the project from scratch. Created the full SDLC scaffold: `CLAUDE.md`, `docs/ROADMAP.md`, `.agent/decisions.log`, `.agent/gotchas.md`, `.agent/workflows/` with all 8 workflow files (`/start`, `/brainstorm`, `/plan`, `/build`, `/audit`, `/kaizen`, `/log`, `/closeout`). Ran `/brainstorm` for the core pipeline feature — completed all 6 design steps. Key decisions made: voice-first Telugu capture (not OCR/video), two-step LLM pipeline (translate separate from structure to preserve vague measurements), Supabase for storage, human review before every share, WhatsApp link sharing (`/recipe/[token]`), Phase 0 = CLI only. Built Phase 0 tools: `tools/transcribe.py` (Whisper), `prompts/translate.py` (Call A), `prompts/structure.py` (Call B), `tools/storage.py` (Supabase insert/get), `scripts/capture.py` (orchestrator). FastAPI server scaffolded (`scripts/serve.py`). First web prototype (`web/index.html`) for voice→recipe card smoke testing. PRD saved to `docs/plans/2026-04-29-core-pipeline-design.md`. All decisions appended to `.agent/decisions.log`. Fixed slash commands — copied workflows from `.agent/workflows/` to `.claude/commands/` so `/brainstorm`, `/plan`, etc. work natively in Claude Code.
 
-**Status at end of session:** PRD approved, ready for `/plan`.
+**Status at end of session:** Phase 0 CLI pipeline working. Phase 1 web app ready to plan and build.
