@@ -104,7 +104,18 @@ The recipe pipeline is the proven template. Each new memory type follows the sam
 - [ ] **Unified capture flow** — narrator chip → memory type selector → record → review → preserve
 - [ ] **Memories browse** — "All Recipes" becomes one item; Memories landing shows type grid
 
-## Phase 5 — Search + discovery
+## Phase 5 — Family access (invite-only sharing)
+*Decided 2026-05-01: sharing model is invite-only, not public links. Not building now — revisit after Memories expansion is stable.*
+
+The model: you generate an invite link → family member receives a code → they sign in with Google → they can view (not capture) memories you've shared with them. No anonymous access.
+
+- [ ] `family_members` table — `inviter_id`, `invitee_email`, `accepted_at`
+- [ ] `POST /invite` — generate single-use invite token, send via email or WhatsApp
+- [ ] Invite acceptance flow — `/join?code=xxx` → Google sign-in → access granted
+- [ ] Per-memory share settings — share with "family circle" or keep private
+- [ ] Family member view — read-only access to shared memories, no capture
+
+## Phase 6 — Search + discovery
 - [ ] Full-text search across all memory types
 - [ ] Filter by memory type, narrator, era, occasion
 - [ ] "On this day" — surface a memory from the archive each time you open the app
