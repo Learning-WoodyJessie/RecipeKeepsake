@@ -458,8 +458,8 @@ async def translate_recipe_endpoint(token: str, lang: str = "en"):
     try:
         translated = translate_recipe_fields(fields, lang, provider)
     except Exception as e:
-        print(f"[translate] LLM error: {e}")
-        raise HTTPException(status_code=500, detail="Translation failed — try again")
+        print(f"[translate] LLM error ({type(e).__name__}): {e}")
+        raise HTTPException(status_code=500, detail=f"Translation failed: {e}")
 
     # Write to cache — non-fatal, don't fail the request if Supabase write fails
     try:

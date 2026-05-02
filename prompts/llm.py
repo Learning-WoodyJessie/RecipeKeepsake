@@ -18,12 +18,15 @@ class OpenAIProvider(LLMProvider):
             self._client = OpenAI()
         return self._client
 
-    def generate(self, system: str, user: str) -> str:
-        response = self.client.chat.completions.create(
+    def generate(self, system: str, user: str, json_mode: bool = False) -> str:
+        kwargs = dict(
             model=self.model,
             messages=[
                 {"role": "system", "content": system},
                 {"role": "user", "content": user},
             ],
         )
+        if json_mode:
+            kwargs["response_format"] = {"type": "json_object"}
+        response = self.client.chat.completions.create(**kwargs)
         return response.choices[0].message.content

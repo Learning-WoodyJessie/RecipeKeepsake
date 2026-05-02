@@ -71,5 +71,11 @@ def translate_recipe_fields(fields: dict, lang: str, provider: LLMProvider) -> d
         ensure_ascii=False,
     )
 
-    raw = provider.generate(system=system, user=user_text)
-    return json.loads(raw)
+    raw = provider.generate(system=system, user=user_text, json_mode=True).strip()
+    # Strip markdown code fences GPT-4o sometimes adds despite instructions
+    if raw.startswith("```"):
+        parts = raw.split("```")
+        raw = parts[1]
+        if raw.startswith("json"):
+            raw = raw[4:]
+    return json.loads(raw.strip())
