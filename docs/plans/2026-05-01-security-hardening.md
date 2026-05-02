@@ -23,10 +23,15 @@ Every memory type we add (Remedies, Stories, Songs) increases the sensitivity of
 
 ## The four problems we're solving
 
-### Problem 1 — Recipe endpoints are publicly accessible
-`GET /recipe/{token}` and `GET /recipe/{token}/translate` require no login.
-Anyone with a token URL can read the full recipe and receive a working signed audio URL.
-Since we deferred sharing, there is no reason for these to be public.
+### Problem 1 — Multiple endpoints are publicly accessible
+Three endpoints have no authentication at all:
+
+- `GET /recipe/{token}` — anyone with a token reads the full recipe + receives a working signed audio URL
+- `GET /recipe/{token}/translate` — same; also calls OpenAI on your account
+- `POST /generate-image` — calls DALL-E with no auth; anyone can burn your OpenAI credits
+
+**Principle going forward: public by exception only.**
+Only two routes should ever be public: `GET /` (HTML shell, no user data) and `GET /privacy` (legal requirement). Every other endpoint requires a valid JWT — no exceptions.
 
 ### Problem 2 — Narrator profiles live in the browser
 `rk_people` in `localStorage` stores names, relationships, bios, personal notes,
@@ -48,6 +53,7 @@ recordings removed has no path to do so.
 
 1. `GET /recipe/{token}` — require authentication (add `Depends(require_auth)`)
 2. `GET /recipe/{token}/translate` — require authentication
+3. `POST /generate-image` — require authentication (currently fully public — OpenAI cost exposure)
 3. New `people` table in Supabase — stores narrator profiles server-side, owned by `user_id`
 4. New CRUD API endpoints: `GET /people`, `POST /people`, `PUT /people/{id}`, `DELETE /people/{id}`
 5. Client migrated — all `_loadPeople()` / `_savePeople()` localStorage calls replaced with API calls
@@ -97,7 +103,20 @@ async def get_recipe_endpoint(token: str):
 @app.get("/recipe/{token}")
 async def get_recipe_endpoint(token: str, user: dict = Depends(require_auth)):
 ```
-Same change for `/recipe/{token}/translate`.
+Same change for `/recipe/{token}/translate` and `POST /generate-image`.
+
+### Client-side fixes required in the same chunk
+Two client fetches currently send no auth headers and will break when endpoints are gated:
+```javascript
+// web/app.html line ~2981 — add auth headers
+const res = await fetch(`/recipe/${token}`);                           // ❌ today
+const res = await fetch(`/recipe/${token}`, { headers: await getAuthHeaders() }); // ✅ fix
+
+// web/app.html line ~3205 — add auth headers
+const res = await fetch(`/recipe/${currentRecipe.token}/translate?lang=${lang}`);  // ❌ today
+const res = await fetch(`/recipe/${currentRecipe.token}/translate?lang=${lang}`,
+  { headers: await getAuthHeaders() });                                            // ✅ fix
+```
 
 ### New people endpoints
 ```python
@@ -158,10 +177,29 @@ async function _deletePerson(id)  // DELETE /people/{id}
 ```
 
 All callers (renderPeople, savePersonModal, deletePerson) updated to await the API.
-A person cache (`_peopleCache`) is kept in memory for the session to avoid repeated fetches.
+A session-level people cache (`_peopleCache`) is loaded once on sign-in and held in
+memory — same access pattern as today's localStorage, just the source changes.
+
+### People cache load-on-signin (critical for home screen)
+The home screen renders narrator avatars via `_personAvHtml(name, size)` in both the
+favorites row and recent memories list. This function reads from `_peopleCache`.
+People must be loaded before the home screen renders:
+
+```javascript
+// On initAuth() success — run in parallel, then render home
+const [recipes, people] = await Promise.all([
+  fetchRecipes(),   // GET /recipes → allRecipes
+  fetchPeople(),    // GET /people  → _peopleCache
+]);
+renderHome();
+```
+
+Any screen showing a narrator avatar reads from `_peopleCache` (home, all recipes, recipe
+detail). People CRUD operations (add/edit/delete) update the cache in-place.
 
 Migration note: on first load after deploy, existing `rk_people` localStorage data is
-read, synced to Supabase, then cleared from localStorage. One-time migration, silent.
+read, synced to Supabase via POST /people for each entry, then cleared from localStorage.
+One-time migration, silent.
 
 ---
 
