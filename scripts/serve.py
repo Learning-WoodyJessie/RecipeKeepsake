@@ -121,11 +121,18 @@ app.add_middleware(
 )
 
 
+_NO_CACHE_HEADERS = {
+    "Cache-Control": "no-cache, no-store, must-revalidate",
+    "Pragma": "no-cache",
+    "Expires": "0",
+}
+
+
 @app.get("/")
 async def index():
     html = _WEB_DIR / "app.html"
     if html.exists():
-        return FileResponse(html)
+        return FileResponse(html, headers=_NO_CACHE_HEADERS)
     return JSONResponse(content={"status": "RecipeKeepsake API running"})
 
 
