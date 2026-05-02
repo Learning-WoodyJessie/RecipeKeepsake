@@ -2978,7 +2978,7 @@ async function openRecipe(token, data) {
     // If not found or incomplete, fetch from server
     if (!recipe || !recipe.steps) {
       try {
-        const res = await fetch(`/recipe/${token}`);
+        const res = await fetch(`/recipe/${token}`, { headers: await getAuthHeaders() });
         if (res.ok) recipe = await res.json();
       } catch(e) { console.warn('fetch recipe failed', e); }
     }
@@ -3202,7 +3202,7 @@ async function switchLang(lang) {
   document.querySelector('.recipe-layout')?.classList.add('lang-translating');
 
   try {
-    const res = await fetch(`/recipe/${currentRecipe.token}/translate?lang=${lang}`);
+    const res = await fetch(`/recipe/${currentRecipe.token}/translate?lang=${lang}`, { headers: await getAuthHeaders() });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     _translationCache[cacheKey] = data;

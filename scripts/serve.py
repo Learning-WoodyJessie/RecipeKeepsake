@@ -147,7 +147,7 @@ async def privacy_policy():
 
 
 @app.get("/recipe/{token}")
-async def get_recipe_endpoint(token: str):
+async def get_recipe_endpoint(token: str, user: dict = Depends(require_auth)):
     """Fetch a single recipe by share token."""
     if not (os.environ.get("SUPABASE_URL") and os.environ.get("SUPABASE_SERVICE_KEY")):
         raise HTTPException(status_code=503, detail="Storage not configured")
@@ -354,7 +354,7 @@ class ImageRequest(BaseModel):
 
 
 @app.post("/generate-image")
-async def generate_image_endpoint(body: ImageRequest):
+async def generate_image_endpoint(body: ImageRequest, user: dict = Depends(require_auth)):
     """Generate a DALL-E image for a dish name. Returns image URL."""
     if not os.environ.get("OPENAI_API_KEY"):
         raise HTTPException(status_code=500, detail="OPENAI_API_KEY not set")
@@ -404,7 +404,7 @@ _TRANSLATE_SUPPORTED = {"en", "te", "hi", "kn", "es", "fr"}
 
 
 @app.get("/recipe/{token}/translate")
-async def translate_recipe_endpoint(token: str, lang: str = "en"):
+async def translate_recipe_endpoint(token: str, lang: str = "en", user: dict = Depends(require_auth)):
     """
     Return recipe fields translated into the requested language.
 
