@@ -721,8 +721,8 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
 .rk-hero::before{
   content:"";position:absolute;inset:0;z-index:0;
   background:
-    linear-gradient(90deg,#FAF6F0 0%,rgba(250,246,240,.96) 30%,rgba(250,246,240,.58) 52%,rgba(250,246,240,0) 74%),
-    linear-gradient(180deg,rgba(250,246,240,.92) 0%,rgba(250,246,240,0) 28%,#FAF6F0 100%);
+    linear-gradient(90deg,#FAF6F0 0%,rgba(250,246,240,.99) 36%,rgba(250,246,240,.82) 54%,rgba(250,246,240,.18) 70%,rgba(250,246,240,0) 80%),
+    linear-gradient(180deg,rgba(250,246,240,.96) 0%,rgba(250,246,240,0) 32%,#FAF6F0 100%);
 }
 .rk-hero-art{
   position:absolute;inset:0 0 0 31%;z-index:0;
@@ -730,10 +730,10 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
 .rk-hero-art img{
   width:100%;height:100%;object-fit:cover;object-position:72% 3%;
 }
-.rk-copy{position:relative;z-index:1;max-width:470px}
+.rk-copy{position:relative;z-index:1;max-width:490px}
 .rk-title{
-  font-family:var(--serif);font-size:clamp(3.3rem,6vw,5.6rem);
-  line-height:.96;font-weight:800;color:#3B2113;letter-spacing:-.01em;
+  font-family:var(--serif);font-size:clamp(2.9rem,5.5vw,5.2rem);
+  line-height:1.0;font-weight:800;color:#3B2113;letter-spacing:-.01em;
 }
 .rk-title span{display:block;color:#C46466}
 .rk-heart{font-size:1.85rem;color:#C46466;margin:1.2rem 0 .8rem}
@@ -793,15 +793,15 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
   .rk-nav-links{display:none}
   .rk-hero{
     min-height:auto;display:flex;flex-direction:column;
-    padding:1.5rem 1rem 2rem;
+    padding:1.5rem 1rem 2rem;background:#FAF6F0;
   }
-  .rk-hero::before{background:linear-gradient(180deg,#FAF6F0 0%,rgba(250,246,240,.9) 36%,#FAF6F0 100%)}
+  .rk-hero::before{display:none}
   .rk-hero-art{
-    position:relative;inset:auto;order:2;width:100%;height:58vw;
-    min-height:250px;margin-top:1.5rem;border-radius:18px;overflow:hidden;
+    position:relative;inset:auto;order:2;width:100%;height:56vw;
+    min-height:220px;max-height:360px;margin-top:1.5rem;border-radius:18px;overflow:hidden;
   }
-  .rk-copy{order:1;max-width:none;width:100%}
-  .rk-title{font-size:3.05rem}
+  .rk-copy{order:1;max-width:none;width:100%;background:transparent}
+  .rk-title{font-size:clamp(2.3rem,8.5vw,3rem);line-height:1.08}
   .rk-primary{width:100%;min-width:0}
   .rk-how{padding:1.7rem 1rem 2.3rem;border-radius:22px 22px 0 0}
   .rk-section-label{gap:.9rem}
@@ -1381,16 +1381,16 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
 <div id="auth-wall">
 <div class="lp-wrap">
 
-  <section class="rk-landing" aria-label="Grandma's Keepsake">
+  <section class="rk-landing" aria-label="Echoes of Home">
     <nav class="rk-nav" aria-label="Landing navigation">
       <div class="rk-brand">
-        <img class="rk-logo-img" src="assets/landing-logo.png" alt="Grandma's Keepsake"/>
+        <img class="rk-logo-img" src="assets/landing-logo.png" alt="Echoes of Home"/>
       </div>
       <div class="rk-nav-links">
         <a href="#how-it-works">How It Works</a>
         <a href="#how-it-works">Features</a>
         <a href="#families">For Families</a>
-        <a href="#families">Safety</a>
+        <a href="#families">Privacy</a>
       </div>
     </nav>
 
@@ -1399,12 +1399,12 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
         <img src="assets/landing-hero-photo.png" alt=""/>
       </div>
       <div class="rk-copy">
-        <h1 class="rk-title">Her recipes are memories. <span>Keep them alive.</span></h1>
+        <h1 class="rk-title">Every family carries a world. <span>Don't let it fade.</span></h1>
         <div class="rk-heart">♥</div>
-        <p class="rk-subtitle">Record her voice. Share her recipes.<br/>Keep your family stories alive.</p>
+        <p class="rk-subtitle">Record their voice. Preserve every recipe.<br/>Keep the stories that live beyond cookbooks.</p>
         <button class="rk-primary" onclick="signInWithGoogle()">Start your family keepsake</button>
         <div class="auth-loading" id="auth-loading">Signing you in...</div>
-        <p class="rk-secure">▧ Private. Only shared with family.</p>
+        <p class="rk-secure">▧ Private. Secure. Only yours.</p>
       </div>
     </section>
 
@@ -1414,17 +1414,17 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
         <div class="rk-step">
           <div class="rk-step-icon">♬</div>
           <h3>1. Record</h3>
-          <p>Capture Grandma's voice, stories and recipes with ease.</p>
+          <p>Capture their voice, stories and recipes — in any language.</p>
         </div>
         <div class="rk-step">
           <div class="rk-step-icon">□</div>
           <h3>2. Save</h3>
-          <p>We keep them safe for generations to come.</p>
+          <p>Every recording is transcribed and stored safely for generations.</p>
         </div>
         <div class="rk-step">
           <div class="rk-step-icon">♡</div>
           <h3>3. Relive</h3>
-          <p>Listen, cook and share with your family.</p>
+          <p>Listen, cook and share their memory with your family.</p>
         </div>
       </div>
     </section>
@@ -1433,7 +1433,7 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
       <div class="rk-memory-card">
         <div class="rk-memory-copy">
           <div class="rk-heart">♥</div>
-          <h2>More than recipes.<br/>Pieces of her heart.</h2>
+          <h2>More than recipes.<br/>Echoes of the people you love.</h2>
           <p>Capture today. Cherish forever.</p>
         </div>
         <div class="rk-memory-art" aria-hidden="true">
