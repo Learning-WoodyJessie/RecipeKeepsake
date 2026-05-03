@@ -489,7 +489,7 @@ async def translate_recipe_endpoint(token: str, lang: str = "en", user: dict = D
     from tools.storage import get_recipe_by_token, get_cached_translation, cache_translation
     from prompts.translate_recipe import translate_recipe_fields
     from prompts.llm import OpenAIProvider
-    from data.config import load_config
+    from tools.config import load_config
 
     try:
         recipe = get_recipe_by_token(token)
