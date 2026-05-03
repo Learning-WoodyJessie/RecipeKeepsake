@@ -1685,6 +1685,9 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
       <div class="nav-item" onclick="signOut()">
         <span class="nav-icon">↪</span> Sign Out
       </div>
+      <div class="nav-item" style="color:#E53E3E;margin-top:.2rem" onclick="openDeleteAccountConfirm()">
+        <span class="nav-icon">🗑</span> Delete account
+      </div>
     </nav>
     <div class="sidebar-cta">
       <button class="btn-sidebar-cta" onclick="go('capture')">🎤 Capture a memory</button>
@@ -3297,6 +3300,33 @@ async function confirmDeleteRecipe() {
   }
 }
 
+function openDeleteAccountConfirm() {
+  const banner = document.getElementById('delete-account-banner');
+  if (banner) banner.style.display = 'flex';
+}
+function closeDeleteAccountConfirm() {
+  const banner = document.getElementById('delete-account-banner');
+  if (banner) banner.style.display = 'none';
+}
+async function confirmDeleteAccount() {
+  const btn = document.getElementById('dab-confirm-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Deleting…'; }
+  try {
+    const res = await fetch('/account', { method: 'DELETE', headers: await getAuthHeaders() });
+    if (res.ok) {
+      closeDeleteAccountConfirm();
+      signOut();
+    } else {
+      if (btn) { btn.disabled = false; btn.textContent = 'Delete everything'; }
+      showToast('Could not delete account — please try again.');
+    }
+  } catch (e) {
+    console.error('[deleteAccount]', e);
+    if (btn) { btn.disabled = false; btn.textContent = 'Delete everything'; }
+    showToast('Could not delete account — please try again.');
+  }
+}
+
 // ═══════════════════════════════════════
 // PEOPLE + PROFILE
 // ═══════════════════════════════════════
@@ -4733,6 +4763,21 @@ function renderNarratorChips() {
     <div style="display:flex;gap:.6rem">
       <button onclick="closeAddPersonModal()" style="flex:1;padding:.65rem;border:1.5px solid var(--border);border-radius:10px;background:none;font-size:.82rem;font-family:var(--sans);color:var(--text2);cursor:pointer">Cancel</button>
       <button id="apm-save-btn" onclick="savePersonModal()" style="flex:2;padding:.65rem;border:none;border-radius:10px;background:var(--accent);color:white;font-size:.85rem;font-weight:600;font-family:var(--sans);cursor:pointer">Add to family book ♡</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Account Confirmation Banner -->
+<div class="delete-confirm-banner" id="delete-account-banner" style="position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);max-width:420px;width:calc(100% - 2rem);z-index:9999;display:none;gap:.85rem;padding:1rem 1.1rem;background:white;border:1.5px solid #FEB2B2;border-radius:14px;box-shadow:0 8px 32px rgba(229,62,62,.15)">
+  <div class="dcb-icon">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C53030" stroke-width="2.5" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+  </div>
+  <div class="dcb-body">
+    <div class="dcb-title">Delete everything?</div>
+    <div class="dcb-sub">This permanently deletes all your memories, voice recordings, and family profiles. This cannot be undone.</div>
+    <div class="dcb-actions">
+      <button class="dcb-cancel" onclick="closeDeleteAccountConfirm()">Cancel</button>
+      <button class="dcb-delete" id="dab-confirm-btn" onclick="confirmDeleteAccount()">Delete everything</button>
     </div>
   </div>
 </div>
