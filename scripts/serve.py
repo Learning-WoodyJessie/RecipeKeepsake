@@ -471,13 +471,14 @@ _TRANSLATE_SUPPORTED = {"en", "te", "hi", "kn", "es", "fr"}
 
 
 @app.get("/recipe/{token}/translate")
-async def translate_recipe_endpoint(token: str, lang: str = "en", user: dict = Depends(require_auth)):
+async def translate_recipe_endpoint(token: str, lang: str = "en", force: bool = False, user: dict = Depends(require_auth)):
     """
     Return recipe fields translated into the requested language.
 
     First call per language translates via LLM (~2-3s); subsequent calls
     return from Supabase cache instantly. English always returns stored
     fields directly — no LLM call.
+    Pass ?force=true to bypass cache and re-translate (useful after prompt fixes).
     """
     lang = lang.lower()
     if lang not in _TRANSLATE_SUPPORTED:
@@ -506,13 +507,14 @@ async def translate_recipe_endpoint(token: str, lang: str = "en", user: dict = D
             "cook_notes": recipe.get("cook_notes", ""),
         })
 
-    # Check server-side cache first
-    try:
-        cached = get_cached_translation(token, lang)
-        if cached:
-            return JSONResponse(content={"lang": lang, **cached})
-    except Exception as e:
-        print(f"[translate] Cache read failed (non-fatal): {e}")
+    # Check server-side cache first (skip if ?force=true)
+    if not force:
+        try:
+            cached = get_cached_translation(token, lang)
+            if cached:
+                return JSONResponse(content={"lang": lang, **cached})
+        except Exception as e:
+            print(f"[translate] Cache read failed (non-fatal): {e}")
 
     # Translate via LLM
     if not os.environ.get("OPENAI_API_KEY"):

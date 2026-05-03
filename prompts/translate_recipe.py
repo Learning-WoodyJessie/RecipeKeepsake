@@ -24,9 +24,21 @@ LANG_NAMES = {
     "fr": "French",
 }
 
+# Native Unicode script requirement per language.
+# Critical: without this, GPT-4o defaults to Roman transliteration for Indic languages.
+_SCRIPT_RULES = {
+    "te": "Write in Telugu script (Unicode తెలుగు లిపి). Do NOT romanize or transliterate — every word must use Telugu Unicode characters (e.g. కొంచెం, not 'konchem').",
+    "hi": "Write in Devanagari script (Unicode हिन्दी). Do NOT romanize or transliterate.",
+    "kn": "Write in Kannada script (Unicode ಕನ್ನಡ). Do NOT romanize or transliterate.",
+    "es": "",
+    "fr": "",
+    "en": "",
+}
+
 _SYSTEM = (
     "You are translating a structured recipe from English into {language}.\n"
     "Rules:\n"
+    "- {script_rule}\n"
     "- Preserve vague quantity words as natural equivalents — never convert to specific measurements.\n"
     "  Examples: \"a little\" → natural equivalent in {language}, NOT \"½ tsp\".\n"
     "  \"to taste\", \"until it smells right\", \"enough\" → keep the spirit, not a number.\n"
@@ -55,11 +67,19 @@ def translate_recipe_fields(fields: dict, lang: str, provider: LLMProvider) -> d
     if lang not in SUPPORTED_LANGS:
         raise ValueError(f"Unsupported language: {lang}. Must be one of {SUPPORTED_LANGS}")
 
+    script_rule = _SCRIPT_RULES.get(lang, "")
+    if not script_rule:
+        script_rule = f"Write in natural {LANG_NAMES[lang]}."
+
     glossary_hint = ""
     if lang == "te":
         glossary_hint = f"\nTelugu cooking glossary:\n{build_glossary_hint()}"
 
-    system = _SYSTEM.format(language=LANG_NAMES[lang], glossary_hint=glossary_hint)
+    system = _SYSTEM.format(
+        language=LANG_NAMES[lang],
+        script_rule=script_rule,
+        glossary_hint=glossary_hint,
+    )
 
     user_text = json.dumps(
         {

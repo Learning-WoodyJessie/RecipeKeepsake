@@ -145,6 +145,31 @@ def cache_translation(token: str, lang: str, data: dict) -> None:
     sb.table("recipes").update({"translations": existing}).eq("token", token).execute()
 
 
+def clear_translation_cache(lang: str) -> int:
+    """Wipe cached translations for a given language across ALL recipes.
+
+    Used when translation quality changes (e.g. prompt fixes) so stale
+    cached translations are regenerated on next request.
+    Returns the number of rows updated.
+    """
+    sb = _client()
+    # Fetch all recipes that have a cached translation for this lang
+    result = (
+        sb.table("recipes")
+        .select("token, translations")
+        .not_.is_("translations", "null")
+        .execute()
+    )
+    updated = 0
+    for row in result.data:
+        translations = row.get("translations") or {}
+        if lang in translations:
+            del translations[lang]
+            sb.table("recipes").update({"translations": translations}).eq("token", row["token"]).execute()
+            updated += 1
+    return updated
+
+
 # ── People (narrator profiles) ────────────────────────────────────────────────
 
 def list_people(user_id: str) -> list:
