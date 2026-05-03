@@ -703,15 +703,33 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
   display:none;
 }
 .rk-logo-img{
-  width:min(252px,42vw);height:auto;display:block;
+  display:none; /* replaced by text wordmark */
 }
+.rk-wordmark{
+  font-family:var(--serif);font-size:1.52rem;font-weight:800;
+  line-height:1;color:#3B2113;letter-spacing:-.01em;
+}
+.rk-wordmark em{font-style:normal;color:#C46466}
 .rk-brand-text{
   font-family:var(--serif);font-size:1.7rem;line-height:.9;
   color:#3B2113;font-weight:800;
 }
 .rk-brand-text span{display:block;color:#C46466}
-.rk-nav-links{display:flex;gap:clamp(1.2rem,3vw,3.2rem);font-size:.96rem;color:#2D1B0E}
-.rk-nav-links a{color:inherit;text-decoration:none}
+.rk-nav-links{display:none} /* removed */
+.rk-nav-actions{display:flex;align-items:center;gap:.75rem}
+.rk-nav-login{
+  padding:.55rem 1.35rem;border:2px solid #C46466;border-radius:9px;
+  background:transparent;color:#C46466;font-family:var(--sans);
+  font-size:.93rem;font-weight:700;cursor:pointer;transition:background .15s;
+}
+.rk-nav-login:hover{background:rgba(196,100,102,.1)}
+.rk-nav-signup{
+  padding:.55rem 1.35rem;border:0;border-radius:9px;
+  background:#C46466;color:#fff;font-family:var(--sans);
+  font-size:.93rem;font-weight:700;cursor:pointer;
+  box-shadow:0 4px 14px rgba(196,100,102,.28);transition:opacity .15s;
+}
+.rk-nav-signup:hover{opacity:.88}
 .rk-hero{
   position:relative;min-height:min(820px,100vh);
   display:grid;grid-template-columns:minmax(320px,.52fr) minmax(360px,.8fr);
@@ -721,11 +739,11 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
 .rk-hero::before{
   content:"";position:absolute;inset:0;z-index:0;
   background:
-    linear-gradient(90deg,#FAF6F0 0%,rgba(250,246,240,.99) 36%,rgba(250,246,240,.82) 54%,rgba(250,246,240,.18) 70%,rgba(250,246,240,0) 80%),
-    linear-gradient(180deg,rgba(250,246,240,.96) 0%,rgba(250,246,240,0) 32%,#FAF6F0 100%);
+    linear-gradient(90deg,#FAF6F0 0%,#FAF6F0 46%,rgba(250,246,240,.72) 58%,rgba(250,246,240,.1) 74%,rgba(250,246,240,0) 84%),
+    linear-gradient(180deg,rgba(250,246,240,.96) 0%,rgba(250,246,240,0) 28%,#FAF6F0 100%);
 }
 .rk-hero-art{
-  position:absolute;inset:0 0 0 31%;z-index:0;
+  position:absolute;inset:0 0 0 46%;z-index:0;
 }
 .rk-hero-art img{
   width:100%;height:100%;object-fit:cover;object-position:72% 3%;
@@ -788,9 +806,10 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
 .rk-memory-art img{width:100%;height:100%;object-fit:cover;object-position:78% 84%}
 @media(max-width:780px){
   .rk-nav{position:relative;padding:1rem 1rem 0}
-  .rk-logo-img{width:min(220px,70vw)}
-  .rk-brand-text{font-size:1.28rem}
-  .rk-nav-links{display:none}
+  .rk-logo-img{display:none}
+  .rk-wordmark{font-size:1.28rem}
+  .rk-nav-login,.rk-nav-signup{font-size:.82rem;padding:.45rem 1rem}
+  .rk-nav-actions{gap:.5rem}
   .rk-hero{
     min-height:auto;display:flex;flex-direction:column;
     padding:1.5rem 1rem 2rem;background:#FAF6F0;
@@ -1384,13 +1403,12 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
   <section class="rk-landing" aria-label="Echoes of Home">
     <nav class="rk-nav" aria-label="Landing navigation">
       <div class="rk-brand">
-        <img class="rk-logo-img" src="assets/landing-logo.png" alt="Echoes of Home"/>
+        <img class="rk-logo-img" src="assets/landing-logo.png" alt=""/>
+        <div class="rk-wordmark">Echoes <em>of Home</em></div>
       </div>
-      <div class="rk-nav-links">
-        <a href="#how-it-works">How It Works</a>
-        <a href="#how-it-works">Features</a>
-        <a href="#families">For Families</a>
-        <a href="#families">Privacy</a>
+      <div class="rk-nav-actions">
+        <button class="rk-nav-login" onclick="signInWithGoogle()">Log In</button>
+        <button class="rk-nav-signup" onclick="signInWithGoogle()">Sign Up</button>
       </div>
     </nav>
 
