@@ -349,6 +349,73 @@ async def capture_save_endpoint(
             pass
 
 
+# ── People endpoints ─────────────────────────────────────────────────────────
+
+class PersonRequest(BaseModel):
+    name: str
+    relationship: str | None = None
+    emoji: str | None = None
+    photo_data: str | None = None   # base64-encoded photo
+    bio: str | None = None
+    notes: str | None = None
+
+
+@app.get("/people")
+async def list_people_endpoint(user: dict = Depends(require_auth)):
+    """Return all narrator profiles for the authenticated user."""
+    from tools.storage import list_people
+    user_id = user.get("id", "")
+    return JSONResponse(content={"people": list_people(user_id)})
+
+
+@app.post("/people")
+async def create_person_endpoint(body: PersonRequest, user: dict = Depends(require_auth)):
+    """Create a narrator profile."""
+    from tools.storage import create_person
+    user_id = user.get("id", "")
+    person = create_person(user_id, body.model_dump(exclude_none=True))
+    return JSONResponse(content={"person": person})
+
+
+@app.put("/people/{person_id}")
+async def update_person_endpoint(person_id: str, body: PersonRequest, user: dict = Depends(require_auth)):
+    """Update a narrator profile (ownership enforced)."""
+    from tools.storage import update_person, list_people
+    user_id = user.get("id", "")
+    people = list_people(user_id)
+    if not any(p["id"] == person_id for p in people):
+        raise HTTPException(status_code=403, detail="Not your record")
+    person = update_person(person_id, body.model_dump(exclude_none=True))
+    return JSONResponse(content={"person": person})
+
+
+@app.delete("/people/{person_id}")
+async def delete_person_endpoint(person_id: str, user: dict = Depends(require_auth)):
+    """Delete a narrator profile (ownership enforced)."""
+    from tools.storage import delete_person, list_people
+    user_id = user.get("id", "")
+    people = list_people(user_id)
+    if not any(p["id"] == person_id for p in people):
+        raise HTTPException(status_code=403, detail="Not your record")
+    delete_person(person_id)
+    return JSONResponse(content={"deleted": person_id})
+
+
+# ── Account deletion ──────────────────────────────────────────────────────────
+
+@app.delete("/account")
+async def delete_account_endpoint(user: dict = Depends(require_auth)):
+    """Permanently delete all data for the authenticated user."""
+    from tools.storage import delete_account
+    user_id = user.get("id", "")
+    if not user_id:
+        raise HTTPException(status_code=400, detail="Cannot identify user")
+    delete_account(user_id)
+    return JSONResponse(content={"deleted": True})
+
+
+# ── Image generation ──────────────────────────────────────────────────────────
+
 class ImageRequest(BaseModel):
     dish_name: str
 
