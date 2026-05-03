@@ -50,7 +50,11 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
   background:var(--surface);border-right:1px solid var(--border);
   display:flex;flex-direction:column;height:100vh;overflow-y:auto;
 }
-.sidebar-logo{padding:1.4rem 1.25rem .9rem;border-bottom:1px solid var(--border)}
+.sidebar-logo{
+  padding:1.1rem 1.25rem .9rem;border-bottom:1px solid var(--border);
+  background:#FDF5ED;display:flex;align-items:center;justify-content:center;
+}
+.sidebar-logo-img{width:150px;height:auto;display:block}
 .logo-name{font-family:var(--serif);font-size:1.2rem;color:var(--accent);font-weight:700;line-height:1}
 .logo-tag{font-size:.62rem;color:var(--muted);margin-top:3px;font-style:italic}
 .sidebar-nav{padding:.6rem;flex:1}
@@ -92,9 +96,11 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
     display:flex;align-items:center;justify-content:center;cursor:pointer;
     box-shadow:0 2px 8px rgba(45,27,14,.05);
   }
-  .mobile-brand{min-width:0;flex:1}
-  .mobile-brand-name{font-family:var(--serif);font-size:1.05rem;font-weight:700;color:var(--accent);line-height:1}
-  .mobile-brand-sub{font-size:.62rem;color:var(--muted);margin-top:.12rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mobile-brand{min-width:0;flex:1;display:flex;align-items:center;gap:.5rem}
+  .mobile-brand-logo{width:34px;height:34px;overflow:hidden;border-radius:50%;background:#FDF5ED;flex-shrink:0}
+  .mobile-brand-logo img{display:block;width:89px;height:auto;margin-left:-28px;margin-top:-19px}
+  .mobile-brand-name{font-family:var(--serif);font-size:1.02rem;font-weight:700;color:var(--accent);line-height:1}
+  .mobile-brand-sub{display:none}
   .mobile-app-avatar{
     width:34px;height:34px;border-radius:50%;background:var(--accent-light);
     color:var(--accent);display:flex;align-items:center;justify-content:center;
@@ -699,14 +705,18 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
   padding:1.55rem clamp(1.25rem,4.5vw,4.25rem);
 }
 .rk-brand{display:flex;align-items:center;gap:.75rem}
-.rk-logo-mark{
-  display:none;
+.rk-logo-mark{display:none}
+/* Nav logo — circle emblem crop from echoes-logo.png */
+.rk-logo-clip{
+  width:46px;height:46px;overflow:hidden;flex-shrink:0;border-radius:50%;
+  background:#FDF5ED;
 }
 .rk-logo-img{
-  display:none; /* replaced by text wordmark */
+  display:block;width:120px;height:auto;
+  margin-left:-37px;margin-top:-26px;
 }
 .rk-wordmark{
-  font-family:var(--serif);font-size:1.52rem;font-weight:800;
+  font-family:var(--serif);font-size:1.28rem;font-weight:800;
   line-height:1;color:#3B2113;letter-spacing:-.01em;
 }
 .rk-wordmark em{font-style:normal;color:#C46466}
@@ -806,8 +816,8 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
 .rk-memory-art img{width:100%;height:100%;object-fit:cover;object-position:78% 84%}
 @media(max-width:780px){
   .rk-nav{position:relative;padding:1rem 1rem 0}
-  .rk-logo-img{display:none}
-  .rk-wordmark{font-size:1.28rem}
+  .rk-logo-clip{width:38px;height:38px}
+  .rk-logo-img{width:99px;margin-left:-31px;margin-top:-22px}
   .rk-nav-login,.rk-nav-signup{font-size:.82rem;padding:.45rem 1rem}
   .rk-nav-actions{gap:.5rem}
   .rk-hero{
@@ -1206,9 +1216,9 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
   position:absolute;top:50%;left:50%;
   transform:translate(-50%,-50%);
   width:68px;height:68px;border-radius:50%;
-  background-image:url('assets/landing-logo.png');
-  background-size:360% auto;background-position:7% 45%;
-  background-repeat:no-repeat;background-color:var(--cream2);
+  background-image:url('assets/echoes-logo.png');
+  background-size:177px auto;background-position:50% 35%;
+  background-repeat:no-repeat;background-color:#FDF5ED;
   animation:dadibob 2s ease-in-out infinite;z-index:2;
 }
 .grandma-ring{
@@ -1263,8 +1273,8 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
 }
 .wz-brand-sm{
   display:inline-flex;width:22px;height:22px;border-radius:50%;
-  background-image:url('assets/landing-logo.png');background-size:360% auto;
-  background-position:7% 45%;background-repeat:no-repeat;background-color:var(--cream2);
+  background-image:url('assets/echoes-logo.png');background-size:57px auto;
+  background-position:50% 35%;background-repeat:no-repeat;background-color:#FDF5ED;
   flex-shrink:0;
 }
 
@@ -1357,8 +1367,8 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
 .wz-saved-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;padding:2rem;text-align:center;flex:1}
 .wz-saved-icon{
   width:88px;height:88px;border-radius:50%;
-  background-image:url('assets/landing-logo.png');background-size:360% auto;
-  background-position:7% 45%;background-repeat:no-repeat;background-color:var(--cream2);
+  background-image:url('assets/echoes-logo.png');background-size:229px auto;
+  background-position:50% 35%;background-repeat:no-repeat;background-color:#FDF5ED;
   border:3px solid #FDDACC;box-shadow:0 4px 20px rgba(196,82,42,.15);
   animation:wzPop .5s cubic-bezier(.34,1.56,.64,1);
   margin:0 auto;
@@ -1403,7 +1413,9 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
   <section class="rk-landing" aria-label="Echoes of Home">
     <nav class="rk-nav" aria-label="Landing navigation">
       <div class="rk-brand">
-        <img class="rk-logo-img" src="assets/landing-logo.png" alt=""/>
+        <div class="rk-logo-clip">
+          <img class="rk-logo-img" src="assets/echoes-logo.png" alt="Echoes of Home"/>
+        </div>
         <div class="rk-wordmark">Echoes <em>of Home</em></div>
       </div>
       <div class="rk-nav-actions">
@@ -1678,8 +1690,7 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
   <!-- ══════════ SIDEBAR ══════════ -->
   <aside class="sidebar">
     <div class="sidebar-logo">
-      <div class="logo-name">Echoes of Home</div>
-      <div class="logo-tag">Every family carries a world.</div>
+      <img class="sidebar-logo-img" src="assets/echoes-logo.png" alt="Echoes of Home"/>
     </div>
     <nav class="sidebar-nav">
       <div class="nav-item active" data-screen="home" onclick="go('home',this)">
@@ -1723,8 +1734,10 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
     <div class="mobile-appbar">
       <button class="mobile-menu-btn" onclick="openMobileDrawer()" aria-label="Open menu">☰</button>
       <div class="mobile-brand">
+        <div class="mobile-brand-logo">
+          <img src="assets/echoes-logo.png" alt=""/>
+        </div>
         <div class="mobile-brand-name">Echoes of Home</div>
-        <div class="mobile-brand-sub">Every family carries a world.</div>
       </div>
       <div class="mobile-app-avatar" id="mobile-app-av">?</div>
     </div>
