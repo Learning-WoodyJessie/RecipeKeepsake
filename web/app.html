@@ -3203,7 +3203,11 @@ async function switchLang(lang) {
 
   try {
     const res = await fetch(`/recipe/${currentRecipe.token}/translate?lang=${lang}`, { headers: await getAuthHeaders() });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    if (!res.ok) {
+      let detail = `HTTP ${res.status}`;
+      try { const errJson = await res.json(); detail += ': ' + (errJson.detail || JSON.stringify(errJson)); } catch(_) {}
+      throw new Error(detail);
+    }
     const data = await res.json();
     _translationCache[cacheKey] = data;
     _currentLang = lang;
