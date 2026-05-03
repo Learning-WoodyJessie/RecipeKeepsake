@@ -3372,22 +3372,29 @@ function _playSampleAudio(token) {
   openRecipe(token);
 }
 
-function deletePerson(name) {
+async function deletePerson(name) {
   if (!confirm(`Remove ${name} from your family book? Their recipes will still be saved.`)) return;
-  const people = _loadPeople().filter(p => p.name !== name);
-  _savePeople(people);
+  const person = _peopleCache.find(p => p.name === name);
+  if (person?.id) {
+    await _deletePersonApi(person.id);
+  } else {
+    // Transient entry (seeded from recipe, not yet saved) — just remove from cache
+    _peopleCache = _peopleCache.filter(p => p.name !== name);
+  }
   renderPeople();
   renderNarratorChips();
   showToast(`${name} removed from your family book.`);
 }
 
 let _editingPersonName = null; // null = add mode, string = edit mode
+let _editingPersonId = null;   // Supabase id for the person being edited
 
 function openEditPersonModal(name) {
   const people = _loadPeople();
   const person = people.find(p => p.name === name);
   if (!person) return;
   _editingPersonName = name;
+  _editingPersonId = person.id || null;
   const modal = document.getElementById('add-person-modal');
   modal.querySelector('#apm-title').textContent = 'Edit person';
   modal.querySelector('#apm-sub').textContent = 'Update their profile details.';
@@ -4212,10 +4219,12 @@ async function onSignedIn(user) {
   hideAuthWall();
   updateUserUI(user);
   renderNarratorChips();
-  await loadRecipes();
+  // Load recipes + people in parallel — people cache must be ready before renderHome
+  await Promise.all([loadRecipes(), _fetchPeople()]);
+  await _migrateLocalPeople();  // silent one-time localStorage → Supabase migration
   handleUrlParams();
   // First-time welcome: if no people added yet, prompt to add first narrator
-  if (allRecipes.length === 0 && _loadPeople().length === 0 && !localStorage.getItem('rk_welcomed')) {
+  if (allRecipes.length === 0 && _peopleCache.length === 0 && !localStorage.getItem('rk_welcomed')) {
     setTimeout(openWelcomeModal, 700);
   }
 }
@@ -4349,15 +4358,83 @@ document.addEventListener('DOMContentLoaded', initAuth);
 // ═══════════════════════════════════════
 // ADD PERSON MODAL
 // ═══════════════════════════════════════
-// People are stored in localStorage (no extra DB table needed)
-// They appear in narrator chips on capture screen + people list
+// People are stored in Supabase (people table), cached in memory per session.
+// _loadPeople() is synchronous — reads from the in-memory cache.
+// Writes go through the API: _createPersonApi / _updatePersonApi / _deletePersonApi.
 
-function _loadPeople() {
-  try { return JSON.parse(localStorage.getItem('rk_people') || '[]'); }
-  catch { return []; }
+let _peopleCache = [];
+
+// Synchronous cache read — used by home, people screen, narrator chips
+function _loadPeople() { return _peopleCache; }
+
+async function _fetchPeople() {
+  try {
+    const headers = await getAuthHeaders();
+    const res = await fetch('/people', { headers });
+    if (!res.ok) return;
+    const json = await res.json();
+    // Normalise: add compat aliases (photo, relation) so existing UI code works unchanged
+    _peopleCache = (json.people || []).map(p => ({
+      ...p,
+      photo: p.photo_data || '',         // compat alias
+      relation: p.relationship || '',    // compat alias
+    }));
+  } catch (e) {
+    console.warn('[people] fetch failed (non-fatal):', e);
+  }
 }
-function _savePeople(arr) {
-  localStorage.setItem('rk_people', JSON.stringify(arr));
+
+async function _createPersonApi(data) {
+  const headers = { 'Content-Type': 'application/json', ...(await getAuthHeaders()) };
+  const res = await fetch('/people', { method: 'POST', headers, body: JSON.stringify(data) });
+  const json = await res.json();
+  if (res.ok && json.person) {
+    const p = json.person;
+    _peopleCache.push({ ...p, photo: p.photo_data || '', relation: p.relationship || '' });
+  }
+  return json;
+}
+
+async function _updatePersonApi(id, data) {
+  const headers = { 'Content-Type': 'application/json', ...(await getAuthHeaders()) };
+  const res = await fetch(`/people/${id}`, { method: 'PUT', headers, body: JSON.stringify(data) });
+  const json = await res.json();
+  if (res.ok && json.person) {
+    const p = json.person;
+    const idx = _peopleCache.findIndex(x => x.id === id);
+    const updated = { ...p, photo: p.photo_data || '', relation: p.relationship || '' };
+    if (idx !== -1) _peopleCache[idx] = updated; else _peopleCache.push(updated);
+  }
+  return json;
+}
+
+async function _deletePersonApi(id) {
+  const headers = await getAuthHeaders();
+  await fetch(`/people/${id}`, { method: 'DELETE', headers });
+  _peopleCache = _peopleCache.filter(p => p.id !== id);
+}
+
+// One-time silent migration: move rk_people localStorage entries to Supabase
+async function _migrateLocalPeople() {
+  const raw = localStorage.getItem('rk_people');
+  if (!raw) return;
+  try {
+    const local = JSON.parse(raw);
+    for (const p of local) {
+      if (!_peopleCache.find(sp => sp.name === p.name)) {
+        await _createPersonApi({
+          name: p.name,
+          relationship: p.relation || '',
+          emoji: p.emoji || '',
+          photo_data: p.photo || '',
+          notes: p.notes || '',
+        });
+      }
+    }
+    localStorage.removeItem('rk_people');
+  } catch (e) {
+    console.warn('[migrate] people migration failed (non-fatal):', e);
+  }
 }
 
 function seedPeopleFromRecipes() {
@@ -4378,6 +4455,7 @@ function seedPeopleFromRecipes() {
 
 function openAddPersonModal() {
   _editingPersonName = null;
+  _editingPersonId = null;
   const modal = document.getElementById('add-person-modal');
   modal.querySelector('#apm-title').textContent = 'Add someone special';
   modal.querySelector('#apm-sub').textContent = "They'll appear in your narrator list when recording.";
@@ -4396,6 +4474,7 @@ function openAddPersonModal() {
 function closeAddPersonModal() {
   document.getElementById('add-person-modal').style.display = 'none';
   _editingPersonName = null;
+  _editingPersonId = null;
 }
 
 function _updateApPhotoPreview(photoOrEmoji) {
@@ -4422,7 +4501,7 @@ function _apHandleFileUpload(input) {
   reader.readAsDataURL(file);
 }
 
-function savePersonModal() {
+async function savePersonModal() {
   const name = document.getElementById('ap-name').value.trim();
   const relation = document.getElementById('ap-relation').value.trim();
   const emoji = document.getElementById('ap-emoji').value.trim() || '👤';
@@ -4432,38 +4511,54 @@ function savePersonModal() {
   const notes = document.getElementById('ap-notes').value.trim();
   const errEl = document.getElementById('ap-err');
   if (!name) { errEl.textContent = 'Please enter a name.'; return; }
-  const people = _loadPeople();
 
-  if (_editingPersonName) {
-    // Edit mode
-    const idx = people.findIndex(p => p.name === _editingPersonName);
-    if (idx === -1) { errEl.textContent = 'Person not found.'; return; }
-    // Name change — check for collision with other entries
-    if (name.toLowerCase() !== _editingPersonName.toLowerCase()) {
-      if (people.find(p => p.name.toLowerCase() === name.toLowerCase())) {
-        errEl.textContent = `${name} is already in your family book.`; return;
+  const saveBtn = document.getElementById('apm-save-btn');
+  const origLabel = saveBtn?.textContent;
+  if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Saving…'; }
+
+  const payload = { name, relationship: relation, emoji, photo_data: photo, notes };
+
+  try {
+    if (_editingPersonName) {
+      // Edit mode — check for name collision with other entries
+      if (name.toLowerCase() !== _editingPersonName.toLowerCase()) {
+        if (_peopleCache.find(p => p.name.toLowerCase() === name.toLowerCase())) {
+          errEl.textContent = `${name} is already in your family book.`;
+          if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = origLabel; }
+          return;
+        }
       }
+      if (_editingPersonId) {
+        await _updatePersonApi(_editingPersonId, payload);
+      } else {
+        // Transient entry (no Supabase id) — create it instead
+        await _createPersonApi(payload);
+        _peopleCache = _peopleCache.filter(p => p.name !== _editingPersonName);
+      }
+      closeAddPersonModal();
+      renderHome();
+      renderPeople();
+      renderNarratorChips();
+      showToast(`${name} updated ✓`);
+    } else {
+      // Add mode — check for duplicate name
+      if (_peopleCache.find(p => p.name.toLowerCase() === name.toLowerCase())) {
+        errEl.textContent = `${name} is already in your family book.`;
+        if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = origLabel; }
+        return;
+      }
+      await _createPersonApi(payload);
+      closeAddPersonModal();
+      selectedNarrator = name;
+      renderHome();
+      renderPeople();
+      renderNarratorChips();
+      showToast(`${name} added to your family book ♡`);
     }
-    people[idx] = { ...people[idx], name, relation, emoji, photo, notes };
-    _savePeople(people);
-    closeAddPersonModal();
-    renderHome();
-    renderPeople();
-    renderNarratorChips();
-    showToast(`${name} updated ✓`);
-  } else {
-    // Add mode
-    if (people.find(p => p.name.toLowerCase() === name.toLowerCase())) {
-      errEl.textContent = `${name} is already in your family book.`; return;
-    }
-    people.push({ name, relation, emoji, photo, notes });
-    _savePeople(people);
-    closeAddPersonModal();
-    selectedNarrator = name;
-    renderHome();
-    renderPeople();
-    renderNarratorChips();
-    showToast(`${name} added to your family book ♡`);
+  } catch (e) {
+    console.error('[savePersonModal]', e);
+    errEl.textContent = 'Could not save — please try again.';
+    if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = origLabel; }
   }
 }
 
