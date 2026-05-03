@@ -143,3 +143,82 @@ def cache_translation(token: str, lang: str, data: dict) -> None:
     existing = result.data.get("translations") or {}
     existing[lang] = data
     sb.table("recipes").update({"translations": existing}).eq("token", token).execute()
+
+
+# ── People (narrator profiles) ────────────────────────────────────────────────
+
+def list_people(user_id: str) -> list:
+    """Return all narrator profiles belonging to this user."""
+    result = (
+        _client().table("people")
+        .select("*")
+        .eq("user_id", user_id)
+        .order("created_at", desc=False)
+        .execute()
+    )
+    return result.data
+
+
+def create_person(user_id: str, data: dict) -> dict:
+    """Insert a narrator profile. Returns the created row."""
+    payload = {**data, "user_id": user_id}
+    result = _client().table("people").insert(payload).execute()
+    return result.data[0]
+
+
+def update_person(person_id: str, data: dict) -> dict:
+    """Update a narrator profile by id. Returns the updated row."""
+    result = _client().table("people").update(data).eq("id", person_id).execute()
+    return result.data[0]
+
+
+def delete_person(person_id: str) -> None:
+    """Hard-delete a narrator profile by id."""
+    _client().table("people").delete().eq("id", person_id).execute()
+
+
+# ── Account deletion ──────────────────────────────────────────────────────────
+
+def delete_account(user_id: str) -> None:
+    """Delete ALL data for a user: audio files, recipe rows, people rows, auth user.
+
+    Errors on individual steps are logged but do not halt the sequence —
+    partial deletion is safer than abandoning mid-way.
+    """
+    sb = _client()
+
+    # 1. Delete audio files from Storage for each recipe
+    recipes = (
+        sb.table("recipes")
+        .select("token, audio_url")
+        .eq("user_id", user_id)
+        .order("recorded_at", desc=False)
+        .execute()
+        .data
+    )
+    for r in recipes:
+        audio = r.get("audio_url", "")
+        if audio:
+            try:
+                filename = _audio_filename(audio)
+                sb.storage.from_("audio").remove([filename])
+            except Exception as e:
+                print(f"[delete_account] audio remove failed (non-fatal): {e}")
+
+    # 2. Delete all recipe rows for this user
+    try:
+        sb.table("recipes").delete().eq("user_id", user_id).execute()
+    except Exception as e:
+        print(f"[delete_account] recipe delete failed: {e}")
+
+    # 3. Delete all people rows for this user
+    try:
+        sb.table("people").delete().eq("user_id", user_id).execute()
+    except Exception as e:
+        print(f"[delete_account] people delete failed: {e}")
+
+    # 4. Delete the Supabase auth user (service role required)
+    try:
+        sb.auth.admin.delete_user(user_id)
+    except Exception as e:
+        print(f"[delete_account] auth user delete failed (non-fatal): {e}")
