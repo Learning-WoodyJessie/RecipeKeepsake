@@ -205,56 +205,37 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
 @media(max-width:767px){.home-page-wrap{padding:1rem;flex-direction:column}}
 
 /* ── Welcome card ── */
-.home-welcome-card{display:flex;align-items:stretch;background:linear-gradient(135deg,#FFF9F5 0%,#FDF0E6 60%,#F8EAD8 100%);border:1px solid rgba(196,82,42,.12);border-radius:20px;overflow:hidden;margin-bottom:1.6rem;min-height:172px;box-shadow:0 4px 18px rgba(45,27,14,.055)}
-.home-welcome-body{flex:1;padding:1.5rem 1.5rem 1.4rem;display:flex;flex-direction:column;justify-content:space-between;min-width:0}
-.home-welcome-title{font-family:var(--serif);font-size:1.65rem;color:var(--text);line-height:1.2;font-weight:700;margin-bottom:.32rem}
-.home-welcome-sub{font-size:.8rem;color:var(--muted);line-height:1.6;margin-bottom:1.1rem}
+.home-welcome-card{display:flex;align-items:stretch;background:linear-gradient(120deg,#FFF7F2 0%,#FDEEE4 55%,#F8E8D8 100%);border:1px solid rgba(196,82,42,.1);border-radius:22px;overflow:hidden;margin-bottom:1.6rem;min-height:200px;box-shadow:0 4px 22px rgba(45,27,14,.07)}
+.home-welcome-body{flex:1;padding:1.6rem 1.6rem 1.5rem;display:flex;flex-direction:column;justify-content:space-between;min-width:0}
+.home-welcome-title{font-family:var(--serif);font-size:1.75rem;color:var(--text);line-height:1.15;font-weight:700;margin-bottom:.4rem}
+.home-welcome-sub{font-size:.82rem;color:var(--text2);line-height:1.65;margin-bottom:1.2rem;max-width:340px}
 .home-action-btns{display:flex;gap:.65rem;flex-wrap:wrap}
-.home-action-btn{display:flex;align-items:center;gap:.55rem;background:white;border:1.5px solid rgba(196,82,42,.22);border-radius:14px;padding:.55rem .9rem .55rem .6rem;cursor:pointer;font-family:var(--sans);transition:all .15s;box-shadow:0 2px 8px rgba(45,27,14,.06);text-align:left}
-.home-action-btn:hover{border-color:var(--accent);box-shadow:0 4px 14px rgba(196,82,42,.14);transform:translateY(-1px)}
-.home-action-btn-icon{width:30px;height:30px;border-radius:9px;background:var(--accent-light);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.home-action-btn-label{font-size:.78rem;font-weight:700;color:var(--accent);display:block;line-height:1.2}
-.home-action-btn-sub{font-size:.65rem;color:var(--muted);display:block;margin-top:.1rem;line-height:1.3}
-.home-welcome-illus{flex:0 0 210px;background:linear-gradient(160deg,#FDE8D0 0%,#F5D4B0 100%);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
-@media(max-width:860px){.home-welcome-illus{flex:0 0 150px}}
+.home-action-btn-primary{display:inline-flex;align-items:center;gap:.5rem;background:var(--accent);color:white;border:none;border-radius:12px;padding:.62rem 1.15rem;font-family:var(--sans);font-size:.82rem;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(196,82,42,.28);transition:all .15s}
+.home-action-btn-primary:hover{background:var(--accent2);transform:translateY(-1px)}
+.home-action-btn-ghost{display:inline-flex;align-items:center;gap:.5rem;background:rgba(255,255,255,.72);color:var(--accent);border:1.5px solid rgba(196,82,42,.3);border-radius:12px;padding:.62rem 1.15rem;font-family:var(--sans);font-size:.82rem;font-weight:700;cursor:pointer;transition:all .15s}
+.home-action-btn-ghost:hover{background:white;border-color:var(--accent)}
+.home-welcome-illus{flex:0 0 240px;position:relative;overflow:hidden}
+.home-welcome-illus img{width:100%;height:100%;object-fit:cover;object-position:center 20%}
+.home-welcome-illus::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#FFF7F2 0%,rgba(255,247,242,.4) 28%,transparent 55%);z-index:1}
+@media(max-width:860px){.home-welcome-illus{flex:0 0 180px}}
 @media(max-width:680px){.home-welcome-illus{display:none}}
-.hwi-frame{position:relative;transform:rotate(-4deg);background:white;padding:7px 7px 28px;box-shadow:0 8px 24px rgba(45,27,14,.22);border-radius:3px}
-.hwi-frame img{width:110px;height:82px;object-fit:cover;display:block;border-radius:1px}
-.hwi-caption{position:absolute;bottom:5px;left:0;right:0;text-align:center;font-size:.55rem;color:#8B6A4A;font-style:italic;line-height:1.3}
-.hwi-frame2{position:absolute;top:16px;right:14px;transform:rotate(5deg);background:white;padding:5px 5px 22px;box-shadow:0 5px 16px rgba(45,27,14,.18);border-radius:3px;z-index:0}
-.hwi-frame2 img{width:72px;height:56px;object-fit:cover;display:block;border-radius:1px}
 
 /* ── Section headers ── */
 .home-section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:.85rem}
 .home-section-title{font-family:var(--serif);font-size:1.05rem;color:var(--text);font-weight:700}
-.home-section-right{display:flex;align-items:center;gap:.65rem}
-.home-sort-btn{display:inline-flex;align-items:center;gap:.28rem;background:var(--surface);border:1.5px solid var(--border);border-radius:99px;padding:.22rem .65rem;font-size:.7rem;font-weight:600;color:var(--text2);cursor:pointer;font-family:var(--sans);transition:all .14s}
-.home-sort-btn:hover{border-color:var(--accent);color:var(--accent)}
-.home-view-all{font-size:.72rem;color:var(--accent);font-weight:600;background:none;border:none;cursor:pointer;font-family:var(--sans);display:flex;align-items:center;gap:.15rem}
+.home-view-all{font-size:.72rem;color:var(--accent);font-weight:600;background:none;border:none;cursor:pointer;font-family:var(--sans)}
 .home-view-all:hover{text-decoration:underline}
 
-/* ── Favorites scroll row ── */
-.fav-scroll-row{display:flex;gap:.85rem;overflow-x:auto;padding-bottom:.5rem;scrollbar-width:none;margin-bottom:1.6rem}
-.fav-scroll-row::-webkit-scrollbar{display:none}
-.fav-card{flex:0 0 162px;border-radius:14px;background:var(--surface);border:1px solid var(--border);overflow:hidden;cursor:pointer;transition:transform .15s,box-shadow .15s;flex-shrink:0}
-.fav-card:hover{transform:translateY(-2px);box-shadow:0 5px 18px rgba(0,0,0,.09)}
-.fav-card-img{position:relative;height:104px;overflow:hidden;background:var(--cream2);display:flex;align-items:center;justify-content:center;font-size:2rem}
-.fav-card-img img{width:100%;height:100%;object-fit:cover}
-.fav-card-heart{position:absolute;top:.42rem;right:.42rem;width:27px;height:27px;border-radius:50%;background:rgba(255,255,255,.9);display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;box-shadow:0 1px 4px rgba(0,0,0,.14);transition:transform .15s;padding:0}
-.fav-card-heart:active{transform:scale(1.25)}
-.fav-card-body{padding:.55rem .7rem .65rem}
-.fav-card-name{font-size:.8rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.fav-card-who{display:flex;align-items:center;gap:.35rem;margin-top:.3rem}
-.fav-card-av{width:18px;height:18px;border-radius:50%;overflow:hidden;background:var(--cream2);display:flex;align-items:center;justify-content:center;font-size:.52rem;flex-shrink:0}
-.fav-card-av img{width:100%;height:100%;object-fit:cover}
-.fav-card-narrator{font-size:.67rem;color:var(--muted)}
+/* ── Main content two-column ── */
+.home-content-cols{display:grid;grid-template-columns:1fr 1fr;gap:1.4rem;margin-bottom:1.4rem}
+@media(max-width:860px){.home-content-cols{grid-template-columns:1fr}}
 
 /* ── Recent memories list ── */
 .recent-memory-row{display:flex;align-items:center;gap:.8rem;padding:.75rem .85rem;background:var(--surface);border-radius:14px;border:1px solid var(--border);margin-bottom:.5rem;cursor:pointer;transition:box-shadow .14s}
 .recent-memory-row:hover{box-shadow:0 3px 14px rgba(0,0,0,.07)}
 .recent-mem-av{width:44px;height:44px;border-radius:50%;overflow:hidden;flex-shrink:0;background:var(--cream2);display:flex;align-items:center;justify-content:center;font-size:1.1rem}
 .recent-mem-av img{width:100%;height:100%;object-fit:cover}
-.recent-mem-info{min-width:0;flex:0 0 148px}
+.recent-mem-info{min-width:0;flex:1}
 .recent-mem-name{font-size:.83rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .recent-mem-who{font-size:.66rem;color:var(--muted);margin-top:.1rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .recent-mem-wave{flex:1;display:flex;align-items:center;gap:2px;height:24px;overflow:hidden;padding:0 .3rem}
@@ -265,18 +246,54 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
 .recent-mem-play{width:33px;height:33px;border-radius:50%;background:none;border:1.5px solid var(--accent);color:var(--accent);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all .15s;padding:0}
 .recent-mem-play:hover{background:var(--accent);color:white}
 
+/* ── Cherished recipes grid ── */
+.home-cherished-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.7rem;margin-bottom:.8rem}
+.home-cherished-card{border-radius:14px;background:var(--surface);border:1px solid var(--border);overflow:hidden;cursor:pointer;transition:transform .15s,box-shadow .15s}
+.home-cherished-card:hover{transform:translateY(-2px);box-shadow:0 5px 18px rgba(0,0,0,.09)}
+.hcc-img{height:88px;overflow:hidden;background:var(--cream2);display:flex;align-items:center;justify-content:center;font-size:1.8rem}
+.hcc-img img{width:100%;height:100%;object-fit:cover}
+.hcc-body{padding:.5rem .6rem .6rem}
+.hcc-name{font-size:.74rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:.3rem}
+.hcc-who{display:flex;align-items:center;gap:.3rem;font-size:.62rem;color:var(--muted)}
+.home-recipe-cta{border:1px solid var(--border);border-radius:14px;padding:.9rem 1rem;display:flex;align-items:center;justify-content:space-between;gap:.8rem;background:var(--surface)}
+.home-recipe-cta-left{display:flex;align-items:center;gap:.75rem}
+.home-recipe-cta-icon{width:36px;height:36px;border-radius:50%;background:var(--accent-light);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1rem}
+.home-recipe-cta-text{font-size:.78rem;font-weight:700;color:var(--text);line-height:1.3}
+.home-recipe-cta-sub{font-size:.67rem;color:var(--muted);margin-top:.15rem;line-height:1.4}
+.home-recipe-cta-btn{flex-shrink:0;padding:.5rem .9rem;border:1.5px solid var(--accent);border-radius:10px;background:transparent;color:var(--accent);font-family:var(--sans);font-size:.74rem;font-weight:700;cursor:pointer;white-space:nowrap}
+.home-recipe-cta-btn:hover{background:var(--accent);color:white}
+
+/* ── Your people row ── */
+.home-people-bubbles{display:flex;gap:.9rem;overflow-x:auto;padding-bottom:.3rem;scrollbar-width:none;margin-bottom:.3rem}
+.home-people-bubbles::-webkit-scrollbar{display:none}
+.home-person-bubble{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:.4rem;cursor:pointer;min-width:64px}
+.home-person-bubble:hover .hpb-av{box-shadow:0 4px 14px rgba(196,82,42,.22);transform:translateY(-2px)}
+.hpb-av{width:62px;height:62px;border-radius:50%;overflow:hidden;background:var(--cream2);display:flex;align-items:center;justify-content:center;font-size:1.5rem;border:2.5px solid var(--border);transition:all .15s}
+.hpb-av img{width:100%;height:100%;object-fit:cover}
+.hpb-name{font-size:.7rem;font-weight:700;color:var(--text);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:72px}
+.hpb-role{font-size:.6rem;color:var(--muted);text-align:center;margin-top:-.2rem}
+.hpb-add{width:62px;height:62px;border-radius:50%;border:2px dashed var(--border);background:var(--cream);display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:var(--muted);transition:all .15s}
+.home-person-bubble:hover .hpb-add{border-color:var(--accent);color:var(--accent)}
+
+/* ── Bottom capture banner ── */
+.home-capture-banner{border-radius:20px;background:linear-gradient(120deg,#FDE8DF 0%,#FDF4EF 60%,#F8EBE3 100%);border:1px solid rgba(196,82,42,.14);padding:1.4rem 1.6rem;display:flex;align-items:center;gap:1.2rem;margin-top:.4rem}
+.hcb-icon{width:44px;height:44px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.1rem;color:white}
+.hcb-text-wrap{flex:1;min-width:0}
+.hcb-title{font-family:var(--serif);font-size:1.05rem;font-weight:700;color:var(--text);line-height:1.2}
+.hcb-sub{font-size:.76rem;color:var(--text2);margin-top:.25rem;line-height:1.5}
+.hcb-btn{flex-shrink:0;padding:.55rem 1.1rem;border:1.5px solid var(--accent);border-radius:11px;background:transparent;color:var(--accent);font-family:var(--sans);font-size:.78rem;font-weight:700;cursor:pointer;transition:all .15s}
+.hcb-btn:hover{background:var(--accent);color:white}
+@media(max-width:600px){.home-capture-banner{flex-wrap:wrap}.hcb-btn{width:100%}}
+
 /* ── Right sidebar ── */
 .home-quote-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:1.4rem 1.3rem;margin-bottom:1rem}
 .home-quote-mark{font-family:var(--serif);font-size:2.8rem;color:var(--accent);line-height:.75;margin-bottom:.55rem}
-.home-quote-text{font-family:var(--serif);font-size:.95rem;color:var(--text);line-height:1.65;font-style:italic}
-.home-tips-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:1.2rem 1.1rem}
-.home-tips-title{font-size:.67rem;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin-bottom:.95rem}
-.home-tip-row{display:flex;align-items:flex-start;gap:.65rem;margin-bottom:.85rem}
-.home-tip-icon{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.home-tip-title{font-size:.76rem;font-weight:700;color:var(--text2);line-height:1.3}
-.home-tip-sub{font-size:.69rem;color:var(--muted);margin-top:.15rem;line-height:1.45}
-.home-learn-more{font-size:.72rem;color:var(--accent);font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:.2rem;margin-top:.5rem;background:none;border:none;font-family:var(--sans);padding:0}
-.home-learn-more:hover{text-decoration:underline}
+.home-quote-text{font-family:var(--serif);font-size:.92rem;color:var(--text);line-height:1.65;font-style:italic}
+.home-quote-sub{font-size:.72rem;color:var(--muted);margin-top:.9rem;line-height:1.5}
+
+/* ── Kept for JS compat (hidden) ── */
+.fav-scroll-row{display:none}
+.home-sort-btn{display:none}
 
 /* ── Legacy classes kept for mobile voice row ── */
 .home-hero{display:none}
@@ -1777,43 +1794,26 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
           <!-- ── Main column ── -->
           <div class="home-main-col">
 
-            <!-- Welcome card -->
+            <!-- Hero welcome card -->
             <div class="home-welcome-card">
               <div class="home-welcome-body">
                 <div>
                   <div class="home-welcome-title" id="home-welcome-title">Welcome home! <span style="color:var(--accent)">♡</span></div>
-                  <div class="home-welcome-sub">Every family carries a world.<br>Don't let it fade.</div>
+                  <div class="home-welcome-sub">Every story has a scent, every recipe a memory, every moment a heartbeat. Let's keep them alive.</div>
                 </div>
                 <div class="home-action-btns">
-                  <button class="home-action-btn" onclick="go('capture')">
-                    <div class="home-action-btn-icon">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
-                    </div>
-                    <div>
-                      <span class="home-action-btn-label">Record a memory</span>
-                      <span class="home-action-btn-sub">Capture a voice,<br>a story, a moment</span>
-                    </div>
+                  <button class="home-action-btn-primary" onclick="go('capture')">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+                    Record a memory
                   </button>
-                  <button class="home-action-btn" onclick="go('add-voice')">
-                    <div class="home-action-btn-icon">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
-                    </div>
-                    <div>
-                      <span class="home-action-btn-label">Upload audio</span>
-                      <span class="home-action-btn-sub">Use an existing<br>recording</span>
-                    </div>
+                  <button class="home-action-btn-ghost" onclick="go('add-voice')">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+                    Upload audio
                   </button>
                 </div>
               </div>
-              <!-- Illustration -->
               <div class="home-welcome-illus">
-                <div class="hwi-frame2">
-                  <img src="https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=200&q=75" alt="" onerror="this.style.display='none'"/>
-                </div>
-                <div class="hwi-frame" style="position:relative;z-index:1">
-                  <img src="https://images.unsplash.com/photo-1596797038530-2c107229654b?w=200&q=75" alt="" onerror="this.style.display='none'"/>
-                  <div class="hwi-caption">Capture today.<br>Cherish forever.</div>
-                </div>
+                <img src="assets/landing-hero-photo.png" alt=""/>
               </div>
             </div>
 
@@ -1830,32 +1830,70 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
             </div>
             <div class="voice-row" id="voice-row"></div>
 
-            <!-- Your favorites -->
-            <div class="home-section-hdr">
-              <span class="home-section-title">Your favorites <span style="color:var(--accent)">♡</span></span>
-              <div class="home-section-right">
-                <button class="home-sort-btn" id="home-sort-btn" onclick="toggleFavSort()">
-                  Sort by: <span id="home-sort-label">Favorites</span>
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
-                </button>
-                <button class="home-view-all" onclick="go('all-recipes')">View all ›</button>
+            <!-- Two-column: Recent memories + Cherished recipes -->
+            <div class="home-content-cols">
+
+              <!-- Left: Recent memories -->
+              <div>
+                <div class="home-section-hdr">
+                  <span class="home-section-title">Recent memories</span>
+                  <button class="home-view-all" onclick="go('all-recipes')">View all ›</button>
+                </div>
+                <div id="recent-memories-list">
+                  <div class="skel" style="height:68px;margin-bottom:.5rem;border-radius:14px"></div>
+                  <div class="skel" style="height:68px;border-radius:14px"></div>
+                </div>
+
+                <!-- Your people -->
+                <div class="home-section-hdr" style="margin-top:1.4rem">
+                  <span class="home-section-title">Your people</span>
+                  <button class="home-view-all" onclick="go('people')">View all ›</button>
+                </div>
+                <div class="home-people-bubbles" id="home-people-bubbles">
+                  <div class="home-person-bubble">
+                    <div class="hpb-av"><div class="skel" style="width:100%;height:100%;border-radius:50%"></div></div>
+                  </div>
+                </div>
               </div>
-            </div>
-            <div class="fav-scroll-row" id="fav-scroll-row">
-              <div class="skel" style="width:162px;height:140px;flex-shrink:0;border-radius:14px"></div>
-              <div class="skel" style="width:162px;height:140px;flex-shrink:0;border-radius:14px"></div>
-              <div class="skel" style="width:162px;height:140px;flex-shrink:0;border-radius:14px"></div>
+
+              <!-- Right: Cherished recipes -->
+              <div>
+                <div class="home-section-hdr">
+                  <span class="home-section-title">Cherished recipes</span>
+                  <button class="home-view-all" onclick="go('all-recipes')">View all ›</button>
+                </div>
+                <div class="home-cherished-grid" id="home-cherished-grid">
+                  <div class="skel" style="height:130px;border-radius:14px"></div>
+                  <div class="skel" style="height:130px;border-radius:14px"></div>
+                  <div class="skel" style="height:130px;border-radius:14px"></div>
+                </div>
+                <div class="home-recipe-cta">
+                  <div class="home-recipe-cta-left">
+                    <div class="home-recipe-cta-icon">♡</div>
+                    <div>
+                      <div class="home-recipe-cta-text">Every recipe holds a story.</div>
+                      <div class="home-recipe-cta-sub">Add details, memories, and little secrets.</div>
+                    </div>
+                  </div>
+                  <button class="home-recipe-cta-btn" onclick="go('capture')">Add a recipe</button>
+                </div>
+              </div>
+
+            </div><!-- /home-content-cols -->
+
+            <!-- Capture today banner -->
+            <div class="home-capture-banner">
+              <div class="hcb-icon">♡</div>
+              <div class="hcb-text-wrap">
+                <div class="hcb-title">Capture today. Cherish forever.</div>
+                <div class="hcb-sub">Not sure where to begin? Get a gentle prompt to help you start a story or memory.</div>
+              </div>
+              <button class="hcb-btn" onclick="go('capture')">Start with a prompt</button>
             </div>
 
-            <!-- Recent memories -->
-            <div class="home-section-hdr" style="margin-top:.3rem">
-              <span class="home-section-title">Recent memories</span>
-              <button class="home-view-all" onclick="go('all-recipes')">View all ›</button>
-            </div>
-            <div id="recent-memories-list">
-              <div class="skel" style="height:68px;margin-bottom:.5rem;border-radius:14px"></div>
-              <div class="skel" style="height:68px;margin-bottom:.5rem;border-radius:14px"></div>
-            </div>
+            <!-- Hidden compat element for JS -->
+            <div class="fav-scroll-row" id="fav-scroll-row" style="display:none"></div>
+
             <div style="height:1.5rem"></div>
           </div>
 
@@ -1863,39 +1901,8 @@ body{background:var(--cream);color:var(--text);font-family:var(--sans);font-size
           <div class="home-right-col">
             <div class="home-quote-card">
               <div class="home-quote-mark">"</div>
-              <div class="home-quote-text">The stories she tells today are the recipes you'll cherish forever.</div>
-              <div style="margin-top:.9rem;color:var(--accent);font-size:.9rem">♡</div>
-            </div>
-            <div class="home-tips-card">
-              <div class="home-tips-title">Tips for a great memory</div>
-              <div class="home-tip-row">
-                <div class="home-tip-icon" style="background:#FFF4E6">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C4522A" stroke-width="2" stroke-linecap="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/></svg>
-                </div>
-                <div>
-                  <div class="home-tip-title">Ask what makes the recipe special</div>
-                  <div class="home-tip-sub">Capture the stories behind the dish.</div>
-                </div>
-              </div>
-              <div class="home-tip-row">
-                <div class="home-tip-icon" style="background:#FFF0F3">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#E05575" stroke-width="2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-                </div>
-                <div>
-                  <div class="home-tip-title">Ask for her tips and little secrets</div>
-                  <div class="home-tip-sub">Those little details make it priceless.</div>
-                </div>
-              </div>
-              <div class="home-tip-row" style="margin-bottom:.4rem">
-                <div class="home-tip-icon" style="background:#FFFBEC">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D4A017" stroke-width="2" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                </div>
-                <div>
-                  <div class="home-tip-title">Let her talk naturally</div>
-                  <div class="home-tip-sub">The more she shares, the better!</div>
-                </div>
-              </div>
-              <button class="home-learn-more" onclick="go('capture')">Learn more ›</button>
+              <div class="home-quote-text">The stories we tell today become the treasures of tomorrow.</div>
+              <div class="home-quote-sub">♡ Share a memory.<br>Keep the echoes alive.</div>
             </div>
           </div>
 
@@ -2932,20 +2939,66 @@ function _formatDuration(seconds) {
   return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
 }
 
+function _renderCherishedRecipes() {
+  const el = document.getElementById('home-cherished-grid');
+  if (!el) return;
+  if (allRecipes.length === 0) {
+    el.innerHTML = `<div style="grid-column:1/-1;color:var(--muted);font-size:.8rem;padding:.5rem 0">No recipes yet — <a onclick="go('capture')" style="color:var(--accent);cursor:pointer">capture the first one</a></div>`;
+    return;
+  }
+  const shown = allRecipes.slice(0, 3);
+  el.innerHTML = shown.map(r => {
+    const avHtml = _personAvHtml(r.narrator || 'Grandma', 14);
+    return `
+    <div class="home-cherished-card" onclick="openRecipe('${r.token}')">
+      <div class="hcc-img">
+        ${r.image_url ? `<img src="${esc(r.image_url)}" alt="${esc(r.dish_name)}" onerror="this.style.display='none'"/>` : '🍽️'}
+      </div>
+      <div class="hcc-body">
+        <div class="hcc-name">${esc(r.dish_name || 'Untitled')}</div>
+        <div class="hcc-who">${avHtml}<span>${esc(r.narrator || 'Grandma')}</span></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function _renderHomePeople() {
+  const el = document.getElementById('home-people-bubbles');
+  if (!el) return;
+  const people = getFamilyVoices().slice(0, 5);
+  const addCard = `
+    <div class="home-person-bubble" onclick="go('people')">
+      <div class="hpb-add">+</div>
+      <div class="hpb-name" style="color:var(--muted)">Add someone</div>
+      <div class="hpb-role">to your circle</div>
+    </div>`;
+  el.innerHTML = people.map(p => {
+    const avHtml = _personAvHtml(p.name, 62);
+    return `
+    <div class="home-person-bubble" onclick="go('people')">
+      <div class="hpb-av">${avHtml}</div>
+      <div class="hpb-name">${esc(p.name)}</div>
+      ${p.relation ? `<div class="hpb-role">${esc(p.relation)}</div>` : ''}
+    </div>`;
+  }).join('') + addCard;
+}
+
 function renderHome() {
   renderFamilyVoices();
 
-  // Update welcome title with user's first name
+  // Personalise welcome title with first name
   const titleEl = document.getElementById('home-welcome-title');
   if (titleEl) {
     const name = document.getElementById('sidebar-name')?.textContent?.split(' ')[0];
     if (name && name !== '…') {
-      titleEl.innerHTML = `Welcome home, ${esc(name)}! <span style="color:var(--accent)">♡</span>`;
+      titleEl.innerHTML = `Welcome home, <span style="color:var(--accent)">${esc(name)}</span>! ♡`;
     }
   }
 
   _renderFavRow();
   _renderRecentMemories();
+  _renderCherishedRecipes();
+  _renderHomePeople();
 }
 
 function getFamilyVoices() {
