@@ -74,12 +74,22 @@ def _check_rate_limit(user_id: str) -> None:
         )
 
 
-def _generate_image(dish_name: str) -> str:
+def _generate_image(
+    dish_name: str,
+    ingredients: list | None = None,
+    steps: list | None = None,
+    cook_notes: str | None = None,
+) -> str:
     """Generate + store a DALL-E image for the dish. Returns URL or empty string."""
     try:
         from prompts.image import generate_dish_image
         from tools.storage import store_image
-        raw_url = generate_dish_image(dish_name or "Indian dish")
+        raw_url = generate_dish_image(
+            dish_name or "Indian dish",
+            ingredients=ingredients,
+            steps=steps,
+            cook_notes=cook_notes,
+        )
         if raw_url and os.environ.get("SUPABASE_URL"):
             return store_image(raw_url)
         return raw_url or ""
@@ -189,7 +199,12 @@ async def capture_endpoint(audio: UploadFile = File(...), user: dict = Depends(r
 
         transcript = run_transcribe(tmp_path)
         recipe_data = run_transform(transcript)
-        recipe_data.image_url = _generate_image(recipe_data.dish_name)
+        recipe_data.image_url = _generate_image(
+            recipe_data.dish_name,
+            ingredients=recipe_data.ingredients,
+            steps=recipe_data.steps,
+            cook_notes=recipe_data.cook_notes,
+        )
 
         recipe = {
             "transcript_raw": recipe_data.transcript_raw,
@@ -258,7 +273,12 @@ async def capture_process_endpoint(
 
         transcript = run_transcribe(tmp_path)
         recipe_data = run_transform(transcript)
-        recipe_data.image_url = _generate_image(recipe_data.dish_name)
+        recipe_data.image_url = _generate_image(
+            recipe_data.dish_name,
+            ingredients=recipe_data.ingredients,
+            steps=recipe_data.steps,
+            cook_notes=recipe_data.cook_notes,
+        )
 
         result = {
             "transcript_raw": recipe_data.transcript_raw,
