@@ -610,13 +610,28 @@ async def translate_recipe_endpoint(token: str, lang: str = "en", force: bool = 
 # Next.js prefetches <Link> targets with HEAD; plain @app.get does not register HEAD (405).
 @app.api_route("/{path:path}", methods=["GET", "HEAD"])
 async def serve_frontend(path: str):
-    """Serve Next.js static export pages. out/{path}/index.html → out/index.html fallback."""
+    """Serve Next.js static export pages and public assets.
+
+    Priority:
+    1. Direct file in out/ (images, fonts, icons, manifests, etc.)
+    2. out/{path}/index.html  (Next.js page directory)
+    3. out/index.html          (SPA fallback)
+    """
+    # 1. Direct file (e.g. hero-people.png, favicon.ico, echoes-logo.png)
+    direct = _FRONTEND_OUT / path
+    if direct.is_file():
+        return FileResponse(direct)
+
+    # 2. Next.js page
     candidate = _FRONTEND_OUT / path / "index.html"
     if candidate.exists():
         return FileResponse(candidate, headers=_NO_CACHE_HEADERS)
+
+    # 3. SPA fallback
     root = _FRONTEND_OUT / "index.html"
     if root.exists():
         return FileResponse(root, headers=_NO_CACHE_HEADERS)
+
     raise HTTPException(status_code=404, detail="Not found")
 
 
