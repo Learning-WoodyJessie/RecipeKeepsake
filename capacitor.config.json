@@ -1,7 +1,7 @@
 {
-  "appId": "com.recipekeepsake.app",
-  "appName": "Recipe Keepsake",
-  "webDir": "web",
+  "appId": "com.echoesofhome.app",
+  "appName": "Echoes of Home",
+  "webDir": "frontend/out",
   "server": {
     "url": "https://vibrant-spontaneity-production-9f92.up.railway.app",
     "cleartext": false,

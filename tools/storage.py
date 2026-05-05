@@ -6,10 +6,16 @@ from supabase import create_client, Client
 import httpx
 
 
+_supabase: "Client | None" = None
+
+
 def _client() -> Client:
-    url = os.environ["SUPABASE_URL"]
-    key = os.environ["SUPABASE_SERVICE_KEY"]
-    return create_client(url, key)
+    global _supabase
+    if _supabase is None:
+        url = os.environ["SUPABASE_URL"]
+        key = os.environ["SUPABASE_SERVICE_KEY"]
+        _supabase = create_client(url, key)
+    return _supabase
 
 
 _SIGNED_URL_EXPIRY = 3600  # 1 hour
@@ -247,3 +253,22 @@ def delete_account(user_id: str) -> None:
         sb.auth.admin.delete_user(user_id)
     except Exception as e:
         print(f"[delete_account] auth user delete failed (non-fatal): {e}")
+
+
+def check_rate_limit_db(user_id: str, endpoint: str) -> int:
+    """Atomically increment the rate limit counter for (user, today, endpoint).
+
+    Returns the new count, or 0 on DB failure (fail open — rate limiting is
+    abuse prevention, not billing enforcement).
+    """
+    try:
+        sb = _client()
+        result = sb.rpc(
+            "increment_rate_limit",
+            {"p_user_id": user_id, "p_endpoint": endpoint},
+        ).execute()
+        return result.data or 0
+    except Exception as e:
+        print(f"[storage] rate limit DB error (fail open): {e}")
+        return 0
+

@@ -4,6 +4,33 @@ One-paragraph summary per session. Most recent first.
 
 ---
 
+## 2026-05-05 — Session 5: Phase 1.6 Scale Hardening + Architecture Review
+
+Six critical infrastructure fixes to support 10,000 users. All pure code changes — no new infrastructure.
+
+### Accomplished
+- **Supabase client singleton** (`tools/storage.py`): module-level `_supabase` — one client per process instead of one per DB call. Migrated all `create_client` patches in tests to `monkeypatch.setattr(_supabase, ...)`.
+- **Async auth + local JWT verification** (`scripts/serve.py`): `require_auth` rewritten to `async` with `httpx.AsyncClient`; PyJWT added to verify token signature locally in microseconds; Supabase network call retained as fallback for revoked tokens. Eliminates ~75ms round-trip on every authenticated request.
+- **Fail-closed auth** (`scripts/serve.py`): missing `SUPABASE_URL` in production now raises HTTP 500 instead of silently granting access to all endpoints.
+- **Explicit CORS** (`scripts/serve.py`): `allow_methods` and `allow_headers` changed from `["*"]` to explicit lists — no wildcards.
+- **Postgres distributed rate limiting** (`tools/storage.py`, `scripts/serve.py`, `data/migrations/003_rate_limits.sql`): replaced in-memory `_rec_counts` dict (broken across Railway instances) with `rate_limits` table + `increment_rate_limit()` Postgres function. Rate limiting now covers all LLM-backed endpoints: capture, translate, generate-image — each with its own configurable daily limit.
+- **RLS confirmed** (D-004 closed): `user_id::text = auth.uid()::text` policies verified active on `recipes` and `people` tables.
+- **Architecture docs**: rewrote `docs/ARCHITECTURE.md` Section 1 (PRD) with empathic problem statement, 5 personas, 7 user journeys. Added Section 11 (Data Models with ER diagram, known gaps) and Section 12 (Security map). Updated `docs/ROADMAP.md` with Phase 1.6 (scale hardening), Phase 1.7 (frontend migration), Phase 5 expansion (profiles, family invite/roles). PRD, plan, and decisions all logged.
+- **Test count**: 81 → 97 (+16 tests across `test_auth.py`, `test_rate_limit.py`, `test_storage.py`)
+
+### Learned
+- Module-level singletons break `patch("module.factory_fn")` test patterns — must migrate to `monkeypatch.setattr(module, "singleton_var", mock)` for test isolation.
+- Local imports inside function bodies (`from tools.storage import X`) prevent patching the name at test time; module-level imports are required for patchability.
+- `web/nextjs/` is a very early scaffold (3 incomplete pages, no auth, old branding) — Phase 1.7 is a frontend rebuild, not a small refactor. Sequencing it after Phase 1.6 was the right call.
+
+### Deferred
+- D-002: Whisper hallucination on mid-sentence stop — still blocks Phase 4
+- D-003: `/generate-image` endpoint missing recipe fields in enriched prompt
+- D-005: `user.get("sub") or user.get("id", "")` repeated 4× — extract to `_user_id()` helper (nitpick)
+- Phase 1.7 (Frontend Migration): `web/app.html` → `web/nextjs/` — planned after Phase 1.6
+
+---
+
 ## 2026-05-01 — Session 4: Web App Polish + Echoes of Home pivot
 
 Major UI overhaul across five screens and a product rename. **Our People** screen rebuilt as a two-column card layout with full CRUD — add/edit/delete person with photo upload (file → base64) or URL paste, unified modal with dynamic title/button. **Home screen** redesigned: welcome card with polaroid illustration, horizontal favorites scroll row (persisted in `localStorage['rk_favorites']`), recent memories list with deterministic waveform bars per token, right sidebar with quote card and tips. **Capture a Memory** and **Upload Recording** screens redesigned with two-column layouts, tips sidebars, waveform visualiser, and narrator chips. **App renamed** from "Dadi's Recipes" to "Echoes of Home" with tagline *"Every family carries a world. Don't let it fade."* — all narrator-specific strings (`rd-kitchen-badge`, `rd-hear-label`, `rd-tip-tab`, `rd-ing-title`, `cooking-mode-label`) made dynamic from `r.narrator` at render time. **Delete recipe** implemented: trash icon → slide-in red confirmation banner with dish name, `DELETE /recipe/{token}` endpoint with ownership check, `tools/storage.delete_recipe()`. **Translation 500 fix**: GPT-4o returning markdown-fenced JSON despite instructions — fixed with `json_mode=True` (→ `response_format: json_object`) + fence-strip fallback in `translate_recipe.py`; same pattern already existed in `structure.py`. **No-cache headers** added on `app.html` FileResponse — prevents Railway CDN + mobile browser (including incognito) serving stale versions. **Memories nav scaffold**: sidebar now has a "Memories" group heading with "All Recipes" nested under it, setting up the structure for Remedies, Stories, Songs, Wisdom.
