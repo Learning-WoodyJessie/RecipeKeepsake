@@ -181,14 +181,21 @@ Rate limiting applies to all LLM-backed endpoints — not capture only. Translat
 
 ## Phase 1.7 — Frontend Migration 🔜
 
-*After Phase 1.6 completes. Migrate the production frontend from `web/app.html` (single-file HTML SPA, 4 900 lines) to `web/nextjs/` (Next.js 14 + TypeScript). Frontend deployed on Vercel; backend stays on Railway. The API shape is already clean — FastAPI serves JSON, the frontend consumes it.*
+*Approved 2026-05-05. PRD: `docs/plans/2026-05-05-frontend-migration-design.md`.*
 
-**Why now:** Phase 1.6 finalises the auth and API contracts the Next.js frontend will depend on. Migrating before those contracts are stable would mean doing it twice.
+Migrate the production frontend from `web/app.html` (single-file vanilla JS SPA, 4,900 lines) to `frontend/` (Next.js 14 + React + TypeScript, static export). Frontend deployed on Vercel; backend stays on Railway. Capacitor updated so Android (Phase 2) and iOS (Phase 3) both load from the Vercel URL.
+
+**Key decisions:**
+- **Static export** (`output: 'export'`) — not SSR. App is private/authenticated, all screens use browser APIs, CDN delivery is faster for this use case, one build serves web + Android + iOS.
+- **`frontend/` top-level directory** — moved from `web/nextjs/`. Frontend and backend now deploy to separate infrastructure; top-level separation makes this explicit.
+- **Capacitor `server.url`** points at Vercel — native apps load the latest version on every open without an app store release.
+- **iOS scaffolded in this phase** (`npx cap add ios`) — configured but not submitted. App Store submission remains Phase 3.
 
 **Scope — what this is NOT:**
-- No new features — this is a like-for-like screen migration
-- No backend changes — API endpoints and response shapes are unchanged
-- No new infrastructure beyond Vercel (already scaffolded via `web/nextjs/vercel.json`)
+- No new features — like-for-like screen migration only
+- No backend changes — Railway API endpoints and response shapes unchanged
+- No PWA — explicitly excluded
+- No App Store / Play Store submissions — Phase 2 (Android) and Phase 3 (iOS)
 
 ### Epic F1 — Foundation & Auth
 
