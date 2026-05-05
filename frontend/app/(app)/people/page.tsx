@@ -1,11 +1,15 @@
+// This file defines the People page in the application.
+// Purpose: Allows users to manage profiles of narrators associated with memories.
+// Why: Provides a way to organize and edit information about family members who narrate memories.
+// How: Uses React hooks for state management and API calls for CRUD operations on narrator profiles.
+
 'use client'
 import { useEffect, useState } from 'react'
-import { api } from '@/lib/api'
+import { api, type Person } from '@/lib/api'
 
-type Person = { id: string; name: string; relationship: string; emoji?: string; photo_url?: string; bio?: string; notes?: string }
 type FormData = Omit<Person, 'id'>
 
-const EMPTY: FormData = { name: '', relationship: '', emoji: '👤', photo_url: '', bio: '', notes: '' }
+const EMPTY: FormData = { name: '', relationship: '', emoji: '\ud83d\udc64', photo_url: '', bio: '', notes: '' }
 
 export default function PeoplePage() {
   const [people, setPeople] = useState<Person[]>([])
