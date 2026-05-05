@@ -45,64 +45,90 @@ function fmtDate(iso: string) {
 
 function HeroCard({ userName }: { userName: string }) {
   return (
-    <section
-      style={{
-        background: 'var(--surface)',
-        border: '1px solid var(--border)',
-        borderRadius: 20,
-        overflow: 'hidden',
-        display: 'flex',
-        alignItems: 'stretch',
-        marginBottom: '1.75rem',
-        boxShadow: '0 8px 32px rgba(45,27,14,0.07)',
-        minHeight: 220,
-      }}
-    >
-      {/* Left: text + action tiles */}
-      <div style={{ flex: 1, padding: 'clamp(1.25rem, 3vw, 2rem)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-        <h1 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.5rem, 3vw, 2rem)', fontWeight: 700, color: 'var(--text)', lineHeight: 1.15, marginBottom: '0.55rem' }}>
-          Welcome home, {userName}! <span aria-hidden style={{ color: '#E05555' }}>❤️</span>
-        </h1>
-        <p style={{ fontSize: '0.9rem', color: 'var(--muted)', lineHeight: 1.5, marginBottom: '1.35rem' }}>
-          Every recipe has a story.<br />Every memory keeps her close.
-        </p>
-        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-          <ActionTile
-            href="/capture"
-            icon="🎙️"
-            label="Record a memory"
-            desc="Capture a voice, a story, a moment"
-          />
-          <ActionTile
-            href="/upload"
-            icon="☁️"
-            label="Upload audio"
-            desc="Use an existing recording"
-          />
-        </div>
-      </div>
-      {/* Right: watercolor illustration */}
-      <div
-        className="rk-hero-photo"
+    <>
+      <style>{`
+        .rk-hero-card {
+          display: flex;
+          flex-direction: row;
+          align-items: stretch;
+        }
+        .rk-hero-text {
+          flex: 1;
+          padding: clamp(1.25rem, 3vw, 2rem);
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          min-width: 0;
+        }
+        .rk-hero-img-wrap {
+          width: clamp(200px, 32vw, 340px);
+          flex-shrink: 0;
+          overflow: hidden;
+          background: var(--cream);
+        }
+        /* Mobile: stack vertically, image on top */
+        @media (max-width: 600px) {
+          .rk-hero-card { flex-direction: column; }
+          .rk-hero-img-wrap {
+            width: 100%;
+            height: 200px;
+            order: 0 !important;
+          }
+          .rk-hero-text {
+            padding: 1rem 1.1rem;
+            order: 1 !important;
+          }
+        }
+      `}</style>
+      <section
+        className="rk-hero-card"
         style={{
-          width: 'clamp(220px, 30vw, 340px)',
-          flexShrink: 0,
-          position: 'relative',
+          background: 'var(--surface)',
+          border: '1px solid var(--border)',
+          borderRadius: 20,
           overflow: 'hidden',
-          background: 'var(--cream)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
+          marginBottom: '1.75rem',
+          boxShadow: '0 8px 32px rgba(45,27,14,0.07)',
         }}
       >
-        <img
-          src="/hero-home.png"
-          alt=""
-          style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center center' }}
-          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
-        />
-      </div>
-    </section>
+        {/* Image — top on mobile, right on desktop */}
+        <div className="rk-hero-img-wrap" style={{ order: 2 }}>
+          <img
+            src="/hero-home.png"
+            alt=""
+            className="rk-hero-img"
+            style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: '65% center' }}
+            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+          />
+          <style>{`.rk-hero-img { object-position: 65% center; } @media (max-width: 600px) { .rk-hero-img { object-position: 70% 40%; } }`}</style>
+        </div>
+
+        {/* Text + action tiles */}
+        <div className="rk-hero-text" style={{ order: 1 }}>
+          <h1 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.35rem, 3vw, 2rem)', fontWeight: 700, color: 'var(--text)', lineHeight: 1.2, marginBottom: '0.5rem' }}>
+            Welcome home, {userName}!{' '}
+            <span aria-hidden style={{ color: '#D4895A' }}>♡</span>
+          </h1>
+          <p style={{ fontSize: '0.88rem', color: 'var(--muted)', lineHeight: 1.55, marginBottom: '1.2rem' }}>
+            Every recipe has a story.<br />Every memory keeps her close.
+          </p>
+          <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap' }}>
+            <ActionTile
+              href="/capture"
+              icon="🎙️"
+              label="Record a memory"
+              desc="Capture a voice, a story, a moment"
+            />
+            <ActionTile
+              href="/upload"
+              icon="☁️"
+              label="Upload audio"
+              desc="Use an existing recording"
+            />
+          </div>
+        </div>
+      </section>
+    </>
   )
 }
 

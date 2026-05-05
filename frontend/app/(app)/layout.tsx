@@ -44,7 +44,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, minHeight: 0, height: '100vh' }}>
+        <div style={{ flex: 1, width: '100%', display: 'flex', flexDirection: 'column', minWidth: 0, minHeight: 0, height: '100vh' }}>
           <AppTopBar onMenuClick={() => setSidebarOpen(o => !o)} />
           <main style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>{children}</main>
         </div>
