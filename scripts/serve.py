@@ -24,7 +24,7 @@ from dotenv import load_dotenv
 # Load .env from project root — no-op in production (Railway sets env vars directly)
 load_dotenv(Path(__file__).parent.parent / ".env")
 
-from fastapi import FastAPI, UploadFile, File, HTTPException, Depends
+from fastapi import FastAPI, UploadFile, File, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -104,25 +104,21 @@ if _FRONTEND_OUT.exists():
     app.mount("/_next", StaticFiles(directory=_FRONTEND_OUT / "_next"), name="nextjs-assets")
 
 
-async def require_auth(creds: HTTPAuthorizationCredentials = Depends(_bearer)) -> dict:
-    """Validate Supabase JWT. Local PyJWT verification first; Supabase network call as fallback."""
-    if not creds:
-        raise HTTPException(status_code=401, detail="Not authenticated")
+async def decode_auth_user(creds: HTTPAuthorizationCredentials) -> dict:
+    """Validate Supabase JWT from bearer credentials (non-optional)."""
     token = creds.credentials
     jwt_secret = os.environ.get("SUPABASE_JWT_SECRET", "")
     supabase_url = os.environ.get("SUPABASE_URL", "")
     anon_key = os.environ.get("SUPABASE_ANON_KEY", "")
 
-    # Fast path: local JWT verification — no network call
     if jwt_secret:
         try:
             import jwt as pyjwt
             payload = pyjwt.decode(token, jwt_secret, algorithms=["HS256"])
             return payload
         except Exception:
-            pass  # fall through to Supabase network call
+            pass
 
-    # Fallback: Supabase network call (also handles revoked tokens)
     if not supabase_url:
         env = os.environ.get("ENV", "production")
         if env == "production":
@@ -140,6 +136,13 @@ async def require_auth(creds: HTTPAuthorizationCredentials = Depends(_bearer)) -
         return resp.json()
     except httpx.RequestError:
         raise HTTPException(status_code=401, detail="Could not verify session")
+
+
+async def require_auth(creds: HTTPAuthorizationCredentials = Depends(_bearer)) -> dict:
+    """Validate Supabase JWT. Local PyJWT verification first; Supabase network call as fallback."""
+    if not creds:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    return await decode_auth_user(creds)
 
 
 app.add_middleware(
@@ -389,12 +392,35 @@ class PersonRequest(BaseModel):
     notes: str | None = None
 
 
-@app.get("/people")
-async def list_people_endpoint(user: dict = Depends(require_auth)):
-    """Return all narrator profiles for the authenticated user."""
+def _people_spa_path() -> Path:
+    """Static Next export for the People UI (same path as JSON list — see handler)."""
+    return _FRONTEND_OUT / "people" / "index.html"
+
+
+@app.api_route("/people", methods=["GET", "HEAD"])
+async def list_people_endpoint(
+    request: Request,
+    creds: HTTPAuthorizationCredentials | None = Depends(_bearer),
+):
+    """JSON list when Bearer auth is present; static People page for typical browser requests.
+
+    Next uses ``trailingSlash: true`` (``/people/``) for the UI, but users often open ``/people``.
+    Without this split, ``GET /people`` hit the API and showed raw ``Not authenticated`` JSON.
+    """
     from tools.storage import list_people
-    user_id = user.get("id", "")
-    return JSONResponse(content={"people": list_people(user_id)})
+
+    if creds is not None:
+        user = await decode_auth_user(creds)
+        return JSONResponse(content={"people": list_people(user.get("id", ""))})
+
+    accept = request.headers.get("accept", "")
+    if request.method == "HEAD" or request.headers.get("sec-fetch-dest") == "document" or "text/html" in accept:
+        spa = _people_spa_path()
+        if spa.exists():
+            return FileResponse(spa, headers=_NO_CACHE_HEADERS)
+        raise HTTPException(status_code=404, detail="Not found")
+
+    raise HTTPException(status_code=401, detail="Not authenticated")
 
 
 @app.post("/people")
