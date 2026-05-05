@@ -9,7 +9,11 @@ node_modules/
 
 # Capacitor / mobile — track source, ignore build outputs
 node_modules/
-ios/
+# iOS: track source, ignore build outputs
+ios/.build/
+ios/App/Pods/
+ios/App/App.xcworkspace/xcuserdata/
+ios/App/DerivedData/
 # Android: track source + manifest, ignore Gradle build artifacts
 android/.gradle/
 android/build/
