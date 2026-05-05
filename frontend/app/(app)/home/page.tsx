@@ -151,12 +151,14 @@ function FavoritesScroll({
   onToggle,
   sortBy,
   onSortChange,
+  peopleMap,
 }: {
   memories: Memory[]
   favTokens: string[]
   onToggle: (token: string) => void
   sortBy: 'favorites' | 'recent'
   onSortChange: (v: 'favorites' | 'recent') => void
+  peopleMap: Record<string, string>
 }) {
   const sorted = useMemo(() => {
     if (sortBy === 'favorites') {
@@ -209,7 +211,7 @@ function FavoritesScroll({
       ) : (
         <div style={{ display: 'flex', gap: '0.85rem', overflowX: 'auto', paddingBottom: '0.5rem', scrollbarWidth: 'none' }}>
           {sorted.map((m) => (
-            <FavoriteCard key={m.token} memory={m} isFav={favTokens.includes(m.token)} onToggle={() => onToggle(m.token)} />
+            <FavoriteCard key={m.token} memory={m} isFav={favTokens.includes(m.token)} onToggle={() => onToggle(m.token)} narratorPhoto={peopleMap[m.narrator?.toLowerCase() ?? ''] ?? ''} />
           ))}
         </div>
       )}
@@ -217,7 +219,7 @@ function FavoritesScroll({
   )
 }
 
-function FavoriteCard({ memory, isFav, onToggle }: { memory: Memory; isFav: boolean; onToggle: () => void }) {
+function FavoriteCard({ memory, isFav, onToggle, narratorPhoto }: { memory: Memory; isFav: boolean; onToggle: () => void; narratorPhoto: string }) {
   return (
     <div style={{ flexShrink: 0, width: 180, borderRadius: 16, overflow: 'hidden', background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: '0 4px 12px rgba(45,27,14,0.06)' }}>
       <div style={{ position: 'relative', aspectRatio: '1 / 1', background: 'var(--cream2)', overflow: 'hidden' }}>
@@ -257,8 +259,11 @@ function FavoriteCard({ memory, isFav, onToggle }: { memory: Memory; isFav: bool
           {memory.dish_name ?? 'Untitled'}
         </p>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-          <div style={{ width: 20, height: 20, borderRadius: '50%', background: 'var(--accent-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem', fontWeight: 700, color: 'var(--accent)', flexShrink: 0 }}>
-            {(memory.narrator ?? '?')[0]?.toUpperCase()}
+          <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'var(--accent-light)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: '1.5px solid var(--border)' }}>
+            {narratorPhoto
+              ? <img src={narratorPhoto} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              : <span style={{ fontSize: '0.6rem', fontWeight: 700, color: 'var(--accent)' }}>{(memory.narrator ?? '?')[0]?.toUpperCase()}</span>
+            }
           </div>
           <p style={{ fontSize: '0.72rem', color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {memory.narrator ?? 'Narrator'}
@@ -416,16 +421,28 @@ function QuotePanel() {
           <span aria-hidden>💡</span> Tips for a great memory
         </h3>
         {[
-          { icon: '🎙️', title: 'Ask what makes the recipe special', desc: 'Capture the stories behind the dish.' },
-          { icon: '♥', title: 'Ask for her tips and little secrets', desc: 'Those little details make it priceless.' },
-          { icon: '✨', title: 'Let her talk naturally', desc: 'The more she shares, the better!' },
+          {
+            icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/></svg>,
+            title: 'Ask what makes the recipe special',
+            desc: 'Capture the stories behind the dish.',
+          },
+          {
+            icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>,
+            title: 'Ask for her tips and little secrets',
+            desc: 'Those little details make it priceless.',
+          },
+          {
+            icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>,
+            title: 'Let her talk naturally',
+            desc: 'The more she shares, the better!',
+          },
         ].map((tip) => (
           <div key={tip.title} style={{ display: 'flex', gap: '0.65rem', marginBottom: '0.9rem' }}>
-            <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'var(--accent-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem', flexShrink: 0 }}>
+            <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--accent-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent)', flexShrink: 0 }}>
               {tip.icon}
             </div>
             <div>
-              <p style={{ fontWeight: 600, fontSize: '0.82rem', color: 'var(--text)', marginBottom: 3 }}>{tip.title}</p>
+              <p style={{ fontWeight: 700, fontSize: '0.82rem', color: 'var(--text)', marginBottom: 3 }}>{tip.title}</p>
               <p style={{ fontSize: '0.75rem', color: 'var(--muted)', lineHeight: 1.45 }}>{tip.desc}</p>
             </div>
           </div>
@@ -502,11 +519,11 @@ export default function HomePage() {
           max-width: 1200px;
           margin: 0 auto;
         }
-        @media (min-width: 1024px) {
+        @media (min-width: 860px) {
           .rk-home-cols { grid-template-columns: 1fr 272px; align-items: start; }
         }
         .rk-hero-photo { display: none; }
-        @media (min-width: 720px) { .rk-hero-photo { display: block !important; } }
+        @media (min-width: 700px) { .rk-hero-photo { display: block !important; } }
       `}</style>
 
       <div className="rk-home-cols">
@@ -519,6 +536,7 @@ export default function HomePage() {
             onToggle={toggleFavorite}
             sortBy={sortBy}
             onSortChange={setSortBy}
+            peopleMap={peopleMap}
           />
           {recentRows.length > 0 && (
             <RecentMemoriesSection
@@ -535,6 +553,11 @@ export default function HomePage() {
           <QuotePanel />
         </aside>
       </div>
+
+      {/* Bottom tagline */}
+      <p style={{ textAlign: 'center', marginTop: '2rem', fontSize: '0.88rem', color: 'var(--muted)', maxWidth: 1200, margin: '2rem auto 0' }}>
+        Memories fade with time, but love keeps them alive. Capture today. <span style={{ color: 'var(--accent)' }}>❤️</span>
+      </p>
     </div>
   )
 }
