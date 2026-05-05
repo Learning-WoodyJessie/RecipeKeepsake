@@ -18,8 +18,6 @@ import json as _json
 import os
 import tempfile
 import uuid
-from collections import defaultdict
-from datetime import date as _date
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -38,6 +36,7 @@ from pipeline.transcribe import run_transcribe
 from pipeline.transform import run_transform
 from pipeline.persist import run_persist
 from pipeline.models import RecipeData
+from tools.storage import check_rate_limit_db
 
 _WEB_DIR = Path(__file__).parent.parent / "web"
 
@@ -52,25 +51,21 @@ app = FastAPI(title="RecipeKeepsake API")
 
 _bearer = HTTPBearer(auto_error=False)
 
-# ── Rate limiting (in-memory, resets on restart — abuse prevention, not billing) ──
-_MAX_RECORDINGS_PER_DAY = int(os.environ.get("MAX_RECORDINGS_PER_DAY", "10"))
-_rec_counts: dict[str, int] = defaultdict(int)
-_rec_dates: dict[str, _date] = {}
+# ── Rate limiting (Postgres — accurate across instances, survives restarts) ──
+_LIMITS = {
+    "capture":         int(os.environ.get("MAX_CAPTURE_PER_DAY",   "10")),
+    "translate":       int(os.environ.get("MAX_TRANSLATE_PER_DAY", "50")),
+    "generate-image":  int(os.environ.get("MAX_IMAGE_PER_DAY",     "20")),
+}
 
 
-def _check_rate_limit(user_id: str) -> None:
-    """Raise HTTP 429 if user has hit today's recording limit."""
-    if not user_id:
-        return  # unauthenticated dev/local calls pass through
-    today = _date.today()
-    if _rec_dates.get(user_id) != today:
-        _rec_counts[user_id] = 0
-        _rec_dates[user_id] = today
-    _rec_counts[user_id] += 1
-    if _rec_counts[user_id] > _MAX_RECORDINGS_PER_DAY:
+def _check_rate_limit_db_or_raise(user_id: str, endpoint: str, limit: int) -> None:
+    """Increment Postgres counter and raise 429 if daily limit exceeded."""
+    count = check_rate_limit_db(user_id, endpoint)
+    if count > limit:
         raise HTTPException(
             status_code=429,
-            detail=f"Daily limit of {_MAX_RECORDINGS_PER_DAY} recordings reached. Try again tomorrow.",
+            detail=f"Daily limit of {limit} {endpoint} requests reached. Try again tomorrow.",
         )
 
 
@@ -201,7 +196,7 @@ async def capture_endpoint(audio: UploadFile = File(...), user: dict = Depends(r
     Full pipeline: transcribe → translate → structure → image → save.
     Returns saved recipe JSON. Use /capture/process for review-before-save flow.
     """
-    _check_rate_limit(user.get("id", ""))
+    _check_rate_limit_db_or_raise(user.get("sub") or user.get("id", ""), "capture", _LIMITS["capture"])
     if not os.environ.get("OPENAI_API_KEY"):
         raise HTTPException(status_code=500, detail="OPENAI_API_KEY not set")
 
@@ -275,7 +270,7 @@ async def capture_process_endpoint(
     Does NOT save to Supabase. Returns structured JSON for client review.
     Client calls /capture/save after user edits.
     """
-    _check_rate_limit(user.get("id", ""))
+    _check_rate_limit_db_or_raise(user.get("sub") or user.get("id", ""), "capture", _LIMITS["capture"])
     if not os.environ.get("OPENAI_API_KEY"):
         raise HTTPException(status_code=500, detail="OPENAI_API_KEY not set")
 
@@ -459,6 +454,7 @@ class ImageRequest(BaseModel):
 @app.post("/generate-image")
 async def generate_image_endpoint(body: ImageRequest, user: dict = Depends(require_auth)):
     """Generate a DALL-E image for a dish name. Returns image URL."""
+    _check_rate_limit_db_or_raise(user.get("sub") or user.get("id", ""), "generate-image", _LIMITS["generate-image"])
     if not os.environ.get("OPENAI_API_KEY"):
         raise HTTPException(status_code=500, detail="OPENAI_API_KEY not set")
     url = _generate_image(body.dish_name)
@@ -516,6 +512,7 @@ async def translate_recipe_endpoint(token: str, lang: str = "en", force: bool = 
     fields directly — no LLM call.
     Pass ?force=true to bypass cache and re-translate (useful after prompt fixes).
     """
+    _check_rate_limit_db_or_raise(user.get("sub") or user.get("id", ""), "translate", _LIMITS["translate"])
     lang = lang.lower()
     if lang not in _TRANSLATE_SUPPORTED:
         raise HTTPException(status_code=400, detail=f"Unsupported language: {lang}")
