@@ -7,6 +7,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { api, type Person } from '@/lib/api'
+import { readFavorites, toggleFavorite } from '@/lib/favorites'
 
 type Memory = {
   token: string
@@ -16,9 +17,6 @@ type Memory = {
   image_url: string | null
 }
 
-function readFavorites(): string[] {
-  try { return JSON.parse(localStorage.getItem('rk_favorites') ?? '[]') } catch { return [] }
-}
 
 const FILTER_TAGS = ['All', 'Favorites', 'Breakfast', 'Lunch', 'Sweets', 'Pickles', 'Snacks', 'Drinks', 'Recently added']
 const SORT_OPTIONS = ['Recently added', 'Oldest first', 'A–Z']
@@ -279,9 +277,7 @@ export default function MemoriesPage() {
   const favTokens = useMemo(() => readFavorites(), [favTick])
 
   const toggleFav = useCallback((token: string) => {
-    const set = new Set(readFavorites())
-    if (set.has(token)) set.delete(token); else set.add(token)
-    localStorage.setItem('rk_favorites', JSON.stringify([...set]))
+    toggleFavorite(token)
     setFavTick(x => x + 1)
   }, [])
 

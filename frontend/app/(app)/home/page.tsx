@@ -9,6 +9,7 @@ import Link from 'next/link'
 import { api, type Person } from '@/lib/api'
 import WaveformBars from '@/components/WaveformBars'
 import { supabase } from '@/lib/supabase'
+import { readFavorites, toggleFavorite as toggleFav } from '@/lib/favorites'
 
 type Memory = {
   token: string
@@ -26,9 +27,6 @@ function firstName(user: { user_metadata?: Record<string, unknown>; email?: stri
   return user.email?.split('@')[0] ?? 'friend'
 }
 
-function readFavorites(): string[] {
-  try { return JSON.parse(localStorage.getItem('rk_favorites') ?? '[]') } catch { return [] }
-}
 
 function pseudoDuration(token: string): string {
   let n = 0
@@ -513,10 +511,7 @@ export default function HomePage() {
   const favTokens = useMemo(() => readFavorites(), [favTick, memories])
 
   const toggleFavorite = useCallback((token: string) => {
-    const set = new Set(readFavorites())
-    if (set.has(token)) set.delete(token)
-    else set.add(token)
-    localStorage.setItem('rk_favorites', JSON.stringify([...set]))
+    toggleFav(token)
     setFavTick((x) => x + 1)
   }, [])
 

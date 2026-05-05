@@ -9,6 +9,7 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { api } from '@/lib/api'
 import AudioPlayer from '@/components/AudioPlayer'
 import LanguageSwitcher from '@/components/LanguageSwitcher'
+import { readFavorites, toggleFavorite as toggleFav } from '@/lib/favorites'
 
 type Ingredient = { item: string; quantity: string }
 type Memory = {
@@ -43,20 +44,14 @@ function MemoryDetail() {
     api.recipes.get(token).then((m: Memory) => {
       setMemory(m)
       setNotes(m.user_notes ?? '')
-      try {
-        const favs: string[] = JSON.parse(localStorage.getItem('rk_favorites') ?? '[]')
-        setFavorite(favs.includes(token))
-      } catch {}
+      setFavorite(readFavorites().includes(token))
     }).catch((e: Error) => setError(e.message)).finally(() => setLoading(false))
   }, [token, router])
 
   function toggleFavorite() {
-    try {
-      const favs: string[] = JSON.parse(localStorage.getItem('rk_favorites') ?? '[]')
-      const next = favorite ? favs.filter(t => t !== token) : [...favs, token]
-      localStorage.setItem('rk_favorites', JSON.stringify(next))
-      setFavorite(!favorite)
-    } catch {}
+    if (!token) return
+    toggleFav(token)
+    setFavorite(f => !f)
   }
 
   async function saveNotes() {
