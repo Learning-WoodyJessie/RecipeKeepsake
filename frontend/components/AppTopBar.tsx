@@ -14,7 +14,7 @@ function displayName(user: { user_metadata?: Record<string, unknown>; email?: st
   return 'friend'
 }
 
-export default function AppTopBar() {
+export default function AppTopBar({ onMenuClick }: { onMenuClick?: () => void }) {
   const router = useRouter()
   const [name, setName] = useState('friend')
   const [initial, setInitial] = useState('?')
@@ -42,11 +42,35 @@ export default function AppTopBar() {
         display: 'flex',
         alignItems: 'center',
         gap: '1rem',
-        padding: '0.85rem 1.5rem',
+        padding: '0.85rem 1.25rem',
         background: 'var(--surface)',
         borderBottom: '1px solid var(--border)',
       }}
     >
+      {/* Hamburger — mobile only */}
+      <button
+        type="button"
+        onClick={onMenuClick}
+        className="rk-hamburger"
+        aria-label="Open menu"
+        style={{
+          display: 'none',
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
+          padding: '0.25rem',
+          color: 'var(--text2)',
+          flexShrink: 0,
+        }}
+      >
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+      <style>{`
+        @media (max-width: 699px) { .rk-hamburger { display: block !important; } }
+      `}</style>
+
       <form onSubmit={submitSearch} style={{ flex: 1, maxWidth: 520, display: 'flex' }}>
         <label style={{ position: 'relative', flex: 1, display: 'flex' }}>
           <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', opacity: 0.45, fontSize: '0.95rem' }} aria-hidden>🔍</span>

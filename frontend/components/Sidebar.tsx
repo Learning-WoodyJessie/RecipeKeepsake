@@ -65,7 +65,7 @@ const GROUP_LABEL: React.CSSProperties = {
   marginTop: '0.25rem',
 }
 
-export default function Sidebar() {
+export default function Sidebar({ isOpen = false, onClose }: { isOpen?: boolean; onClose?: () => void }) {
   const path = usePathname()
   const router = useRouter()
   const [profile, setProfile] = useState({ initial: '?', label: 'Account' })
@@ -88,6 +88,7 @@ export default function Sidebar() {
       <Link
         key={href}
         href={href}
+        onClick={onClose}
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -109,18 +110,33 @@ export default function Sidebar() {
   }
 
   return (
-    <aside
-      style={{
-        width: 240,
-        flexShrink: 0,
-        background: 'var(--surface)',
-        borderRight: '1px solid var(--border)',
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100vh',
-        overflowY: 'auto',
-      }}
-    >
+    <>
+      <style>{`
+        .rk-sidebar {
+          width: 240px;
+          flex-shrink: 0;
+          background: var(--surface);
+          border-right: 1px solid var(--border);
+          display: flex;
+          flex-direction: column;
+          height: 100vh;
+          overflow-y: auto;
+        }
+        @media (max-width: 699px) {
+          .rk-sidebar {
+            position: fixed;
+            top: 0; left: 0; bottom: 0;
+            z-index: 50;
+            transform: translateX(-100%);
+            transition: transform 0.25s ease;
+            box-shadow: 4px 0 24px rgba(0,0,0,0.18);
+          }
+          .rk-sidebar.open {
+            transform: translateX(0);
+          }
+        }
+      `}</style>
+    <aside className={`rk-sidebar${isOpen ? ' open' : ''}`}>
       {/* ── Logo ── */}
       <div
         style={{
@@ -130,8 +146,29 @@ export default function Sidebar() {
           flexDirection: 'column',
           alignItems: 'center',
           gap: '0.5rem',
+          position: 'relative',
         }}
       >
+        {/* Mobile close button */}
+        {onClose && (
+          <button
+            type="button"
+            onClick={onClose}
+            className="rk-sidebar-close"
+            aria-label="Close menu"
+            style={{
+              display: 'none',
+              position: 'absolute', top: 12, right: 12,
+              background: 'none', border: 'none', cursor: 'pointer',
+              color: 'var(--muted)', padding: '0.25rem',
+            }}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        )}
+        <style>{`@media (max-width: 699px) { .rk-sidebar-close { display: block !important; } }`}</style>
         {/* Waveform + heart circle logo */}
         <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
           {/* Outer thick ring */}
@@ -270,5 +307,6 @@ export default function Sidebar() {
         <span style={{ opacity: 0.4, flexShrink: 0 }}>{Icon.chevron}</span>
       </button>
     </aside>
+    </>
   )
 }
