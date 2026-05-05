@@ -208,28 +208,35 @@ Classes and key functions should have similar docstrings. This ensures maintaina
 
 ---
 
-## Current State (last updated 2026-05-04)
+## Current State (last updated 2026-05-05)
 
-- **Tests:** 81 passing, 0 failures (`python -m pytest tests/ -q`)
-- **Active bugs:** D-001 (config duplication), D-002 (Whisper fabrication) — see `docs/BUGS.md`
-- **Completed phases:** 0 (CLI pipeline), 1 (web app), 1.5 (UI polish + security hardening)
-- **Next priority:** Fix D-002 (Whisper fabrication on mid-sentence stop) — changes in `tools/transcribe.py` + `prompts/structure.py`
+- **Tests:** 97 passing, 0 failures (`python -m pytest tests/ -q`)
+- **Active bugs:** D-001 (config duplication), D-002 (Whisper fabrication), D-003 (generate-image missing fields), D-005 (user_id extraction repeated) — see `docs/BUGS.md`
+- **Completed phases:** 0 (CLI pipeline), 1 (web app), 1.5 (UI polish + security hardening), 1.6 (scale hardening)
+- **Next priority:** Phase 1.7 — Frontend Migration (`web/app.html` → `web/nextjs/`)
 
-### Known gaps (not yet logged as bugs)
+### Known gaps
 
 | Gap | Detail | File |
 |---|---|---|
-| **Supabase RLS** | Designed in security PRD but dashboard setup unconfirmed. Policy needs `user_id::text = auth.uid()::text` cast. Python ownership checks exist but RLS is the DB-level backstop | Supabase dashboard |
-| **`/generate-image` endpoint** | Standalone regenerate-image endpoint still only accepts `dish_name` — doesn't pass `ingredients`/`steps`/`cook_notes` to the enriched prompt | `scripts/serve.py:~428` |
+| **`/generate-image` endpoint** | Standalone regenerate-image endpoint still only accepts `dish_name` — doesn't pass `ingredients`/`steps`/`cook_notes` to the enriched prompt (D-003) | `scripts/serve.py:~457` |
 | **Android app identity** | `capacitor.config.json` still references old branding — needs rename to "Echoes of Home" + regenerated icons before Play Store | `capacitor.config.json` |
 | **Translation cache clearing** | `clear_translation_cache(lang)` exists in `tools/storage.py` but has no API surface — only callable directly in Python | `tools/storage.py` |
+| **Frontend** | `web/app.html` is the production frontend (4 900 lines). `web/nextjs/` is an incomplete scaffold — Phase 1.7 will migrate | `web/` |
 
 ---
 
-## Secrets (planned)
+## Secrets
 
 | Secret | Description |
 |---|---|
-| `OPENAI_API_KEY` | Whisper + GPT-4o |
+| `OPENAI_API_KEY` | Whisper + GPT-4o + DALL-E |
 | `SUPABASE_URL` | Supabase project URL |
-| `SUPABASE_SERVICE_KEY` | Supabase service role key |
+| `SUPABASE_SERVICE_KEY` | Supabase service role key (server-side only) |
+| `SUPABASE_ANON_KEY` | Supabase anon key (used in auth fallback header) |
+| `SUPABASE_JWT_SECRET` | JWT signing secret for local token verification (eliminates network round-trip) |
+| `ALLOWED_ORIGINS` | Comma-separated list of allowed CORS origins |
+| `ENV` | Set to `production` on Railway — controls fail-closed auth behaviour |
+| `MAX_CAPTURE_PER_DAY` | Daily capture limit per user (default: 10) |
+| `MAX_TRANSLATE_PER_DAY` | Daily translate limit per user (default: 50) |
+| `MAX_IMAGE_PER_DAY` | Daily image generation limit per user (default: 20) |

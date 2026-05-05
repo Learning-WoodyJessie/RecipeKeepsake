@@ -128,9 +128,9 @@ The app feels like a family keepsake, not a utility.
 
 ---
 
-## Phase 1.6 — Scale Hardening 🔜
+## Phase 1.6 — Scale Hardening ✅
 
-*Approved 2026-05-04. PRD: `docs/plans/2026-05-04-scale-hardening-design.md`. Pure code changes — no new infrastructure.*
+*Completed 2026-05-05. PRD: `docs/plans/2026-05-04-scale-hardening-design.md`. Pure code changes — no new infrastructure.*
 
 Target: system handles 10,000 users safely. All fixes are in `tools/storage.py` and `scripts/serve.py` plus one new Postgres table.
 
@@ -140,13 +140,13 @@ Target: system handles 10,000 users safely. All fixes are in `tools/storage.py` 
 
 | Story | Status |
 |---|---|
-| Supabase client singleton — `_client()` returns module-level instance, not a new client per call | 🔜 |
-| `require_auth` uses `httpx.AsyncClient` + `await` — non-blocking in async handler | 🔜 |
-| Local JWT verification via `PyJWT` + `SUPABASE_JWT_SECRET` — no Supabase round-trip on happy path | 🔜 |
-| Supabase network call retained as fallback when local verification fails | 🔜 |
-| `require_auth` raises HTTP 500 (not silent pass) when `SUPABASE_URL` missing in production | 🔜 |
-| CORS: explicit `allow_methods` and `allow_headers` — no wildcards | 🔜 |
-| Add `PyJWT` to `requirements.txt` | 🔜 |
+| Supabase client singleton — `_client()` returns module-level instance, not a new client per call | ✅ |
+| `require_auth` uses `httpx.AsyncClient` + `await` — non-blocking in async handler | ✅ |
+| Local JWT verification via `PyJWT` + `SUPABASE_JWT_SECRET` — no Supabase round-trip on happy path | ✅ |
+| Supabase network call retained as fallback when local verification fails | ✅ |
+| `require_auth` raises HTTP 500 (not silent pass) when `SUPABASE_URL` missing in production | ✅ |
+| CORS: explicit `allow_methods` and `allow_headers` — no wildcards | ✅ |
+| Add `PyJWT` to `requirements.txt` | ✅ |
 
 ### Epic B — Distributed Rate Limiting
 
@@ -154,28 +154,28 @@ Rate limiting applies to all LLM-backed endpoints — not capture only. Translat
 
 | Story | Status |
 |---|---|
-| `rate_limits` table migration — `(user_id, date)` primary key, atomic upsert | 🔜 |
-| Rate limit enforced on `POST /capture` via Postgres upsert | 🔜 |
-| Rate limit enforced on `GET /recipe/{token}/translate` | 🔜 |
-| Rate limit enforced on `POST /generate-image` | 🔜 |
-| Per-endpoint daily limits configurable via env vars | 🔜 |
-| Remove in-memory `_rec_counts` / `_rec_dates` dicts | 🔜 |
+| `rate_limits` table migration — `(user_id, date, endpoint)` primary key, atomic upsert | ✅ |
+| Rate limit enforced on `POST /capture` via Postgres upsert | ✅ |
+| Rate limit enforced on `GET /recipe/{token}/translate` | ✅ |
+| Rate limit enforced on `POST /generate-image` | ✅ |
+| Per-endpoint daily limits configurable via env vars | ✅ |
+| Remove in-memory `_rec_counts` / `_rec_dates` dicts | ✅ |
 
 ### Epic C — RLS Confirmation (D-004)
 
 | Story | Status |
 |---|---|
-| Confirm RLS enabled on `recipes` table in Supabase dashboard | 🔜 |
-| Confirm RLS enabled on `people` table in Supabase dashboard | 🔜 |
-| Policy verified: `user_id::text = auth.uid()::text` on both tables | 🔜 |
-| D-004 closed in `docs/BUGS.md` | 🔜 |
+| Confirm RLS enabled on `recipes` table in Supabase dashboard | ✅ |
+| Confirm RLS enabled on `people` table in Supabase dashboard | ✅ |
+| Policy verified: `user_id::text = auth.uid()::text` on both tables | ✅ |
+| D-004 closed in `docs/BUGS.md` | ✅ |
 
 ### Epic D — Tests
 
 | Story | Status |
 |---|---|
-| `tests/test_auth.py` — singleton, async auth, local JWT verify, fail-closed behaviour | 🔜 |
-| `tests/test_rate_limit.py` — Postgres upsert, cross-endpoint limits, 429 response | 🔜 |
+| `tests/test_auth.py` — singleton, async auth, local JWT verify, fail-closed behaviour | ✅ |
+| `tests/test_rate_limit.py` — Postgres upsert, cross-endpoint limits, 429 response | ✅ |
 
 ---
 
