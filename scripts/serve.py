@@ -142,8 +142,8 @@ async def require_auth(creds: HTTPAuthorizationCredentials = Depends(_bearer)) -
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_ALLOWED_ORIGINS,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "apikey", "X-Client-Info"],
 )
 
 

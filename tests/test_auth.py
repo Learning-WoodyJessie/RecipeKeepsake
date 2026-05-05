@@ -79,3 +79,48 @@ class TestRequireAuthLocalJWT:
             with pytest.raises(HTTPException) as exc:
                 asyncio.run(require_auth(creds))
         assert exc.value.status_code == 401
+
+
+class TestRequireAuthFailClosed:
+    def test_missing_supabase_url_in_production_raises_500(self, monkeypatch):
+        """Missing SUPABASE_URL in production must raise HTTP 500, not silently pass."""
+        monkeypatch.delenv("SUPABASE_URL", raising=False)
+        monkeypatch.delenv("SUPABASE_JWT_SECRET", raising=False)
+        monkeypatch.setenv("ENV", "production")
+        creds = HTTPAuthorizationCredentials(scheme="Bearer", credentials="any-token")
+        from scripts.serve import require_auth
+        with pytest.raises(HTTPException) as exc:
+            asyncio.run(require_auth(creds))
+        assert exc.value.status_code == 500
+
+    def test_missing_supabase_url_outside_production_passes_through(self, monkeypatch):
+        """Missing SUPABASE_URL outside production allows through (local dev)."""
+        monkeypatch.delenv("SUPABASE_URL", raising=False)
+        monkeypatch.delenv("SUPABASE_JWT_SECRET", raising=False)
+        monkeypatch.setenv("ENV", "development")
+        creds = HTTPAuthorizationCredentials(scheme="Bearer", credentials="any-token")
+        from scripts.serve import require_auth
+        result = asyncio.run(require_auth(creds))
+        assert result == {}
+
+
+class TestCORSExplicit:
+    def test_cors_methods_not_wildcard(self):
+        """CORS allow_methods must be an explicit list — no wildcard."""
+        from scripts.serve import app
+        cors = next(
+            m for m in app.user_middleware
+            if "CORSMiddleware" in str(m.cls)
+        )
+        allow_methods = cors.kwargs.get("allow_methods", ["*"])
+        assert "*" not in allow_methods
+
+    def test_cors_headers_not_wildcard(self):
+        """CORS allow_headers must be an explicit list — no wildcard."""
+        from scripts.serve import app
+        cors = next(
+            m for m in app.user_middleware
+            if "CORSMiddleware" in str(m.cls)
+        )
+        allow_headers = cors.kwargs.get("allow_headers", ["*"])
+        assert "*" not in allow_headers
