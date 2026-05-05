@@ -221,22 +221,37 @@ function RecipeCard({
 // ─── Hero illustration ────────────────────────────────────────────────────
 function HeroIllustration() {
   return (
-    <div style={{ position: 'relative', width: 240, height: 160, flexShrink: 0 }}>
-      {/* Floating hearts */}
-      <span style={{ position: 'absolute', top: 0, right: 30, fontSize: '0.75rem', color: 'var(--accent)', opacity: 0.7 }}>♥</span>
-      <span style={{ position: 'absolute', top: 20, right: 10, fontSize: '0.5rem', color: '#F4A261', opacity: 0.8 }}>♥</span>
-      {/* Book */}
-      <div style={{ position: 'absolute', bottom: 10, left: 0, width: 120, height: 110, background: '#FDF5ED', border: '1px solid #E8C9A8', borderRadius: 8, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 14px rgba(45,27,14,0.1)', padding: '0.75rem' }}>
-        <p style={{ fontFamily: 'var(--serif)', fontStyle: 'italic', fontSize: '0.72rem', color: 'var(--text2)', lineHeight: 1.5, textAlign: 'center' }}>
-          Made with<br />love.<br />Shared with<br />memories.
-        </p>
-        <span style={{ color: 'var(--accent)', fontSize: '0.8rem', marginTop: '0.25rem' }}>♡</span>
+    <>
+      <style>{`
+        .rk-mem-hero-img-wrap {
+          width: clamp(200px, 30vw, 340px);
+          flex-shrink: 0;
+          border-radius: 16px;
+          overflow: hidden;
+          height: 160px;
+        }
+        @media (max-width: 600px) {
+          .rk-mem-hero-img-wrap {
+            width: 100%;
+            height: 180px;
+            border-radius: 12px;
+          }
+        }
+      `}</style>
+      <div className="rk-mem-hero-img-wrap">
+        <img
+          src="/hero-memories.png"
+          alt=""
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            objectPosition: '65% 45%',
+          }}
+          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+        />
       </div>
-      {/* Grandmother portrait */}
-      <div style={{ position: 'absolute', top: 10, right: 10, width: 90, height: 100, borderRadius: 8, background: 'linear-gradient(135deg, #F5E6D8 0%, #E8C9A8 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '3rem', boxShadow: '0 4px 12px rgba(45,27,14,0.1)', overflow: 'hidden' }}>
-        👵
-      </div>
-    </div>
+    </>
   )
 }
 
