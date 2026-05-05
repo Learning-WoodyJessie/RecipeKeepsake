@@ -166,27 +166,12 @@ function PersonCard({ person, recipeCount, onEdit }: { person: Person; recipeCou
 // ─── Hero illustration ────────────────────────────────────────────────────
 function HeroIllustration() {
   return (
-    <div style={{ position: 'relative', width: 260, height: 180, flexShrink: 0 }}>
-      {/* Back polaroid */}
-      <div style={{ position: 'absolute', top: 20, left: 80, width: 110, height: 130, background: '#FDF5ED', border: '1px solid #E8C9A8', borderRadius: 6, transform: 'rotate(6deg)', boxShadow: '0 4px 12px rgba(45,27,14,0.1)', overflow: 'hidden' }}>
-        <div style={{ width: '100%', height: 88, background: 'linear-gradient(135deg, #F5E6D8 0%, #E8C9A8 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.2rem' }}>👵</div>
-        <div style={{ height: 40 }} />
-      </div>
-      {/* Front polaroid */}
-      <div style={{ position: 'absolute', top: 10, left: 20, width: 110, height: 130, background: '#FDF5ED', border: '1px solid #E8C9A8', borderRadius: 6, transform: 'rotate(-5deg)', boxShadow: '0 6px 18px rgba(45,27,14,0.12)', overflow: 'hidden' }}>
-        <div style={{ width: '100%', height: 88, background: 'linear-gradient(135deg, #FAE8D4 0%, #F0C9A0 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.2rem' }}>👩‍🍳</div>
-        <div style={{ height: 40 }} />
-      </div>
-      {/* Caption card */}
-      <div style={{ position: 'absolute', bottom: 0, right: 0, width: 130, background: '#FDF5ED', border: '1px solid #E8C9A8', borderRadius: 10, padding: '0.7rem 0.85rem', boxShadow: '0 4px 12px rgba(45,27,14,0.08)' }}>
-        <p style={{ fontFamily: 'var(--serif)', fontStyle: 'italic', fontSize: '0.75rem', color: 'var(--text2)', lineHeight: 1.5, textAlign: 'center' }}>
-          Every voice.<br />Every story.<br />Every memory.
-        </p>
-        <p style={{ textAlign: 'center', color: 'var(--accent)', fontSize: '0.9rem', marginTop: '0.25rem' }}>♡</p>
-      </div>
-      {/* Floating hearts */}
-      <span style={{ position: 'absolute', top: 0, right: 40, fontSize: '0.75rem', color: 'var(--accent)', opacity: 0.7 }}>♥</span>
-      <span style={{ position: 'absolute', top: 15, right: 20, fontSize: '0.55rem', color: '#F4A261', opacity: 0.8 }}>♥</span>
+    <div style={{ flexShrink: 0, width: 'clamp(200px, 30vw, 340px)' }}>
+      <img
+        src="/hero-people.png"
+        alt="Every voice. Every story. Every memory."
+        style={{ width: '100%', height: 'auto', display: 'block', objectFit: 'contain' }}
+      />
     </div>
   )
 }
