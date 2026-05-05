@@ -91,34 +91,56 @@ export default function AppTopBar({ onMenuClick }: { onMenuClick?: () => void })
           />
         </label>
       </form>
-      <p className="rk-greeting-desktop" style={{ fontFamily: 'var(--serif)', fontSize: '0.95rem', color: 'var(--text2)', whiteSpace: 'nowrap' }}>
-        Namaste, {name} <span aria-hidden>❤️</span>
+      {/* Greeting — hidden on small mobile */}
+      <p
+        className="rk-greeting"
+        style={{
+          fontFamily: 'var(--serif)',
+          fontSize: '0.95rem',
+          fontWeight: 600,
+          color: 'var(--text)',
+          whiteSpace: 'nowrap',
+          flexShrink: 0,
+        }}
+      >
+        Welcome home, {name} <span aria-hidden style={{ color: '#E05555' }}>❤️</span>
       </p>
       <style>{`
-        .rk-greeting-desktop { display: none; }
-        @media (min-width: 900px) {
-          .rk-greeting-desktop { display: block !important; }
-        }
+        .rk-greeting { display: none; }
+        @media (min-width: 700px) { .rk-greeting { display: block !important; } }
       `}</style>
-      <button type="button" aria-label="Notifications" style={{ background: 'none', border: 'none', fontSize: '1.1rem', cursor: 'pointer', opacity: 0.55 }}>
-        🔔
+
+      {/* Notification bell */}
+      <button
+        type="button"
+        aria-label="Notifications"
+        style={{ background: 'none', border: 'none', cursor: 'pointer', flexShrink: 0, opacity: 0.5, padding: '0.2rem', display: 'flex', alignItems: 'center' }}
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/>
+        </svg>
       </button>
+
+      {/* Avatar — filled accent circle, white initial */}
       <div
         style={{
-          width: 38,
-          height: 38,
+          width: 36,
+          height: 36,
           borderRadius: '50%',
-          background: 'var(--accent-light)',
-          border: '2px solid var(--border)',
+          background: 'var(--accent)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           fontFamily: 'var(--serif)',
           fontWeight: 700,
-          color: 'var(--accent)',
-          fontSize: '0.95rem',
+          color: 'white',
+          fontSize: '1rem',
+          flexShrink: 0,
+          boxShadow: '0 2px 8px rgba(196,82,42,0.3)',
+          cursor: 'pointer',
         }}
         title={name}
+        onClick={() => router.push('/account')}
       >
         {initial}
       </div>

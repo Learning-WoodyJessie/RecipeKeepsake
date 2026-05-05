@@ -61,7 +61,7 @@ function HeroCard({ userName }: { userName: string }) {
       {/* Left: text + action tiles */}
       <div style={{ flex: 1, padding: 'clamp(1.25rem, 3vw, 2rem)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
         <h1 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.5rem, 3vw, 2rem)', fontWeight: 700, color: 'var(--text)', lineHeight: 1.15, marginBottom: '0.55rem' }}>
-          Welcome home, {userName}! <span aria-hidden style={{ color: 'var(--accent)' }}>♡</span>
+          Welcome home, {userName}! <span aria-hidden style={{ color: '#E05555' }}>❤️</span>
         </h1>
         <p style={{ fontSize: '0.9rem', color: 'var(--muted)', lineHeight: 1.5, marginBottom: '1.35rem' }}>
           Every recipe has a story.<br />Every memory keeps her close.
