@@ -102,20 +102,36 @@ app.mount("/assets", StaticFiles(directory=_WEB_DIR / "assets"), name="assets")
 
 
 async def require_auth(creds: HTTPAuthorizationCredentials = Depends(_bearer)) -> dict:
-    """Validate Supabase JWT. Returns the user dict or raises 401."""
+    """Validate Supabase JWT. Local PyJWT verification first; Supabase network call as fallback."""
     if not creds:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    anon_key = os.environ.get("SUPABASE_ANON_KEY", "")
+    token = creds.credentials
+    jwt_secret = os.environ.get("SUPABASE_JWT_SECRET", "")
     supabase_url = os.environ.get("SUPABASE_URL", "")
+    anon_key = os.environ.get("SUPABASE_ANON_KEY", "")
+
+    # Fast path: local JWT verification — no network call
+    if jwt_secret:
+        try:
+            import jwt as pyjwt
+            payload = pyjwt.decode(token, jwt_secret, algorithms=["HS256"])
+            return payload
+        except Exception:
+            pass  # fall through to Supabase network call
+
+    # Fallback: Supabase network call (also handles revoked tokens)
     if not supabase_url:
-        # Auth not configured — allow through (local dev without Supabase)
+        env = os.environ.get("ENV", "production")
+        if env == "production":
+            raise HTTPException(status_code=500, detail="Auth not configured")
         return {}
     try:
-        resp = httpx.get(
-            f"{supabase_url}/auth/v1/user",
-            headers={"apikey": anon_key, "Authorization": f"Bearer {creds.credentials}"},
-            timeout=5,
-        )
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(
+                f"{supabase_url}/auth/v1/user",
+                headers={"apikey": anon_key, "Authorization": f"Bearer {token}"},
+                timeout=5,
+            )
         if resp.status_code != 200:
             raise HTTPException(status_code=401, detail="Invalid or expired session")
         return resp.json()
