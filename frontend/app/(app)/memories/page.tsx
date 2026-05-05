@@ -244,6 +244,7 @@ function HeroIllustration() {
 export default function MemoriesPage() {
   const searchParams = useSearchParams()
   const q = searchParams.get('q') ?? ''
+  const narratorParam = searchParams.get('narrator') ?? ''
 
   const [memories, setMemories] = useState<Memory[]>([])
   const [people, setPeople] = useState<Person[]>([])
@@ -277,6 +278,8 @@ export default function MemoriesPage() {
 
   const displayed = useMemo(() => {
     let list = [...memories]
+    // Narrator filter from ?narrator= param (coming from Our People page)
+    if (narratorParam) list = list.filter(m => (m.narrator ?? '').toLowerCase() === narratorParam.toLowerCase())
     // Search
     if (q) list = list.filter(m => (m.dish_name ?? '').toLowerCase().includes(q.toLowerCase()) || (m.narrator ?? '').toLowerCase().includes(q.toLowerCase()))
     // Filter
@@ -287,7 +290,7 @@ export default function MemoriesPage() {
     else if (sort === 'Oldest first') list = list.slice().sort((a, b) => new Date(a.recorded_at).getTime() - new Date(b.recorded_at).getTime())
     else if (sort === 'A–Z') list = list.slice().sort((a, b) => (a.dish_name ?? '').localeCompare(b.dish_name ?? ''))
     return list
-  }, [memories, filter, sort, q, favTick])
+  }, [memories, filter, sort, q, narratorParam, favTick])
 
   if (loading) return <div style={{ padding: '2rem', color: 'var(--muted)' }}>Loading…</div>
   if (error) return <div style={{ padding: '2rem', color: 'var(--accent)' }}>{error}</div>

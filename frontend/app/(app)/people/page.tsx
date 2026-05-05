@@ -6,17 +6,13 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { api, type Person } from '@/lib/api'
 
 type FormData = Omit<Person, 'id'>
 const EMPTY: FormData = { name: '', relationship: '', emoji: '👤', photo_url: '', bio: '', notes: '' }
 
 // ─── SVG Icons ────────────────────────────────────────────────────────────
-const PlayIcon = () => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/>
-  </svg>
-)
 const ChevronRight = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <polyline points="9 18 15 12 9 6"/>
@@ -94,7 +90,7 @@ function WhyItMatters() {
 }
 
 // ─── Person row card ──────────────────────────────────────────────────────
-function PersonCard({ person, recipeCount, onEdit }: { person: Person; recipeCount: number; onEdit: () => void }) {
+function PersonCard({ person, recipeCount, onEdit, onNavigate }: { person: Person; recipeCount: number; onEdit: () => void; onNavigate: () => void }) {
   return (
     <div
       style={{
@@ -108,7 +104,7 @@ function PersonCard({ person, recipeCount, onEdit }: { person: Person; recipeCou
         cursor: 'pointer',
         transition: 'box-shadow 0.15s',
       }}
-      onClick={onEdit}
+      onClick={onNavigate}
     >
       {/* Photo */}
       <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'var(--cream2)', overflow: 'hidden', flexShrink: 0, border: '2px solid var(--border)' }}>
@@ -151,12 +147,25 @@ function PersonCard({ person, recipeCount, onEdit }: { person: Person; recipeCou
         </div>
       </div>
 
-      {/* Play sample + chevron */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexShrink: 0 }}>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem', color: 'var(--accent)' }}>
-          <PlayIcon />
-          <span style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--muted)' }}>Play sample</span>
-        </div>
+      {/* Edit + chevron */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexShrink: 0 }}>
+        <button
+          type="button"
+          aria-label="Edit"
+          onClick={(e) => { e.stopPropagation(); onEdit() }}
+          style={{
+            width: 34, height: 34, borderRadius: '50%',
+            border: '1.5px solid var(--border)',
+            background: 'var(--cream)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', color: 'var(--muted)',
+          }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+            <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+          </svg>
+        </button>
         <span style={{ color: 'var(--muted)', opacity: 0.5 }}><ChevronRight /></span>
       </div>
     </div>
@@ -253,6 +262,7 @@ function PersonModal({
 
 // ─── Page ─────────────────────────────────────────────────────────────────
 export default function PeoplePage() {
+  const router = useRouter()
   const [people, setPeople] = useState<Person[]>([])
   const [recipeCounts, setRecipeCounts] = useState<Record<string, number>>({})
   const [modal, setModal] = useState<{ open: boolean; editing: Person | null }>({ open: false, editing: null })
@@ -357,6 +367,7 @@ export default function PeoplePage() {
                 person={p}
                 recipeCount={recipeCounts[p.name.toLowerCase().trim()] ?? 0}
                 onEdit={() => openEdit(p)}
+                onNavigate={() => router.push(`/memories?narrator=${encodeURIComponent(p.name)}`)}
               />
             ))}
           </div>

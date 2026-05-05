@@ -81,21 +81,24 @@ function HeroCard({ userName }: { userName: string }) {
           />
         </div>
       </div>
-      {/* Right: grandmother photo */}
+      {/* Right: watercolor illustration */}
       <div
         className="rk-hero-photo"
         style={{
-          width: 280,
+          width: 'clamp(220px, 30vw, 340px)',
           flexShrink: 0,
           position: 'relative',
           overflow: 'hidden',
-          background: 'var(--cream2)',
+          background: 'var(--cream)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
         }}
       >
         <img
-          src="/landing-hero-photo.png"
+          src="/hero-home.png"
           alt=""
-          style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }}
+          style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center center' }}
           onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
         />
       </div>

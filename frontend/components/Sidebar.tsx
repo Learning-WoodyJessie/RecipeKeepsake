@@ -129,46 +129,49 @@ export default function Sidebar() {
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          gap: '0.6rem',
+          gap: '0.5rem',
         }}
       >
-        {/* Orange circle logo */}
-        <div
-          style={{
-            width: 64,
-            height: 64,
-            borderRadius: '50%',
-            background: 'var(--accent)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 4px 16px rgba(196,82,42,0.28)',
-            overflow: 'hidden',
-          }}
-        >
-          <img
-            src="/echoes-logo.png"
-            alt="Echoes of Home"
-            style={{ width: '170%', height: '170%', objectFit: 'cover', objectPosition: '50% 32%' }}
-            onError={(e) => {
-              // Fallback: show waveform SVG if image fails
-              const el = e.currentTarget
-              el.style.display = 'none'
-              el.parentElement!.innerHTML = `<svg width="32" height="22" viewBox="0 0 32 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="0" y="6" width="3" height="10" rx="1.5" fill="white"/>
-                <rect x="5" y="2" width="3" height="18" rx="1.5" fill="white"/>
-                <rect x="10" y="0" width="3" height="22" rx="1.5" fill="white"/>
-                <rect x="15" y="4" width="3" height="14" rx="1.5" fill="white"/>
-                <rect x="20" y="1" width="3" height="20" rx="1.5" fill="white"/>
-                <rect x="25" y="5" width="3" height="12" rx="1.5" fill="white"/>
-                <rect x="0" y="8" width="3" height="6" rx="1.5" fill="rgba(255,255,255,0.4)"/>
-              </svg>`
-            }}
-          />
-        </div>
-        <p style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '1.05rem', color: 'var(--text)', textAlign: 'center', lineHeight: 1.2 }}>
+        {/* Waveform + heart circle logo */}
+        <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+          {/* Outer thick ring */}
+          <circle cx="40" cy="40" r="37" stroke="#C4522A" strokeWidth="3.5"/>
+          {/* Inner thin ring */}
+          <circle cx="40" cy="40" r="31" stroke="#D4895A" strokeWidth="1"/>
+          {/* Waveform bars — symmetric, centre = x40 */}
+          {/* Left side bars */}
+          <rect x="10" y="37" width="2.5" height="6"  rx="1.25" fill="#C4522A"/>
+          <rect x="14" y="34" width="2.5" height="12" rx="1.25" fill="#C4522A"/>
+          <rect x="18" y="30" width="2.5" height="20" rx="1.25" fill="#C4522A"/>
+          <rect x="22" y="33" width="2.5" height="14" rx="1.25" fill="#C4522A"/>
+          <rect x="26" y="27" width="2.5" height="26" rx="1.25" fill="#C4522A"/>
+          <rect x="30" y="31" width="2.5" height="18" rx="1.25" fill="#C4522A"/>
+          <rect x="34" y="35" width="2.5" height="10" rx="1.25" fill="#C4522A"/>
+          {/* Heart in centre */}
+          <path d="M40 45 C40 45 33 39 33 35 C33 32.2 35.7 30 38 31.5 C39 32.1 40 33.2 40 33.2 C40 33.2 41 32.1 42 31.5 C44.3 30 47 32.2 47 35 C47 39 40 45 40 45Z" fill="#C4522A"/>
+          {/* Right side bars (mirror) */}
+          <rect x="43.5" y="35" width="2.5" height="10" rx="1.25" fill="#C4522A"/>
+          <rect x="47.5" y="31" width="2.5" height="18" rx="1.25" fill="#C4522A"/>
+          <rect x="51.5" y="27" width="2.5" height="26" rx="1.25" fill="#C4522A"/>
+          <rect x="55.5" y="33" width="2.5" height="14" rx="1.25" fill="#C4522A"/>
+          <rect x="59.5" y="30" width="2.5" height="20" rx="1.25" fill="#C4522A"/>
+          <rect x="63.5" y="34" width="2.5" height="12" rx="1.25" fill="#C4522A"/>
+          <rect x="67.5" y="37" width="2.5" height="6"  rx="1.25" fill="#C4522A"/>
+        </svg>
+
+        {/* Brand name */}
+        <p style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '1.1rem', color: 'var(--text)', textAlign: 'center', lineHeight: 1.2, letterSpacing: '0.01em' }}>
           Echoes of Home
         </p>
+
+        {/* Decorative divider */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', opacity: 0.5 }}>
+          <div style={{ width: 28, height: 1, background: '#C4A882' }}/>
+          <svg width="8" height="8" viewBox="0 0 8 8" fill="#C4A882">
+            <path d="M4 0L4.8 3.2L8 4L4.8 4.8L4 8L3.2 4.8L0 4L3.2 3.2Z"/>
+          </svg>
+          <div style={{ width: 28, height: 1, background: '#C4A882' }}/>
+        </div>
       </div>
 
       {/* ── Nav ── */}
