@@ -60,6 +60,11 @@ _LIMITS = {
 }
 
 
+def _user_id(user: dict) -> str:
+    """Extract stable user ID from JWT payload (sub preferred, id fallback)."""
+    return _user_id(user)
+
+
 def _check_rate_limit_db_or_raise(user_id: str, endpoint: str, limit: int) -> None:
     """Increment Postgres counter and raise 429 if daily limit exceeded."""
     count = check_rate_limit_db(user_id, endpoint)
@@ -189,7 +194,7 @@ async def capture_endpoint(audio: UploadFile = File(...), user: dict = Depends(r
     Full pipeline: transcribe → translate → structure → image → save.
     Returns saved recipe JSON. Use /capture/process for review-before-save flow.
     """
-    _check_rate_limit_db_or_raise(user.get("sub") or user.get("id", ""), "capture", _LIMITS["capture"])
+    _check_rate_limit_db_or_raise(_user_id(user), "capture", _LIMITS["capture"])
     if not os.environ.get("OPENAI_API_KEY"):
         raise HTTPException(status_code=500, detail="OPENAI_API_KEY not set")
 
@@ -263,7 +268,7 @@ async def capture_process_endpoint(
     Does NOT save to Supabase. Returns structured JSON for client review.
     Client calls /capture/save after user edits.
     """
-    _check_rate_limit_db_or_raise(user.get("sub") or user.get("id", ""), "capture", _LIMITS["capture"])
+    _check_rate_limit_db_or_raise(_user_id(user), "capture", _LIMITS["capture"])
     if not os.environ.get("OPENAI_API_KEY"):
         raise HTTPException(status_code=500, detail="OPENAI_API_KEY not set")
 
@@ -442,15 +447,18 @@ async def delete_account_endpoint(user: dict = Depends(require_auth)):
 
 class ImageRequest(BaseModel):
     dish_name: str
+    ingredients: list | None = None
+    steps: list | None = None
+    cook_notes: str | None = None
 
 
 @app.post("/generate-image")
 async def generate_image_endpoint(body: ImageRequest, user: dict = Depends(require_auth)):
-    """Generate a DALL-E image for a dish name. Returns image URL."""
-    _check_rate_limit_db_or_raise(user.get("sub") or user.get("id", ""), "generate-image", _LIMITS["generate-image"])
+    """Generate a DALL-E image for a dish. Accepts full recipe fields for enriched prompt."""
+    _check_rate_limit_db_or_raise(_user_id(user), "generate-image", _LIMITS["generate-image"])
     if not os.environ.get("OPENAI_API_KEY"):
         raise HTTPException(status_code=500, detail="OPENAI_API_KEY not set")
-    url = _generate_image(body.dish_name)
+    url = _generate_image(body.dish_name, ingredients=body.ingredients, steps=body.steps, cook_notes=body.cook_notes)
     return JSONResponse(content={"image_url": url})
 
 
@@ -505,7 +513,7 @@ async def translate_recipe_endpoint(token: str, lang: str = "en", force: bool = 
     fields directly — no LLM call.
     Pass ?force=true to bypass cache and re-translate (useful after prompt fixes).
     """
-    _check_rate_limit_db_or_raise(user.get("sub") or user.get("id", ""), "translate", _LIMITS["translate"])
+    _check_rate_limit_db_or_raise(_user_id(user), "translate", _LIMITS["translate"])
     lang = lang.lower()
     if lang not in _TRANSLATE_SUPPORTED:
         raise HTTPException(status_code=400, detail=f"Unsupported language: {lang}")
