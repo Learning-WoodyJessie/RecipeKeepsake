@@ -39,20 +39,34 @@ function RightPanel({
     {
       icon: (
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/>
+          {/* Flame / keep alive */}
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
+          <path d="M12 6c0 0-4 3.5-4 7a4 4 0 008 0c0-1.5-.5-3-2-4.5 0 2-1 3-2 3s-2-1-2-2.5c0-1 .5-2 2-3.5z"/>
         </svg>
       ),
-      emoji: '🍲',
       title: 'Keep traditions alive',
       desc: 'Every recipe carries the wisdom and love of our elders.',
     },
     {
-      emoji: '🖼️',
+      icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          {/* Camera / relive moments */}
+          <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/>
+          <circle cx="12" cy="13" r="4"/>
+        </svg>
+      ),
       title: 'Relive precious moments',
       desc: 'Recipes bring back the sights, sounds and smells of our happiest times.',
     },
     {
-      emoji: '👥',
+      icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          {/* People / share the love */}
+          <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+        </svg>
+      ),
       title: 'Share the love',
       desc: 'Pass down flavors and memories to the next generation.',
     },
@@ -100,8 +114,8 @@ function RightPanel({
         </h3>
         {WHY.map((item) => (
           <div key={item.title} style={{ display: 'flex', gap: '0.7rem', marginBottom: '0.95rem' }}>
-            <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--accent-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', flexShrink: 0 }}>
-              {item.emoji}
+            <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--accent-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent)', flexShrink: 0 }}>
+              {item.icon}
             </div>
             <div>
               <p style={{ fontWeight: 700, fontSize: '0.82rem', color: 'var(--text)', marginBottom: 3 }}>{item.title}</p>
@@ -281,83 +295,133 @@ export default function MemoriesPage() {
   return (
     <div style={{ padding: '1.5rem 1.75rem 2.5rem' }}>
       <style>{`
-        .rk-mem-cols { display: grid; grid-template-columns: 1fr; gap: 1.25rem; max-width: 1200px; margin: 0 auto; }
+        .rk-mem-wrap { max-width: 1200px; margin: 0 auto; }
+        .rk-mem-cols { display: grid; grid-template-columns: 1fr; gap: 1.25rem; }
         @media (min-width: 860px) { .rk-mem-cols { grid-template-columns: 1fr 272px; align-items: start; } }
         .rk-recipe-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
         @media (min-width: 640px) { .rk-recipe-grid { grid-template-columns: repeat(3, 1fr); } }
         @media (min-width: 900px) { .rk-recipe-grid { grid-template-columns: repeat(4, 1fr); } }
       `}</style>
 
-      <div className="rk-mem-cols">
-        {/* ── Main ── */}
-        <div>
-          {/* Hero */}
-          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
-            <div style={{ flex: 1 }}>
-              <h1 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.6rem, 3vw, 2rem)', fontWeight: 700, color: 'var(--text)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-                All Recipes <span style={{ color: 'var(--accent)' }}>♡</span>
-              </h1>
-              <p style={{ fontSize: '0.9rem', color: 'var(--muted)', lineHeight: 1.6, maxWidth: 360 }}>
-                Timeless recipes, lovingly shared by the people who made our moments special.
-              </p>
+      <div className="rk-mem-wrap">
+        <div className="rk-mem-cols">
+          {/* ── Main ── */}
+          <div>
+            {/* Hero */}
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+              <div style={{ flex: 1 }}>
+                <h1 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.6rem, 3vw, 2rem)', fontWeight: 700, color: 'var(--text)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                  All Recipes <span style={{ color: 'var(--accent)' }}>♡</span>
+                </h1>
+                <p style={{ fontSize: '0.9rem', color: 'var(--muted)', lineHeight: 1.6, maxWidth: 360 }}>
+                  Timeless recipes, lovingly shared by the people who made our moments special.
+                </p>
+              </div>
+              <HeroIllustration />
             </div>
-            <HeroIllustration />
+
+            {/* Count + sort bar */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '0.65rem 1rem' }}>
+              <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text2)' }}>{displayed.length} Recipe{displayed.length !== 1 ? 's' : ''}</span>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.8rem', color: 'var(--muted)' }}>
+                Sort by:
+                <select
+                  value={sort}
+                  onChange={e => setSort(e.target.value)}
+                  style={{ border: '1px solid var(--border)', borderRadius: 8, padding: '0.25rem 0.55rem', fontSize: '0.78rem', background: 'var(--surface)', color: 'var(--text2)', cursor: 'pointer' }}
+                >
+                  {SORT_OPTIONS.map(o => <option key={o}>{o}</option>)}
+                </select>
+              </label>
+            </div>
+
+            {/* Grid */}
+            {displayed.length === 0 ? (
+              <div style={{ padding: '2.5rem', textAlign: 'center', color: 'var(--muted)', background: 'var(--surface)', borderRadius: 14, border: '1px dashed var(--border)', fontSize: '0.88rem' }}>
+                {q ? `No recipes matching "${q}"` : filter === 'Favorites' ? 'No favorites yet — heart a recipe to add it here.' : 'No recipes yet.'}
+                {' '}<Link href="/capture" style={{ color: 'var(--accent)', fontWeight: 600 }}>Capture the first one</Link>
+              </div>
+            ) : (
+              <div className="rk-recipe-grid">
+                {displayed.map(m => {
+                  const info = peopleMap[m.narrator?.toLowerCase() ?? ''] ?? { photo: '', relationship: '' }
+                  return (
+                    <RecipeCard
+                      key={m.token}
+                      memory={m}
+                      isFav={favTokens.includes(m.token)}
+                      onToggleFav={() => toggleFav(m.token)}
+                      narratorPhoto={info.photo}
+                      narratorRelationship={info.relationship}
+                    />
+                  )
+                })}
+              </div>
+            )}
           </div>
 
-          {/* Count + sort bar */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '0.65rem 1rem' }}>
-            <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text2)' }}>{displayed.length} Recipe{displayed.length !== 1 ? 's' : ''}</span>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.8rem', color: 'var(--muted)' }}>
-              Sort by:
-              <select
-                value={sort}
-                onChange={e => setSort(e.target.value)}
-                style={{ border: '1px solid var(--border)', borderRadius: 8, padding: '0.25rem 0.55rem', fontSize: '0.78rem', background: 'var(--surface)', color: 'var(--text2)', cursor: 'pointer' }}
-              >
-                {SORT_OPTIONS.map(o => <option key={o}>{o}</option>)}
-              </select>
-            </label>
-          </div>
-
-          {/* Grid */}
-          {displayed.length === 0 ? (
-            <div style={{ padding: '2.5rem', textAlign: 'center', color: 'var(--muted)', background: 'var(--surface)', borderRadius: 14, border: '1px dashed var(--border2)', fontSize: '0.88rem' }}>
-              {q ? `No recipes matching "${q}"` : filter === 'Favorites' ? 'No favorites yet — heart a recipe to add it here.' : 'No recipes yet.'}
-              {' '}<Link href="/capture" style={{ color: 'var(--accent)', fontWeight: 600 }}>Capture the first one</Link>
-            </div>
-          ) : (
-            <div className="rk-recipe-grid">
-              {displayed.map(m => {
-                const info = peopleMap[m.narrator?.toLowerCase() ?? ''] ?? { photo: '', relationship: '' }
-                return (
-                  <RecipeCard
-                    key={m.token}
-                    memory={m}
-                    isFav={favTokens.includes(m.token)}
-                    onToggleFav={() => toggleFav(m.token)}
-                    narratorPhoto={info.photo}
-                    narratorRelationship={info.relationship}
-                  />
-                )
-              })}
-            </div>
-          )}
-
-          {/* Bottom CTA */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', marginTop: '1.5rem', background: 'var(--cream)', border: '1px solid var(--border)', borderRadius: 16, padding: '1.15rem 1.35rem', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '2.5rem', flexShrink: 0 }}>🫙</span>
-            <div style={{ flex: 1, minWidth: 200 }}>
-              <p style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '0.98rem', color: 'var(--text)', marginBottom: 4 }}>Have a family recipe to add?</p>
-              <p style={{ fontSize: '0.8rem', color: 'var(--muted)', lineHeight: 1.5 }}>Record it, write it down or upload it. Keep your family&apos;s stories and flavors alive for generations to come.</p>
-            </div>
-            <Link href="/capture" style={{ background: 'var(--accent)', color: 'white', textDecoration: 'none', padding: '0.65rem 1.25rem', borderRadius: 12, fontSize: '0.85rem', fontWeight: 700, whiteSpace: 'nowrap', flexShrink: 0 }}>
-              + Add Recipe
-            </Link>
-          </div>
+          {/* ── Right panel ── */}
+          <RightPanel filter={filter} setFilter={setFilter} sort={sort} setSort={setSort} />
         </div>
 
-        {/* ── Right panel ── */}
-        <RightPanel filter={filter} setFilter={setFilter} sort={sort} setSort={setSort} />
+        {/* ── Full-width bottom CTA ── */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '1.5rem',
+          marginTop: '1.75rem',
+          background: 'var(--cream)',
+          border: '1px solid var(--border)',
+          borderRadius: 20,
+          padding: '1.35rem 1.75rem',
+          flexWrap: 'wrap',
+        }}>
+          {/* Illustration */}
+          <div style={{
+            width: 70,
+            height: 70,
+            borderRadius: '50%',
+            background: 'linear-gradient(135deg, #FAE8D4 0%, #F0C9A0 100%)',
+            border: '2px solid #E8C9A8',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '2rem',
+            flexShrink: 0,
+            boxShadow: '0 4px 12px rgba(45,27,14,0.1)',
+          }}>
+            🥘
+          </div>
+
+          {/* Text */}
+          <div style={{ flex: 1, minWidth: 200 }}>
+            <p style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '1.05rem', color: 'var(--text)', marginBottom: '0.3rem' }}>
+              Have a family recipe to add?
+            </p>
+            <p style={{ fontSize: '0.83rem', color: 'var(--muted)', lineHeight: 1.55 }}>
+              Record it, write it or upload it. Keep your family&apos;s stories and flavors alive for generations to come.
+            </p>
+          </div>
+
+          {/* Button */}
+          <Link
+            href="/capture"
+            style={{
+              background: 'var(--accent)',
+              color: 'white',
+              textDecoration: 'none',
+              padding: '0.7rem 1.4rem',
+              borderRadius: 12,
+              fontSize: '0.88rem',
+              fontWeight: 700,
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
+              boxShadow: '0 3px 10px rgba(196,82,42,0.25)',
+            }}
+          >
+            + Add Recipe
+          </Link>
+        </div>
       </div>
     </div>
   )
