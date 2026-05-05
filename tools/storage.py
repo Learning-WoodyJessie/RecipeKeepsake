@@ -6,10 +6,16 @@ from supabase import create_client, Client
 import httpx
 
 
+_supabase: "Client | None" = None
+
+
 def _client() -> Client:
-    url = os.environ["SUPABASE_URL"]
-    key = os.environ["SUPABASE_SERVICE_KEY"]
-    return create_client(url, key)
+    global _supabase
+    if _supabase is None:
+        url = os.environ["SUPABASE_URL"]
+        key = os.environ["SUPABASE_SERVICE_KEY"]
+        _supabase = create_client(url, key)
+    return _supabase
 
 
 _SIGNED_URL_EXPIRY = 3600  # 1 hour
