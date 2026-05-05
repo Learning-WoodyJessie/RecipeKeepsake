@@ -145,7 +145,7 @@ async def require_auth(creds: HTTPAuthorizationCredentials = Depends(_bearer)) -
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_ALLOWED_ORIGINS,
-    allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+    allow_methods=["GET", "HEAD", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type", "apikey", "X-Client-Info"],
 )
 
@@ -157,7 +157,7 @@ _NO_CACHE_HEADERS = {
 }
 
 
-@app.get("/")
+@app.api_route("/", methods=["GET", "HEAD"])
 async def index():
     root = _FRONTEND_OUT / "index.html"
     if root.exists():
@@ -581,7 +581,8 @@ async def translate_recipe_endpoint(token: str, lang: str = "en", force: bool = 
 
 
 # ── Frontend catch-all — must be last so all API routes take priority ──────
-@app.get("/{path:path}")
+# Next.js prefetches <Link> targets with HEAD; plain @app.get does not register HEAD (405).
+@app.api_route("/{path:path}", methods=["GET", "HEAD"])
 async def serve_frontend(path: str):
     """Serve Next.js static export pages. out/{path}/index.html → out/index.html fallback."""
     candidate = _FRONTEND_OUT / path / "index.html"

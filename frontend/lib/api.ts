@@ -18,16 +18,40 @@ async function authFetch(path: string, options: RequestInit = {}) {
 
 export const api = {
   recipes: {
-    list: () => authFetch('/recipes'),
+    async list() {
+      const data: unknown = await authFetch('/recipes')
+      if (Array.isArray(data)) return data
+      if (data && typeof data === 'object' && 'recipes' in data) {
+        const rows = (data as { recipes: unknown }).recipes
+        return Array.isArray(rows) ? rows : []
+      }
+      return []
+    },
     get: (token: string) => authFetch(`/recipe/${token}`),
     translate: (token: string, lang: string) => authFetch(`/recipe/${token}/translate?lang=${lang}`),
     patch: (token: string, body: object) => authFetch(`/recipe/${token}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }),
     delete: (token: string) => authFetch(`/recipe/${token}`, { method: 'DELETE' }),
   },
   people: {
-    list: () => authFetch('/people'),
-    create: (body: object) => authFetch('/people', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }),
-    update: (id: string, body: object) => authFetch(`/people/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }),
+    async list() {
+      const data: unknown = await authFetch('/people')
+      if (Array.isArray(data)) return data
+      if (data && typeof data === 'object' && 'people' in data) {
+        const rows = (data as { people: unknown }).people
+        return Array.isArray(rows) ? rows : []
+      }
+      return []
+    },
+    async create(body: object) {
+      const data: unknown = await authFetch('/people', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+      if (data && typeof data === 'object' && 'person' in data) return (data as { person: unknown }).person
+      return data
+    },
+    async update(id: string, body: object) {
+      const data: unknown = await authFetch(`/people/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+      if (data && typeof data === 'object' && 'person' in data) return (data as { person: unknown }).person
+      return data
+    },
     delete: (id: string) => authFetch(`/people/${id}`, { method: 'DELETE' }),
   },
   capture: {
