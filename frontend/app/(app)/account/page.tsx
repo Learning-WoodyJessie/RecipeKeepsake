@@ -1,3 +1,8 @@
+// This file defines the Account page in the application.
+// Purpose: Allows users to manage their account, including deleting their account and associated data.
+// Why: Provides a critical feature for user account management and data privacy.
+// How: Uses Next.js and React hooks to handle state and API calls for account deletion.
+
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'

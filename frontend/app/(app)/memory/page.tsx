@@ -1,3 +1,8 @@
+// This file defines the Memory Detail page in the application.
+// Purpose: Displays detailed information about a specific memory, including audio and transcripts.
+// Why: Allows users to review and interact with individual memories in depth.
+// How: Fetches memory details from the API and provides options for translation and editing.
+
 'use client'
 import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'

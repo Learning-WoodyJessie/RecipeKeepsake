@@ -1,3 +1,8 @@
+// This file defines the Memories page in the application.
+// Purpose: Displays all memories stored in the user's account.
+// Why: Provides a comprehensive view of all family memories for browsing and management.
+// How: Fetches memory data from the API and renders it in a grid layout.
+
 'use client'
 import { useEffect, useState } from 'react'
 import { api } from '@/lib/api'

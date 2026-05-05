@@ -1,3 +1,8 @@
+// This file defines the Capture page in the application.
+// Purpose: Allows users to record audio narrations for memories.
+// Why: Enables the core functionality of capturing family memories through voice recordings.
+// How: Uses MediaRecorder API for audio recording and React hooks for state management.
+
 'use client'
 import { useState, useRef } from 'react'
 import NarratorChip from '@/components/NarratorChip'

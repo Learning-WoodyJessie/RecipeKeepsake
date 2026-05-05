@@ -1,3 +1,8 @@
+// This file defines the Auth Callback page in the application.
+// Purpose: Handles authentication state changes and redirects users after signing in.
+// Why: Ensures seamless navigation after authentication events.
+// How: Listens for auth state changes using Supabase and redirects users to the home page.
+
 'use client'
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'

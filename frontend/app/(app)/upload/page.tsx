@@ -1,3 +1,8 @@
+// This file defines the Upload page in the application.
+// Purpose: Allows users to upload pre-recorded audio files for processing into memories.
+// Why: Provides an alternative to live recording for adding memories.
+// How: Uses file input and API calls to handle audio uploads and processing.
+
 'use client'
 import { useState } from 'react'
 import NarratorChip from '@/components/NarratorChip'

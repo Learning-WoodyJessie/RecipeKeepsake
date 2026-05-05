@@ -1,3 +1,9 @@
+// This file defines the Privacy Policy page in the application.
+// Purpose: Informs users about how their data is stored, used, and protected.
+// Why: Ensures transparency and compliance with data privacy regulations.
+// How: Displays static content outlining the privacy policy.
+
+
 'use client'
 
 export default function PrivacyPage() {
