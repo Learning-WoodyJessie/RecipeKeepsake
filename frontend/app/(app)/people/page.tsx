@@ -94,7 +94,7 @@ function WhyItMatters() {
 }
 
 // ─── Person row card ──────────────────────────────────────────────────────
-function PersonCard({ person, onEdit }: { person: Person; onEdit: () => void }) {
+function PersonCard({ person, recipeCount, onEdit }: { person: Person; recipeCount: number; onEdit: () => void }) {
   return (
     <div
       style={{
@@ -147,7 +147,7 @@ function PersonCard({ person, onEdit }: { person: Person; onEdit: () => void }) 
         )}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: 'var(--muted)', fontSize: '0.75rem' }}>
           <BookIcon />
-          <span>0 memories · 0 recipes</span>
+          <span>{recipeCount} {recipeCount === 1 ? 'recipe' : 'recipes'}</span>
         </div>
       </div>
 
@@ -269,6 +269,7 @@ function PersonModal({
 // ─── Page ─────────────────────────────────────────────────────────────────
 export default function PeoplePage() {
   const [people, setPeople] = useState<Person[]>([])
+  const [recipeCounts, setRecipeCounts] = useState<Record<string, number>>({})
   const [modal, setModal] = useState<{ open: boolean; editing: Person | null }>({ open: false, editing: null })
   const [form, setForm] = useState<FormData>(EMPTY)
   const [saving, setSaving] = useState(false)
@@ -276,6 +277,14 @@ export default function PeoplePage() {
 
   useEffect(() => {
     api.people.list().then(setPeople).catch((e: Error) => setError(e.message))
+    api.recipes.list().then((recipes: Array<{ narrator?: string }>) => {
+      const counts: Record<string, number> = {}
+      for (const r of recipes) {
+        const key = (r.narrator ?? '').toLowerCase().trim()
+        if (key) counts[key] = (counts[key] ?? 0) + 1
+      }
+      setRecipeCounts(counts)
+    }).catch(() => {})
   }, [])
 
   function openAdd() { setForm(EMPTY); setModal({ open: true, editing: null }) }
@@ -358,7 +367,12 @@ export default function PeoplePage() {
           {/* People list */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1rem' }}>
             {people.map(p => (
-              <PersonCard key={p.id} person={p} onEdit={() => openEdit(p)} />
+              <PersonCard
+                key={p.id}
+                person={p}
+                recipeCount={recipeCounts[p.name.toLowerCase().trim()] ?? 0}
+                onEdit={() => openEdit(p)}
+              />
             ))}
           </div>
 
