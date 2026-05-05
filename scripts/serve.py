@@ -39,6 +39,7 @@ from pipeline.models import RecipeData
 from tools.storage import check_rate_limit_db
 
 _WEB_DIR = Path(__file__).parent.parent / "web"
+_FRONTEND_OUT = Path(__file__).parent.parent / "frontend" / "out"
 
 # CORS — allow localhost in dev, Railway URL in prod via ALLOWED_ORIGINS env var
 _ALLOWED_ORIGINS = os.environ.get(
@@ -93,7 +94,9 @@ def _generate_image(
         return ""
 
 
-app.mount("/assets", StaticFiles(directory=_WEB_DIR / "assets"), name="assets")
+# Serve Next.js static export — mounted last so API routes take priority
+if _FRONTEND_OUT.exists():
+    app.mount("/_next", StaticFiles(directory=_FRONTEND_OUT / "_next"), name="nextjs-assets")
 
 
 async def require_auth(creds: HTTPAuthorizationCredentials = Depends(_bearer)) -> dict:
@@ -151,20 +154,10 @@ _NO_CACHE_HEADERS = {
 
 @app.get("/")
 async def index():
-    html = _WEB_DIR / "app.html"
-    if html.exists():
-        return FileResponse(html, headers=_NO_CACHE_HEADERS)
-    return JSONResponse(content={"status": "RecipeKeepsake API running"})
-
-
-@app.get("/privacy")
-async def privacy_policy():
-    """Privacy policy — required for Play Store and App Store submissions."""
-    from fastapi.responses import HTMLResponse
-    privacy = _WEB_DIR / "privacy.html"
-    if privacy.exists():
-        return FileResponse(privacy)
-    return HTMLResponse(content="<h1>Privacy Policy</h1><p>Contact pavaniaiml75@gmail.com for privacy inquiries.</p>")
+    root = _FRONTEND_OUT / "index.html"
+    if root.exists():
+        return FileResponse(root, headers=_NO_CACHE_HEADERS)
+    return JSONResponse(content={"status": "Echoes of Home API"})
 
 
 @app.get("/recipe/{token}")
@@ -577,6 +570,19 @@ async def translate_recipe_endpoint(token: str, lang: str = "en", force: bool = 
         print(f"[translate] Cache write failed (non-fatal): {e}")
 
     return JSONResponse(content={"lang": lang, **translated})
+
+
+# ── Frontend catch-all — must be last so all API routes take priority ──────
+@app.get("/{path:path}")
+async def serve_frontend(path: str):
+    """Serve Next.js static export pages. out/{path}/index.html → out/index.html fallback."""
+    candidate = _FRONTEND_OUT / path / "index.html"
+    if candidate.exists():
+        return FileResponse(candidate, headers=_NO_CACHE_HEADERS)
+    root = _FRONTEND_OUT / "index.html"
+    if root.exists():
+        return FileResponse(root, headers=_NO_CACHE_HEADERS)
+    raise HTTPException(status_code=404, detail="Not found")
 
 
 if __name__ == "__main__":
