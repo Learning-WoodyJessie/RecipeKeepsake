@@ -144,6 +144,32 @@ export default function Sidebar() {
         </Link>
       </nav>
 
+      {/* Capture CTA button */}
+      <button
+        type="button"
+        onClick={() => router.push('/capture')}
+        style={{
+          margin: '0 0.75rem 0.65rem',
+          padding: '0.7rem 1rem',
+          borderRadius: 12,
+          border: 'none',
+          background: 'var(--accent)',
+          color: 'white',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 8,
+          cursor: 'pointer',
+          fontWeight: 700,
+          fontSize: '0.85rem',
+          boxShadow: '0 4px 14px rgba(196,82,42,0.3)',
+        }}
+      >
+        <span aria-hidden>🎙️</span>
+        Capture a Memory
+      </button>
+
+      {/* Profile footer */}
       <button
         type="button"
         onClick={() => router.push('/account')}
@@ -177,12 +203,12 @@ export default function Sidebar() {
         >
           {profile.initial}
         </div>
-        <span style={{ flex: 1, fontSize: '0.82rem', fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {profile.label}
-        </span>
-        <span style={{ opacity: 0.35, fontSize: '0.75rem' }} aria-hidden>
-          ⌄
-        </span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {profile.label}
+          </p>
+          <p style={{ fontSize: '0.7rem', color: 'var(--muted)', marginTop: 1 }}>View profile</p>
+        </div>
       </button>
     </aside>
   )

@@ -1,18 +1,22 @@
-// Home dashboard — layout aligned with Echoes of Home product mock (hero, quote, memories, recipes, people, CTA).
+// Home dashboard — aligned to Echoes of Home product mockup.
+// Layout: 2-column (main content | right panel). Main has hero card, favorites scroll, recent memories.
+// Right panel has quote card + tips.
 
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { api, type Person } from '@/lib/api'
-import MemoryCard from '@/components/MemoryCard'
-import MemoryListRow from '@/components/MemoryListRow'
+import WaveformBars from '@/components/WaveformBars'
 import { supabase } from '@/lib/supabase'
 
-type Memory = { token: string; dish_name: string | null; narrator: string | null; recorded_at: string; image_url: string | null }
-
-const HERO_IMG =
-  'https://images.unsplash.com/photo-1511895426328-dc8714191300?auto=format&fit=crop&w=1400&q=80'
+type Memory = {
+  token: string
+  dish_name: string | null
+  narrator: string | null
+  recorded_at: string
+  image_url: string | null
+}
 
 function firstName(user: { user_metadata?: Record<string, unknown>; email?: string } | null): string {
   if (!user) return 'friend'
@@ -23,23 +27,418 @@ function firstName(user: { user_metadata?: Record<string, unknown>; email?: stri
 }
 
 function readFavorites(): string[] {
-  try {
-    return JSON.parse(localStorage.getItem('rk_favorites') ?? '[]')
-  } catch {
-    return []
-  }
+  try { return JSON.parse(localStorage.getItem('rk_favorites') ?? '[]') } catch { return [] }
 }
 
-function sectionTitle(title: string, href: string) {
+function pseudoDuration(token: string): string {
+  let n = 0
+  for (let i = 0; i < token.length; i++) n += token.charCodeAt(i)
+  const sec = 95 + (n % 220)
+  return `${String(Math.floor(sec / 60)).padStart(2, '0')}:${String(sec % 60).padStart(2, '0')}`
+}
+
+function fmtDate(iso: string) {
+  return new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
+// ─── Sub-components ────────────────────────────────────────────────────────
+
+function HeroCard({ userName }: { userName: string }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '0.85rem' }}>
-      <h2 style={{ fontFamily: 'var(--serif)', fontSize: '1.05rem', fontWeight: 600, color: 'var(--text)' }}>{title}</h2>
-      <Link href={href} style={{ fontSize: '0.78rem', color: 'var(--accent)', textDecoration: 'none', fontWeight: 500 }}>
-        View all
+    <section
+      style={{
+        background: 'var(--surface)',
+        border: '1px solid var(--border)',
+        borderRadius: 20,
+        overflow: 'hidden',
+        display: 'flex',
+        alignItems: 'stretch',
+        marginBottom: '1.75rem',
+        boxShadow: '0 8px 32px rgba(45,27,14,0.07)',
+        minHeight: 220,
+      }}
+    >
+      {/* Left: text + action tiles */}
+      <div style={{ flex: 1, padding: 'clamp(1.25rem, 3vw, 2rem)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+        <h1 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.5rem, 3vw, 2rem)', fontWeight: 700, color: 'var(--text)', lineHeight: 1.15, marginBottom: '0.55rem' }}>
+          Welcome home, {userName}! <span aria-hidden style={{ color: 'var(--accent)' }}>♡</span>
+        </h1>
+        <p style={{ fontSize: '0.9rem', color: 'var(--muted)', lineHeight: 1.5, marginBottom: '1.35rem' }}>
+          Every recipe has a story.<br />Every memory keeps her close.
+        </p>
+        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <ActionTile
+            href="/capture"
+            icon="🎙️"
+            label="Record a memory"
+            desc="Capture a voice, a story, a moment"
+          />
+          <ActionTile
+            href="/upload"
+            icon="☁️"
+            label="Upload audio"
+            desc="Use an existing recording"
+          />
+        </div>
+      </div>
+      {/* Right: grandmother photo */}
+      <div
+        className="rk-hero-photo"
+        style={{
+          width: 280,
+          flexShrink: 0,
+          position: 'relative',
+          overflow: 'hidden',
+          background: 'var(--cream2)',
+        }}
+      >
+        <img
+          src="/landing-hero-photo.png"
+          alt=""
+          style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }}
+          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+        />
+      </div>
+    </section>
+  )
+}
+
+function ActionTile({ href, icon, label, desc }: { href: string; icon: string; label: string; desc: string }) {
+  return (
+    <Link
+      href={href}
+      style={{
+        textDecoration: 'none',
+        display: 'flex',
+        alignItems: 'flex-start',
+        gap: '0.65rem',
+        background: 'var(--cream)',
+        border: '1px solid var(--border)',
+        borderRadius: 14,
+        padding: '0.75rem 1rem',
+        minWidth: 180,
+        flex: '1 1 180px',
+        maxWidth: 240,
+        transition: 'box-shadow 0.15s',
+      }}
+    >
+      <div
+        style={{
+          width: 36,
+          height: 36,
+          borderRadius: '50%',
+          background: 'var(--accent-light)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '1.05rem',
+          flexShrink: 0,
+        }}
+      >
+        {icon}
+      </div>
+      <div>
+        <p style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--accent)', marginBottom: 3 }}>{label}</p>
+        <p style={{ fontSize: '0.75rem', color: 'var(--muted)', lineHeight: 1.4 }}>{desc}</p>
+      </div>
+    </Link>
+  )
+}
+
+function FavoritesScroll({
+  memories,
+  favTokens,
+  onToggle,
+  sortBy,
+  onSortChange,
+}: {
+  memories: Memory[]
+  favTokens: string[]
+  onToggle: (token: string) => void
+  sortBy: 'favorites' | 'recent'
+  onSortChange: (v: 'favorites' | 'recent') => void
+}) {
+  const sorted = useMemo(() => {
+    if (sortBy === 'favorites') {
+      const favs = memories.filter((m) => favTokens.includes(m.token))
+      const rest = memories.filter((m) => !favTokens.includes(m.token))
+      return [...favs, ...rest]
+    }
+    return [...memories]
+  }, [memories, favTokens, sortBy])
+
+  return (
+    <section style={{ marginBottom: '1.75rem' }}>
+      {/* Section header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.85rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+        <h2 style={{ fontFamily: 'var(--serif)', fontSize: '1.05rem', fontWeight: 600, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+          Your favorites <span aria-hidden style={{ color: 'var(--accent)' }}>♡</span>
+        </h2>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+          <label style={{ fontSize: '0.75rem', color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+            Sort by:
+            <select
+              value={sortBy}
+              onChange={(e) => onSortChange(e.target.value as 'favorites' | 'recent')}
+              style={{
+                border: '1px solid var(--border)',
+                borderRadius: 8,
+                padding: '0.25rem 0.55rem',
+                fontSize: '0.75rem',
+                background: 'var(--surface)',
+                color: 'var(--accent)',
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              <option value="favorites">Favorites</option>
+              <option value="recent">Recent</option>
+            </select>
+          </label>
+          <Link href="/memories" style={{ fontSize: '0.78rem', color: 'var(--accent)', textDecoration: 'none', fontWeight: 500, whiteSpace: 'nowrap' }}>
+            View all ›
+          </Link>
+        </div>
+      </div>
+
+      {sorted.length === 0 ? (
+        <div style={{ padding: '1.5rem', borderRadius: 14, background: 'var(--surface)', border: '1px dashed var(--border2)', color: 'var(--muted)', fontSize: '0.88rem', textAlign: 'center' }}>
+          No memories yet —{' '}
+          <Link href="/capture" style={{ color: 'var(--accent)', fontWeight: 600 }}>capture the first one</Link>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', gap: '0.85rem', overflowX: 'auto', paddingBottom: '0.5rem', scrollbarWidth: 'none' }}>
+          {sorted.map((m) => (
+            <FavoriteCard key={m.token} memory={m} isFav={favTokens.includes(m.token)} onToggle={() => onToggle(m.token)} />
+          ))}
+        </div>
+      )}
+    </section>
+  )
+}
+
+function FavoriteCard({ memory, isFav, onToggle }: { memory: Memory; isFav: boolean; onToggle: () => void }) {
+  return (
+    <div style={{ flexShrink: 0, width: 180, borderRadius: 16, overflow: 'hidden', background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: '0 4px 12px rgba(45,27,14,0.06)' }}>
+      <div style={{ position: 'relative', aspectRatio: '1 / 1', background: 'var(--cream2)', overflow: 'hidden' }}>
+        <Link href={`/memory?token=${memory.token}`} style={{ display: 'block', height: '100%' }}>
+          {memory.image_url
+            ? <img src={memory.image_url} alt={memory.dish_name ?? ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.5rem' }}>🍽️</div>
+          }
+        </Link>
+        {/* Heart toggle overlay */}
+        <button
+          type="button"
+          aria-label={isFav ? 'Remove from favorites' : 'Add to favorites'}
+          onClick={onToggle}
+          style={{
+            position: 'absolute',
+            top: 8,
+            right: 8,
+            width: 30,
+            height: 30,
+            borderRadius: '50%',
+            background: 'rgba(255,255,255,0.88)',
+            border: 'none',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '0.95rem',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.12)',
+          }}
+        >
+          {isFav ? '♥' : '♡'}
+        </button>
+      </div>
+      <div style={{ padding: '0.65rem 0.75rem' }}>
+        <p style={{ fontFamily: 'var(--serif)', fontWeight: 600, fontSize: '0.88rem', color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: 5 }}>
+          {memory.dish_name ?? 'Untitled'}
+        </p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+          <div style={{ width: 20, height: 20, borderRadius: '50%', background: 'var(--accent-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem', fontWeight: 700, color: 'var(--accent)', flexShrink: 0 }}>
+            {(memory.narrator ?? '?')[0]?.toUpperCase()}
+          </div>
+          <p style={{ fontSize: '0.72rem', color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {memory.narrator ?? 'Narrator'}
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function RecentMemoriesSection({
+  memories,
+  favTokens,
+  onToggle,
+  peopleMap,
+}: {
+  memories: Memory[]
+  favTokens: string[]
+  onToggle: (token: string) => void
+  peopleMap: Record<string, string>
+}) {
+  return (
+    <section>
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '0.85rem' }}>
+        <h2 style={{ fontFamily: 'var(--serif)', fontSize: '1.05rem', fontWeight: 600, color: 'var(--text)' }}>Recent memories</h2>
+        <Link href="/memories" style={{ fontSize: '0.78rem', color: 'var(--accent)', textDecoration: 'none', fontWeight: 500 }}>View all ›</Link>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+        {memories.map((m) => (
+          <MemoryRow
+            key={m.token}
+            memory={m}
+            isFav={favTokens.includes(m.token)}
+            onToggle={() => onToggle(m.token)}
+            photoUrl={peopleMap[m.narrator?.toLowerCase() ?? ''] ?? ''}
+          />
+        ))}
+      </div>
+    </section>
+  )
+}
+
+function MemoryRow({
+  memory,
+  isFav,
+  onToggle,
+  photoUrl,
+}: {
+  memory: Memory
+  isFav: boolean
+  onToggle: () => void
+  photoUrl: string
+}) {
+  const duration = pseudoDuration(memory.token)
+  const narr = memory.narrator ?? 'Narrator'
+  const title = memory.dish_name ?? 'Untitled memory'
+  const initial = narr[0]?.toUpperCase() ?? '?'
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.85rem',
+        padding: '0.75rem 1rem',
+        background: 'var(--surface)',
+        border: '1px solid var(--border)',
+        borderRadius: 14,
+      }}
+    >
+      {/* Narrator avatar */}
+      <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'var(--accent-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0 }}>
+        {photoUrl
+          ? <img src={photoUrl} alt={narr} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          : <span style={{ fontFamily: 'var(--serif)', fontWeight: 700, color: 'var(--accent)', fontSize: '1.1rem' }}>{initial}</span>
+        }
+      </div>
+      {/* Name + waveform */}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <p style={{ fontFamily: 'var(--serif)', fontWeight: 600, color: 'var(--text)', fontSize: '0.95rem', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{title}</p>
+        <p style={{ fontSize: '0.72rem', color: 'var(--muted)', marginBottom: 6 }}>{narr} · {fmtDate(memory.recorded_at)}</p>
+        <WaveformBars token={memory.token} barCount={22} />
+      </div>
+      {/* Duration */}
+      <span style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--text2)', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>{duration}</span>
+      {/* Heart */}
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-label={isFav ? 'Remove from favorites' : 'Add to favorites'}
+        style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.05rem', lineHeight: 1, color: isFav ? 'var(--accent)' : 'var(--muted)', flexShrink: 0 }}
+      >
+        {isFav ? '♥' : '♡'}
+      </button>
+      {/* Play — outline circle */}
+      <Link
+        href={`/memory?token=${memory.token}`}
+        aria-label={`Play ${title}`}
+        style={{
+          width: 36,
+          height: 36,
+          borderRadius: '50%',
+          border: '2px solid var(--accent)',
+          color: 'var(--accent)',
+          background: 'transparent',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          textDecoration: 'none',
+          fontSize: '0.75rem',
+          flexShrink: 0,
+        }}
+      >
+        ▶
       </Link>
     </div>
   )
 }
+
+function QuotePanel() {
+  return (
+    <>
+      {/* Quote card */}
+      <div
+        style={{
+          background: 'var(--surface)',
+          border: '1px solid var(--border)',
+          borderRadius: 20,
+          padding: '1.5rem 1.25rem',
+          marginBottom: '1rem',
+          boxShadow: '0 4px 16px rgba(45,27,14,0.05)',
+        }}
+      >
+        <p style={{ fontFamily: 'var(--serif)', fontSize: '2rem', color: 'var(--accent)', lineHeight: 1, marginBottom: '0.65rem' }}>&ldquo;</p>
+        <p style={{ fontFamily: 'var(--serif)', fontSize: '1.05rem', fontStyle: 'italic', color: 'var(--text2)', lineHeight: 1.6, marginBottom: '1rem' }}>
+          The stories she tells today are the recipes you&apos;ll cherish forever.
+        </p>
+        <p style={{ fontSize: '0.75rem', color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+          <span aria-hidden style={{ color: 'var(--accent)' }}>♥</span>
+          Share a memory. Keep the echoes alive.
+        </p>
+      </div>
+
+      {/* Tips */}
+      <div
+        style={{
+          background: 'var(--surface)',
+          border: '1px solid var(--border)',
+          borderRadius: 20,
+          padding: '1.25rem',
+          boxShadow: '0 4px 16px rgba(45,27,14,0.05)',
+        }}
+      >
+        <h3 style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '0.95rem', color: 'var(--text)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+          <span aria-hidden>💡</span> Tips for a great memory
+        </h3>
+        {[
+          { icon: '🎙️', title: 'Ask what makes the recipe special', desc: 'Capture the stories behind the dish.' },
+          { icon: '♥', title: 'Ask for her tips and little secrets', desc: 'Those little details make it priceless.' },
+          { icon: '✨', title: 'Let her talk naturally', desc: 'The more she shares, the better!' },
+        ].map((tip) => (
+          <div key={tip.title} style={{ display: 'flex', gap: '0.65rem', marginBottom: '0.9rem' }}>
+            <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'var(--accent-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem', flexShrink: 0 }}>
+              {tip.icon}
+            </div>
+            <div>
+              <p style={{ fontWeight: 600, fontSize: '0.82rem', color: 'var(--text)', marginBottom: 3 }}>{tip.title}</p>
+              <p style={{ fontSize: '0.75rem', color: 'var(--muted)', lineHeight: 1.45 }}>{tip.desc}</p>
+            </div>
+          </div>
+        ))}
+        <Link href="/capture" style={{ fontSize: '0.78rem', color: 'var(--accent)', fontWeight: 600, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.25rem', marginTop: '0.25rem' }}>
+          Learn more ›
+        </Link>
+      </div>
+    </>
+  )
+}
+
+// ─── Page ──────────────────────────────────────────────────────────────────
 
 export default function HomePage() {
   const [memories, setMemories] = useState<Memory[]>([])
@@ -48,6 +447,7 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [favTick, setFavTick] = useState(0)
+  const [sortBy, setSortBy] = useState<'favorites' | 'recent'>('favorites')
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => setUserName(firstName(user)))
@@ -57,20 +457,11 @@ export default function HomePage() {
     let cancelled = false
     Promise.all([api.recipes.list().catch((e: Error) => { throw e }), api.people.list().catch(() => [])])
       .then(([m, p]) => {
-        if (!cancelled) {
-          setMemories(m as Memory[])
-          setPeople(p as Person[])
-        }
+        if (!cancelled) { setMemories(m as Memory[]); setPeople(p as Person[]) }
       })
-      .catch((e: Error) => {
-        if (!cancelled) setError(e.message)
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
-      })
-    return () => {
-      cancelled = true
-    }
+      .catch((e: Error) => { if (!cancelled) setError(e.message) })
+      .finally(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
   }, [])
 
   const favTokens = useMemo(() => readFavorites(), [favTick, memories])
@@ -83,337 +474,67 @@ export default function HomePage() {
     setFavTick((x) => x + 1)
   }, [])
 
-  const cherished = useMemo(() => {
-    const favs = memories.filter((m) => favTokens.includes(m.token))
-    const pool = favs.length ? favs : memories
-    return pool.slice(0, 3)
-  }, [memories, favTokens])
+  // Build narrator → photo_url lookup from people list
+  const peopleMap = useMemo(() => {
+    const map: Record<string, string> = {}
+    for (const p of people) {
+      if (p.photo_url) map[p.name.toLowerCase()] = p.photo_url
+    }
+    return map
+  }, [people])
 
   const recentRows = memories.slice(0, 4)
-  const peopleShow = people.slice(0, 3)
 
   if (loading) {
-    return (
-      <div style={{ padding: '2.5rem 1.5rem', color: 'var(--muted)', fontSize: '0.9rem' }}>
-        Loading your home…
-      </div>
-    )
+    return <div style={{ padding: '2.5rem 1.5rem', color: 'var(--muted)', fontSize: '0.9rem' }}>Loading your home…</div>
   }
   if (error) {
     return <div style={{ padding: '2rem 1.5rem', color: 'var(--accent)' }}>{error}</div>
   }
 
   return (
-    <div style={{ padding: '1.25rem 1.5rem 2.75rem', maxWidth: 1180, margin: '0 auto' }}>
+    <div style={{ padding: '1.25rem 1.5rem 2.75rem' }}>
       <style>{`
-        .rk-hero-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; margin-bottom: 2rem; }
-        @media (min-width: 960px) {
-          .rk-hero-grid { grid-template-columns: minmax(0, 1fr) minmax(240px, 300px); align-items: stretch; }
+        .rk-home-cols {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 1.25rem;
+          max-width: 1200px;
+          margin: 0 auto;
         }
-        .rk-mid-grid { display: grid; grid-template-columns: 1fr; gap: 1.75rem; margin-bottom: 2rem; }
-        @media (min-width: 900px) {
-          .rk-mid-grid { grid-template-columns: 1fr 1fr; align-items: start; }
+        @media (min-width: 1024px) {
+          .rk-home-cols { grid-template-columns: 1fr 272px; align-items: start; }
         }
+        .rk-hero-photo { display: none; }
+        @media (min-width: 720px) { .rk-hero-photo { display: block !important; } }
       `}</style>
 
-      {/* Hero + quote */}
-      <div className="rk-hero-grid">
-        <section
-          style={{
-            position: 'relative',
-            borderRadius: 20,
-            overflow: 'hidden',
-            minHeight: 300,
-            border: '1px solid var(--border)',
-            boxShadow: '0 16px 48px rgba(45, 27, 14, 0.08)',
-          }}
-        >
-          <img
-            src={HERO_IMG}
-            alt=""
-            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', filter: 'brightness(0.92)' }}
+      <div className="rk-home-cols">
+        {/* ── Left: main content ── */}
+        <div>
+          <HeroCard userName={userName} />
+          <FavoritesScroll
+            memories={memories}
+            favTokens={favTokens}
+            onToggle={toggleFavorite}
+            sortBy={sortBy}
+            onSortChange={setSortBy}
           />
-          <div
-            style={{
-              position: 'absolute',
-              inset: 0,
-              background: 'linear-gradient(105deg, rgba(253, 248, 243, 0.94) 0%, rgba(253, 248, 243, 0.78) 42%, rgba(253, 248, 243, 0.25) 100%)',
-            }}
-          />
-          <div style={{ position: 'relative', zIndex: 1, padding: 'clamp(1.25rem, 3vw, 2rem)', maxWidth: 520 }}>
-            <h1
-              style={{
-                fontFamily: 'var(--serif)',
-                fontSize: 'clamp(1.65rem, 3.5vw, 2.15rem)',
-                fontWeight: 700,
-                color: 'var(--text)',
-                lineHeight: 1.15,
-                marginBottom: '0.65rem',
-              }}
-            >
-              Welcome home, {userName}! <span aria-hidden>♡</span>
-            </h1>
-            <p style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(0.95rem, 1.8vw, 1.05rem)', fontStyle: 'italic', color: 'var(--text2)', lineHeight: 1.55, marginBottom: '1.35rem' }}>
-              Every story has a scent, every recipe a memory, every moment a heartbeat. Let&apos;s keep them alive.
-            </p>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.65rem' }}>
-              <Link
-                href="/capture"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.45rem',
-                  background: 'var(--accent)',
-                  color: 'white',
-                  textDecoration: 'none',
-                  padding: '0.65rem 1.15rem',
-                  borderRadius: 12,
-                  fontSize: '0.88rem',
-                  fontWeight: 600,
-                  boxShadow: '0 4px 14px rgba(196, 82, 42, 0.35)',
-                }}
-              >
-                <span aria-hidden>🎙️</span>
-                Record a memory
-              </Link>
-              <Link
-                href="/upload"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.45rem',
-                  background: 'var(--surface)',
-                  color: 'var(--accent)',
-                  border: '2px solid var(--accent)',
-                  textDecoration: 'none',
-                  padding: '0.6rem 1.1rem',
-                  borderRadius: 12,
-                  fontSize: '0.88rem',
-                  fontWeight: 600,
-                }}
-              >
-                <span aria-hidden>📤</span>
-                Upload audio
-              </Link>
-            </div>
-          </div>
-        </section>
+          {recentRows.length > 0 && (
+            <RecentMemoriesSection
+              memories={recentRows}
+              favTokens={favTokens}
+              onToggle={toggleFavorite}
+              peopleMap={peopleMap}
+            />
+          )}
+        </div>
 
-        <aside
-          style={{
-            background: 'var(--surface)',
-            border: '1px solid var(--border)',
-            borderRadius: 20,
-            padding: '1.35rem 1.25rem',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            boxShadow: '0 8px 28px rgba(45, 27, 14, 0.05)',
-          }}
-        >
-          <p style={{ fontFamily: 'var(--serif)', fontSize: '1.08rem', fontStyle: 'italic', color: 'var(--text2)', lineHeight: 1.55, marginBottom: '1rem' }}>
-            &ldquo;The stories we tell today become the treasures of tomorrow.&rdquo;
-          </p>
-          <p style={{ fontSize: '0.82rem', color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-            <span aria-hidden>♥</span>
-            Share a memory. Keep the echoes alive.
-          </p>
+        {/* ── Right: quote + tips ── */}
+        <aside>
+          <QuotePanel />
         </aside>
       </div>
-
-      {/* Recent memories | Cherished recipes */}
-      <div className="rk-mid-grid">
-        <section>
-          {sectionTitle('Recent memories', '/memories')}
-          {memories.length === 0 ? (
-            <div
-              style={{
-                padding: '1.5rem',
-                borderRadius: 14,
-                background: 'var(--surface)',
-                border: '1px dashed var(--border2)',
-                color: 'var(--muted)',
-                fontSize: '0.88rem',
-                textAlign: 'center',
-              }}
-            >
-              No memories yet —{' '}
-              <Link href="/capture" style={{ color: 'var(--accent)', fontWeight: 600 }}>
-                capture the first one
-              </Link>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
-              {recentRows.map((m) => (
-                <MemoryListRow
-                  key={m.token}
-                  memory={m}
-                  favorite={favTokens.includes(m.token)}
-                  onToggleFavorite={() => toggleFavorite(m.token)}
-                />
-              ))}
-            </div>
-          )}
-        </section>
-
-        <section>
-          {sectionTitle('Cherished recipes', '/memories')}
-          {cherished.length === 0 ? (
-            <div style={{ padding: '1.5rem', borderRadius: 14, background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--muted)', fontSize: '0.88rem' }}>
-              Save favourites with the heart on any memory to fill this shelf.
-            </div>
-          ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '0.65rem' }}>
-              {cherished.map((m) => (
-                <MemoryCard key={m.token} memory={m} variant="poster" />
-              ))}
-            </div>
-          )}
-          <div
-            style={{
-              marginTop: '1rem',
-              padding: '1rem 1.15rem',
-              borderRadius: 14,
-              background: 'var(--accent-light)',
-              border: '1px solid rgba(196, 82, 42, 0.2)',
-              display: 'flex',
-              flexWrap: 'wrap',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '0.75rem',
-            }}
-          >
-            <p style={{ fontSize: '0.82rem', color: 'var(--text2)', maxWidth: 280, lineHeight: 1.45 }}>
-              Every recipe holds a story. Add details, memories, and little secrets.
-            </p>
-            <Link
-              href="/capture"
-              style={{
-                background: 'var(--accent)',
-                color: 'white',
-                textDecoration: 'none',
-                padding: '0.5rem 1rem',
-                borderRadius: 10,
-                fontSize: '0.8rem',
-                fontWeight: 600,
-                whiteSpace: 'nowrap',
-              }}
-            >
-              Add a recipe
-            </Link>
-          </div>
-        </section>
-      </div>
-
-      {/* Your people */}
-      <section style={{ marginBottom: '2rem' }}>
-        {sectionTitle('Your people', '/people')}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '0.75rem', maxWidth: 720 }}>
-          {peopleShow.map((p) => (
-            <Link
-              key={p.id}
-              href="/people"
-              style={{
-                textDecoration: 'none',
-                background: 'var(--surface)',
-                border: '1px solid var(--border)',
-                borderRadius: 16,
-                padding: '1rem 0.75rem',
-                textAlign: 'center',
-                color: 'inherit',
-              }}
-            >
-              <div
-                style={{
-                  width: 72,
-                  height: 72,
-                  borderRadius: '50%',
-                  margin: '0 auto 0.65rem',
-                  background: 'var(--cream2)',
-                  overflow: 'hidden',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '2rem',
-                }}
-              >
-                {p.photo_url ? (
-                  <img src={p.photo_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                ) : (
-                  <span aria-hidden>{p.emoji ?? '👤'}</span>
-                )}
-              </div>
-              <p style={{ fontFamily: 'var(--serif)', fontWeight: 600, fontSize: '0.92rem', color: 'var(--text)' }}>{p.name}</p>
-              <p style={{ fontSize: '0.72rem', color: 'var(--muted)', marginTop: 4 }}>{p.relationship}</p>
-            </Link>
-          ))}
-          <Link
-            href="/people"
-            style={{
-              textDecoration: 'none',
-              background: 'var(--cream2)',
-              border: '2px dashed var(--border2)',
-              borderRadius: 16,
-              padding: '1rem 0.75rem',
-              textAlign: 'center',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              minHeight: 160,
-              color: 'var(--muted)',
-            }}
-          >
-            <span style={{ fontSize: '1.75rem', marginBottom: 6 }}>+</span>
-            <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text2)' }}>Add someone</span>
-          </Link>
-        </div>
-      </section>
-
-      {/* Bottom prompt */}
-      <section
-        style={{
-          borderRadius: 18,
-          border: '1px solid var(--border)',
-          background: 'linear-gradient(90deg, var(--surface) 0%, var(--cream2) 55%, #FAF4EE 100%)',
-          padding: '1.25rem 1.5rem',
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '1rem',
-          boxShadow: '0 8px 24px rgba(45, 27, 14, 0.04)',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', maxWidth: 560 }}>
-          <span style={{ fontSize: '1.35rem', lineHeight: 1 }} aria-hidden>
-            ♥
-          </span>
-          <div>
-            <p style={{ fontFamily: 'var(--serif)', fontWeight: 600, fontSize: '1.02rem', color: 'var(--text)', marginBottom: 6 }}>
-              Capture today. Cherish forever.
-            </p>
-            <p style={{ fontSize: '0.82rem', color: 'var(--muted)', lineHeight: 1.5 }}>
-              Not sure where to begin? Start with a gentle prompt and let the story unfold.
-            </p>
-          </div>
-        </div>
-        <Link
-          href="/capture"
-          style={{
-            background: 'var(--accent)',
-            color: 'white',
-            textDecoration: 'none',
-            padding: '0.65rem 1.25rem',
-            borderRadius: 12,
-            fontSize: '0.85rem',
-            fontWeight: 600,
-            whiteSpace: 'nowrap',
-          }}
-        >
-          Start with a prompt
-        </Link>
-      </section>
     </div>
   )
 }
