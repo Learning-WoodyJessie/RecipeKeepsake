@@ -10,7 +10,8 @@ Schema:
   "ingredients": [{"item": "string", "quantity": "string"}],
   "steps": ["string"],
   "cook_notes": "string",
-  "review_flags": ["string"]
+  "review_flags": ["string"],
+  "category": "string"
 }
 
 Rules:
@@ -18,7 +19,9 @@ Rules:
 - where quantity is vague (a little, konjam, to taste, enough, until it smells right),
   put the full instruction verbatim in cook_notes — NOT in ingredients quantity field
 - review_flags: list any implied steps or ambiguous instructions needing human review
-- if dish_name is not stated, infer from context; if truly unknown, use null"""
+- if dish_name is not stated, infer from context; if truly unknown, use null
+- category must be exactly one of: Breakfast, Lunch, Sweets, Pickles, Snacks, Drinks, Other
+  choose based on when the dish is typically eaten or its type; use Other if unclear"""
 
 
 def structure_recipe(english_text: str, provider: LLMProvider) -> dict:

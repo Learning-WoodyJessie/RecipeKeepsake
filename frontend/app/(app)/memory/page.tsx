@@ -25,7 +25,10 @@ type Memory = {
   ingredients: Ingredient[]
   steps: string[]
   user_notes: string | null
+  tags: string[] | null
 }
+
+const CATEGORIES = ['Breakfast', 'Lunch', 'Sweets', 'Pickles', 'Snacks', 'Drinks', 'Other'] as const
 
 function MemoryDetail() {
   const params = useSearchParams()
@@ -39,6 +42,8 @@ function MemoryDetail() {
   const [error, setError] = useState('')
   const [favorite, setFavorite] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [category, setCategory] = useState('')
+  const [savingCategory, setSavingCategory] = useState(false)
 
   useEffect(() => {
     if (!token) { router.replace('/memories'); return }
@@ -46,6 +51,7 @@ function MemoryDetail() {
       setMemory(m)
       setNotes(m.user_notes ?? '')
       setFavorite(readFavorites().includes(token))
+      setCategory((m.tags ?? [])[0] ?? '')
     }).catch((e: Error) => setError(e.message)).finally(() => setLoading(false))
   }, [token, router])
 
@@ -60,6 +66,14 @@ function MemoryDetail() {
     try { await api.recipes.patch(token, { user_notes: notes }) }
     catch (e: unknown) { setError((e as Error).message) }
     finally { setSaving(false) }
+  }
+
+  async function changeCategory(newCategory: string) {
+    setCategory(newCategory)
+    setSavingCategory(true)
+    try { await api.recipes.patch(token, { tags: newCategory ? [newCategory] : [] }) }
+    catch (e: unknown) { setError((e as Error).message) }
+    finally { setSavingCategory(false) }
   }
 
   async function deleteMemory() {
@@ -91,6 +105,34 @@ function MemoryDetail() {
           <button onClick={deleteMemory} disabled={deleting} style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 8, padding: '0.4rem 0.7rem', cursor: 'pointer', fontSize: '0.85rem', color: 'var(--accent)' }}>
             {deleting ? '…' : '🗑'}
           </button>
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
+        <span style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--muted)', flexShrink: 0 }}>Category</span>
+        <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+          {CATEGORIES.map(cat => (
+            <button
+              key={cat}
+              onClick={() => changeCategory(category === cat ? '' : cat)}
+              disabled={savingCategory}
+              style={{
+                padding: '0.25rem 0.7rem',
+                borderRadius: 999,
+                border: '1px solid',
+                borderColor: category === cat ? 'var(--accent)' : 'var(--border)',
+                background: category === cat ? 'var(--accent)' : 'transparent',
+                color: category === cat ? 'white' : 'var(--muted)',
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                cursor: savingCategory ? 'default' : 'pointer',
+                opacity: savingCategory ? 0.6 : 1,
+                transition: 'all 0.15s',
+              }}
+            >
+              {cat}
+            </button>
+          ))}
         </div>
       </div>
 

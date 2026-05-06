@@ -62,6 +62,7 @@ def run_persist(
         "user_id": user_id,
         "recorded_by_email": recorded_by_email,
         "recorded_by_name": recorded_by_name,
+        "tags": [recipe.category] if recipe.category else [],
     }
     saved = insert_recipe(row)
     return SavedRecipe(

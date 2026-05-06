@@ -20,7 +20,21 @@ class TestRecipeData:
             transcript_english="eng",
         )
         assert r.dish_name == "Pesarattu"
-        assert r.image_url == ""  # default
+        assert r.image_url == ""       # default
+        assert r.category == "Other"   # default
+
+    def test_category_explicit(self):
+        r = RecipeData(
+            dish_name="Idli",
+            ingredients=[],
+            steps=[],
+            cook_notes="",
+            review_flags=[],
+            transcript_raw="",
+            transcript_english="",
+            category="Breakfast",
+        )
+        assert r.category == "Breakfast"
 
     def test_ingredients_list(self):
         r = RecipeData(

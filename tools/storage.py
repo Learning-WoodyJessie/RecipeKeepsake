@@ -117,7 +117,7 @@ def list_recipes(user_id: str) -> list:
     sb = _client()
     result = (
         sb.table("recipes")
-        .select("id, token, dish_name, narrator, recorded_at, image_url, audio_url")
+        .select("id, token, dish_name, narrator, recorded_at, image_url, audio_url, tags")
         .eq("user_id", user_id)
         .order("recorded_at", desc=True)
         .execute()

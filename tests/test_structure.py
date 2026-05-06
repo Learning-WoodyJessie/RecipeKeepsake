@@ -15,6 +15,7 @@ _SAMPLE = {
     "steps": ["Soak moong dal for 4 hours.", "Grind to a smooth batter."],
     "cook_notes": "Add oil until it smells right.",
     "review_flags": ["Possible implied step: drain water after soaking"],
+    "category": "Breakfast",
 }
 
 
@@ -27,8 +28,13 @@ class TestStructureRecipe:
     def test_preserves_all_fields(self):
         """All schema fields are present in the returned dict."""
         result = structure_recipe("some english text", _provider(_SAMPLE))
-        for key in ("dish_name", "ingredients", "steps", "cook_notes", "review_flags"):
+        for key in ("dish_name", "ingredients", "steps", "cook_notes", "review_flags", "category"):
             assert key in result
+
+    def test_category_field_present(self):
+        """category field is returned from the LLM response."""
+        result = structure_recipe("some english text", _provider(_SAMPLE))
+        assert result["category"] == "Breakfast"
 
     def test_ingredients_are_list_of_dicts(self):
         """ingredients is a list of {item, quantity} dicts."""
@@ -48,3 +54,8 @@ class TestStructureRecipe:
         """STRUCTURE_SYSTEM must tell the model to put vague quantities in cook_notes."""
         assert "cook_notes" in STRUCTURE_SYSTEM
         assert "vague" in STRUCTURE_SYSTEM.lower() or "konjam" in STRUCTURE_SYSTEM.lower()
+
+    def test_system_prompt_includes_category_values(self):
+        """STRUCTURE_SYSTEM must enumerate the allowed category values."""
+        for cat in ("Breakfast", "Lunch", "Sweets", "Pickles", "Snacks", "Drinks", "Other"):
+            assert cat in STRUCTURE_SYSTEM

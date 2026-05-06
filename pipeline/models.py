@@ -32,6 +32,7 @@ class RecipeData:
     transcript_raw: str
     transcript_english: str
     image_url: str = ""        # populated post-structure by image stage in serve.py
+    category: str = "Other"    # meal category assigned by Call B LLM
 
 
 @dataclass

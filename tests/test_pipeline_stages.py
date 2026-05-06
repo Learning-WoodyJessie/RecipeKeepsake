@@ -85,6 +85,7 @@ class TestRunTransform:
             "steps": ["Soak", "Grind"],
             "cook_notes": "konchem salt",
             "review_flags": [],
+            "category": "Breakfast",
         }):
             result = run_transform(transcript, provider=_provider(""))
 
@@ -92,7 +93,8 @@ class TestRunTransform:
         assert result.dish_name == "Pesarattu"
         assert result.transcript_raw == "raw"
         assert result.transcript_english == "eng"
-        assert result.image_url == ""  # not set at this stage
+        assert result.image_url == ""       # not set at this stage
+        assert result.category == "Breakfast"
 
     def test_preserves_transcript_references(self):
         """run_transform() copies transcript raw + english into RecipeData."""
@@ -100,12 +102,24 @@ class TestRunTransform:
 
         with patch("pipeline.transform.structure_recipe", return_value={
             "dish_name": "Dish", "ingredients": [], "steps": [],
-            "cook_notes": "", "review_flags": [],
+            "cook_notes": "", "review_flags": [], "category": "Other",
         }):
             result = run_transform(transcript, provider=_provider(""))
 
         assert result.transcript_raw == "Telugu raw"
         assert result.transcript_english == "English translation"
+
+    def test_invalid_category_defaults_to_other(self):
+        """run_transform() coerces an unrecognised category to 'Other'."""
+        transcript = TranscriptResult(raw="r", english="e")
+
+        with patch("pipeline.transform.structure_recipe", return_value={
+            "dish_name": "Mystery", "ingredients": [], "steps": [],
+            "cook_notes": "", "review_flags": [], "category": "Junk",
+        }):
+            result = run_transform(transcript, provider=_provider(""))
+
+        assert result.category == "Other"
 
     def test_uses_structure_model_from_config(self):
         """run_transform() uses structure_model key over generic model when present."""
@@ -113,7 +127,7 @@ class TestRunTransform:
 
         with patch("pipeline.transform.structure_recipe", return_value={
                  "dish_name": "X", "ingredients": [], "steps": [],
-                 "cook_notes": "", "review_flags": [],
+                 "cook_notes": "", "review_flags": [], "category": "Other",
              }), \
              patch("pipeline.transform.load_config", return_value={
                  "llm": {"model": "gpt-4o", "structure_model": "gpt-4o-mini"}

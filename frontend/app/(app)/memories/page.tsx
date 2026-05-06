@@ -15,6 +15,7 @@ type Memory = {
   narrator: string | null
   recorded_at: string
   image_url: string | null
+  tags: string[] | null
 }
 
 
@@ -296,6 +297,7 @@ export default function MemoriesPage() {
     // Filter
     if (filter === 'Favorites') list = list.filter(m => favTokens.includes(m.token))
     else if (filter === 'Recently added') list = list.slice().sort((a, b) => new Date(b.recorded_at).getTime() - new Date(a.recorded_at).getTime())
+    else if (filter !== 'All') list = list.filter(m => (m.tags ?? []).includes(filter))
     // Sort
     if (sort === 'Recently added') list = list.slice().sort((a, b) => new Date(b.recorded_at).getTime() - new Date(a.recorded_at).getTime())
     else if (sort === 'Oldest first') list = list.slice().sort((a, b) => new Date(a.recorded_at).getTime() - new Date(b.recorded_at).getTime())
