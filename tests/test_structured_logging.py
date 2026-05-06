@@ -19,7 +19,10 @@ class TestStructuredLogging:
                 with patch("scripts.serve.run_transcribe", side_effect=Exception("boom")), \
                      patch("scripts.serve.check_rate_limit_db", return_value=0):
                     client = TestClient(app, raise_server_exceptions=False)
-                    data = {"audio": ("test.m4a", io.BytesIO(b"fake"), "audio/mp4")}
+                    # Valid M4A magic bytes (ftyp box at offset 4) so the upload
+                    # passes file-validation and reaches run_transcribe (which we mock).
+                    m4a_magic = b"\x00\x00\x00\x00ftyp" + b"\x00" * 100
+                    data = {"audio": ("test.m4a", io.BytesIO(m4a_magic), "audio/mp4")}
                     client.post("/capture/process", files=data)
         finally:
             app.dependency_overrides.clear()

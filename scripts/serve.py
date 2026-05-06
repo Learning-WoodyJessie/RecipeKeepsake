@@ -1,5 +1,5 @@
 """
-RecipeKeepsake API server — thin HTTP adapter.
+Echoes of Home API server — thin HTTP adapter.
 
 Business logic lives in pipeline/. This file handles:
   - HTTP transport (FastAPI routes, multipart forms, JSON responses)
@@ -104,6 +104,101 @@ def _check_rate_limit_db_or_raise(user_id: str, endpoint: str, limit: int) -> No
             status_code=429,
             detail=f"Daily limit of {limit} {endpoint} requests reached. Try again tomorrow.",
         )
+
+
+# ── Upload safety ─────────────────────────────────────────────────────────────
+
+# Maximum audio file size accepted (bytes). 25 MB covers ~2 h of compressed audio.
+_MAX_AUDIO_BYTES = int(os.environ.get("MAX_AUDIO_BYTES", str(25 * 1024 * 1024)))
+
+# Allowed file extensions.
+_ALLOWED_AUDIO_EXTS = {
+    ".mp3", ".mp4", ".m4a", ".wav", ".webm",
+    ".ogg", ".oga", ".flac", ".aac", ".aiff",
+}
+
+# Magic-byte signatures for the same formats.
+# Each entry: (byte_offset, bytes_to_match)
+_MAGIC: list[tuple[int, bytes]] = [
+    (0, b"ID3"),           # MP3 with ID3 tag
+    (0, b"\xff\xfb"),      # MP3 frame sync
+    (0, b"\xff\xf3"),      # MP3 frame sync variant
+    (0, b"\xff\xf2"),      # MP3 frame sync variant
+    (0, b"RIFF"),          # WAV / AIFF container
+    (0, b"\x1aE\xdf\xa3"), # WebM / MKV
+    (0, b"OggS"),          # OGG
+    (0, b"fLaC"),          # FLAC
+    (4, b"ftyp"),          # MP4 / M4A (ISO base media box at offset 4)
+    (0, b"\xff\xf1"),      # AAC ADTS
+    (0, b"\xff\xf9"),      # AAC ADTS variant
+    (0, b"FORM"),          # AIFF
+]
+
+
+def _validate_audio_upload(audio: UploadFile, data: bytes) -> None:
+    """
+    Raise HTTP 400/413 if the uploaded file looks unsafe.
+
+    Checks (in order):
+      1. Extension is in the allowlist — rejects .exe, .html, .php, etc.
+      2. File size ≤ MAX_AUDIO_BYTES — rejects oversized payloads.
+      3. Magic bytes match a known audio/video container — rejects renamed
+         executables or HTML files that happen to have an audio extension.
+    """
+    ext = Path(audio.filename or "").suffix.lower()
+    if ext not in _ALLOWED_AUDIO_EXTS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported file type '{ext}'. Upload MP3, M4A, WAV, WebM, OGG, FLAC, AAC, or MP4.",
+        )
+
+    if len(data) > _MAX_AUDIO_BYTES:
+        mb = _MAX_AUDIO_BYTES // (1024 * 1024)
+        raise HTTPException(status_code=413, detail=f"File too large. Maximum size is {mb} MB.")
+
+    matched = any(data[offset: offset + len(sig)] == sig for offset, sig in _MAGIC)
+    if not matched:
+        _logger.warning(f"event=upload_magic_fail filename={audio.filename} size={len(data)}")
+        raise HTTPException(
+            status_code=400,
+            detail="File does not appear to be a valid audio file. Please upload an actual audio recording.",
+        )
+
+
+# ── Content moderation ────────────────────────────────────────────────────────
+
+def _moderate_transcript(text: str) -> None:
+    """
+    Run the OpenAI Moderation API on the English transcript.
+
+    Raises HTTP 422 if the content is flagged (hate, harassment, violence,
+    sexual, self-harm). Free endpoint — no token cost. Non-fatal if the API
+    itself errors (transient failures should not block legitimate recordings).
+    """
+    api_key = os.environ.get("OPENAI_API_KEY")
+    if not api_key or not text.strip():
+        return
+    try:
+        from openai import OpenAI as _OAI
+        result = _OAI(api_key=api_key).moderations.create(input=text)
+        flagged_cats = [
+            cat for cat, flagged in result.results[0].categories.__dict__.items() if flagged
+        ]
+        if flagged_cats:
+            _logger.warning(f"event=moderation_flagged categories={flagged_cats}")
+            raise HTTPException(
+                status_code=422,
+                detail=(
+                    "This recording contains content that can't be saved on Echoes of Home. "
+                    "Please keep recordings focused on family recipes and stories."
+                ),
+            )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        # Moderation API failure is non-fatal — log and continue rather than
+        # blocking a legitimate recording due to a transient API error.
+        _logger.warning(f"event=moderation_api_error error={type(exc).__name__} msg={exc}")
 
 
 def _generate_image(
@@ -303,15 +398,19 @@ async def capture_endpoint(audio: UploadFile = File(...), user: dict = Depends(r
     if not os.environ.get("OPENAI_API_KEY"):
         raise HTTPException(status_code=500, detail="OPENAI_API_KEY not set")
 
-    suffix = Path(audio.filename).suffix if audio.filename else ".webm"
+    data = await audio.read()
+    _validate_audio_upload(audio, data)
+
+    suffix = Path(audio.filename or "").suffix.lower() or ".webm"
     with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
-        tmp.write(await audio.read())
+        tmp.write(data)
         tmp_path = tmp.name
 
     try:
         _logger.info(f"event=capture_start file={audio.filename}")
 
         transcript = run_transcribe(tmp_path)
+        _moderate_transcript(transcript.english)
         recipe_data = run_transform(transcript)
         recipe_data.image_url = _generate_image(
             recipe_data.dish_name,
@@ -377,15 +476,19 @@ async def capture_process_endpoint(
     if not os.environ.get("OPENAI_API_KEY"):
         raise HTTPException(status_code=500, detail="OPENAI_API_KEY not set")
 
-    suffix = Path(audio.filename).suffix if audio.filename else ".webm"
+    data = await audio.read()
+    _validate_audio_upload(audio, data)
+
+    suffix = Path(audio.filename or "").suffix.lower() or ".webm"
     with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
-        tmp.write(await audio.read())
+        tmp.write(data)
         tmp_path = tmp.name
 
     try:
         _logger.info(f"event=process_start file={audio.filename}")
 
         transcript = run_transcribe(tmp_path)
+        _moderate_transcript(transcript.english)
         recipe_data = run_transform(transcript)
         recipe_data.image_url = _generate_image(
             recipe_data.dish_name,
@@ -436,9 +539,12 @@ async def capture_save_endpoint(
     if not os.environ.get("SUPABASE_URL") or not os.environ.get("SUPABASE_SERVICE_KEY"):
         raise HTTPException(status_code=500, detail="Supabase not configured")
 
-    suffix = Path(audio.filename).suffix if audio.filename else ".webm"
+    data = await audio.read()
+    _validate_audio_upload(audio, data)
+
+    suffix = Path(audio.filename or "").suffix.lower() or ".webm"
     with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
-        tmp.write(await audio.read())
+        tmp.write(data)
         tmp_path = tmp.name
 
     try:
