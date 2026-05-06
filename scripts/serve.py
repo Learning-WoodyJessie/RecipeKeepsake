@@ -673,9 +673,12 @@ async def translate_recipe_endpoint(token: str, lang: str = "en", force: bool = 
         try:
             cached = get_cached_translation(token, lang)
             if cached:
+                _logger.info(f"event=translation_cache_hit lang={lang} token={token}")
                 return JSONResponse(content={"lang": lang, **cached})
         except Exception as e:
             _logger.warning(f"event=translation_cache_read_error error={type(e).__name__} msg={e}")
+
+    _logger.info(f"event=translation_cache_miss lang={lang} token={token}")
 
     # Translate via LLM
     if not os.environ.get("OPENAI_API_KEY"):
@@ -692,8 +695,10 @@ async def translate_recipe_endpoint(token: str, lang: str = "en", force: bool = 
         "cook_notes": recipe.get("cook_notes", ""),
     }
 
+    t_llm = time.perf_counter()
     try:
         translated = translate_recipe_fields(fields, lang, provider)
+        _logger.info(f"event=translation_llm_done lang={lang} duration={time.perf_counter()-t_llm:.2f}s")
     except Exception as e:
         _logger.error(f"event=translation_llm_error error={type(e).__name__} msg={e}")
         raise HTTPException(status_code=500, detail=f"Translation failed: {e}")
