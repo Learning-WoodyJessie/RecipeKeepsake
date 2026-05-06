@@ -179,74 +179,73 @@ Rate limiting applies to all LLM-backed endpoints — not capture only. Translat
 
 ---
 
-## Phase 1.7 — Frontend Migration 🔜
+## Phase 1.7 — Frontend Migration ✅
 
-*Approved 2026-05-05. PRD: `docs/plans/2026-05-05-frontend-migration-design.md`.*
+*Completed 2026-05-05. PRD: `docs/plans/2026-05-05-frontend-migration-design.md`.*
 
-Migrate the production frontend from `web/app.html` (single-file vanilla JS SPA, 4,900 lines) to `frontend/` (Next.js 14 + React + TypeScript, static export). Frontend deployed on Vercel; backend stays on Railway. Capacitor updated so Android (Phase 2) and iOS (Phase 3) both load from the Vercel URL.
+Migrated production frontend from `web/app.html` (single-file vanilla JS SPA, 4,900 lines) to `frontend/` (Next.js 14 + React + TypeScript, static export). FastAPI serves the Next.js static export from `frontend/out/` on Railway — Vercel cutover deferred to Phase 1.8.
 
 **Key decisions:**
-- **Static export** (`output: 'export'`) — not SSR. App is private/authenticated, all screens use browser APIs, CDN delivery is faster for this use case, one build serves web + Android + iOS.
-- **`frontend/` top-level directory** — moved from `web/nextjs/`. Frontend and backend now deploy to separate infrastructure; top-level separation makes this explicit.
-- **Capacitor `server.url`** points at Vercel — native apps load the latest version on every open without an app store release.
-- **iOS scaffolded in this phase** (`npx cap add ios`) — configured but not submitted. App Store submission remains Phase 3.
-
-**Scope — what this is NOT:**
-- No new features — like-for-like screen migration only
-- No backend changes — Railway API endpoints and response shapes unchanged
-- No PWA — explicitly excluded
-- No App Store / Play Store submissions — Phase 2 (Android) and Phase 3 (iOS)
+- **Static export** (`output: 'export'`) — not SSR. App is private/authenticated, all screens use browser APIs.
+- **`frontend/` top-level directory** — moved from `web/nextjs/`. Clear separation from backend.
+- **FastAPI serves `frontend/out/`** — `/_next/` mounted as StaticFiles; catch-all checks direct files before `index.html` (fixes public asset 404s).
+- **Vercel cutover deferred** — frontend is live on Railway; separate Vercel deployment is Phase 1.8.
 
 ### Epic F1 — Foundation & Auth
 
 | Story | Status |
 |---|---|
-| Rebrand `web/nextjs/` — "Echoes of Home" branding, correct tagline, logo | 🔜 |
-| Supabase Auth wired up — Google OAuth, session management, protected routes | 🔜 |
-| Landing page (pre-auth) — matches current `web/app.html` landing | 🔜 |
-| First-login welcome modal — prompt Keeper to add first narrator | 🔜 |
-| Sidebar navigation — all nav groups, active state, mobile-responsive | 🔜 |
+| Rebrand — "Echoes of Home" branding, tagline, SVG logo (double ring + waveform bars + heart) | ✅ |
+| Supabase Auth wired up — Google OAuth, session management, protected routes | ✅ |
+| Landing page (pre-auth) — watercolor hero, feature grid, quote banner | ✅ |
+| First-login welcome modal — prompt Keeper to add first narrator | ✅ |
+| Sidebar navigation — all nav groups, active state, mobile-responsive drawer | ✅ |
+| Mobile hamburger ☰ — fixed drawer, backdrop overlay, × close | ✅ |
+| Welcome greeting — "Welcome home, {name} ♡" serif, filled accent avatar | ✅ |
 
 ### Epic F2 — Capture Flow
 
 | Story | Status |
 |---|---|
-| Capture screen — waveform visualizer, narrator picker, tips sidebar, privacy badge | 🔜 |
-| 3-step review wizard — confirm title → edit fields → save | 🔜 |
-| Upload recording flow — existing audio file through same wizard | 🔜 |
+| Capture screen — waveform visualizer, narrator picker, tips sidebar, privacy badge | ✅ |
+| 3-step review wizard — confirm title → edit fields → save | ✅ |
+| Upload recording flow — existing audio file through same wizard | ✅ |
 
 ### Epic F3 — Browse & Recall
 
 | Story | Status |
 |---|---|
-| Home screen — favorites row, recent memories list, waveform bars | 🔜 |
-| All Memories list view | 🔜 |
-| Memory detail view — structured content, notes, transcript, audio player | 🔜 |
-| Language switcher — translate any memory to EN / TE / HI / KN / ES / FR | 🔜 |
-| Favorites — mark/unmark, persisted | 🔜 |
-| Delete memory — two-step confirmation | 🔜 |
-| Personal annotations — editable post-save | 🔜 |
+| Home screen — watercolor hero banner, favorites row, recent memories list, waveform bars | ✅ |
+| All Memories list view — watercolor hero banner, narrator filter, recipe count | ✅ |
+| Memory detail view — structured content, notes, transcript, audio player | ✅ |
+| Language switcher — translate any memory to EN / TE / HI / KN / ES / FR | ✅ |
+| Favorites — mark/unmark, persisted in localStorage via `lib/favorites.ts` | ✅ |
+| Delete memory — two-step confirmation | ✅ |
+| Personal annotations — editable post-save | ✅ |
+| Narrator filter — `?narrator=` URL param pre-filters grid from Our People page | ✅ |
 
 ### Epic F4 — People Management
 
 | Story | Status |
 |---|---|
-| People screen — narrator grid with photo, relationship, bio | 🔜 |
-| Add / edit / delete narrator modal | 🔜 |
+| People screen — watercolor hero banner, narrator grid with live recipe count, relationship pill | ✅ |
+| Add / edit / delete narrator modal | ✅ |
+| Card click navigates to narrator's recipes (not edit modal); pencil icon for edit | ✅ |
 
 ### Epic F5 — Account
 
 | Story | Status |
 |---|---|
-| Account deletion — cascades audio, memories, people, auth user | 🔜 |
-| Privacy policy page at `/privacy` | 🔜 |
+| Account deletion — cascades audio, memories, people, auth user | ✅ |
+| Privacy policy page at `/privacy` | ✅ |
 
 ### Epic F6 — Cutover
 
 | Story | Status |
 |---|---|
-| Deploy `web/nextjs/` to Vercel, pointed at Railway API | 🔜 |
-| Remove `app.html` route from FastAPI — redirect `/` to Vercel URL | 🔜 |
+| FastAPI static file serving fixed — direct files checked before index.html fallback | ✅ |
+| `app.html` route removed from FastAPI — frontend served exclusively from `frontend/out/` | ✅ |
+| Deploy `frontend/` to Vercel, pointed at Railway API | 🔜 |
 | Capacitor `webDir` updated to point at Vercel URL (Android app cutover) | 🔜 |
 
 ---

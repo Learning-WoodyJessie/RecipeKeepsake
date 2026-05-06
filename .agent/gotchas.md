@@ -63,4 +63,32 @@ result = insert_recipe(...)
 
 ---
 
+## FastAPI static export — public assets 404
+
+**Pattern**: Next.js copies `public/` files flat into `out/` (e.g. `out/hero-home.png`). FastAPI catch-all only looked for `{path}/index.html`, so any image or non-HTML asset returned 404.
+
+**Tell**: `<img>` shows broken/alt-text in production while working in local `next dev` (which serves `public/` natively).
+
+**Wrong**: catch-all goes straight to `out/{path}/index.html`
+
+**Right**: check `out/{path}` as a direct file first — if it's a file, serve it; otherwise fall through to `index.html` lookup.
+
+**Rule**: When FastAPI serves a Next.js static export, always check for direct files before looking for `index.html`.
+
+---
+
+## Mobile sidebar — `flex: 1` doesn't fill width in block context
+
+**Pattern**: Layout switches sidebar to `position: fixed` on mobile (`display: block` on the wrapper). Inner content div had `flex: 1` which only works inside a flex container — in block context it has no effect, leaving content clipped at the left edge.
+
+**Tell**: Page text clipped on left on mobile; content appears to start off-screen.
+
+**Wrong**: `<div style={{ flex: 1 }}>` inside a `display: block` wrapper
+
+**Right**: add `width: 100%` alongside `flex: 1` so it fills correctly in both flex and block contexts.
+
+**Rule**: Any content wrapper that must fill width in both flex and block contexts needs both `flex: 1` AND `width: 100%`.
+
+---
+
 *(Add new patterns here as they're discovered during build)*

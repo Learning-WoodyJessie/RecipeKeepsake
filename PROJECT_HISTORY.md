@@ -4,6 +4,32 @@ One-paragraph summary per session. Most recent first.
 
 ---
 
+## 2026-05-05 — Session 6: Phase 1.7 Frontend UI Polish + Responsive Layout
+
+### Accomplished
+- **Mockup alignment**: All 5 screens (Home, Our People, All Recipes, Capture, Upload) fully aligned to product mockups — hero banners, 2-column grids, right-panel tips sidebars, narrator photos, relationship pills, filter tags, CTA banners.
+- **Watercolor hero images**: 3 bespoke illustrations deployed — `hero-home.png` (recipe book + family photos), `hero-people.png` (portrait + tea cup + book), `hero-memories.png` (recipe book + pie + cookies). FastAPI catch-all patched to serve direct files from `out/` (was 404ing all `public/` assets).
+- **SVG logo**: Sidebar logo rebuilt as inline SVG — double ring, 14 waveform bars, heart centre, "Echoes of Home" serif text, decorative `—✦—` divider. Crisp at any size, no image dependency.
+- **Responsive mobile layout**: Sidebar hidden on ≤699px; hamburger ☰ in top bar slides it in as a fixed drawer with backdrop overlay and × close button. Content wrapper gets `width: 100%` to prevent left-edge clipping in block context.
+- **People page UX fix**: Row click navigates to `/memories?narrator=Name` (filtered recipes) instead of opening edit modal. Small pencil icon opens edit. "Play sample" removed. Live recipe count fetched from API (was hardcoded "0 recipes").
+- **Narrator filter on All Recipes**: `?narrator=` URL param pre-filters the recipe grid when arriving from Our People.
+- **Welcome home + P avatar**: Greeting updated to "Welcome home, {name} ♡" in serif; avatar changed to filled accent circle with white initial — consistent across top bar and sidebar footer.
+- **Kaizen**: Extracted `readFavorites()` / `toggleFavorite()` to `frontend/lib/favorites.ts` — localStorage key `'rk_favorites'` was duplicated across 3 files with slightly different logic. Now single source of truth.
+
+### Learned
+- FastAPI `StaticFiles` only mounts `/_next/` — any flat file in `public/` (images, icons) returns 404 from the catch-all unless you explicitly check for direct files first. Local `next dev` masks this because it serves `public/` natively.
+- `flex: 1` on a div inside `display: block` parent has no effect — `width: 100%` required alongside it for mobile layout switching.
+- Wide watercolor illustrations with empty left half need `objectPosition: 65%+` to crop into the content area rather than showing blank cream space on mobile.
+
+### Deferred
+- D-001: `_load_config()` duplicated in `capture.py` + `serve.py`
+- D-002: Whisper hallucination on mid-sentence stop
+- D-003: `/generate-image` missing recipe fields
+- D-005: `_user_id()` helper (4× repeated pattern in `serve.py`)
+- Bottom CTA "Add Recipe" exact pixel match to mockup (colour/layout close but not pixel-perfect)
+
+---
+
 ## 2026-05-05 — Session 5: Phase 1.6 Scale Hardening + Architecture Review
 
 Six critical infrastructure fixes to support 10,000 users. All pure code changes — no new infrastructure.
