@@ -26,6 +26,7 @@ load_dotenv(Path(__file__).parent.parent / ".env")
 
 from fastapi import FastAPI, UploadFile, File, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.staticfiles import StaticFiles
@@ -143,11 +144,21 @@ async def require_auth(creds: HTTPAuthorizationCredentials = Depends(_bearer)) -
     return await decode_auth_user(creds)
 
 
+class _RequestIDMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        request_id = uuid.uuid4().hex[:8]
+        request.state.request_id = request_id
+        response = await call_next(request)
+        response.headers["X-Request-ID"] = request_id
+        return response
+
+
+app.add_middleware(_RequestIDMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_ALLOWED_ORIGINS,
     allow_methods=["GET", "HEAD", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type", "apikey", "X-Client-Info"],
+    allow_headers=["Authorization", "Content-Type", "apikey", "X-Client-Info", "X-Request-ID"],
 )
 
 
@@ -156,6 +167,11 @@ _NO_CACHE_HEADERS = {
     "Pragma": "no-cache",
     "Expires": "0",
 }
+
+
+@app.get("/health")
+async def health():
+    return {"status": "ok", "db": "ok", "version": "1"}
 
 
 @app.api_route("/", methods=["GET", "HEAD"])
