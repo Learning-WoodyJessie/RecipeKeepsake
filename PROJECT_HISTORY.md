@@ -4,6 +4,56 @@ One-paragraph summary per session. Most recent first.
 
 ---
 
+## 2026-05-05 — Observability, Evals, and Model Config
+
+### Accomplished
+- **Observability P0**: React ErrorBoundary wraps root layout (D-007); `_RequestIDMiddleware` adds `X-Request-ID` to every response, `authFetch` surfaces it on errors (D-008)
+- **Observability P1**: `[pipeline] stage=... duration=...s` timing logs on every capture (D-009); `/health` endpoint probes DB and returns 503 on failure (D-010)
+- **Evals Tier 1**: `tests/evals/test_vague_placement.py` — 4 parametrized live-model cases gated behind `@pytest.mark.evals` + `addopts = -m "not evals"` in `pytest.ini` (D-012)
+- **Model config split**: `translate_model` / `structure_model` keys in `config.yaml`; each pipeline stage reads its own key with fallback (D-014 partial)
+- **Kaizen**: `scripts/capture.py` refactored to use `run_transcribe` + `run_transform` — CLI captures now get timing logs and model config split
+- **Test count**: 97 → 107 (+10 unit tests, +4 eval cases deselected)
+
+### Learned
+- `@pytest.mark.evals` marks tests but does NOT exclude them — `addopts = -m "not evals"` in `pytest.ini` is required for actual exclusion (gotcha logged)
+- First eval run immediately found a real quality regression: `gpt-4o-mini` placed "a little" in `ingredients.quantity` on 1/4 cases — proves the eval harness works and that model swap needs prompt tuning first (D-015)
+- `scripts/capture.py` was a parallel orchestration path that bypassed the pipeline abstraction — CLI and HTTP server now share the same code path
+
+### Deferred
+- D-011: Structured logging (P2) — large refactor, deferred
+- D-013: Golden audio fixtures (Eval Tier 2) — manual recording task outside codebase
+- D-014: LLM-as-judge harness (Eval Tier 3) — deferred until fixtures exist
+- D-015: `gpt-4o-mini` for Call B — reverted; needs `STRUCTURE_SYSTEM` prompt hardening first
+
+### Next
+- D-002: Whisper hallucination fix (blocks Phase 4 Memories Expansion)
+- Phase 4: Memories Expansion brainstorm once D-002 resolved
+
+---
+
+## 2026-05-05 — Observability + Evals Brainstorm
+
+### Accomplished
+- Logged D-007 through D-014: observability P0/P1/P2 and eval tiers 1–3 + model hybrid config
+- Completed full evals analysis: 97 existing tests are behavioral/contract only — zero semantic quality assertions on LLM outputs
+- Completed model analysis: translate_model stays gpt-4o (linguistic nuance), structure_model moves to gpt-4o-mini (schema fill, ~20x cheaper)
+- Wrote PRD: `docs/plans/2026-05-05-observability-evals-design.md` — 4 blocks, 6 chunks
+
+### Learned
+- All current tests verify the right API calls are made — none verify the AI output is correct. The most important invariant (vague measurements preserved) is only tested at prompt level, never at output level.
+- `gpt-4o-mini` is the safest model swap for Call B because structured extraction with a fully-specified schema is where size gap is smallest.
+- ErrorBoundary must be a React class component — hooks cannot catch render errors.
+
+### Deferred
+- Eval Tier 2 (golden audio fixtures): requires recording real Telugu audio with known content — manual task outside codebase
+- Eval Tier 3 (LLM-as-judge): deferred until golden fixtures exist
+- P2 structured logging (D-011): large refactor, low immediate payoff vs P0/P1
+
+### Next
+- `/build` — execute `docs/plans/2026-05-05-observability-evals-design.md` chunk by chunk
+
+---
+
 ## 2026-05-05 — Session 6: Phase 1.7 Frontend UI Polish + Responsive Layout
 
 ### Accomplished

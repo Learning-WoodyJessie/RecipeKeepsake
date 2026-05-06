@@ -250,6 +250,28 @@ Migrated production frontend from `web/app.html` (single-file vanilla JS SPA, 4,
 
 ---
 
+## Phase 1.8 — Observability & Evals Foundation ✅
+
+*Completed 2026-05-05.*
+
+| Story | Status |
+|---|---|
+| React ErrorBoundary — blank screen crashes show branded fallback (D-007) | ✅ |
+| Request correlation IDs — `X-Request-ID` header on every response; surfaced in frontend errors (D-008) | ✅ |
+| Pipeline stage timing — `[pipeline] stage=... duration=...s` logs on every capture (D-009) | ✅ |
+| Real `/health` endpoint — probes Supabase, returns 503 on DB failure (D-010) | ✅ |
+| Eval Tier 1 — `tests/evals/test_vague_placement.py`, gated `@pytest.mark.evals` (D-012) | ✅ |
+| Model config split — `translate_model` / `structure_model` keys, independent tuning (D-014 partial) | ✅ |
+| `scripts/capture.py` uses pipeline abstraction — CLI shares code path with HTTP server | ✅ |
+
+**Deferred from this phase:**
+- D-011: Structured logging (P2) — large refactor, low immediate payoff
+- D-013: Golden audio fixtures (Eval Tier 2) — manual recording task
+- D-014: LLM-as-judge harness (Tier 3) — needs fixtures first
+- D-015: `gpt-4o-mini` for Call B — needs `STRUCTURE_SYSTEM` prompt hardening (failed 1/4 eval cases)
+
+---
+
 ## Phase 2 — Android App 🚧
 
 *Paused — resume after Phase 4 (Memories expansion). Core infrastructure built; identity and testing remain.*
