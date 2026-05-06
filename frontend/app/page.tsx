@@ -207,7 +207,10 @@ export default function LandingPage() {
         </div>
 
         <p style={{ textAlign: 'center', marginTop: 'clamp(2rem, 5vw, 3rem)', fontSize: '0.75rem', color: 'var(--muted)' }}>
-          Questions? Open the app after sign-in for Account and Privacy.
+          <a href="/privacy-policy" style={{ color: 'var(--accent)', textDecoration: 'none' }}>Privacy policy</a>
+          {' · '}
+          <a href="/support" style={{ color: 'var(--accent)', textDecoration: 'none' }}>Support</a>
+          {' · '}After sign-in: Account from the app menu.
         </p>
       </div>
 

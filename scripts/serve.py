@@ -45,6 +45,7 @@ from pipeline.models import RecipeData
 from tools.storage import check_rate_limit_db
 
 _FRONTEND_OUT = Path(__file__).parent.parent / "frontend" / "out"
+_WWW = Path(__file__).parent.parent / "www"
 
 # ── Structured logging ────────────────────────────────────────────────────────
 
@@ -710,6 +711,24 @@ async def translate_recipe_endpoint(token: str, lang: str = "en", force: bool = 
         _logger.warning(f"event=translation_cache_write_error error={type(e).__name__} msg={e}")
 
     return JSONResponse(content={"lang": lang, **translated})
+
+
+@app.api_route("/privacy-policy", methods=["GET", "HEAD"])
+async def public_privacy_policy():
+    """Public privacy policy HTML for App Store Connect (no authentication)."""
+    path = _WWW / "privacy-policy.html"
+    if path.is_file():
+        return FileResponse(path, media_type="text/html", headers=_NO_CACHE_HEADERS)
+    raise HTTPException(status_code=503, detail="Privacy policy unavailable")
+
+
+@app.api_route("/support", methods=["GET", "HEAD"])
+async def public_support_page():
+    """Public support page for App Store Connect (no authentication)."""
+    path = _WWW / "support.html"
+    if path.is_file():
+        return FileResponse(path, media_type="text/html", headers=_NO_CACHE_HEADERS)
+    raise HTTPException(status_code=503, detail="Support page unavailable")
 
 
 # ── Frontend catch-all — must be last so all API routes take priority ──────
