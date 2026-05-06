@@ -1,9 +1,12 @@
+import logging
 import os
 import mimetypes
 import uuid as _uuid
 from pathlib import Path
 from supabase import create_client, Client
 import httpx
+
+_logger = logging.getLogger(__name__)
 
 
 _supabase: "Client | None" = None
@@ -234,25 +237,25 @@ def delete_account(user_id: str) -> None:
                 filename = _audio_filename(audio)
                 sb.storage.from_("audio").remove([filename])
             except Exception as e:
-                print(f"[delete_account] audio remove failed (non-fatal): {e}")
+                _logger.warning(f"event=delete_account_audio_failed error={type(e).__name__} msg={e}")
 
     # 2. Delete all recipe rows for this user
     try:
         sb.table("recipes").delete().eq("user_id", user_id).execute()
     except Exception as e:
-        print(f"[delete_account] recipe delete failed: {e}")
+        _logger.error(f"event=delete_account_recipes_failed error={type(e).__name__} msg={e}")
 
     # 3. Delete all people rows for this user
     try:
         sb.table("people").delete().eq("user_id", user_id).execute()
     except Exception as e:
-        print(f"[delete_account] people delete failed: {e}")
+        _logger.error(f"event=delete_account_people_failed error={type(e).__name__} msg={e}")
 
     # 4. Delete the Supabase auth user (service role required)
     try:
         sb.auth.admin.delete_user(user_id)
     except Exception as e:
-        print(f"[delete_account] auth user delete failed (non-fatal): {e}")
+        _logger.warning(f"event=delete_account_auth_failed error={type(e).__name__} msg={e}")
 
 
 def check_rate_limit_db(user_id: str, endpoint: str) -> int:
@@ -269,6 +272,6 @@ def check_rate_limit_db(user_id: str, endpoint: str) -> int:
         ).execute()
         return result.data or 0
     except Exception as e:
-        print(f"[storage] rate limit DB error (fail open): {e}")
+        _logger.warning(f"event=rate_limit_db_error error={type(e).__name__} msg={e}")
         return 0
 

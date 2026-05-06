@@ -5,7 +5,10 @@ Calls LLM Call B to extract structured recipe fields from the English translatio
 image_url is left empty here — the HTTP layer populates it after this stage.
 """
 from __future__ import annotations
+import logging
 import time
+
+_logger = logging.getLogger(__name__)
 
 from tools.config import load_config
 from prompts.structure import structure_recipe
@@ -31,7 +34,7 @@ def run_transform(transcript: TranscriptResult, provider: LLMProvider | None = N
 
     t0 = time.perf_counter()
     structured = structure_recipe(transcript.english, provider)
-    print(f"[pipeline] stage=structure duration={time.perf_counter()-t0:.2f}s")
+    _logger.info(f"event=structure_done duration={time.perf_counter()-t0:.2f}s")
 
     return RecipeData(
         dish_name=structured.get("dish_name", ""),

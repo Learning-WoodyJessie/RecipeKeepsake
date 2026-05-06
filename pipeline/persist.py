@@ -6,8 +6,11 @@ Both operations are explicit: audio upload failure is non-fatal (logged, not rai
 so a recipe is never lost because of a storage hiccup.
 """
 from __future__ import annotations
+import logging
 
 from tools.storage import upload_audio, insert_recipe
+
+_logger = logging.getLogger(__name__)
 from pipeline.models import RecipeData, SavedRecipe
 
 
@@ -43,7 +46,7 @@ def run_persist(
     try:
         stored_path = upload_audio(audio_path, audio_filename)
     except Exception as e:
-        print(f"[pipeline/persist] Audio upload failed (non-fatal): {e}")
+        _logger.warning(f"event=audio_upload_failed error={type(e).__name__} msg={e}")
 
     row = {
         "dish_name": recipe.dish_name,
