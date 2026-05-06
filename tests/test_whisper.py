@@ -1,5 +1,5 @@
 from unittest.mock import patch, MagicMock, mock_open
-from tools.transcribe import transcribe_audio
+from tools.whisper import transcribe_audio
 
 
 class TestTranscribeAudio:
@@ -8,7 +8,7 @@ class TestTranscribeAudio:
         mock_transcript = MagicMock()
         mock_transcript.text = "ఇది ఒక రెసిపీ"
 
-        with patch("tools.transcribe.OpenAI") as mock_openai, \
+        with patch("tools.whisper.OpenAI") as mock_openai, \
              patch("builtins.open", mock_open(read_data=b"audio bytes")):
             mock_openai.return_value.audio.transcriptions.create.return_value = mock_transcript
             result = transcribe_audio("test.m4a")
@@ -20,7 +20,7 @@ class TestTranscribeAudio:
         mock_transcript = MagicMock()
         mock_transcript.text = "some text"
 
-        with patch("tools.transcribe.OpenAI") as mock_openai, \
+        with patch("tools.whisper.OpenAI") as mock_openai, \
              patch("builtins.open", mock_open(read_data=b"audio bytes")):
             mock_client = mock_openai.return_value
             mock_client.audio.transcriptions.create.return_value = mock_transcript
@@ -35,7 +35,7 @@ class TestTranscribeAudio:
         mock_transcript = MagicMock()
         mock_transcript.text = "some text"
 
-        with patch("tools.transcribe.OpenAI") as mock_openai, \
+        with patch("tools.whisper.OpenAI") as mock_openai, \
              patch("builtins.open", mock_open(read_data=b"audio bytes")):
             mock_client = mock_openai.return_value
             mock_client.audio.transcriptions.create.return_value = mock_transcript
@@ -50,7 +50,7 @@ class TestTranscribeAudio:
         mock_transcript = MagicMock()
         mock_transcript.text = "some text"
 
-        with patch("tools.transcribe.OpenAI") as mock_openai, \
+        with patch("tools.whisper.OpenAI") as mock_openai, \
              patch("builtins.open", mock_open(read_data=b"audio bytes")):
             mock_client = mock_openai.return_value
             mock_client.audio.transcriptions.create.return_value = mock_transcript

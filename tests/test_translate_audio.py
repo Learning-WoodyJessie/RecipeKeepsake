@@ -1,5 +1,5 @@
 from unittest.mock import MagicMock
-from prompts.translate import translate_to_english, build_translate_system
+from prompts.translate_audio import translate_to_english, build_translate_system
 
 
 def _provider(text):

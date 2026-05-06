@@ -1,6 +1,16 @@
-from tools.transcribe import transcribe_audio
+"""
+CLI capture script — local development and testing only.
+
+Runs the full pipeline (transcribe → translate → structure → Supabase insert)
+directly from the command line without an HTTP server. Not a production code
+path — the HTTP server (scripts/serve.py) handles capture in production via
+the /capture and /capture/process + /capture/save endpoints.
+
+Usage: python -m scripts.capture <audio_path> <audio_url>
+"""
+from tools.whisper import transcribe_audio
 from tools.config import load_config
-from prompts.translate import translate_to_english
+from prompts.translate_audio import translate_to_english
 from prompts.structure import structure_recipe
 from prompts.llm import OpenAIProvider
 from tools.storage import insert_recipe

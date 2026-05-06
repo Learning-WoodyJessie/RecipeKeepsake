@@ -1,7 +1,7 @@
 import json
 from unittest.mock import MagicMock
 import pytest
-from prompts.translate_recipe import translate_recipe_fields, SUPPORTED_LANGS
+from prompts.translate_fields import translate_recipe_fields, SUPPORTED_LANGS
 
 
 def _provider(response_text: str):

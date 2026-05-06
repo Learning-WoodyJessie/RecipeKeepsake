@@ -546,7 +546,7 @@ async def translate_recipe_endpoint(token: str, lang: str = "en", force: bool = 
         raise HTTPException(status_code=503, detail="Storage not configured")
 
     from tools.storage import get_recipe_by_token, get_cached_translation, cache_translation
-    from prompts.translate_recipe import translate_recipe_fields
+    from prompts.translate_fields import translate_recipe_fields
     from prompts.llm import OpenAIProvider
     from tools.config import load_config
 

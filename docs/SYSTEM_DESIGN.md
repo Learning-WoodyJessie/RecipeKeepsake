@@ -62,14 +62,14 @@ RecipeKeepsake/
 │
 ├── prompts/              ← LLM call definitions
 │   ├── llm.py            ← LLMProvider ABC + OpenAIProvider implementation
-│   ├── translate.py      ← Call A system prompt: Telugu → English translation
+│   ├── translate_audio.py      ← Call A system prompt: Telugu → English translation
 │   ├── structure.py      ← Call B system prompt: English → structured JSON
 │   ├── image.py          ← DALL-E 3 prompt builder + image generation
-│   └── translate_recipe.py ← Multi-language field translation (EN/TE/HI/KN/ES/FR)
+│   └── translate_fields.py ← Multi-language field translation (EN/TE/HI/KN/ES/FR)
 │
 ├── tools/                ← External service wrappers (Supabase, Whisper, config)
 │   ├── storage.py        ← Supabase CRUD: recipes, people, audio, images, translations
-│   ├── transcribe.py     ← Whisper API call with glossary injection
+│   ├── whisper.py          ← Whisper API call with glossary injection
 │   ├── glossary.py       ← Telugu cooking glossary loader + hint builder
 │   └── config.py         ← data/config.yaml loader
 │
@@ -296,11 +296,11 @@ class SavedRecipe:
 ### Stage 1 — Transcribe (`pipeline/transcribe.py`)
 
 ```
-tools/transcribe.py → gpt-4o-transcribe (language="te")
+tools/whisper.py → gpt-4o-transcribe (language="te")
                       initial_prompt: Telugu cooking glossary (tools/glossary.py)
                       → raw: str  (Telugu script + English code-switching)
 
-prompts/translate.py → GPT-4o (Call A)
+prompts/translate_audio.py → GPT-4o (Call A)
                        system: faithful translation prompt + glossary
                        → english: str  (preserves vague quantities verbatim)
 ```
@@ -362,14 +362,14 @@ tools/storage.insert_recipe()
 
 Audio upload failure is **non-fatal** — the recipe is saved even if the audio file fails to store. This prevents data loss during Supabase Storage quota or network hiccups.
 
-### Multi-language translation (`prompts/translate_recipe.py`)
+### Multi-language translation (`prompts/translate_fields.py`)
 
 Separate from the pipeline. Called on-demand when a user requests a language:
 
 ```
 GET /recipe/{token}/translate?lang=te
 
-prompts/translate_recipe.py → GPT-4o (json_mode=True)
+prompts/translate_fields.py → GPT-4o (json_mode=True)
   system: per-language rules
     - Telugu/Hindi/Kannada: Unicode script enforced (NOT Roman transliteration)
     - Glossary injected for Telugu target
@@ -666,10 +666,10 @@ Capacitor (mobile) uses the system browser for OAuth (`Capacitor.Plugins.Browser
 │  6. rate limit checked (capture, 10/day)                        │
 │  7. audio saved to tempfile                                      │
 │  8. pipeline.transcribe.run_transcribe(audio_path)               │
-│     a. tools/transcribe.transcribe_audio()                       │
+│     a. tools/whisper.transcribe_audio()                       │
 │        → OpenAI gpt-4o-transcribe (language=te, glossary prompt) │
 │        → raw: str (Telugu + English code-switching)              │
-│     b. prompts/translate.translate_to_english(raw, provider)     │
+│     b. prompts/translate_audio.translate_to_english(raw, provider)     │
 │        → GPT-4o Call A (preserve vague terms)                    │
 │        → english: str                                            │
 │  9. pipeline.transform.run_transform(transcript)                  │
@@ -736,7 +736,7 @@ Language switch (LanguageSwitcher.tsx)
   → api.recipes.translate(token, lang)  GET /recipe/{token}/translate?lang=te
   → serve.py checks translations cache (recipes.translations JSONB)
     ├── cache hit:  return cached fields (no LLM call)
-    └── cache miss: prompts/translate_recipe.translate_recipe_fields()
+    └── cache miss: prompts/translate_fields.translate_recipe_fields()
                    → GPT-4o, json_mode=True, Unicode script enforced
                    → cache result in recipes.translations
                    → return translated fields
@@ -826,21 +826,21 @@ The following files are Next.js default template placeholders, not used in any p
 
 **Recommendation:** Delete these six files.
 
-**4. `prompts/translate.py` vs `prompts/translate_recipe.py` — confusing names**
+**4. `prompts/translate_audio.py` vs `prompts/translate_fields.py` — confusing names**
 
 Both files contain translation prompts but serve entirely different purposes:
-- `prompts/translate.py` — Call A: Telugu audio transcript → English (pipeline stage 1)
-- `prompts/translate_recipe.py` — structured fields → target language (on-demand multi-language)
+- `prompts/translate_audio.py` — Call A: Telugu audio transcript → English (pipeline stage 1)
+- `prompts/translate_fields.py` — structured fields → target language (on-demand multi-language)
 
 A developer reading the filenames cannot distinguish these roles.
 
 **Recommendation:** Rename to `prompts/translate_audio.py` and `prompts/translate_fields.py`. Update imports in `pipeline/transcribe.py` and `scripts/serve.py`.
 
-**5. `tools/transcribe.py` vs `pipeline/transcribe.py` — same name, different layer**
+**5. `tools/whisper.py` vs `pipeline/transcribe.py` — same name, different layer**
 
-`tools/transcribe.py` is the raw Whisper API call. `pipeline/transcribe.py` is the Stage 1 orchestrator that calls it. The identical names in different packages cause confusion when navigating.
+`tools/whisper.py` is the raw Whisper API call. `pipeline/transcribe.py` is the Stage 1 orchestrator that calls it. The identical names in different packages cause confusion when navigating.
 
-**Recommendation:** Rename `tools/transcribe.py` to `tools/whisper.py`. Update the import in `pipeline/transcribe.py`.
+**Recommendation:** Rename `tools/whisper.py` to `tools/whisper.py`. Update the import in `pipeline/transcribe.py`.
 
 **6. `scripts/capture.py` — partial overlap with `/capture` endpoint**
 
@@ -857,6 +857,6 @@ A developer reading the filenames cannot distinguish these roles.
 | Dead SPA + prototypes | `web/app.html`, `web/nextjs/`, `web/prototype_*.html` | Delete | High |
 | Orphaned manifest | `www/manifest.json` | Delete | Low |
 | Unused template assets | `frontend/public/{file,globe,next,vercel,window}.svg`, `chatgpt.png` | Delete | Low |
-| Confusing prompt names | `prompts/translate.py`, `prompts/translate_recipe.py` | Rename | Medium |
-| Confusing tool name | `tools/transcribe.py` | Rename to `whisper.py` | Medium |
+| Confusing prompt names | `prompts/translate_audio.py`, `prompts/translate_fields.py` | Rename | Medium |
+| Confusing tool name | `tools/whisper.py` | Rename to `whisper.py` | Medium |
 | CLI script role unclear | `scripts/capture.py` | Add doc comment | Low |
