@@ -91,4 +91,30 @@ result = insert_recipe(...)
 
 ---
 
+## pytest marker without addopts — evals still run by default
+
+**Pattern**: Adding `@pytest.mark.evals` marks tests but does NOT exclude them from the default `pytest tests/` run. Without `addopts = -m "not evals"` in `pytest.ini`, the default run collects and executes eval tests — making live API calls on every CI run.
+
+**Tell**: First default run after adding eval tests hits real OpenAI; tests fail or time out.
+
+**Wrong**:
+```ini
+[pytest]
+markers =
+    evals: live-model tests
+# missing addopts — evals still run by default
+```
+
+**Right**:
+```ini
+[pytest]
+addopts = -m "not evals"
+markers =
+    evals: live-model tests (excluded from default run)
+```
+
+**Rule**: A pytest marker alone is documentation, not exclusion. Pair it with `addopts = -m "not <marker>"` to actually gate expensive tests out of the default run.
+
+---
+
 *(Add new patterns here as they're discovered during build)*

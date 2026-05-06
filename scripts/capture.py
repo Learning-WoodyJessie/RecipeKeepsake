@@ -8,11 +8,8 @@ the /capture and /capture/process + /capture/save endpoints.
 
 Usage: python -m scripts.capture <audio_path> <audio_url>
 """
-from tools.transcribe import transcribe_audio
-from tools.config import load_config
-from prompts.translate_audio import translate_to_english
-from prompts.structure import structure_recipe
-from prompts.llm import OpenAIProvider
+from pipeline.transcribe import run_transcribe
+from pipeline.transform import run_transform
 from tools.storage import insert_recipe
 
 
@@ -23,22 +20,16 @@ def process_recipe(audio_path: str) -> dict:
              steps, cook_notes, review_flags.
     No id, token, or audio_url — those come after the user reviews.
     """
-    config = load_config()
-    provider = OpenAIProvider(model=config["llm"]["model"])
-
-    print("Transcribing...")
-    transcript_raw = transcribe_audio(audio_path)
-
-    print("Translating...")
-    transcript_english = translate_to_english(transcript_raw, provider)
-
-    print("Structuring...")
-    structured = structure_recipe(transcript_english, provider)
-
+    transcript = run_transcribe(audio_path)
+    recipe_data = run_transform(transcript)
     return {
-        "transcript_raw": transcript_raw,
-        "transcript_english": transcript_english,
-        **structured,
+        "transcript_raw": recipe_data.transcript_raw,
+        "transcript_english": recipe_data.transcript_english,
+        "dish_name": recipe_data.dish_name,
+        "ingredients": recipe_data.ingredients,
+        "steps": recipe_data.steps,
+        "cook_notes": recipe_data.cook_notes,
+        "review_flags": recipe_data.review_flags,
     }
 
 
@@ -48,25 +39,18 @@ def capture(audio_path: str, audio_url: str) -> dict:
     audio file → Whisper → translate → structure → Supabase insert.
     Returns the saved recipe row.
     """
-    config = load_config()
-    provider = OpenAIProvider(model=config["llm"]["model"])
-
-    print("Transcribing...")
-    transcript_raw = transcribe_audio(audio_path)
-
-    print("Translating...")
-    transcript_english = translate_to_english(transcript_raw, provider)
-
-    print("Structuring...")
-    structured = structure_recipe(transcript_english, provider)
-
+    transcript = run_transcribe(audio_path)
+    recipe_data = run_transform(transcript)
     recipe = {
         "audio_url": audio_url,
-        "transcript_raw": transcript_raw,
-        "transcript_english": transcript_english,
-        **structured,
+        "transcript_raw": recipe_data.transcript_raw,
+        "transcript_english": recipe_data.transcript_english,
+        "dish_name": recipe_data.dish_name,
+        "ingredients": recipe_data.ingredients,
+        "steps": recipe_data.steps,
+        "cook_notes": recipe_data.cook_notes,
+        "review_flags": recipe_data.review_flags,
     }
-
     print("Storing...")
     return insert_recipe(recipe)
 
