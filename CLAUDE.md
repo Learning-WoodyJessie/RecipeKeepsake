@@ -240,3 +240,4 @@ Classes and key functions should have similar docstrings. This ensures maintaina
 | `MAX_CAPTURE_PER_DAY` | Daily capture limit per user (default: 10) |
 | `MAX_TRANSLATE_PER_DAY` | Daily translate limit per user (default: 50) |
 | `MAX_IMAGE_PER_DAY` | Daily image generation limit per user (default: 20) |
+| `ADMIN_SECRET` | Bearer secret for `POST /admin/clear-translation-cache` — operator use only |

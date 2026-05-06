@@ -4,6 +4,33 @@ One-paragraph summary per session. Most recent first.
 
 ---
 
+## 2026-05-06 — Structured Logging, Cache Correctness, and Observability Gaps
+
+### Accomplished
+- **Structured JSON logging** (Chunk 1.1): Python `logging` + `contextvars.ContextVar` replaces all `print()` in `serve.py`. `_JSONFormatter` outputs `{ts, level, req, event}` JSON to stdout. `_RequestIDMiddleware` now sets the ContextVar so every log line in a request carries the same `req` ID — searchable in Railway. Print removed from `pipeline/` and `tools/storage.py` too (Chunk 1.2).
+- **DALL-E timing** (Chunk 1.3): `_generate_image()` logs `event=image_done duration=Xs` with `time.perf_counter()` so image generation cost is visible per capture.
+- **4xx/5xx rate logging** (Chunk 1.3): `_RequestIDMiddleware` logs `event=request_error status=NNN method=... path=...` for every non-2xx response — Railway search now shows error frequency by status code.
+- **Frontend error reporting** (Chunk 1.4): `POST /client-error` endpoint receives error reports from `ErrorBoundary.componentDidCatch` and logs them as `event=client_error` to Railway — silent client crashes now surface without a third-party service.
+- **Admin cache-clear** (Chunk 2.3): `POST /admin/clear-translation-cache?lang=te&secret=xxx` clears stale cached translations for one language across all recipes, protected by `ADMIN_SECRET` env var.
+- **Atomic JSONB cache** (Chunk 2.1): Replaced read-modify-write in `cache_translation()` with a single atomic Postgres UPDATE via `set_recipe_translation()` RPC. Two concurrent translation requests for different languages can no longer overwrite each other.
+- **Cache hit/miss events** (Chunk 2.2): `event=translation_cache_hit/miss` and `event=translation_llm_done duration=Xs` added to translate endpoint — Railway search now shows cache economics and LLM call frequency.
+- **Test count**: 107 → 114 (+7 tests)
+
+### Learned
+- `propagate = False` on a named logger blocks pytest's `caplog` — caplog installs its handler on the root logger, so records only flow there if the child logger propagates. Removing `propagate = False` is the right fix; there's no double-logging risk in production since no root handlers are configured there.
+- FastAPI `Depends()` cannot be overridden with `unittest.mock.patch()` — must use `app.dependency_overrides[dep_fn] = lambda: value` for test isolation, with a `finally: app.dependency_overrides.clear()` guard.
+- The SPA catch-all in serve.py returns 200 (index.html fallback) for any unknown path when `frontend/out/index.html` exists — testing 4xx middleware logging requires hitting an actual auth-protected API endpoint without credentials.
+
+### Deferred
+- Supabase SQL setup for `set_recipe_translation()` RPC — must be run once in SQL editor before Chunk 2.1 goes live in production (documented in PRD and PRD header).
+- `recipe_translations` table migration — logged to Phase 6.5 roadmap.
+
+### Next
+- Push to Railway, run `set_recipe_translation` SQL in Supabase editor, set `ADMIN_SECRET` env var.
+- D-002: Whisper hallucination fix (still blocks Phase 4 Memories Expansion).
+
+---
+
 ## 2026-05-05 — Observability, Evals, and Model Config
 
 ### Accomplished
