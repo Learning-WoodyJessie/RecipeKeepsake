@@ -409,6 +409,22 @@ User identity beyond what Google Auth provides. Required before family sharing �
 
 ---
 
+## Phase 6.5 — Infrastructure Maturity 📋
+
+*After Phase 6. Operational improvements as user base grows.*
+
+### Epic — Translation Cache Table Migration
+
+| Story | Status |
+|---|---|
+| New `recipe_translations(recipe_token, lang, dish_name, ingredients, steps, cook_notes, cached_at)` table | 📋 |
+| Migrate existing `recipes.translations` JSONB data into new table | 📋 |
+| Update `get_cached_translation` / `cache_translation` / `clear_translation_cache` to use new table | 📋 |
+| Drop `translations` column from `recipes` table | 📋 |
+| Benefit: atomic upsert by PK, per-language delete, queryable cache stats (most popular language, hit rate per recipe) | 📋 |
+
+---
+
 ## Phase 6 — Search & Discovery 📋
 
 *After family access is stable.*
