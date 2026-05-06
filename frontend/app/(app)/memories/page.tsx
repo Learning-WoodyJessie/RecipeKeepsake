@@ -326,9 +326,31 @@ export default function MemoriesPage() {
             {/* Hero */}
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
               <div style={{ flex: 1 }}>
-                <h1 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.6rem, 3vw, 2rem)', fontWeight: 700, color: 'var(--text)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-                  All Recipes <span style={{ color: 'var(--accent)' }}>♡</span>
-                </h1>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap', marginBottom: '0.5rem' }}>
+                  <h1 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.6rem, 3vw, 2rem)', fontWeight: 700, color: 'var(--text)', margin: 0, display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                    All Recipes <span style={{ color: 'var(--accent)' }}>♡</span>
+                  </h1>
+                  <Link
+                    href="/capture"
+                    style={{
+                      background: 'var(--accent)',
+                      color: 'white',
+                      textDecoration: 'none',
+                      padding: '0.45rem 1rem',
+                      borderRadius: 10,
+                      fontSize: '0.82rem',
+                      fontWeight: 700,
+                      whiteSpace: 'nowrap',
+                      flexShrink: 0,
+                      boxShadow: '0 2px 8px rgba(196,82,42,0.22)',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.3rem',
+                    }}
+                  >
+                    + Add Recipe
+                  </Link>
+                </div>
                 <p style={{ fontSize: '0.9rem', color: 'var(--muted)', lineHeight: 1.6, maxWidth: 360 }}>
                   Timeless recipes, lovingly shared by the people who made our moments special.
                 </p>
@@ -392,7 +414,6 @@ export default function MemoriesPage() {
           padding: '1.35rem 1.75rem',
           flexWrap: 'wrap',
         }}>
-          {/* Illustration */}
           <div style={{
             width: 70,
             height: 70,
@@ -408,8 +429,6 @@ export default function MemoriesPage() {
           }}>
             🥘
           </div>
-
-          {/* Text */}
           <div style={{ flex: 1, minWidth: 200 }}>
             <p style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '1.05rem', color: 'var(--text)', marginBottom: '0.3rem' }}>
               Have a family recipe to add?
@@ -418,25 +437,6 @@ export default function MemoriesPage() {
               Record it, write it or upload it. Keep your family&apos;s stories and flavors alive for generations to come.
             </p>
           </div>
-
-          {/* Button */}
-          <Link
-            href="/capture"
-            style={{
-              background: 'var(--accent)',
-              color: 'white',
-              textDecoration: 'none',
-              padding: '0.7rem 1.4rem',
-              borderRadius: 12,
-              fontSize: '0.88rem',
-              fontWeight: 700,
-              whiteSpace: 'nowrap',
-              flexShrink: 0,
-              boxShadow: '0 3px 10px rgba(196,82,42,0.25)',
-            }}
-          >
-            + Add Recipe
-          </Link>
         </div>
       </div>
     </div>
