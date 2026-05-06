@@ -862,3 +862,209 @@ A developer reading the filenames cannot distinguish these roles.
 | Confusing prompt names | `prompts/translate_audio.py`, `prompts/translate_fields.py` | Rename | Medium |
 | Confusing tool name | `tools/transcribe.py` | Rename to `whisper.py` | Medium |
 | CLI script role unclear | `scripts/capture.py` | Add doc comment | Low |
+
+---
+
+## 14. User Journey — Screen by Screen
+
+This section walks through every screen a user encounters, in the order they experience them. For each screen it describes what triggers the render, which data is fetched and how, what the key components do, and what user actions are available.
+
+---
+
+### 14.1 Landing Page (Unauthenticated Entry)
+
+**File:** `frontend/app/page.tsx`
+
+When a user first opens the app URL, Next.js serves `frontend/out/index.html` — a static page that requires no server-side data. On mount, the page calls `supabase.auth.getSession()`: if a valid session already exists in `localStorage` (returning user), it immediately redirects to `/home` via `router.replace`, bypassing the landing entirely. If no session is found, the landing page renders with a "Continue with Google" button. Clicking that button calls `supabase.auth.signInWithOAuth({ provider: 'google', redirectTo: origin + '/auth/callback' })`, which redirects the browser to Google's OAuth consent screen — at this point the app is no longer in control until Google returns to the callback URL.
+
+**Layout:** Two-column card grid at ≥860px (hero card left, quote card right); single column on mobile. No sidebar, no top bar — this is outside the `(app)` route group.
+
+**Key elements:**
+- Hero card: tagline, three feature pills (Voice & audio, Recipes & memories, Private to your family), CTA button
+- Quote card: serif inspirational quote
+- No data fetch — fully static; only `getSession()` call on mount
+
+---
+
+### 14.2 Auth Callback
+
+**File:** `frontend/app/auth/callback/page.tsx`
+
+After Google completes OAuth consent, it redirects to `/auth/callback?code=...`. This page calls `supabase.auth.exchangeCodeForSession(code)`, which sends the authorization code to Supabase and receives back a JWT access token and refresh token. Supabase stores both in `localStorage` under its own keys. On success the page calls `router.replace('/home')`. On failure it renders an error message with a link back to the landing page. This page is the only place in the app where the auth session is created from scratch — all other pages only read it.
+
+---
+
+### 14.3 Home Screen
+
+**File:** `frontend/app/(app)/home/page.tsx`
+
+The Home screen is the first authenticated screen a user sees. On mount it fires two parallel API calls: `api.recipes.list()` (`GET /recipes`) and `api.people.list()` (`GET /people`). Both calls attach the Supabase JWT as a `Bearer` header; FastAPI verifies it and filters both queries by `user_id`. The page also calls `supabase.auth.getUser()` to extract the user's first name for the welcome greeting. Once data resolves, a `peopleMap` is computed (`narrator.toLowerCase() → photo_url`) so every memory row and card can show the narrator's photo without a separate fetch per item. Favorites state is read from `localStorage` via `readFavorites()` — not from the server — and a `favTick` integer counter is used as a React dependency to force `useMemo` to re-derive the favorites list after every toggle without requiring the full memories array to change.
+
+**Layout:** Two-column grid at ≥860px (main content | 272px right panel); single column on mobile.
+
+**Components and their roles:**
+
+| Component | Role |
+|---|---|
+| `HeroCard` | Welcome message with user's first name, watercolor hero image (`/hero-home.png`), two action tiles linking to `/capture` and `/upload` |
+| `ActionTile` | Individual CTA tile (icon + label + description); renders as a `<Link>` |
+| `FavoritesScroll` | Horizontal scroll row of `FavoriteCard` items; sort toggle (Favorites-first or Recent-first); "View all ›" link; empty state with CTA |
+| `FavoriteCard` | 180px card: dish image (or 🍽️ placeholder), dish name, narrator avatar, heart toggle button overlaid on image corner |
+| `RecentMemoriesSection` | Vertical list of up to 4 `MemoryRow` items |
+| `MemoryRow` | Single row: narrator avatar (photo or initial), dish name, narrator + date label, `WaveformBars`, pseudo-duration, heart toggle, play button (links to `/memory?token=...`) |
+| `QuotePanel` | Right sidebar: serif quote card + tips panel with three icon+title+description tips |
+| `WaveformBars` | Deterministic bar heights derived from `token` string hash — stable across re-renders, no animation state |
+
+**State:**
+```
+memories[]      ← from api.recipes.list()
+people[]        ← from api.people.list()
+userName        ← from supabase.auth.getUser()
+favTick         ← integer counter incremented on every favorite toggle
+sortBy          ← 'favorites' | 'recent' (controls FavoritesScroll order)
+loading/error   ← standard async state
+```
+
+---
+
+### 14.4 All Memories (Recipes)
+
+**File:** `frontend/app/(app)/memories/page.tsx`
+
+The All Memories page presents the full recipe archive with filtering, sorting, and narrator-scoped views. On mount it fires two parallel requests — `api.recipes.list()` and `api.people.list()` — identical to the Home screen, but the full unsliced list is used here. The page reads two URL search params: `?q=` (search query from the top bar) and `?narrator=` (set when navigating from Our People by clicking a narrator's recipes count). The `displayed` array is derived via `useMemo` applying these filters in sequence: narrator param → search query → tag filter → sort order. All filtering is client-side over the already-fetched list — no additional API calls for filtering.
+
+**Layout:** Hero banner full-width at top; two-column grid at ≥860px (recipe cards | right panel with CTA and why-it-matters); single column on mobile.
+
+**Key interactions:**
+- **Search:** Typing in `AppTopBar` and submitting navigates to `/memories?q=searchterm`; the page reads `q` from `useSearchParams()` and filters `dish_name` and `narrator` fields
+- **Narrator filter:** Clicking a narrator's recipe count on Our People navigates to `/memories?narrator=Name`; pre-filters the grid to that narrator's memories
+- **Tag filter:** "All", "Favorites", "Recently added" pill tabs filter the `displayed` list client-side
+- **Favorite toggle:** Calls `toggleFavorite(token)` from `lib/favorites.ts`, increments `favTick`, re-derives `favTokens` via `useMemo`
+- **Card click:** Links to `/memory?token=...`
+
+**Components:**
+
+| Component | Role |
+|---|---|
+| `HeroIllustration` | Watercolor banner (`/hero-memories.png`) with responsive height and `objectPosition` crop |
+| `MemoryCard` | Grid card: dish image, dish name, narrator chip (photo + name + relationship pill), recorded date, heart toggle |
+| `NarratorChip` | Small narrator badge used on cards — photo circle + name + relationship label |
+| Filter pill bar | Inline — "All", "Favorites", "Recently added" buttons |
+| Sort toggle | "Newest first" / "Oldest first" select |
+| Right panel CTA | "Add a Recipe" banner linking to `/capture` |
+
+---
+
+### 14.5 Memory Detail
+
+**File:** `frontend/app/(app)/memory/page.tsx`
+
+The Memory Detail page is reached via `/memory?token=...`. On mount it reads `token` from `useSearchParams()` and calls `api.recipes.get(token)` (`GET /recipe/{token}`). The server fetches the recipe row from Supabase, replaces `audio_url` with a fresh 1-hour signed URL (generated server-side — the raw filename is never exposed to the client), and returns the full recipe JSON. The page maintains a `translated` state overlay: when a language is selected via `LanguageSwitcher`, the translated fields are stored in `translated` and `const display = translated ?? memory` transparently swaps the rendered content without re-fetching the original. Favorite state is read from `localStorage` on mount and toggled locally. User notes are editable inline and persisted via `api.recipes.patch(token, { user_notes })` (`PATCH /recipe/{token}`). The delete button calls `api.recipes.delete(token)` and on success redirects to `/memories`.
+
+**Components:**
+
+| Component | Role |
+|---|---|
+| `LanguageSwitcher` | EN/TE/HI/KN/ES/FR pill buttons; calls `api.recipes.translate(token, lang)`; caches per-language results in component state; passes translated fields up via `onTranslated` callback |
+| `AudioPlayer` | HTML5 `<audio>` element with custom play/pause button, progress bar scrubber, elapsed/total time display; accepts the signed `audio_url` as `src` |
+| Ingredients list | Rendered as bordered rows with item name left-aligned and quantity right-aligned |
+| Steps list | Numbered list with accent-coloured circle step numbers |
+| Cook notes | Italic callout block with left accent border — vague measurements displayed verbatim |
+| Transcript accordion | `<details>` / `<summary>` — collapsed by default; shows `transcript_english` on expand |
+| User notes textarea | Free-text annotation; saved via PATCH on "Save notes" button click |
+| Heart button | Toggles `localStorage` favorite; `★` / `☆` visual state |
+| Delete button | Two-step: browser `confirm()` dialog → `DELETE /recipe/{token}` → redirect |
+
+---
+
+### 14.6 Our People
+
+**File:** `frontend/app/(app)/people/page.tsx`
+
+Our People manages narrator profiles — the people whose voices are captured in the archive. On mount the page calls `api.people.list()` (`GET /people`) and `api.recipes.list()` (`GET /recipes`); from the recipes list it builds a `recipeCounts` map (`narrator.toLowerCase() → count`) so each narrator card shows a live recipe count without a separate aggregation endpoint. The page maintains a `modalPerson` state: `null` means no modal is open, a `Person` object means the edit modal is pre-filled with that person's data, and the empty `EMPTY` constant means the add modal is open. The modal is a single component that changes its title and submit handler depending on whether `modalPerson.id` exists. Photo upload accepts either a file (converted to base64 data URI client-side and sent as `photo_data` in the request body) or a pasted URL stored as `photo_url` directly.
+
+**Layout:** Hero banner at top; two-column at ≥860px (narrator cards left | "Why it matters" panel right); single column on mobile.
+
+**Key interactions:**
+- **Card click** → `router.push('/memories?narrator=Name')` — navigates to All Memories pre-filtered to that narrator
+- **Pencil icon** → opens edit modal with `e.stopPropagation()` to prevent navigation
+- **Add narrator** → `api.people.create(body)` (`POST /people`) → optimistic local state update
+- **Edit narrator** → `api.people.update(id, body)` (`PUT /people/{id}`) → updates local state
+- **Delete narrator** → browser `confirm()` → `api.people.delete(id)` → removes from local state
+
+**Components:**
+
+| Component | Role |
+|---|---|
+| `PersonCard` | Horizontal card: 80px avatar circle (photo or emoji), name, relationship pill, bio truncated to 2 lines, live recipe count badge, pencil edit icon; full card is clickable for navigation |
+| Hero banner | Watercolor illustration (`/hero-people.png`) with responsive crop |
+| `WhyItMatters` | Right panel: three icon+title+description items + serif quote |
+| Add/Edit modal | Overlay with name, relationship, emoji, photo (file or URL), bio, notes fields; submit calls create or update depending on presence of `id` |
+
+---
+
+### 14.7 Capture a Memory
+
+**File:** `frontend/app/(app)/capture/page.tsx`
+
+The Capture page uses the browser's `MediaRecorder` API to record audio directly in the browser. On page load, narrator options are fetched from `api.people.list()` to populate the narrator chip selector. When the user clicks Record, the page calls `navigator.mediaDevices.getUserMedia({ audio: true })` to request microphone permission, creates a `MediaRecorder` instance, and begins collecting audio chunks into a `useRef` array. An `AnalyserNode` drives a live `WaveformBars` visualiser by reading frequency data from the audio stream on each animation frame. When the user clicks Stop, the chunks are assembled into a `Blob`, the `MediaRecorder` is stopped, and the page transitions to `stage: 'processing'`. The audio `Blob` is wrapped in a `FormData` object with the selected narrator and POSTed to `POST /capture/process` — this runs pipeline Stages 1 and 2 (transcribe + translate + structure) but does not save to the database. The structured JSON returned is passed into `ReviewWizard`, which enters `stage: 'review'`.
+
+**Stage machine:**
+```
+'idle' → (click Record) → 'recording' → (click Stop) → 'processing'
+       → (API returns) → 'review' → (wizard completes) → back to 'idle'
+       → (API error)   → 'error'
+```
+
+**Components:**
+
+| Component | Role |
+|---|---|
+| `NarratorChip` | Selectable pill for each narrator; highlights selected narrator; "+" chip to add a new narrator |
+| Record button | Large circular button; pulsing red ring animation during recording |
+| `WaveformBars` | Live visualiser during recording — fed from `AnalyserNode` frequency data |
+| `WaveformDecoration` | Static decorative waveform bars shown in idle state |
+| `ReviewWizard` | 3-step review modal (see §14.9) |
+| `TipsPanel` | Right sidebar: three tips for getting a good recording |
+
+---
+
+### 14.8 Upload Recording
+
+**File:** `frontend/app/(app)/upload/page.tsx`
+
+The Upload page accepts an existing audio file and runs it through the same pipeline as live capture. The user selects a narrator from chips, then either drags-and-drops a file onto the drop zone or clicks to open the file picker. Accepted formats are `.mp3`, `.wav`, `.m4a`, `.webm`, `.ogg`. On file selection the page immediately POSTs the file to `POST /capture/process` as a `FormData` upload — the same endpoint used by the Capture page — and enters the `processing` state while the pipeline runs. On response the structured JSON is passed directly to `ReviewWizard`. The upload and capture pages share the same downstream flow from `stage: 'processing'` onward, including the `ReviewWizard` and the final `POST /capture/save`.
+
+**Components:**
+
+| Component | Role |
+|---|---|
+| `NarratorChip` | Same narrator selector as Capture page |
+| Drop zone | Drag-and-drop area with dashed border; also renders a file `<input>` triggered by click; shows file name after selection |
+| `CassetteHero` | SVG cassette tape illustration with waveform bars on either side |
+| `ReviewWizard` | Shared with Capture page — same 3-step review flow |
+| `TipsPanel` | Right sidebar with audio quality tips (clear voice, good length, check before uploading) |
+
+---
+
+### 14.9 Review Wizard (shared)
+
+**File:** `frontend/components/ReviewWizard.tsx`
+
+The Review Wizard is the editorial moment between capture and permanent storage. It is rendered inside both the Capture and Upload pages when `stage === 'review'` and receives the raw structured JSON from `POST /capture/process`. The wizard has three steps controlled by a `step` integer. Step 1 shows the AI-generated dish name (editable), the DALL-E dish image, and confirms the narrator. Step 2 presents the full structured recipe: an ingredients table where rows can be added, removed, or edited inline; a steps list with the same inline editing; the `cook_notes` field; and any `review_flags` highlighted as amber callouts for the user's attention. Step 3 is a summary confirmation. On final confirm, the wizard calls `api.capture.save(reviewed)` (`POST /capture/save`), which runs pipeline Stage 3 — uploads the audio to Supabase Storage and inserts the recipe row. On success the wizard shows a "Preserved forever ✦" confirmation card with a link to the saved memory at `/memory?token=...`.
+
+**State:**
+```
+step: 1 | 2 | 3
+editedRecipe    ← local copy of the structured JSON; mutated by inline edits
+saving          ← boolean while POST /capture/save is in flight
+savedToken      ← set on success; triggers confirmation card render
+```
+
+---
+
+### 14.10 Account
+
+**File:** `frontend/app/(app)/account/page.tsx`
+
+The Account page has a single function: permanent account deletion. It presents two sequential browser `confirm()` dialogs to prevent accidental deletion. On confirmation it calls `api.account.delete()` (`DELETE /account`), which triggers a server-side cascade: all `recipes` rows for the user are deleted (including audio files in Supabase Storage), all `people` rows are deleted, and the Supabase Auth user record is removed via the admin API. On success the page calls `supabase.auth.signOut()` to clear the local session from `localStorage`, then redirects to `/` (landing page). The privacy policy is accessible at `/privacy` — a static page that requires no data fetch and is served directly from the Next.js static export.
