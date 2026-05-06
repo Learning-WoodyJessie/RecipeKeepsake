@@ -242,7 +242,7 @@ function FavoritesScroll({
           <Link href="/capture" style={{ color: 'var(--accent)', fontWeight: 600 }}>capture the first one</Link>
         </div>
       ) : (
-        <div style={{ display: 'flex', gap: '0.85rem', overflowX: 'auto', paddingBottom: '0.5rem', scrollbarWidth: 'none' }}>
+        <div style={{ display: 'flex', gap: '0.85rem', overflowX: 'auto', paddingBottom: '0.5rem', scrollbarWidth: 'none', width: '100%', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
           {sorted.map((m) => (
             <FavoriteCard key={m.token} memory={m} isFav={favTokens.includes(m.token)} onToggle={() => onToggle(m.token)} narratorPhoto={peopleMap[m.narrator?.toLowerCase() ?? ''] ?? ''} />
           ))}
@@ -540,7 +540,7 @@ export default function HomePage() {
   }
 
   return (
-    <div style={{ padding: '1.5rem 1.75rem 2.5rem' }}>
+    <div style={{ padding: '1.5rem 1.75rem 2.5rem', overflowX: 'hidden' }}>
       <style>{`
         .rk-home-cols {
           display: grid;
