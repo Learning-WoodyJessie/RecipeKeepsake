@@ -19,6 +19,7 @@ type Memory = {
   recorded_at: string
   image_url: string | null
   audio_url: string | null
+  transcript_raw: string | null
   transcript_english: string | null
   cook_notes: string | null
   ingredients: Ingredient[]
@@ -144,12 +145,25 @@ function MemoryDetail() {
         </section>
       )}
 
-      {memory.transcript_english && (
+      {(memory.transcript_raw || memory.transcript_english) && (
         <details style={{ marginBottom: '1.25rem' }}>
           <summary style={{ cursor: 'pointer', fontSize: '0.82rem', color: 'var(--muted)', marginBottom: '0.5rem' }}>Full transcript</summary>
-          <p style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: '0.85rem', fontSize: '0.85rem', color: 'var(--text2)', lineHeight: 1.7, marginTop: '0.5rem' }}>
-            {memory.transcript_english}
-          </p>
+          {memory.transcript_raw && (
+            <>
+              <p style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--muted)', marginTop: '0.75rem', marginBottom: '0.35rem' }}>Original</p>
+              <p style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: '0.85rem', fontSize: '0.85rem', color: 'var(--text2)', lineHeight: 1.7 }}>
+                {memory.transcript_raw}
+              </p>
+            </>
+          )}
+          {memory.transcript_english && (
+            <>
+              <p style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--muted)', marginTop: '0.75rem', marginBottom: '0.35rem' }}>English translation</p>
+              <p style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: '0.85rem', fontSize: '0.85rem', color: 'var(--text2)', lineHeight: 1.7 }}>
+                {memory.transcript_english}
+              </p>
+            </>
+          )}
         </details>
       )}
 
