@@ -607,6 +607,8 @@ Favorites are stored client-side only — intentionally lightweight, no backend 
 
 ## 8. Authentication Flow
 
+Authentication is handled entirely by Supabase Auth using the OAuth 2.0 authorization code flow with Google as the identity provider. On sign-in, the browser is redirected to Google, which returns a short-lived authorization code to the app's callback route; the frontend exchanges that code with Supabase for a JWT access token and a refresh token, both stored in `localStorage`. Every subsequent API call attaches the access token as a `Bearer` header, which FastAPI validates locally using `PyJWT` and the `SUPABASE_JWT_SECRET` — no network round-trip to Supabase on the hot path. The JWT payload carries the user's `sub` (stable user ID), `email`, and `user_metadata`, which the backend uses to scope all database queries to the authenticated user.
+
 ```
 1. User clicks "Sign in with Google" on landing page
    → supabase.auth.signInWithOAuth({ provider: 'google',
