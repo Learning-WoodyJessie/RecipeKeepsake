@@ -5,6 +5,7 @@ Calls Whisper (with Telugu glossary prompt) for raw transcript,
 then faithfully translates to English via LLM Call A.
 """
 from __future__ import annotations
+import time
 
 from tools.transcribe import transcribe_audio
 from tools.config import load_config
@@ -28,6 +29,12 @@ def run_transcribe(audio_path: str, provider: LLMProvider | None = None) -> Tran
         config = load_config()
         provider = OpenAIProvider(model=config["llm"]["model"])
 
+    t0 = time.perf_counter()
     raw = transcribe_audio(audio_path)
+    print(f"[pipeline] stage=transcribe duration={time.perf_counter()-t0:.2f}s")
+
+    t1 = time.perf_counter()
     english = translate_to_english(raw, provider)
+    print(f"[pipeline] stage=translate duration={time.perf_counter()-t1:.2f}s")
+
     return TranscriptResult(raw=raw, english=english)
