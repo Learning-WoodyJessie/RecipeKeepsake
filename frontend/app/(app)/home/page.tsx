@@ -296,6 +296,7 @@ function FavoriteCard({ memory, isFav, onToggle, narratorPhoto }: { memory: Memo
             justifyContent: 'center',
             fontSize: '0.95rem',
             boxShadow: '0 2px 6px rgba(0,0,0,0.12)',
+            color: isFav ? '#C4522A' : '#C4A882',
           }}
         >
           {isFav ? '♥' : '♡'}
@@ -494,9 +495,6 @@ function QuotePanel() {
             </div>
           </div>
         ))}
-        <Link href="/capture" style={{ fontSize: '0.78rem', color: 'var(--accent)', fontWeight: 600, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.25rem', marginTop: '0.25rem' }}>
-          Learn more ›
-        </Link>
       </div>
     </>
   )
