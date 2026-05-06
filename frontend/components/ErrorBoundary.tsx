@@ -18,6 +18,15 @@ export class ErrorBoundary extends React.Component<
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
     console.error('[ErrorBoundary]', error.message, info.componentStack)
+    fetch('/client-error', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        error: error.message,
+        component_stack: info.componentStack ?? '',
+        url: typeof window !== 'undefined' ? window.location.href : '',
+      }),
+    }).catch(() => {})
   }
 
   render() {

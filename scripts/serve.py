@@ -223,6 +223,44 @@ async def health():
         )
 
 
+@app.post("/admin/clear-translation-cache")
+async def admin_clear_translation_cache(lang: str, secret: str):
+    """Clear cached translations for one language across all recipes.
+
+    Protected by ADMIN_SECRET env var (operator action, not user JWT).
+    Usage: POST /admin/clear-translation-cache?lang=te&secret=xxx
+    """
+    admin_secret = os.environ.get("ADMIN_SECRET")
+    if not admin_secret:
+        raise HTTPException(status_code=503, detail="ADMIN_SECRET not configured")
+    if secret != admin_secret:
+        raise HTTPException(status_code=403, detail="Forbidden")
+    from tools.storage import clear_translation_cache
+    cleared = clear_translation_cache(lang)
+    _logger.info(f"event=cache_cleared lang={lang} rows={cleared}")
+    return {"cleared": cleared, "lang": lang}
+
+
+class ClientErrorRequest(BaseModel):
+    error: str
+    component_stack: str = ""
+    url: str = ""
+
+
+@app.post("/client-error")
+async def client_error_endpoint(body: ClientErrorRequest):
+    """Receive frontend error reports and log them to Railway stdout.
+
+    Called by ErrorBoundary.componentDidCatch — no auth required,
+    fire-and-forget from the browser.
+    """
+    _logger.error(
+        f"event=client_error error={body.error!r} "
+        f"url={body.url!r} component_stack={body.component_stack!r}"
+    )
+    return {"ok": True}
+
+
 @app.api_route("/", methods=["GET", "HEAD"])
 async def index():
     root = _FRONTEND_OUT / "index.html"
