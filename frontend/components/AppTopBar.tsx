@@ -110,17 +110,6 @@ export default function AppTopBar({ onMenuClick }: { onMenuClick?: () => void })
         @media (min-width: 700px) { .rk-greeting { display: block !important; } }
       `}</style>
 
-      {/* Notification bell */}
-      <button
-        type="button"
-        aria-label="Notifications"
-        style={{ background: 'none', border: 'none', cursor: 'pointer', flexShrink: 0, opacity: 0.5, padding: '0.2rem', display: 'flex', alignItems: 'center' }}
-      >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/>
-        </svg>
-      </button>
-
       {/* Avatar — filled accent circle, white initial */}
       <div
         style={{
