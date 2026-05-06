@@ -187,10 +187,44 @@ RecipeKeepsake/
 - Multipart form parsing (`UploadFile`)
 - JWT authentication (`require_auth` dependency)
 - Postgres-backed rate limiting
+- **Upload file validation** — extension allowlist, size cap, magic-byte check
+- **Content moderation** — OpenAI Moderation API on the English transcript
 - Static file serving for the Next.js export
 - Delegating all business logic to `pipeline/` and `tools/`
 
 It does not contain transcription, LLM, or storage logic.
+
+### Upload safety (`_validate_audio_upload`)
+
+Every audio upload is validated before Whisper processes it — three layers in order:
+
+| Layer | What it rejects | HTTP code |
+|---|---|---|
+| **Extension allowlist** | `.exe`, `.html`, `.php`, `.zip`, etc. — only MP3/M4A/WAV/WebM/OGG/FLAC/AAC/MP4 accepted | 400 |
+| **Size cap** | Files > 25 MB (configurable via `MAX_AUDIO_BYTES` env var; covers ~2 h of compressed audio) | 413 |
+| **Magic bytes** | Files whose binary signature doesn't match a known audio container — catches renamed executables or HTML with a `.mp3` extension | 400 |
+
+If validation fails, the pipeline never starts and the file is discarded immediately. No data reaches Whisper, the LLM, or Supabase.
+
+### Content moderation (`_moderate_transcript`)
+
+After Whisper produces the English transcript (post-Call-A), `serve.py` calls the **OpenAI Moderation API** before the structuring LLM (Call B):
+
+```
+Whisper → Call A (translate) → _moderate_transcript() → Call B (structure) → persist
+```
+
+- **Free endpoint** — no token cost; does not count toward the user's daily rate limit
+- **Checks:** hate speech, harassment, violence, sexual content, self-harm
+- **On flag:** HTTP 422 with a user-friendly message; nothing is saved
+- **On API error:** non-fatal — logged at `WARNING` level, pipeline continues (transient failures should not block legitimate family recordings)
+- **Applies equally** to live recordings and uploaded audio files — both paths go through `POST /capture/process`
+
+**Audio lifecycle on moderation failure:**
+1. Audio bytes held in RAM → written to temp file → Whisper runs → transcript flagged
+2. `HTTPException(422)` raised → execution exits immediately
+3. `finally: os.unlink(tmp_path)` — temp file deleted
+4. `/capture/save` never called → **no audio, transcript, or recipe row stored anywhere**
 
 ### Route map
 
@@ -666,23 +700,27 @@ Capacitor (mobile) uses the system browser for OAuth (`Capacitor.Plugins.Browser
 │                                                                   │
 │  5. require_auth → JWT verified                                  │
 │  6. rate limit checked (capture, 10/day)                        │
-│  7. audio saved to tempfile                                      │
-│  8. pipeline.transcribe.run_transcribe(audio_path)               │
+│  7. _validate_audio_upload() ← extension + size + magic bytes   │
+│     → HTTP 400/413 if invalid; file discarded, pipeline aborted  │
+│  8. audio saved to tempfile                                      │
+│  9. pipeline.transcribe.run_transcribe(audio_path)               │
 │     a. tools/transcribe.transcribe_audio()                       │
 │        → OpenAI gpt-4o-transcribe (language=te, glossary prompt) │
 │        → raw: str (Telugu + English code-switching)              │
 │     b. prompts/translate_audio.translate_to_english(raw, provider)     │
 │        → GPT-4o Call A (preserve vague terms)                    │
 │        → english: str                                            │
-│  9. pipeline.transform.run_transform(transcript)                  │
+│  10. _moderate_transcript(english) ← OpenAI Moderation API      │
+│      → HTTP 422 if flagged; temp file deleted, nothing stored    │
+│  11. pipeline.transform.run_transform(transcript)                 │
 │     → prompts/structure.structure_recipe(english, provider)      │
 │     → GPT-4o Call B (json_mode=True)                             │
 │     → RecipeData { dish_name, ingredients, steps, cook_notes ... }│
-│  10. _generate_image(dish_name, ingredients, steps, cook_notes)  │
+│  12. _generate_image(dish_name, ingredients, steps, cook_notes)  │
 │      → prompts/image._build_prompt() → enriched DALL-E prompt   │
 │      → DALL-E 3 → ephemeral URL                                  │
 │      → tools/storage.store_image() → Supabase 'images' bucket   │
-│  11. Returns JSON (not yet saved to DB)                          │
+│  13. Returns JSON (not yet saved to DB)                          │
 └──────────────────────┬──────────────────────────────────────────┘
                         │
                         ▼

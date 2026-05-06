@@ -1040,10 +1040,41 @@ Steps are executed sequentially. Errors on individual steps are logged but do no
 | Data at rest encryption | Supabase AES-256 handles this at the infrastructure layer. |
 | OpenAI data handling | API tier: no training use, ≤30-day retention. Acceptable for personal archive use. |
 
+### Upload file safety
+
+Every audio upload is validated server-side before Whisper processes it — three checks in order:
+
+| Layer | What it rejects | HTTP |
+|---|---|---|
+| **Extension allowlist** | `.exe`, `.html`, `.php`, `.zip` etc. Only MP3/M4A/WAV/WebM/OGG/FLAC/AAC/MP4 accepted | 400 |
+| **Size cap** | Files > 25 MB (configurable via `MAX_AUDIO_BYTES`; covers ~2 h of compressed audio) | 413 |
+| **Magic bytes** | Files whose binary header doesn't match a known audio container — catches renamed executables or HTML files carrying an audio extension | 400 |
+
+Applies to both live recordings and uploaded audio files — both reach the same `POST /capture/process` endpoint. If validation fails, the pipeline aborts and nothing is stored.
+
+### Content moderation
+
+After Whisper + Call A produce the English transcript, the **OpenAI Moderation API** (free, no token cost) is called before Call B and before any data is persisted:
+
+```
+Whisper → Call A → _moderate_transcript() → Call B → persist
+```
+
+- Checks: hate speech, harassment, violence, sexual content, self-harm
+- On flag: HTTP 422 returned, temp file deleted, no audio/transcript/recipe stored anywhere
+- On API error: non-fatal — logged and pipeline continues (transient failures don't block family recordings)
+- Applies identically to live-recorded and uploaded audio
+
+**Audio lifecycle on moderation failure:**
+1. Bytes in RAM → temp file on disk → Whisper → transcript flagged by Moderation API
+2. `HTTPException(422)` raised immediately
+3. `finally: os.unlink(tmp_path)` — temp file deleted
+4. `POST /capture/save` never called → nothing in Supabase Storage or Postgres
+
 ### Known security gaps
 
 | Gap | Severity | Location |
 |---|---|---|
 | Supabase RLS setup unconfirmed — policies designed but dashboard configuration not verified | High | Supabase dashboard — see D-004 in `docs/BUGS.md` |
 | `people.photo_data` stored as base64 in Postgres — should be in private Storage bucket before Phase 5 family sharing | Medium | `tools/storage.py`, `people` table |
-| In-memory rate limiter resets on server restart — a user could exploit a Railway redeploy to reset their daily quota | Low | `scripts/serve.py` |
+| In-memory rate limiter resets on server restart — a user could exploit a Railway redeploy to reset their daily quota | Low | `scripts/serve.py` — **fixed in Phase 1.6** (now Postgres-backed) |

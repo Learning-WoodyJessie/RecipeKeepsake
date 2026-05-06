@@ -185,6 +185,8 @@ These are locked. Read `.agent/decisions.log` for full reasoning before reconsid
 | **Invite-only sharing (Phase 5)** | No public share tokens | Family recordings must never be accessible without authentication |
 | **DALL-E enriched prompt** | `prompts/image.py` extracts vessel/region/garnish/texture from recipe data | Plain dish-name prompts produce generic stock images; recipe data makes them dish-specific |
 | **`load_config()` lives in `tools/config.py`** | Import from here only | `data/` has no `__init__.py` — importing from `data.config` causes a 500 |
+| **Upload file validation** | `_validate_audio_upload()` in `serve.py`: extension allowlist + 25 MB cap + magic-byte check | Prevents malicious file uploads (renamed executables, oversized payloads) before Whisper sees the file |
+| **Content moderation** | `_moderate_transcript()` calls OpenAI Moderation API (free) after Call A, before Call B | Blocks hate/harassment/violence/sexual/self-harm content; non-fatal on API error; nothing stored if flagged |
 
 ---
 
@@ -210,7 +212,7 @@ Classes and key functions should have similar docstrings. This ensures maintaina
 
 ## Current State (last updated 2026-05-05)
 
-- **Tests:** 97 passing, 0 failures (`python -m pytest tests/ -q`)
+- **Tests:** 137 passing, 0 failures (`python -m pytest tests/ -q`)
 - **Active bugs:** D-001 (config duplication), D-002 (Whisper fabrication), D-003 (generate-image missing fields), D-005 (user_id extraction repeated) — see `docs/BUGS.md`
 - **Completed phases:** 0 (CLI pipeline), 1 (web app), 1.5 (UI polish + security hardening), 1.6 (scale hardening)
 - **Next priority:** Phase 1.7 — Frontend Migration (`web/app.html` → `web/nextjs/`)
