@@ -120,17 +120,6 @@ export default function CapturePage() {
     } catch (e: unknown) { setError((e as Error).message); setStage('error') }
   }
 
-  const handleGalleryFile = useCallback((file: File) => {
-    setStage('processing')
-    setError('')
-    const form = new FormData()
-    form.append('audio', file)
-    if (narrator) form.append('narrator', narrator)
-    api.capture.process(form)
-      .then(result => { setDraft(result); setStage('review') })
-      .catch((e: unknown) => { setError((e as Error).message); setStage('error') })
-  }, [narrator])
-
   if (stage === 'review' && draft) {
     return <ReviewWizard draft={draft} onCancel={() => { setStage('idle'); setDraft(null) }} />
   }
@@ -293,21 +282,6 @@ export default function CapturePage() {
                 </div>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--muted)', flexShrink: 0 }}><polyline points="9 18 15 12 9 6"/></svg>
               </Link>
-
-              {/* Choose from gallery */}
-              <label style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '1rem 1.15rem', cursor: 'pointer', marginBottom: '1rem' }}>
-                <input type="file" accept="audio/*,video/*" style={{ display: 'none' }} onChange={e => { const f = e.target.files?.[0]; if (f) handleGalleryFile(f) }} />
-                <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'var(--accent-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent)', flexShrink: 0 }}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
-                  </svg>
-                </div>
-                <div style={{ flex: 1 }}>
-                  <p style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text)', marginBottom: 2 }}>Choose from gallery</p>
-                  <p style={{ fontSize: '0.78rem', color: 'var(--muted)' }}>Select an audio or video from your device</p>
-                </div>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--muted)', flexShrink: 0 }}><polyline points="9 18 15 12 9 6"/></svg>
-              </label>
 
               {/* Privacy badge */}
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.85rem', padding: '1rem 1.15rem', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14 }}>
