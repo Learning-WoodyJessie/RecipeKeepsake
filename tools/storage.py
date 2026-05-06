@@ -143,15 +143,16 @@ def delete_recipe(token: str) -> None:
 
 
 def cache_translation(token: str, lang: str, data: dict) -> None:
-    """Merge translated fields into the translations JSONB column for this recipe.
+    """Atomically set one language in the recipe translations JSONB.
 
-    Fetches existing translations first so other languages are preserved.
+    Uses a Postgres RPC function with the || merge operator so two concurrent
+    writes for different languages never overwrite each other.
+    Requires set_recipe_translation() to be created in Supabase SQL editor first.
     """
-    sb = _client()
-    result = sb.table("recipes").select("translations").eq("token", token).single().execute()
-    existing = result.data.get("translations") or {}
-    existing[lang] = data
-    sb.table("recipes").update({"translations": existing}).eq("token", token).execute()
+    _client().rpc(
+        "set_recipe_translation",
+        {"p_token": token, "p_lang": lang, "p_data": data},
+    ).execute()
 
 
 def clear_translation_cache(lang: str) -> int:

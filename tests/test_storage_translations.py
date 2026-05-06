@@ -40,21 +40,24 @@ class TestGetCachedTranslation:
 
 
 class TestCacheTranslation:
-    def test_writes_merged_translations(self):
-        """cache_translation() merges new lang entry into existing translations and updates row."""
-        existing = {"hi": {"dish_name": "रागी मुद्दा"}}
-        new_data = {"dish_name": "ರಾಗಿ ಮುದ್ದೆ", "ingredients": [], "steps": [], "cook_notes": ""}
+    def test_cache_translation_uses_rpc(self, monkeypatch):
+        """cache_translation() calls set_recipe_translation RPC, not table read-modify-write."""
+        import tools.storage as s
+        mock_sb = MagicMock()
+        monkeypatch.setattr(s, "_supabase", mock_sb)
+        s.cache_translation("tok-abc", "te", {"dish_name": "పెసరట్టు"})
+        mock_sb.rpc.assert_called_once_with(
+            "set_recipe_translation",
+            {"p_token": "tok-abc", "p_lang": "te", "p_data": {"dish_name": "పెసరట్టు"}},
+        )
+        mock_sb.table.assert_not_called()
 
-        with patch("tools.storage._client") as mock_client:
-            sb = _mock_sb()
-            mock_client.return_value = sb
-            sb.table.return_value.select.return_value.eq.return_value.single.return_value.execute.return_value.data = {
-                "translations": existing
-            }
-            cache_translation("abc", "kn", new_data)
-
-            update_call = sb.table.return_value.update.call_args
-            written = update_call[0][0]["translations"]
-            assert "hi" in written
-            assert "kn" in written
-            assert written["kn"]["dish_name"] == "ರಾಗಿ ಮುದ್ದೆ"
+    def test_cache_translation_different_langs_use_separate_rpc_calls(self, monkeypatch):
+        """Two cache_translation() calls for different langs each call set_recipe_translation once."""
+        import tools.storage as s
+        mock_sb = MagicMock()
+        monkeypatch.setattr(s, "_supabase", mock_sb)
+        s.cache_translation("tok-xyz", "hi", {"dish_name": "पेसरट्टू"})
+        s.cache_translation("tok-xyz", "kn", {"dish_name": "ರಾಗಿ ಮುದ್ದೆ"})
+        assert mock_sb.rpc.call_count == 2
+        mock_sb.table.assert_not_called()
