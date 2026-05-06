@@ -15,9 +15,14 @@ Production (Railway):
 """
 
 import json as _json
+import json as _json_stdlib
+import logging
+import contextvars
 import os
 import tempfile
+import time
 import uuid
+from datetime import datetime, timezone
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -40,6 +45,32 @@ from pipeline.models import RecipeData
 from tools.storage import check_rate_limit_db
 
 _FRONTEND_OUT = Path(__file__).parent.parent / "frontend" / "out"
+
+# ── Structured logging ────────────────────────────────────────────────────────
+
+_request_id: contextvars.ContextVar[str] = contextvars.ContextVar("request_id", default="-")
+
+
+class _JSONFormatter(logging.Formatter):
+    def format(self, record: logging.LogRecord) -> str:
+        return _json_stdlib.dumps({
+            "ts":    datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "level": record.levelname,
+            "req":   _request_id.get("-"),
+            "event": record.getMessage(),
+        }, ensure_ascii=False)
+
+
+def _setup_logging() -> logging.Logger:
+    handler = logging.StreamHandler()
+    handler.setFormatter(_JSONFormatter())
+    logger = logging.getLogger("serve")
+    logger.setLevel(logging.INFO)
+    logger.addHandler(handler)
+    return logger
+
+
+_logger = _setup_logging()
 
 # CORS — allow localhost in dev, Railway URL in prod via ALLOWED_ORIGINS env var
 _ALLOWED_ORIGINS = os.environ.get(
@@ -84,6 +115,7 @@ def _generate_image(
     try:
         from prompts.image import generate_dish_image
         from tools.storage import store_image
+        t0 = time.perf_counter()
         raw_url = generate_dish_image(
             dish_name or "Indian dish",
             ingredients=ingredients,
@@ -91,10 +123,13 @@ def _generate_image(
             cook_notes=cook_notes,
         )
         if raw_url and os.environ.get("SUPABASE_URL"):
-            return store_image(raw_url)
-        return raw_url or ""
+            result = store_image(raw_url)
+        else:
+            result = raw_url or ""
+        _logger.info(f"event=image_done duration={time.perf_counter()-t0:.2f}s")
+        return result
     except Exception as e:
-        print(f"[serve] Image generation failed (non-fatal): {e}")
+        _logger.warning(f"event=image_failed error={type(e).__name__} msg={e}")
         return ""
 
 
@@ -148,8 +183,14 @@ class _RequestIDMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
         request_id = uuid.uuid4().hex[:8]
         request.state.request_id = request_id
+        _request_id.set(request_id)
         response = await call_next(request)
         response.headers["X-Request-ID"] = request_id
+        if response.status_code >= 400:
+            _logger.warning(
+                f"event=request_error status={response.status_code} "
+                f"method={request.method} path={request.url.path}"
+            )
         return response
 
 
@@ -229,7 +270,7 @@ async def capture_endpoint(audio: UploadFile = File(...), user: dict = Depends(r
         tmp_path = tmp.name
 
     try:
-        print(f"[serve/capture] Processing {audio.filename}...")
+        _logger.info(f"event=capture_start file={audio.filename}")
 
         transcript = run_transcribe(tmp_path)
         recipe_data = run_transform(transcript)
@@ -267,14 +308,14 @@ async def capture_endpoint(audio: UploadFile = File(...), user: dict = Depends(r
             if saved.audio_url:
                 from tools.storage import _sign_audio, _client as _sb
                 recipe["audio_url"] = _sign_audio(saved.audio_url, _sb())
-            print(f"[serve/capture] Saved: {saved.id}")
+            _logger.info(f"event=capture_saved id={saved.id} dish={recipe_data.dish_name}")
         else:
-            print("[serve/capture] No Supabase env — skipping storage")
+            _logger.warning("event=capture_no_db")
 
         return JSONResponse(content=recipe)
 
     except Exception as e:
-        print(f"[serve/capture] ERROR: {e}")
+        _logger.error(f"event=capture_failed stage=persist error={type(e).__name__} msg={e}")
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         try:
@@ -303,7 +344,7 @@ async def capture_process_endpoint(
         tmp_path = tmp.name
 
     try:
-        print(f"[serve/process] Processing {audio.filename}...")
+        _logger.info(f"event=process_start file={audio.filename}")
 
         transcript = run_transcribe(tmp_path)
         recipe_data = run_transform(transcript)
@@ -324,11 +365,11 @@ async def capture_process_endpoint(
             "review_flags": recipe_data.review_flags,
             "image_url": recipe_data.image_url,
         }
-        print(f"[serve/process] Done: {recipe_data.dish_name}")
+        _logger.info(f"event=process_done dish={recipe_data.dish_name}")
         return JSONResponse(content=result)
 
     except Exception as e:
-        print(f"[serve/process] ERROR: {e}")
+        _logger.error(f"event=process_failed error={type(e).__name__} msg={e}")
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         try:
@@ -390,11 +431,11 @@ async def capture_save_endpoint(
             from tools.storage import _sign_audio, _client as _sb
             result["audio_url"] = _sign_audio(saved.audio_url, _sb())
 
-        print(f"[serve/save] Saved: {saved.id}")
+        _logger.info(f"event=save_done id={saved.id}")
         return JSONResponse(content=result)
 
     except Exception as e:
-        print(f"[serve/save] ERROR: {e}")
+        _logger.error(f"event=save_failed error={type(e).__name__} msg={e}")
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         try:
@@ -596,7 +637,7 @@ async def translate_recipe_endpoint(token: str, lang: str = "en", force: bool = 
             if cached:
                 return JSONResponse(content={"lang": lang, **cached})
         except Exception as e:
-            print(f"[translate] Cache read failed (non-fatal): {e}")
+            _logger.warning(f"event=translation_cache_read_error error={type(e).__name__} msg={e}")
 
     # Translate via LLM
     if not os.environ.get("OPENAI_API_KEY"):
@@ -616,14 +657,14 @@ async def translate_recipe_endpoint(token: str, lang: str = "en", force: bool = 
     try:
         translated = translate_recipe_fields(fields, lang, provider)
     except Exception as e:
-        print(f"[translate] LLM error ({type(e).__name__}): {e}")
+        _logger.error(f"event=translation_llm_error error={type(e).__name__} msg={e}")
         raise HTTPException(status_code=500, detail=f"Translation failed: {e}")
 
     # Write to cache — non-fatal, don't fail the request if Supabase write fails
     try:
         cache_translation(token, lang, translated)
     except Exception as e:
-        print(f"[translate] Cache write failed (non-fatal): {e}")
+        _logger.warning(f"event=translation_cache_write_error error={type(e).__name__} msg={e}")
 
     return JSONResponse(content={"lang": lang, **translated})
 
