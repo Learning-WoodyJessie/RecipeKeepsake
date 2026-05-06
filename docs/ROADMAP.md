@@ -245,8 +245,8 @@ Migrated production frontend from `web/app.html` (single-file vanilla JS SPA, 4,
 |---|---|
 | FastAPI static file serving fixed — direct files checked before index.html fallback | ✅ |
 | `app.html` route removed from FastAPI — frontend served exclusively from `frontend/out/` | ✅ |
-| Deploy `frontend/` to Vercel, pointed at Railway API | 🔜 |
-| Capacitor `webDir` updated to point at Vercel URL (Android app cutover) | 🔜 |
+| Capacitor `server.url` + `webDir` pointed at Railway URL | ✅ |
+| Deploy to separate Vercel CDN | ❌ Won't build — staying on Railway |
 
 ---
 

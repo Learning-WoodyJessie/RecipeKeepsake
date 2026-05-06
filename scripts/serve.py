@@ -38,7 +38,6 @@ from pipeline.persist import run_persist
 from pipeline.models import RecipeData
 from tools.storage import check_rate_limit_db
 
-_WEB_DIR = Path(__file__).parent.parent / "web"
 _FRONTEND_OUT = Path(__file__).parent.parent / "frontend" / "out"
 
 # CORS — allow localhost in dev, Railway URL in prod via ALLOWED_ORIGINS env var
@@ -61,8 +60,7 @@ _LIMITS = {
 
 
 def _user_id(user: dict) -> str:
-    """Extract stable user ID from JWT payload (sub preferred, id fallback)."""
-    return _user_id(user)
+    return user.get("sub") or user.get("id", "")
 
 
 def _check_rate_limit_db_or_raise(user_id: str, endpoint: str, limit: int) -> None:
@@ -187,7 +185,7 @@ async def list_recipes_endpoint(user: dict = Depends(require_auth)):
     if not (os.environ.get("SUPABASE_URL") and os.environ.get("SUPABASE_SERVICE_KEY")):
         return JSONResponse(content={"recipes": []})
     from tools.storage import list_recipes
-    user_id = user.get("id", "")
+    user_id = _user_id(user)
     return JSONResponse(content={"recipes": list_recipes(user_id)})
 
 
@@ -235,7 +233,7 @@ async def capture_endpoint(audio: UploadFile = File(...), user: dict = Depends(r
                 recipe_data,
                 audio_path=tmp_path,
                 audio_filename=audio_filename,
-                user_id=user.get("id", ""),
+                user_id=_user_id(user),
                 recorded_by_email=user.get("email", ""),
                 recorded_by_name=(user.get("user_metadata") or {}).get("full_name", ""),
             )
@@ -358,7 +356,7 @@ async def capture_save_endpoint(
             audio_path=tmp_path,
             audio_filename=audio_filename,
             narrator=narrator,
-            user_id=user.get("id", ""),
+            user_id=_user_id(user),
             recorded_by_email=user.get("email", ""),
             recorded_by_name=(user.get("user_metadata") or {}).get("full_name", ""),
         )
@@ -411,7 +409,7 @@ async def list_people_endpoint(
 
     if creds is not None:
         user = await decode_auth_user(creds)
-        return JSONResponse(content={"people": list_people(user.get("id", ""))})
+        return JSONResponse(content={"people": list_people(_user_id(user))})
 
     accept = request.headers.get("accept", "")
     if request.method == "HEAD" or request.headers.get("sec-fetch-dest") == "document" or "text/html" in accept:
@@ -427,7 +425,7 @@ async def list_people_endpoint(
 async def create_person_endpoint(body: PersonRequest, user: dict = Depends(require_auth)):
     """Create a narrator profile."""
     from tools.storage import create_person
-    user_id = user.get("id", "")
+    user_id = _user_id(user)
     person = create_person(user_id, body.model_dump(exclude_none=True))
     return JSONResponse(content={"person": person})
 
@@ -436,7 +434,7 @@ async def create_person_endpoint(body: PersonRequest, user: dict = Depends(requi
 async def update_person_endpoint(person_id: str, body: PersonRequest, user: dict = Depends(require_auth)):
     """Update a narrator profile (ownership enforced)."""
     from tools.storage import update_person, list_people
-    user_id = user.get("id", "")
+    user_id = _user_id(user)
     people = list_people(user_id)
     if not any(p["id"] == person_id for p in people):
         raise HTTPException(status_code=403, detail="Not your record")
@@ -448,7 +446,7 @@ async def update_person_endpoint(person_id: str, body: PersonRequest, user: dict
 async def delete_person_endpoint(person_id: str, user: dict = Depends(require_auth)):
     """Delete a narrator profile (ownership enforced)."""
     from tools.storage import delete_person, list_people
-    user_id = user.get("id", "")
+    user_id = _user_id(user)
     people = list_people(user_id)
     if not any(p["id"] == person_id for p in people):
         raise HTTPException(status_code=403, detail="Not your record")
@@ -462,7 +460,7 @@ async def delete_person_endpoint(person_id: str, user: dict = Depends(require_au
 async def delete_account_endpoint(user: dict = Depends(require_auth)):
     """Permanently delete all data for the authenticated user."""
     from tools.storage import delete_account
-    user_id = user.get("id", "")
+    user_id = _user_id(user)
     if not user_id:
         raise HTTPException(status_code=400, detail="Cannot identify user")
     delete_account(user_id)
@@ -516,7 +514,7 @@ async def delete_recipe_endpoint(token: str, user: dict = Depends(require_auth))
     except Exception:
         raise HTTPException(status_code=404, detail="Recipe not found")
     # Ownership check — unauthenticated local dev (empty user dict) skips check
-    user_id = user.get("id", "")
+    user_id = _user_id(user)
     if user_id and recipe.get("user_id") and recipe["user_id"] != user_id:
         raise HTTPException(status_code=403, detail="Not your recipe")
     try:
