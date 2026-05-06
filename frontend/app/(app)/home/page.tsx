@@ -113,17 +113,17 @@ function HeroCard({ userName }: { userName: string }) {
           <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap' }}>
             <ActionTile
               href="/capture"
-              icon="🎙️"
+              icon={<MicIcon />}
               label="Record a memory"
               desc="Capture a voice, a story, a moment"
               iconBg="rgba(196, 82, 42, 0.14)"
             />
             <ActionTile
               href="/upload"
-              icon="☁️"
+              icon={<UploadIcon />}
               label="Upload audio"
               desc="Use an existing recording"
-              iconBg="rgba(59, 130, 180, 0.18)"
+              iconBg="rgba(196, 138, 26, 0.13)"
             />
           </div>
         </div>
@@ -132,10 +132,25 @@ function HeroCard({ userName }: { userName: string }) {
   )
 }
 
+const MicIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C4522A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/>
+    <path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/>
+  </svg>
+)
+
+const UploadIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C48A1A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="16 16 12 12 8 16"/>
+    <line x1="12" y1="12" x2="12" y2="21"/>
+    <path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/>
+  </svg>
+)
+
 function ActionTile({
   href, icon, label, desc, iconBg,
 }: {
-  href: string; icon: string; label: string; desc: string; iconBg?: string
+  href: string; icon: React.ReactNode; label: string; desc: string; iconBg?: string
 }) {
   return (
     <Link
@@ -164,7 +179,6 @@ function ActionTile({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontSize: '1.05rem',
           flexShrink: 0,
         }}
       >

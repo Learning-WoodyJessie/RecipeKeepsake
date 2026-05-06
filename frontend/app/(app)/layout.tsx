@@ -46,7 +46,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
         <div style={{ flex: 1, width: '100%', display: 'flex', flexDirection: 'column', minWidth: 0, minHeight: 0, height: '100vh' }}>
           <AppTopBar onMenuClick={() => setSidebarOpen(o => !o)} />
-          <main style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>{children}</main>
+          <main style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', minHeight: 0 }}>{children}</main>
         </div>
       </div>
     </AuthGuard>
