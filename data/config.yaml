@@ -2,7 +2,7 @@ llm:
   provider: openai
   model: gpt-4o              # fallback — used if stage-specific key absent
   translate_model: gpt-4o    # Call A: faithful translation — keep full model
-  structure_model: gpt-4o-mini  # Call B: schema fill — mini is sufficient
+  structure_model: gpt-4o       # Call B: reverted — mini failed vague-placement eval (1/4 cases)
 
 whisper:
   model: gpt-4o-transcribe
