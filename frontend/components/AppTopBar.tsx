@@ -42,7 +42,7 @@ export default function AppTopBar({ onMenuClick }: { onMenuClick?: () => void })
         display: 'flex',
         alignItems: 'center',
         gap: '1rem',
-        padding: '0.85rem 1.25rem',
+        padding: '0.85rem 1.75rem',
         background: 'var(--surface)',
         borderBottom: '1px solid var(--border)',
       }}
