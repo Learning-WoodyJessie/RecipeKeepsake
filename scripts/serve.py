@@ -171,7 +171,15 @@ _NO_CACHE_HEADERS = {
 
 @app.get("/health")
 async def health():
-    return {"status": "ok", "db": "ok", "version": "1"}
+    from tools.storage import _client
+    try:
+        _client().table("recipes").select("id").limit(1).execute()
+        return {"status": "ok", "db": "ok", "version": "1"}
+    except Exception as e:
+        return JSONResponse(
+            status_code=503,
+            content={"status": "degraded", "db": str(e)},
+        )
 
 
 @app.api_route("/", methods=["GET", "HEAD"])
