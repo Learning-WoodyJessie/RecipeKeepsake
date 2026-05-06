@@ -55,6 +55,24 @@ class TestRunTranscribe:
             run_transcribe("test.m4a")
             mock_prov_cls.assert_called_once()
 
+    def test_uses_translate_model_from_config(self):
+        """run_transcribe() uses translate_model key over generic model when present."""
+        mock_tr = MagicMock()
+        mock_tr.text = "raw"
+
+        with patch("tools.transcribe.OpenAI") as mock_openai, \
+             patch("builtins.open", mock_open(read_data=b"audio")), \
+             patch("pipeline.transcribe.translate_to_english", return_value="eng"), \
+             patch("pipeline.transcribe.load_config", return_value={
+                 "llm": {"model": "gpt-4o", "translate_model": "gpt-4o-mini"}
+             }), \
+             patch("pipeline.transcribe.OpenAIProvider") as mock_prov_cls:
+            mock_openai.return_value.audio.transcriptions.create.return_value = mock_tr
+            mock_prov_cls.return_value = _provider("eng")
+            run_transcribe("test.m4a")
+            call_kwargs = mock_prov_cls.call_args[1]
+        assert call_kwargs["model"] == "gpt-4o-mini"
+
 
 class TestRunTransform:
     def test_returns_recipe_data(self):
@@ -88,3 +106,20 @@ class TestRunTransform:
 
         assert result.transcript_raw == "Telugu raw"
         assert result.transcript_english == "English translation"
+
+    def test_uses_structure_model_from_config(self):
+        """run_transform() uses structure_model key over generic model when present."""
+        transcript = TranscriptResult(raw="r", english="e")
+
+        with patch("pipeline.transform.structure_recipe", return_value={
+                 "dish_name": "X", "ingredients": [], "steps": [],
+                 "cook_notes": "", "review_flags": [],
+             }), \
+             patch("pipeline.transform.load_config", return_value={
+                 "llm": {"model": "gpt-4o", "structure_model": "gpt-4o-mini"}
+             }), \
+             patch("pipeline.transform.OpenAIProvider") as mock_prov_cls:
+            mock_prov_cls.return_value = _provider("")
+            run_transform(transcript)
+            call_kwargs = mock_prov_cls.call_args[1]
+        assert call_kwargs["model"] == "gpt-4o-mini"

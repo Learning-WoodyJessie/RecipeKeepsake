@@ -26,7 +26,8 @@ def run_transform(transcript: TranscriptResult, provider: LLMProvider | None = N
     """
     if provider is None:
         config = load_config()
-        provider = OpenAIProvider(model=config["llm"]["model"])
+        model = config["llm"].get("structure_model", config["llm"]["model"])
+        provider = OpenAIProvider(model=model)
 
     t0 = time.perf_counter()
     structured = structure_recipe(transcript.english, provider)

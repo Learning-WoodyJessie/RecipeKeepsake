@@ -27,7 +27,8 @@ def run_transcribe(audio_path: str, provider: LLMProvider | None = None) -> Tran
     """
     if provider is None:
         config = load_config()
-        provider = OpenAIProvider(model=config["llm"]["model"])
+        model = config["llm"].get("translate_model", config["llm"]["model"])
+        provider = OpenAIProvider(model=model)
 
     t0 = time.perf_counter()
     raw = transcribe_audio(audio_path)
