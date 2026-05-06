@@ -6,7 +6,7 @@ then faithfully translates to English via LLM Call A.
 """
 from __future__ import annotations
 
-from tools.whisper import transcribe_audio
+from tools.transcribe import transcribe_audio
 from tools.config import load_config
 from prompts.translate_audio import translate_to_english
 from prompts.llm import LLMProvider, OpenAIProvider

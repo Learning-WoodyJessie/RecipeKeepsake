@@ -296,7 +296,7 @@ class SavedRecipe:
 ### Stage 1 — Transcribe (`pipeline/transcribe.py`)
 
 ```
-tools/whisper.py → gpt-4o-transcribe (language="te")
+tools/transcribe.py → gpt-4o-transcribe (language="te")
                       initial_prompt: Telugu cooking glossary (tools/glossary.py)
                       → raw: str  (Telugu script + English code-switching)
 
@@ -666,7 +666,7 @@ Capacitor (mobile) uses the system browser for OAuth (`Capacitor.Plugins.Browser
 │  6. rate limit checked (capture, 10/day)                        │
 │  7. audio saved to tempfile                                      │
 │  8. pipeline.transcribe.run_transcribe(audio_path)               │
-│     a. tools/whisper.transcribe_audio()                       │
+│     a. tools/transcribe.transcribe_audio()                       │
 │        → OpenAI gpt-4o-transcribe (language=te, glossary prompt) │
 │        → raw: str (Telugu + English code-switching)              │
 │     b. prompts/translate_audio.translate_to_english(raw, provider)     │
@@ -836,11 +836,11 @@ A developer reading the filenames cannot distinguish these roles.
 
 **Recommendation:** Rename to `prompts/translate_audio.py` and `prompts/translate_fields.py`. Update imports in `pipeline/transcribe.py` and `scripts/serve.py`.
 
-**5. `tools/whisper.py` vs `pipeline/transcribe.py` — same name, different layer**
+**5. `tools/transcribe.py` vs `pipeline/transcribe.py` — same name, different layer**
 
-`tools/whisper.py` is the raw Whisper API call. `pipeline/transcribe.py` is the Stage 1 orchestrator that calls it. The identical names in different packages cause confusion when navigating.
+`tools/transcribe.py` is the raw Whisper API call. `pipeline/transcribe.py` is the Stage 1 orchestrator that calls it. The identical names in different packages cause confusion when navigating.
 
-**Recommendation:** Rename `tools/whisper.py` to `tools/whisper.py`. Update the import in `pipeline/transcribe.py`.
+**Recommendation:** Rename `tools/transcribe.py` to `tools/transcribe.py`. Update the import in `pipeline/transcribe.py`.
 
 **6. `scripts/capture.py` — partial overlap with `/capture` endpoint**
 
@@ -858,5 +858,5 @@ A developer reading the filenames cannot distinguish these roles.
 | Orphaned manifest | `www/manifest.json` | Delete | Low |
 | Unused template assets | `frontend/public/{file,globe,next,vercel,window}.svg`, `chatgpt.png` | Delete | Low |
 | Confusing prompt names | `prompts/translate_audio.py`, `prompts/translate_fields.py` | Rename | Medium |
-| Confusing tool name | `tools/whisper.py` | Rename to `whisper.py` | Medium |
+| Confusing tool name | `tools/transcribe.py` | Rename to `whisper.py` | Medium |
 | CLI script role unclear | `scripts/capture.py` | Add doc comment | Low |

@@ -8,7 +8,7 @@ the /capture and /capture/process + /capture/save endpoints.
 
 Usage: python -m scripts.capture <audio_path> <audio_url>
 """
-from tools.whisper import transcribe_audio
+from tools.transcribe import transcribe_audio
 from tools.config import load_config
 from prompts.translate_audio import translate_to_english
 from prompts.structure import structure_recipe

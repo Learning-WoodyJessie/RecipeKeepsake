@@ -17,7 +17,7 @@ class TestRunTranscribe:
         mock_tr.text = "ఇది ఒక రెసిపీ"
         p = _provider("This is a recipe")
 
-        with patch("tools.whisper.OpenAI") as mock_openai, \
+        with patch("tools.transcribe.OpenAI") as mock_openai, \
              patch("builtins.open", mock_open(read_data=b"audio")):
             mock_openai.return_value.audio.transcriptions.create.return_value = mock_tr
             with patch("pipeline.transcribe.translate_to_english", return_value="This is a recipe"):
@@ -32,7 +32,7 @@ class TestRunTranscribe:
         mock_tr = MagicMock()
         mock_tr.text = "raw"
 
-        with patch("tools.whisper.OpenAI") as mock_openai, \
+        with patch("tools.transcribe.OpenAI") as mock_openai, \
              patch("builtins.open", mock_open(read_data=b"audio")):
             mock_openai.return_value.audio.transcriptions.create.return_value = mock_tr
             with patch("pipeline.transcribe.translate_to_english", return_value="eng") as mock_translate:
@@ -45,7 +45,7 @@ class TestRunTranscribe:
         mock_tr = MagicMock()
         mock_tr.text = "raw"
 
-        with patch("tools.whisper.OpenAI") as mock_openai, \
+        with patch("tools.transcribe.OpenAI") as mock_openai, \
              patch("builtins.open", mock_open(read_data=b"audio")), \
              patch("pipeline.transcribe.translate_to_english", return_value="eng"), \
              patch("pipeline.transcribe.load_config", return_value={"llm": {"model": "gpt-4o"}}), \
