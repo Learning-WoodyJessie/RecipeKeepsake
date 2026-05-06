@@ -116,12 +116,14 @@ function HeroCard({ userName }: { userName: string }) {
               icon="🎙️"
               label="Record a memory"
               desc="Capture a voice, a story, a moment"
+              iconBg="rgba(196, 82, 42, 0.14)"
             />
             <ActionTile
               href="/upload"
               icon="☁️"
               label="Upload audio"
               desc="Use an existing recording"
+              iconBg="rgba(59, 130, 180, 0.18)"
             />
           </div>
         </div>
@@ -130,7 +132,11 @@ function HeroCard({ userName }: { userName: string }) {
   )
 }
 
-function ActionTile({ href, icon, label, desc }: { href: string; icon: string; label: string; desc: string }) {
+function ActionTile({
+  href, icon, label, desc, iconBg,
+}: {
+  href: string; icon: string; label: string; desc: string; iconBg?: string
+}) {
   return (
     <Link
       href={href}
@@ -154,7 +160,7 @@ function ActionTile({ href, icon, label, desc }: { href: string; icon: string; l
           width: 36,
           height: 36,
           borderRadius: '50%',
-          background: 'var(--accent-light)',
+          background: iconBg ?? 'var(--accent-light)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -534,7 +540,7 @@ export default function HomePage() {
   }
 
   return (
-    <div style={{ padding: '1.25rem 1.5rem 2.75rem' }}>
+    <div style={{ padding: '1.5rem 1.75rem 2.5rem' }}>
       <style>{`
         .rk-home-cols {
           display: grid;
@@ -542,6 +548,9 @@ export default function HomePage() {
           gap: 1.25rem;
           max-width: 1200px;
           margin: 0 auto;
+        }
+        @media (max-width: 600px) {
+          .rk-home-cols { padding: 0; }
         }
         @media (min-width: 860px) {
           .rk-home-cols { grid-template-columns: 1fr 272px; align-items: start; }

@@ -4,6 +4,15 @@ Use this as a single checklist from first Xcode run through App Store submission
 
 ---
 
+## 5. Review risks to schedule (not blocking local testing)
+
+These matter for **App Store review / listing quality**, not for **Simulator or device smoke tests** (Phases B–C). Schedule decisions and work before first **TestFlight or review submission** (Phases F–G and metadata).
+
+- [ ] **Sign in with Apple vs Google-only ([Guideline 4.8](https://developer.apple.com/app-store/review/guidelines/#sign-in-with-apple))** — Re-read Apple’s **current** text (it changes). Decide whether **Google-only via Supabase** needs **Sign in with Apple** or an allowed exception; if engineering is required, plan it before relying on first-pass approval. Tracked in detail: **P4**, **F1**, `docs/app-store-privacy-and-support.md` §4.
+- [ ] **Icons / splash after display-name or brand change** — Regenerate native assets (**`npx @capacitor/assets generate`** from source artwork, then **`npx cap sync ios`** from repo root so `ios/` picks up `frontend/out` and native resources). Sanity-check icon and launch screen in Xcode on a device before archive. Related: **P9**, **G1–G2**, **A4**.
+
+---
+
 ## Phase P — Parallel (no Xcode required) — compliance & store prep
 
 Do these while Xcode installs or on any machine.
@@ -34,9 +43,11 @@ Do these while Xcode installs or on any machine.
 
 ## Phase B — Xcode + Simulator (no paid Apple Developer Program required)
 
+**Xcode-first quick path (testing):** (1) Complete **Phase A** so `frontend/out` exists and `npx cap sync ios` has run. (2) Open **`ios/App/App.xcodeproj`**. (3) **Xcode → Settings → Accounts** — add your Apple ID (free is fine). (4) Select the **App** scheme, pick an **iPhone Simulator** (e.g. iPhone 16). (5) **Signing & Capabilities** on the App target — **Automatically manage signing**, Team = *Personal Team*. (6) **Product → Run** (⌘R). The WebView loads **`server.url`** from `capacitor.config.json` (your Railway host) unless you change it — ensure that URL is reachable and Supabase redirect URLs allow it for OAuth.
+
 - [ ] **B1.** Install **Xcode** from the Mac App Store; open once to finish installing components.
 - [ ] **B2.** Sign in to Xcode with a **free Apple ID** (Settings → Accounts).
-- [ ] **B3.** Open `ios/App/App.xcworkspace` (or `.xcodeproj` if that is what your tree uses — prefer **workspace** if CocoaPods present).
+- [ ] **B3.** Open **`ios/App/App.xcodeproj`** in Xcode (this repo uses the Xcode project directly; there is no separate CocoaPods workspace).
 - [ ] **B4.** Select a **Simulator** destination (e.g. iPhone 16 Pro).
 - [ ] **B5.** **Signing:** for Simulator-only runs, Personal Team is usually enough; resolve any signing warnings Xcode shows.
 - [ ] **B6.** **Product → Run** (⌘R): app launches; **landing / auth** WebView loads your `server.url` or bundled assets as configured.

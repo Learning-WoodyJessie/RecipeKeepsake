@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { EchoesLogoMark } from '@/components/EchoesLogoMark'
 import { useEffect, useState } from 'react'
 
 function pathMatches(path: string, href: string) {
@@ -169,32 +170,7 @@ export default function Sidebar({ isOpen = false, onClose }: { isOpen?: boolean;
           </button>
         )}
         <style>{`@media (max-width: 699px) { .rk-sidebar-close { display: block !important; } }`}</style>
-        {/* Waveform + heart circle logo */}
-        <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-          {/* Outer thick ring */}
-          <circle cx="40" cy="40" r="37" stroke="#C4522A" strokeWidth="3.5"/>
-          {/* Inner thin ring */}
-          <circle cx="40" cy="40" r="31" stroke="#D4895A" strokeWidth="1"/>
-          {/* Waveform bars — symmetric, centre = x40 */}
-          {/* Left side bars */}
-          <rect x="10" y="37" width="2.5" height="6"  rx="1.25" fill="#C4522A"/>
-          <rect x="14" y="34" width="2.5" height="12" rx="1.25" fill="#C4522A"/>
-          <rect x="18" y="30" width="2.5" height="20" rx="1.25" fill="#C4522A"/>
-          <rect x="22" y="33" width="2.5" height="14" rx="1.25" fill="#C4522A"/>
-          <rect x="26" y="27" width="2.5" height="26" rx="1.25" fill="#C4522A"/>
-          <rect x="30" y="31" width="2.5" height="18" rx="1.25" fill="#C4522A"/>
-          <rect x="34" y="35" width="2.5" height="10" rx="1.25" fill="#C4522A"/>
-          {/* Heart in centre */}
-          <path d="M40 45 C40 45 33 39 33 35 C33 32.2 35.7 30 38 31.5 C39 32.1 40 33.2 40 33.2 C40 33.2 41 32.1 42 31.5 C44.3 30 47 32.2 47 35 C47 39 40 45 40 45Z" fill="#C4522A"/>
-          {/* Right side bars (mirror) */}
-          <rect x="43.5" y="35" width="2.5" height="10" rx="1.25" fill="#C4522A"/>
-          <rect x="47.5" y="31" width="2.5" height="18" rx="1.25" fill="#C4522A"/>
-          <rect x="51.5" y="27" width="2.5" height="26" rx="1.25" fill="#C4522A"/>
-          <rect x="55.5" y="33" width="2.5" height="14" rx="1.25" fill="#C4522A"/>
-          <rect x="59.5" y="30" width="2.5" height="20" rx="1.25" fill="#C4522A"/>
-          <rect x="63.5" y="34" width="2.5" height="12" rx="1.25" fill="#C4522A"/>
-          <rect x="67.5" y="37" width="2.5" height="6"  rx="1.25" fill="#C4522A"/>
-        </svg>
+        <EchoesLogoMark size={80} />
 
         {/* Brand name */}
         <p style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '1.1rem', color: 'var(--text)', textAlign: 'center', lineHeight: 1.2, letterSpacing: '0.01em' }}>

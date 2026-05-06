@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { EchoesLogoMark } from '@/components/EchoesLogoMark'
 
 export default function LandingPage() {
   const router = useRouter()
@@ -35,21 +36,11 @@ export default function LandingPage() {
           <div
             aria-hidden
             style={{
-              position: 'relative',
-              width: 48,
-              height: 48,
-              borderRadius: '50%',
-              background: 'var(--surface)',
-              border: '2px solid var(--border)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 4px 20px rgba(196, 82, 42, 0.12)',
               flexShrink: 0,
+              filter: 'drop-shadow(0 4px 12px rgba(196, 82, 42, 0.15))',
             }}
           >
-            <span style={{ fontSize: '1.2rem', lineHeight: 1, marginTop: -4 }}>〰</span>
-            <span style={{ position: 'absolute', bottom: 7, left: '50%', transform: 'translateX(-50%)', fontSize: '0.5rem', color: 'var(--accent)' }}>♥</span>
+            <EchoesLogoMark size={48} />
           </div>
           <div style={{ position: 'relative' }}>
             <p style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.15rem, 2.5vw, 1.45rem)', fontWeight: 700, color: 'var(--text)', letterSpacing: '-0.02em' }}>
