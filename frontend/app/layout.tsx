@@ -4,7 +4,7 @@ import { ErrorBoundary } from '@/components/ErrorBoundary'
 
 export const metadata: Metadata = {
   title: "Echoes of Home",
-  description: "Every family carries a world. Don't let it fade.",
+  description: "Keep your family's stories alive. Record voices, recipes, and memories — all in one private place.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
