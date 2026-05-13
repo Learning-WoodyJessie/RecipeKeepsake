@@ -87,6 +87,7 @@ export default function UploadPage() {
   const [mode, setMode] = useState<'ai' | 'direct'>('ai')
   const [narrator, setNarrator] = useState('')
   const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
   const [draft, setDraft] = useState<any>(null)
   const [processing, setProcessing] = useState(false)
   const [error, setError] = useState('')
@@ -118,6 +119,7 @@ export default function UploadPage() {
     form.append('audio', file)
     form.append('title', title.trim())
     if (narrator) form.append('narrator', narrator)
+    if (description.trim()) form.append('description', description.trim())
     try {
       const result = await api.audio.save(form) as { token: string }
       router.push(`/memory?token=${result.token}`)
@@ -203,34 +205,60 @@ export default function UploadPage() {
           </div>
 
           {mode === 'direct' && (
-            <div style={{ marginBottom: '1.25rem' }}>
-              <div style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--muted)', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>
-                Title *
+            <>
+              <div style={{ marginBottom: '1.25rem' }}>
+                <div style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--muted)', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>
+                  Title *
+                </div>
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="e.g. Ammamma's lullaby, Eid poem…"
+                  style={{
+                    width: '100%',
+                    border: '1px solid var(--border)',
+                    borderRadius: 10,
+                    padding: '0.65rem 0.85rem',
+                    fontSize: '0.9rem',
+                    fontFamily: 'var(--sans)',
+                    background: 'var(--surface)',
+                    color: 'var(--text)',
+                    boxSizing: 'border-box',
+                  }}
+                />
               </div>
-              <input
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="e.g. Ammamma's lullaby, Eid poem…"
-                style={{
-                  width: '100%',
-                  border: '1px solid var(--border)',
-                  borderRadius: 10,
-                  padding: '0.65rem 0.85rem',
-                  fontSize: '0.9rem',
-                  fontFamily: 'var(--sans)',
-                  background: 'var(--surface)',
-                  color: 'var(--text)',
-                  boxSizing: 'border-box',
-                }}
-              />
-            </div>
+
+              <div style={{ marginBottom: '1.25rem' }}>
+                <div style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--muted)', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>
+                  Description
+                </div>
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="A short note about this audio — what it is, why it matters…"
+                  rows={2}
+                  style={{
+                    width: '100%',
+                    border: '1px solid var(--border)',
+                    borderRadius: 10,
+                    padding: '0.65rem 0.85rem',
+                    fontSize: '0.9rem',
+                    fontFamily: 'var(--sans)',
+                    background: 'var(--surface)',
+                    color: 'var(--text)',
+                    resize: 'vertical',
+                    boxSizing: 'border-box',
+                  }}
+                />
+              </div>
+            </>
           )}
 
-          {/* Narrator picker */}
+          {/* Narrator / Author picker */}
           <div style={{ marginBottom: '1.25rem' }}>
             <div style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--muted)', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>
-              Who is narrating?
+              {mode === 'direct' ? 'Author' : 'Who is narrating?'}
             </div>
             <NarratorChip selected={narrator} onSelect={setNarrator} />
           </div>

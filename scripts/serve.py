@@ -596,6 +596,7 @@ async def save_audio_endpoint(
     audio: UploadFile = File(...),
     title: str = File(...),
     narrator: str = File(default=""),
+    description: str = File(default=""),
     user: dict = Depends(require_auth),
 ):
     """
@@ -629,7 +630,7 @@ async def save_audio_endpoint(
             "tags": ["audio"],
             "ingredients": [],
             "steps": [],
-            "cook_notes": "",
+            "cook_notes": description.strip(),
             "transcript_raw": "",
             "transcript_english": "",
         })
