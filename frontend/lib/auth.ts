@@ -1,4 +1,3 @@
-import { Capacitor } from '@capacitor/core'
 import { supabase } from './supabase'
 
 export async function signInWithGoogle(): Promise<void> {
@@ -9,28 +8,10 @@ export async function signInWithGoogle(): Promise<void> {
 }
 
 export async function signInWithApple(): Promise<void> {
-  if (Capacitor.isNativePlatform()) {
-    // Native iOS: show the system sign-in sheet (Face ID / Touch ID)
-    // Dynamic import so the plugin is only loaded on native — avoids SSR issues
-    const { SignInWithApple } = await import('@capacitor-community/apple-sign-in')
-    const nonce = Math.random().toString(36).substring(2, 18)
-    const result = await SignInWithApple.authorize({
-      clientId: 'com.echoesofhome.app',
-      redirectURI: 'https://theechoesofhome.com/auth/callback',
-      scopes: 'email name',
-      nonce,
-    })
-    await supabase.auth.signInWithIdToken({
-      provider: 'apple',
-      token: result.response.identityToken,
-      nonce,
-    })
-  } else {
-    // Web fallback: OAuth redirect — same pattern as Google
-    // Full sign-in requires Supabase Apple provider credentials (Apple Developer account)
-    await supabase.auth.signInWithOAuth({
-      provider: 'apple',
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
-    })
-  }
+  // Use Supabase OAuth redirect for Apple sign-in (works on web and native via browser)
+  // Note: @capacitor-community/apple-sign-in does not yet support Capacitor 8
+  await supabase.auth.signInWithOAuth({
+    provider: 'apple',
+    options: { redirectTo: `${window.location.origin}/auth/callback` },
+  })
 }
