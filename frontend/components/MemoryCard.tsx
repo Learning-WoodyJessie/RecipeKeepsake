@@ -8,7 +8,10 @@ type Memory = {
   narrator: string | null
   recorded_at: string
   image_url: string | null
+  tags?: string[] | null
 }
+
+function isAudio(m: Memory) { return (m.tags ?? []).includes('audio') }
 
 export default function MemoryCard({
   memory,
@@ -19,11 +22,14 @@ export default function MemoryCard({
   variant?: 'default' | 'poster'
 }) {
   const poster = variant === 'poster'
+  const audio = isAudio(memory)
   return (
     <Link href={`/memory?token=${memory.token}`} style={{ textDecoration: 'none' }}>
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden', transition: 'box-shadow 0.15s', cursor: 'pointer' }}>
-        <div style={{ aspectRatio: poster ? '3/4' : '4/3', background: 'var(--cream2)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-          {memory.image_url
+        <div style={{ aspectRatio: poster ? '3/4' : '4/3', background: audio ? 'linear-gradient(135deg, #FAE8D4 0%, #F0C9A0 100%)' : 'var(--cream2)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+          {audio
+            ? <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+            : memory.image_url
             ? <img src={memory.image_url} alt={memory.dish_name ?? ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             : <span style={{ fontSize: '2.5rem' }}>🍽️</span>
           }

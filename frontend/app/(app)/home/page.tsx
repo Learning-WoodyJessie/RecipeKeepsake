@@ -17,7 +17,10 @@ type Memory = {
   narrator: string | null
   recorded_at: string
   image_url: string | null
+  tags: string[] | null
 }
+
+function isAudio(m: Memory) { return (m.tags ?? []).includes('audio') }
 
 function firstName(user: { user_metadata?: Record<string, unknown>; email?: string } | null): string {
   if (!user) return 'friend'
@@ -270,9 +273,20 @@ function FavoritesScroll({
 function FavoriteCard({ memory, isFav, onToggle, narratorPhoto }: { memory: Memory; isFav: boolean; onToggle: () => void; narratorPhoto: string }) {
   return (
     <div style={{ flexShrink: 0, width: 180, borderRadius: 16, overflow: 'hidden', background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: '0 4px 12px rgba(45,27,14,0.06)' }}>
-      <div style={{ position: 'relative', aspectRatio: '1 / 1', background: 'var(--cream2)', overflow: 'hidden' }}>
+      <div style={{ position: 'relative', aspectRatio: '1 / 1', background: isAudio(memory) ? 'linear-gradient(135deg, #FAE8D4 0%, #F0C9A0 100%)' : 'var(--cream2)', overflow: 'hidden' }}>
         <Link href={`/memory?token=${memory.token}`} style={{ display: 'block', height: '100%' }}>
-          {memory.image_url
+          {isAudio(memory)
+            ? <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  {[4,7,11,8,13,9,6,12].map((h, i) => (
+                    <div key={i} style={{ width: 3, height: h * 2.5, borderRadius: 2, background: 'var(--accent)', opacity: 0.65 }} />
+                  ))}
+                </div>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.8 }}>
+                  <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+                </svg>
+              </div>
+            : memory.image_url
             ? <img src={memory.image_url} alt={memory.dish_name ?? ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.5rem' }}>🍽️</div>
           }
@@ -392,7 +406,10 @@ function MemoryRow({
       </div>
       {/* Name + waveform */}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ fontFamily: 'var(--serif)', fontWeight: 600, color: 'var(--text)', fontSize: '0.95rem', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{title}</p>
+        <p style={{ fontFamily: 'var(--serif)', fontWeight: 600, color: 'var(--text)', fontSize: '0.95rem', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+          {isAudio(memory) && <span style={{ fontSize: '0.75rem', color: 'var(--accent)', flexShrink: 0 }}>♪</span>}
+          {title}
+        </p>
         <p style={{ fontSize: '0.72rem', color: 'var(--muted)', marginBottom: 6 }}>{narr} · {fmtDate(memory.recorded_at)}</p>
         <WaveformBars token={memory.token} barCount={22} />
       </div>
