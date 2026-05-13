@@ -145,7 +145,7 @@ export default function LandingPage() {
         <div className="rk-landing-hero">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/hero-banner.jpg"
+            src="/landing-hero.jpg"
             alt=""
             aria-hidden
             style={{
@@ -154,7 +154,7 @@ export default function LandingPage() {
               width: '100%',
               height: '100%',
               objectFit: 'cover',
-              objectPosition: 'center 30%',
+              objectPosition: '30% center',
             }}
           />
           {/* Dark gradient overlay for text legibility */}
@@ -201,7 +201,7 @@ export default function LandingPage() {
           <div className="rk-hero-img-block">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/hero-banner.jpg"
+              src="/landing-hero.jpg"
               alt=""
               aria-hidden
               style={{
@@ -210,7 +210,7 @@ export default function LandingPage() {
                 width: '100%',
                 height: '100%',
                 objectFit: 'cover',
-                objectPosition: 'center 40%',
+                objectPosition: '25% center',
               }}
             />
             <div
