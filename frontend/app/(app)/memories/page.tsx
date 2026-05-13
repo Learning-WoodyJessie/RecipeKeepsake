@@ -466,11 +466,11 @@ export default function MemoriesPage() {
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1.5rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
                 <div style={{ flex: 1, minWidth: 220 }}>
                   <h1 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.8rem, 3.5vw, 2.4rem)', fontWeight: 700, color: 'var(--text)', margin: '0 0 0.55rem', lineHeight: 1.15, display: 'flex', alignItems: 'center', gap: '0.45rem', flexWrap: 'wrap' }}>
-                    Voices from Home <span style={{ color: 'var(--accent)' }}>♪</span>
+                    Tales &amp; Songs <span style={{ color: 'var(--accent)' }}>♪</span>
                   </h1>
                   <p style={{ fontSize: '0.92rem', color: 'var(--muted)', lineHeight: 1.65, maxWidth: 380, marginBottom: '1.2rem' }}>
-                    A father&apos;s song. A childhood story.<br />
-                    A voice from home — saved for the people who love it.
+                    A lullaby. A folktale. A prayer at dusk.<br />
+                    Saved forever for the people who love it.
                   </p>
                   <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap' }}>
                     <Link
@@ -620,7 +620,7 @@ export default function MemoriesPage() {
           </div>
           <div style={{ flex: 1, minWidth: 200 }}>
             <p style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '1.05rem', color: 'var(--text)', marginBottom: '0.3rem' }}>
-              {isAudioMode ? 'Have a song or story to keep?' : 'Have a family recipe to add?'}
+              {isAudioMode ? 'Have a tale or song to preserve?' : 'Have a family recipe to add?'}
             </p>
             <p style={{ fontSize: '0.83rem', color: 'var(--muted)', lineHeight: 1.55 }}>
               {isAudioMode
