@@ -52,7 +52,9 @@ export default function ReviewWizard({ draft, onCancel }: { draft: Draft; onCanc
   if (step === 2) return (
     <div style={{ maxWidth: 520, margin: '0 auto', padding: '1.5rem' }}>
       <h2 style={{ fontFamily: 'var(--serif)', color: 'var(--text)', marginBottom: '1rem' }}>Step 2 — Review ingredients &amp; steps</h2>
-      <div style={{ marginBottom: '1rem' }}>
+
+      {/* Ingredients */}
+      <div style={{ marginBottom: '1.25rem' }}>
         <div style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--muted)', marginBottom: '0.5rem' }}>Ingredients</div>
         {ingredients.map((ing, i) => (
           <div key={i} style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.4rem' }}>
@@ -63,9 +65,29 @@ export default function ReviewWizard({ draft, onCancel }: { draft: Draft; onCanc
         ))}
         <button onClick={() => setIngredients([...ingredients, { item: '', quantity: '' }])} style={{ fontSize: '0.78rem', color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', marginTop: '0.25rem' }}>+ Add ingredient</button>
       </div>
+
+      {/* Steps */}
+      <div style={{ marginBottom: '1rem' }}>
+        <div style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--muted)', marginBottom: '0.5rem' }}>Steps</div>
+        {steps.map((s, i) => (
+          <div key={i} style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.4rem', alignItems: 'flex-start' }}>
+            <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--muted)', paddingTop: '0.45rem', minWidth: 18 }}>{i + 1}.</span>
+            <textarea
+              value={s}
+              rows={2}
+              onChange={e => { const n = [...steps]; n[i] = e.target.value; setSteps(n) }}
+              placeholder={`Step ${i + 1}`}
+              style={{ flex: 1, border: '1px solid var(--border)', borderRadius: 8, padding: '0.4rem 0.6rem', fontSize: '0.82rem', background: 'var(--surface)', resize: 'vertical', fontFamily: 'var(--sans)' }}
+            />
+            <button onClick={() => setSteps(steps.filter((_, j) => j !== i))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)', fontSize: '1rem', paddingTop: '0.3rem' }}>✕</button>
+          </div>
+        ))}
+        <button onClick={() => setSteps([...steps, ''])} style={{ fontSize: '0.78rem', color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', marginTop: '0.25rem' }}>+ Add step</button>
+      </div>
+
       <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.25rem' }}>
         <button onClick={() => setStep(1)} style={{ flex: 1, padding: '0.65rem', borderRadius: 10, border: '1px solid var(--border)', background: 'none', cursor: 'pointer', color: 'var(--text2)' }}>← Back</button>
-        <button onClick={() => setStep(3)} style={{ flex: 2, padding: '0.65rem', borderRadius: 10, background: 'var(--accent)', color: 'white', border: 'none', fontWeight: 600, cursor: 'pointer' }}>Next →</button>
+        <button onClick={() => { setError(''); setStep(3) }} style={{ flex: 2, padding: '0.65rem', borderRadius: 10, background: 'var(--accent)', color: 'white', border: 'none', fontWeight: 600, cursor: 'pointer' }}>Next →</button>
       </div>
     </div>
   )
@@ -78,7 +100,7 @@ export default function ReviewWizard({ draft, onCancel }: { draft: Draft; onCanc
       </p>
       {error && <div style={{ color: 'var(--accent)', fontSize: '0.82rem', marginBottom: '0.75rem' }}>{error}</div>}
       <div style={{ display: 'flex', gap: '0.75rem' }}>
-        <button onClick={() => setStep(2)} style={{ flex: 1, padding: '0.65rem', borderRadius: 10, border: '1px solid var(--border)', background: 'none', cursor: 'pointer', color: 'var(--text2)' }}>← Back</button>
+        <button onClick={() => { setError(''); setStep(2) }} style={{ flex: 1, padding: '0.65rem', borderRadius: 10, border: '1px solid var(--border)', background: 'none', cursor: 'pointer', color: 'var(--text2)' }}>← Back</button>
         <button onClick={save} disabled={saving} style={{ flex: 2, padding: '0.65rem', borderRadius: 10, background: 'var(--accent)', color: 'white', border: 'none', fontWeight: 600, cursor: 'pointer' }}>
           {saving ? 'Saving…' : 'Save forever ✓'}
         </button>
