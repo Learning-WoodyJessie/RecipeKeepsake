@@ -71,6 +71,9 @@ export const api = {
     process: (formData: FormData) => authFetch('/capture/process', { method: 'POST', body: formData }),
     save: (body: object) => authFetch('/capture/save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }),
   },
+  audio: {
+    save: (formData: FormData) => authFetch('/save-audio', { method: 'POST', body: formData }),
+  },
   account: {
     delete: () => authFetch('/account', { method: 'DELETE' }),
   },

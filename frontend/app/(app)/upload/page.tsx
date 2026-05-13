@@ -5,6 +5,7 @@
 
 import { useCallback, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import NarratorChip from '@/components/NarratorChip'
 import ReviewWizard from '@/components/ReviewWizard'
 import { api } from '@/lib/api'
@@ -82,13 +83,17 @@ function CassetteHero() {
 }
 
 export default function UploadPage() {
+  const router = useRouter()
+  const [mode, setMode] = useState<'ai' | 'direct'>('ai')
   const [narrator, setNarrator] = useState('')
+  const [title, setTitle] = useState('')
   const [draft, setDraft] = useState<any>(null)
   const [processing, setProcessing] = useState(false)
   const [error, setError] = useState('')
   const [dragOver, setDragOver] = useState(false)
 
-  async function handleFile(file: File) {
+  // AI pipeline mode
+  async function handleFileAI(file: File) {
     setProcessing(true)
     setError('')
     const form = new FormData()
@@ -104,12 +109,36 @@ export default function UploadPage() {
     }
   }
 
+  // Direct save mode
+  async function handleFileDirect(file: File) {
+    if (!title.trim()) { setError('Please enter a title first.'); return }
+    setProcessing(true)
+    setError('')
+    const form = new FormData()
+    form.append('audio', file)
+    form.append('title', title.trim())
+    if (narrator) form.append('narrator', narrator)
+    try {
+      const result = await api.audio.save(form) as { token: string }
+      router.push(`/memory?token=${result.token}`)
+    } catch (e: unknown) {
+      setError((e as Error).message)
+    } finally {
+      setProcessing(false)
+    }
+  }
+
+  function handleFile(file: File) {
+    if (mode === 'direct') return handleFileDirect(file)
+    return handleFileAI(file)
+  }
+
   const onDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     setDragOver(false)
     const file = e.dataTransfer.files?.[0]
     if (file) handleFile(file)
-  }, [narrator])
+  }, [narrator, title, mode])
 
   if (draft) return <ReviewWizard draft={draft} onCancel={() => setDraft(null)} />
 
@@ -146,6 +175,58 @@ export default function UploadPage() {
             </p>
           </div>
 
+          {/* Mode tabs */}
+          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', background: 'var(--cream2)', borderRadius: 12, padding: '0.3rem' }}>
+            {(['ai', 'direct'] as const).map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => { setMode(m); setError('') }}
+                style={{
+                  flex: 1,
+                  padding: '0.6rem 1rem',
+                  borderRadius: 10,
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontFamily: 'var(--sans)',
+                  fontWeight: 600,
+                  fontSize: '0.85rem',
+                  background: mode === m ? 'var(--surface)' : 'transparent',
+                  color: mode === m ? 'var(--accent)' : 'var(--muted)',
+                  boxShadow: mode === m ? '0 2px 8px rgba(45,27,14,0.08)' : 'none',
+                  transition: 'all 0.15s',
+                }}
+              >
+                {m === 'ai' ? '✨ Process with AI' : '💾 Save directly'}
+              </button>
+            ))}
+          </div>
+
+          {mode === 'direct' && (
+            <div style={{ marginBottom: '1.25rem' }}>
+              <div style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--muted)', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>
+                Title *
+              </div>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="e.g. Ammamma's lullaby, Eid poem…"
+                style={{
+                  width: '100%',
+                  border: '1px solid var(--border)',
+                  borderRadius: 10,
+                  padding: '0.65rem 0.85rem',
+                  fontSize: '0.9rem',
+                  fontFamily: 'var(--sans)',
+                  background: 'var(--surface)',
+                  color: 'var(--text)',
+                  boxSizing: 'border-box',
+                }}
+              />
+            </div>
+          )}
+
           {/* Narrator picker */}
           <div style={{ marginBottom: '1.25rem' }}>
             <div style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--muted)', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>
@@ -180,12 +261,15 @@ export default function UploadPage() {
             />
             {processing ? (
               <div>
-                <p style={{ fontSize: '1.1rem', color: 'var(--text2)', marginBottom: '0.5rem' }}>⏳ Processing…</p>
-                <p style={{ fontSize: '0.82rem', color: 'var(--muted)' }}>Transcribing, translating, and structuring — about 30–60 seconds</p>
+                <p style={{ fontSize: '1.1rem', color: 'var(--text2)', marginBottom: '0.5rem' }}>
+                  {mode === 'direct' ? '⏳ Saving…' : '⏳ Processing…'}
+                </p>
+                <p style={{ fontSize: '0.82rem', color: 'var(--muted)' }}>
+                  {mode === 'direct' ? 'Uploading your audio — just a moment' : 'Transcribing, translating, and structuring — about 30–60 seconds'}
+                </p>
               </div>
             ) : (
               <>
-                {/* Cloud upload icon */}
                 <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'var(--accent-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem', color: 'var(--accent)' }}>
                   <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/>
@@ -199,7 +283,7 @@ export default function UploadPage() {
                   or click anywhere to upload
                 </p>
                 <p style={{ fontSize: '0.78rem', color: 'var(--accent)', fontWeight: 500 }}>
-                  ✦ Best results with clear voice recordings
+                  {mode === 'direct' ? '💾 Saved instantly — no AI processing' : '✦ Best results with clear voice recordings'}
                 </p>
               </>
             )}

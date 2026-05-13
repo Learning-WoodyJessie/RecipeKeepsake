@@ -589,6 +589,65 @@ async def capture_save_endpoint(
             pass
 
 
+# ── Direct audio save (no pipeline) ──────────────────────────────────────────
+
+@app.post("/save-audio")
+async def save_audio_endpoint(
+    audio: UploadFile = File(...),
+    title: str = File(...),
+    narrator: str = File(default=""),
+    user: dict = Depends(require_auth),
+):
+    """
+    Save an audio file directly — no transcription or LLM pipeline.
+    Use for AI-generated audio (e.g. Suno) or any recording the user
+    wants to store and share without processing.
+    """
+    if not os.environ.get("SUPABASE_URL") or not os.environ.get("SUPABASE_SERVICE_KEY"):
+        raise HTTPException(status_code=500, detail="Supabase not configured")
+
+    data = await audio.read()
+    _validate_audio_upload(audio, data)
+
+    suffix = Path(audio.filename or "").suffix.lower() or ".mp3"
+    with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
+        tmp.write(data)
+        tmp_path = tmp.name
+
+    try:
+        from tools.storage import upload_audio, insert_recipe, _sign_audio, _client as _sb
+        audio_filename = f"{uuid.uuid4()}{suffix}"
+        upload_audio(tmp_path, audio_filename)
+
+        row = insert_recipe({
+            "dish_name": title.strip() or "Untitled",
+            "narrator": narrator.strip() or None,
+            "user_id": _user_id(user),
+            "recorded_by_email": user.get("email", ""),
+            "recorded_by_name": (user.get("user_metadata") or {}).get("full_name", ""),
+            "audio_url": audio_filename,
+            "tags": ["audio"],
+            "ingredients": [],
+            "steps": [],
+            "cook_notes": "",
+            "transcript_raw": "",
+            "transcript_english": "",
+        })
+
+        audio_url = _sign_audio(row.get("audio_url", ""), _sb())
+        _logger.info(f"event=save_audio_done id={row.get('id')}")
+        return JSONResponse(content={"token": row["token"], "audio_url": audio_url})
+
+    except Exception as e:
+        _logger.error(f"event=save_audio_failed error={type(e).__name__} msg={e}")
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        try:
+            os.unlink(tmp_path)
+        except Exception:
+            pass
+
+
 # ── People endpoints ─────────────────────────────────────────────────────────
 
 class PersonRequest(BaseModel):
