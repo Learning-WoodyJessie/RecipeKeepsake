@@ -49,6 +49,12 @@
 	<true/>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Echoes of Home needs microphone access to record family memories.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Echoes of Home uses your camera to capture photos of family members and recipes.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Echoes of Home accesses your photo library to add photos of family members and recipes.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Echoes of Home saves photos to your library.</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
