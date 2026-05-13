@@ -24,7 +24,13 @@ async function authFetch(path: string, options: RequestInit = {}) {
     const requestId = res.headers.get('x-request-id')
     const err = await res.json().catch(() => ({ detail: 'Request failed' }))
     const suffix = requestId ? ` [req:${requestId}]` : ''
-    throw new Error(`${err.detail ?? 'Request failed'}${suffix}`)
+    const detail = err.detail
+    const message = typeof detail === 'string'
+      ? detail
+      : Array.isArray(detail)
+        ? detail.map((d: { msg?: string }) => d.msg ?? JSON.stringify(d)).join(', ')
+        : 'Request failed'
+    throw new Error(`${message}${suffix}`)
   }
   return res.json()
 }
