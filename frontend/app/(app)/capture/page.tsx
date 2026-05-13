@@ -4,8 +4,9 @@
 
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import NarratorChip from '@/components/NarratorChip'
 import ReviewWizard from '@/components/ReviewWizard'
 import { api } from '@/lib/api'
@@ -78,8 +79,12 @@ function WaveformDecoration() {
 }
 
 export default function CapturePage() {
+  const router = useRouter()
+  const [mode, setMode] = useState<'ai' | 'direct'>('ai')
   const [stage, setStage] = useState<Stage>('idle')
   const [narrator, setNarrator] = useState('')
+  const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
   const [duration, setDuration] = useState(0)
   const [draft, setDraft] = useState<any>(null)
   const [error, setError] = useState('')
@@ -90,13 +95,20 @@ export default function CapturePage() {
   const fmt = (s: number) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`
 
   async function startRecording() {
+    if (mode === 'direct' && !title.trim()) { setError('Please enter a title before recording.'); return }
+    setError('')
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true }).catch(() => null)
     if (!stream) { setError('Microphone access denied'); setStage('error'); return }
     const mr = new MediaRecorder(stream, { mimeType: 'audio/webm' })
     mrRef.current = mr
     chunksRef.current = []
     mr.ondataavailable = e => { if (e.data.size > 0) chunksRef.current.push(e.data) }
-    mr.onstop = () => { stream.getTracks().forEach(t => t.stop()); processAudio(new Blob(chunksRef.current, { type: 'audio/webm' })) }
+    mr.onstop = () => {
+      stream.getTracks().forEach(t => t.stop())
+      const blob = new Blob(chunksRef.current, { type: 'audio/webm' })
+      if (mode === 'direct') saveAudioDirect(blob)
+      else processAudio(blob)
+    }
     mr.start()
     setStage('recording')
     setDuration(0)
@@ -117,6 +129,18 @@ export default function CapturePage() {
       const result = await api.capture.process(form)
       setDraft(result)
       setStage('review')
+    } catch (e: unknown) { setError((e as Error).message); setStage('error') }
+  }
+
+  async function saveAudioDirect(blob: Blob) {
+    const form = new FormData()
+    form.append('audio', blob, 'recording.webm')
+    form.append('title', title.trim())
+    if (narrator) form.append('narrator', narrator)
+    if (description.trim()) form.append('description', description.trim())
+    try {
+      const result = await api.audio.save(form) as { token: string }
+      router.push(`/memory?token=${result.token}`)
     } catch (e: unknown) { setError((e as Error).message); setStage('error') }
   }
 
@@ -143,17 +167,18 @@ export default function CapturePage() {
         {/* ── Main ── */}
         <div>
           {/* Hero header */}
-          <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
+          <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
             <p style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--accent)', marginBottom: '0.65rem' }}>
               Capture a Memory
             </p>
             <h1 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.5rem, 3.5vw, 2rem)', fontWeight: 700, color: 'var(--text)', marginBottom: '0.5rem', lineHeight: 1.2 }}>
-              What is {narratorLabel} making today? <span style={{ color: 'var(--accent)' }}>♡</span>
+              {mode === 'direct'
+                ? <>What will {narratorLabel} share today? <span style={{ color: 'var(--accent)' }}>♪</span></>
+                : <>What is {narratorLabel} making today? <span style={{ color: 'var(--accent)' }}>♡</span></>}
             </h1>
             <p style={{ fontSize: '0.88rem', color: 'var(--muted)', marginBottom: '1rem' }}>
-              Just let her talk. We&apos;ll take care of the rest.
+              {mode === 'direct' ? 'Just press record. We’ll keep it safe forever.' : 'Just let her talk. We’ll take care of the rest.'}
             </p>
-            {/* Decorative divider with heart */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.65rem' }}>
               <div style={{ height: 1, width: 80, background: 'var(--border)' }} />
               <span style={{ color: 'var(--accent)', fontSize: '0.85rem', opacity: 0.6 }}>♥</span>
@@ -161,11 +186,91 @@ export default function CapturePage() {
             </div>
           </div>
 
-          {/* Narrator chips */}
+          {/* Mode tabs */}
+          {stage === 'idle' && (
+            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.35rem', background: 'var(--cream2)', borderRadius: 12, padding: '0.3rem' }}>
+              {(['ai', 'direct'] as const).map((m) => (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => { setMode(m); setError('') }}
+                  style={{
+                    flex: 1,
+                    padding: '0.6rem 1rem',
+                    borderRadius: 10,
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontFamily: 'var(--sans)',
+                    fontWeight: 600,
+                    fontSize: '0.85rem',
+                    background: mode === m ? 'var(--surface)' : 'transparent',
+                    color: mode === m ? 'var(--accent)' : 'var(--muted)',
+                    boxShadow: mode === m ? '0 2px 8px rgba(45,27,14,0.08)' : 'none',
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  {m === 'ai' ? '🎙 A recipe narration' : '🎵 A song or poem'}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Title + description for direct mode */}
+          {mode === 'direct' && stage === 'idle' && (
+            <>
+              <div style={{ marginBottom: '1rem' }}>
+                <div style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--muted)', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>
+                  Title *
+                </div>
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="e.g. Appa's evening ghazal, Nani's lullaby…"
+                  style={{
+                    width: '100%',
+                    border: '1px solid var(--border)',
+                    borderRadius: 10,
+                    padding: '0.65rem 0.85rem',
+                    fontSize: '0.9rem',
+                    fontFamily: 'var(--sans)',
+                    background: 'var(--surface)',
+                    color: 'var(--text)',
+                    boxSizing: 'border-box',
+                  }}
+                />
+              </div>
+              <div style={{ marginBottom: '1rem' }}>
+                <div style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--muted)', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>
+                  Description
+                </div>
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="What is this — a poem, a song, a prayer? Why does it matter?"
+                  rows={2}
+                  style={{
+                    width: '100%',
+                    border: '1px solid var(--border)',
+                    borderRadius: 10,
+                    padding: '0.65rem 0.85rem',
+                    fontSize: '0.9rem',
+                    fontFamily: 'var(--sans)',
+                    background: 'var(--surface)',
+                    color: 'var(--text)',
+                    resize: 'vertical',
+                    boxSizing: 'border-box',
+                  }}
+                />
+              </div>
+            </>
+          )}
+
+          {/* Narrator / Author chips */}
           {stage !== 'review' && (
             <div style={{ marginBottom: '1.35rem' }}>
               <p style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: '0.6rem' }}>
-                Who is narrating?
+                {mode === 'direct' ? 'Who is performing?' : 'Who is narrating?'}
               </p>
               <NarratorChip selected={narrator} onSelect={setNarrator} />
             </div>
@@ -234,8 +339,12 @@ export default function CapturePage() {
 
             {stage === 'processing' && (
               <div style={{ padding: '1rem 0' }}>
-                <p style={{ fontSize: '1.1rem', color: 'var(--text2)', marginBottom: '0.5rem' }}>⏳ Processing…</p>
-                <p style={{ fontSize: '0.82rem', color: 'var(--muted)' }}>Transcribing, translating, and structuring — about 30–60 seconds</p>
+                <p style={{ fontSize: '1.1rem', color: 'var(--text2)', marginBottom: '0.5rem' }}>
+                  {mode === 'direct' ? '♪ Saving your keepsake…' : '✨ Listening carefully…'}
+                </p>
+                <p style={{ fontSize: '0.82rem', color: 'var(--muted)' }}>
+                  {mode === 'direct' ? 'Your recording is being preserved — just a moment' : 'Transcribing, translating, and structuring — about 30–60 seconds'}
+                </p>
               </div>
             )}
 
