@@ -1,10 +1,9 @@
-// This file defines the Memory Detail page in the application.
-// Purpose: Displays detailed information about a specific memory, including audio and transcripts.
-// Why: Allows users to review and interact with individual memories in depth.
-// How: Fetches memory details from the API and provides options for translation and editing.
+// Memory Detail page — two distinct experiences:
+// Audio memories: inline-editable title + single About field, auto-save on blur.
+// Recipe memories: AI-structured content + auto-saving personal notes.
 
 'use client'
-import { useEffect, useState, Suspense } from 'react'
+import { useEffect, useState, useRef, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { api } from '@/lib/api'
 import AudioPlayer from '@/components/AudioPlayer'
@@ -34,14 +33,25 @@ function isAudioMemory(m: Memory) {
 
 const CATEGORIES = ['Breakfast', 'Lunch', 'Sweets', 'Pickles', 'Snacks', 'Drinks', 'Other'] as const
 
+// Small "Saved ✓" indicator
+function SavedBadge({ show }: { show: boolean }) {
+  return (
+    <span style={{
+      fontSize: '0.72rem', fontWeight: 600, color: '#16a34a',
+      opacity: show ? 1 : 0, transition: 'opacity 0.4s', marginLeft: '0.5rem',
+    }}>
+      Saved ✓
+    </span>
+  )
+}
+
 function MemoryDetail() {
   const params = useSearchParams()
   const router = useRouter()
   const token = params.get('token') ?? ''
+
   const [memory, setMemory] = useState<Memory | null>(null)
   const [translated, setTranslated] = useState<Partial<Memory> | null>(null)
-  const [notes, setNotes] = useState('')
-  const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [favorite, setFavorite] = useState(false)
@@ -49,15 +59,52 @@ function MemoryDetail() {
   const [category, setCategory] = useState('')
   const [savingCategory, setSavingCategory] = useState(false)
 
+  // Auto-save state
+  const [savedFlash, setSavedFlash] = useState(false)
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Editable fields
+  const [editingTitle, setEditingTitle] = useState(false)
+  const [titleValue, setTitleValue] = useState('')
+  const [about, setAbout] = useState('')   // audio: merged description field
+  const [notes, setNotes] = useState('')   // recipe: personal notes
+
   useEffect(() => {
     if (!token) { router.replace('/memories'); return }
     api.recipes.get(token).then((m: Memory) => {
       setMemory(m)
-      setNotes(m.user_notes ?? '')
+      setTitleValue(m.dish_name ?? '')
       setFavorite(readFavorites().includes(token))
-      setCategory((m.tags ?? [])[0] ?? '')
+      setCategory((m.tags ?? []).filter(t => t !== 'audio')[0] ?? '')
+      // For audio: About = transcript_english (the description), falls back to user_notes
+      setAbout(m.transcript_english ?? m.user_notes ?? '')
+      // For recipes: notes = user_notes
+      setNotes(m.user_notes ?? '')
     }).catch((e: Error) => setError(e.message)).finally(() => setLoading(false))
   }, [token, router])
+
+  function flash() {
+    setSavedFlash(true)
+    setTimeout(() => setSavedFlash(false), 2000)
+  }
+
+  async function patchField(patch: Record<string, unknown>) {
+    try { await api.recipes.patch(token, patch); flash() }
+    catch (e: unknown) { setError((e as Error).message) }
+  }
+
+  // Debounced auto-save for textarea fields
+  function scheduleAutoSave(patch: Record<string, unknown>) {
+    if (saveTimer.current) clearTimeout(saveTimer.current)
+    saveTimer.current = setTimeout(() => patchField(patch), 1200)
+  }
+
+  function handleTitleBlur() {
+    setEditingTitle(false)
+    if (memory && titleValue !== memory.dish_name) {
+      patchField({ dish_name: titleValue })
+    }
+  }
 
   function toggleFavorite() {
     if (!token) return
@@ -65,17 +112,11 @@ function MemoryDetail() {
     setFavorite(f => !f)
   }
 
-  async function saveNotes() {
-    setSaving(true)
-    try { await api.recipes.patch(token, { user_notes: notes }) }
-    catch (e: unknown) { setError((e as Error).message) }
-    finally { setSaving(false) }
-  }
-
   async function changeCategory(newCategory: string) {
-    setCategory(newCategory)
+    const next = category === newCategory ? '' : newCategory
+    setCategory(next)
     setSavingCategory(true)
-    try { await api.recipes.patch(token, { tags: newCategory ? [newCategory] : [] }) }
+    try { await api.recipes.patch(token, { tags: next ? [next] : [] }) }
     catch (e: unknown) { setError((e as Error).message) }
     finally { setSavingCategory(false) }
   }
@@ -93,26 +134,72 @@ function MemoryDetail() {
   if (error) return <div style={{ padding: '2rem', color: 'var(--accent)' }}>{error}</div>
   if (!memory || !display) return null
 
+  const audio = isAudioMemory(memory)
+
   return (
     <div style={{ maxWidth: 720, margin: '0 auto', padding: '1.5rem 2rem' }}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '1rem' }}>
-        <div>
-          <h1 style={{ fontFamily: 'var(--serif)', fontSize: '1.8rem', color: 'var(--text)' }}>{(display as Memory).dish_name ?? 'Untitled'}</h1>
-          <p style={{ color: 'var(--muted)', fontSize: '0.82rem', marginTop: '0.25rem' }}>
+
+      {/* ── Header ── */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '1rem', gap: '1rem' }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          {/* Inline-editable title for audio; static for recipes */}
+          {audio && editingTitle ? (
+            <input
+              autoFocus
+              value={titleValue}
+              onChange={e => setTitleValue(e.target.value)}
+              onBlur={handleTitleBlur}
+              onKeyDown={e => { if (e.key === 'Enter') handleTitleBlur() }}
+              style={{
+                fontFamily: 'var(--serif)', fontSize: '1.8rem', fontWeight: 700,
+                color: 'var(--text)', border: 'none', borderBottom: '2px solid var(--accent)',
+                background: 'transparent', outline: 'none', width: '100%', padding: '0.1rem 0',
+              }}
+            />
+          ) : (
+            <h1
+              onClick={() => audio && setEditingTitle(true)}
+              style={{
+                fontFamily: 'var(--serif)', fontSize: '1.8rem', color: 'var(--text)',
+                cursor: audio ? 'text' : 'default',
+                borderBottom: audio ? '2px solid transparent' : 'none',
+                display: 'inline-block', marginBottom: 0,
+              }}
+              title={audio ? 'Click to rename' : undefined}
+            >
+              {titleValue || 'Untitled'}
+              {audio && <span style={{ fontSize: '0.75rem', color: 'var(--muted)', marginLeft: '0.4rem', fontFamily: 'var(--sans)', fontWeight: 400 }}>✎</span>}
+            </h1>
+          )}
+          <p style={{ color: 'var(--muted)', fontSize: '0.82rem', marginTop: '0.3rem' }}>
             {memory.narrator} · {new Date(memory.recorded_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
           </p>
         </div>
-        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.25rem', flexWrap: 'wrap' }}>
-          <button onClick={toggleFavorite} title={favorite ? 'Remove from favourites' : 'Add to favourites'} style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 8, padding: '0.4rem 0.7rem', cursor: 'pointer', fontSize: '1rem' }}>
-            {favorite ? '★' : '☆'}
+
+        {/* Action buttons */}
+        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.25rem', flexWrap: 'wrap', flexShrink: 0 }}>
+          {/* Favourite — heart with label */}
+          <button
+            onClick={toggleFavorite}
+            style={{
+              background: favorite ? 'var(--accent-light)' : 'none',
+              border: '1px solid var(--border)',
+              borderRadius: 8, padding: '0.4rem 0.7rem', cursor: 'pointer',
+              fontSize: '0.82rem', fontWeight: 600, color: favorite ? 'var(--accent)' : 'var(--muted)',
+              display: 'flex', alignItems: 'center', gap: '0.3rem',
+            }}
+          >
+            {favorite ? '♥' : '♡'} {favorite ? 'Saved' : 'Save'}
           </button>
+
+          {/* WhatsApp share */}
           <button
             onClick={() => {
               const shareUrl = `${window.location.origin}/memory?token=${token}`
-              const waUrl = `https://wa.me/?text=${encodeURIComponent(`🎵 Listen to "${memory?.dish_name ?? 'this memory'}" on Echoes of Home:\n${shareUrl}`)}`
+              const emoji = audio ? '🎵' : '🍽️'
+              const waUrl = `https://wa.me/?text=${encodeURIComponent(`${emoji} "${memory?.dish_name ?? 'this memory'}" on Echoes of Home:\n${shareUrl}`)}`
               window.open(waUrl, '_blank')
             }}
-            title="Share on WhatsApp"
             style={{ background: '#25D366', border: 'none', borderRadius: 8, padding: '0.4rem 0.75rem', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600, color: 'white', display: 'flex', alignItems: 'center', gap: '0.35rem' }}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="white" aria-hidden="true">
@@ -120,133 +207,191 @@ function MemoryDetail() {
             </svg>
             Share
           </button>
+
+          {/* Delete */}
           <button onClick={deleteMemory} disabled={deleting} style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 8, padding: '0.4rem 0.7rem', cursor: 'pointer', fontSize: '0.85rem', color: 'var(--accent)' }}>
             {deleting ? '…' : '🗑'}
           </button>
         </div>
       </div>
 
-      {!isAudioMemory(memory) && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--muted)', flexShrink: 0 }}>Category</span>
-          <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
-            {CATEGORIES.map(cat => (
-              <button
-                key={cat}
-                onClick={() => changeCategory(category === cat ? '' : cat)}
-                disabled={savingCategory}
-                style={{
-                  padding: '0.25rem 0.7rem',
-                  borderRadius: 999,
-                  border: '1px solid',
-                  borderColor: category === cat ? 'var(--accent)' : 'var(--border)',
-                  background: category === cat ? 'var(--accent)' : 'transparent',
-                  color: category === cat ? 'white' : 'var(--muted)',
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                  cursor: savingCategory ? 'default' : 'pointer',
-                  opacity: savingCategory ? 0.6 : 1,
-                  transition: 'all 0.15s',
-                }}
-              >
-                {cat}
-              </button>
-            ))}
+      {/* ══════════════════════════════════════════
+          AUDIO MEMORY LAYOUT
+      ══════════════════════════════════════════ */}
+      {audio && (
+        <>
+          {/* Player */}
+          {memory.audio_url && (
+            <section style={{ marginBottom: '1.5rem' }}>
+              <AudioPlayer src={memory.audio_url} />
+            </section>
+          )}
+
+          {/* Single "About" field — merges description + notes */}
+          <section style={{ marginBottom: '1.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.6rem' }}>
+              <h2 style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--muted)', margin: 0 }}>
+                About this recording
+              </h2>
+              <SavedBadge show={savedFlash} />
+            </div>
+            <textarea
+              value={about}
+              onChange={e => {
+                setAbout(e.target.value)
+                scheduleAutoSave({ transcript_english: e.target.value, user_notes: e.target.value })
+              }}
+              onBlur={() => patchField({ transcript_english: about, user_notes: about })}
+              placeholder="What is this — a song, a poem, a prayer? Why does it matter to your family?"
+              rows={4}
+              style={{
+                width: '100%', border: '1px solid var(--border)', borderRadius: 10,
+                padding: '0.75rem', fontSize: '0.88rem', fontFamily: 'var(--sans)',
+                color: 'var(--text)', background: 'var(--surface)', resize: 'vertical',
+                lineHeight: 1.6, boxSizing: 'border-box',
+              }}
+            />
+            <p style={{ fontSize: '0.72rem', color: 'var(--muted)', marginTop: '0.35rem' }}>
+              Saves automatically when you stop typing.
+            </p>
+          </section>
+        </>
+      )}
+
+      {/* ══════════════════════════════════════════
+          RECIPE MEMORY LAYOUT
+      ══════════════════════════════════════════ */}
+      {!audio && (
+        <>
+          {/* Category pills */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--muted)', flexShrink: 0 }}>Category</span>
+            <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+              {CATEGORIES.map(cat => (
+                <button
+                  key={cat}
+                  onClick={() => changeCategory(cat)}
+                  disabled={savingCategory}
+                  style={{
+                    padding: '0.25rem 0.7rem', borderRadius: 999, border: '1px solid',
+                    borderColor: category === cat ? 'var(--accent)' : 'var(--border)',
+                    background: category === cat ? 'var(--accent)' : 'transparent',
+                    color: category === cat ? 'white' : 'var(--muted)',
+                    fontSize: '0.75rem', fontWeight: 600,
+                    cursor: savingCategory ? 'default' : 'pointer',
+                    opacity: savingCategory ? 0.6 : 1, transition: 'all 0.15s',
+                  }}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
 
-      {!isAudioMemory(memory) && (
-        <div style={{ marginBottom: '1.25rem' }}>
-          <LanguageSwitcher token={token} onTranslated={setTranslated} />
-        </div>
-      )}
+          {/* Language switcher */}
+          <div style={{ marginBottom: '1.25rem' }}>
+            <LanguageSwitcher token={token} onTranslated={setTranslated} />
+          </div>
 
-      {memory.image_url && (
-        <div style={{ borderRadius: 14, overflow: 'hidden', marginBottom: '1.25rem', aspectRatio: '16/9', background: 'var(--cream2)' }}>
-          <img src={memory.image_url} alt={(display as Memory).dish_name ?? ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-        </div>
-      )}
+          {/* Food image */}
+          {memory.image_url && (
+            <div style={{ borderRadius: 14, overflow: 'hidden', marginBottom: '1.25rem', aspectRatio: '16/9', background: 'var(--cream2)' }}>
+              <img src={memory.image_url} alt={(display as Memory).dish_name ?? ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            </div>
+          )}
 
-      {(display as Memory).cook_notes && (
-        <div style={{ background: 'var(--accent-light)', border: '1px solid var(--border2)', borderLeft: '3px solid var(--accent)', borderRadius: 10, padding: '0.85rem 1rem', marginBottom: '1.25rem', fontStyle: 'italic', color: 'var(--text2)', fontSize: '0.88rem', lineHeight: 1.6 }}>
-          {(display as Memory).cook_notes}
-        </div>
-      )}
+          {/* Cook notes */}
+          {(display as Memory).cook_notes && (
+            <div style={{ background: 'var(--accent-light)', border: '1px solid var(--border2)', borderLeft: '3px solid var(--accent)', borderRadius: 10, padding: '0.85rem 1rem', marginBottom: '1.25rem', fontStyle: 'italic', color: 'var(--text2)', fontSize: '0.88rem', lineHeight: 1.6 }}>
+              {(display as Memory).cook_notes}
+            </div>
+          )}
 
-      {((display as Memory).ingredients?.length ?? 0) > 0 && (
-        <section style={{ marginBottom: '1.25rem' }}>
-          <h2 style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--muted)', marginBottom: '0.6rem' }}>Ingredients</h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            {(display as Memory).ingredients.map((ing, i) => (
-              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, padding: '0.45rem 0.85rem', fontSize: '0.85rem' }}>
-                <span style={{ color: 'var(--text)' }}>{ing.item}</span>
-                <span style={{ color: 'var(--muted)' }}>{ing.quantity}</span>
+          {/* Ingredients */}
+          {((display as Memory).ingredients?.length ?? 0) > 0 && (
+            <section style={{ marginBottom: '1.25rem' }}>
+              <h2 style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--muted)', marginBottom: '0.6rem' }}>Ingredients</h2>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {(display as Memory).ingredients.map((ing, i) => (
+                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, padding: '0.45rem 0.85rem', fontSize: '0.85rem' }}>
+                    <span style={{ color: 'var(--text)' }}>{ing.item}</span>
+                    <span style={{ color: 'var(--muted)' }}>{ing.quantity}</span>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {((display as Memory).steps?.length ?? 0) > 0 && (
-        <section style={{ marginBottom: '1.25rem' }}>
-          <h2 style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--muted)', marginBottom: '0.6rem' }}>Method</h2>
-          <ol style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingLeft: 0, listStyle: 'none' }}>
-            {(display as Memory).steps.map((step, i) => (
-              <li key={i} style={{ display: 'flex', gap: '0.7rem', alignItems: 'flex-start', fontSize: '0.88rem', color: 'var(--text2)', lineHeight: 1.6 }}>
-                <span style={{ background: 'var(--accent)', color: 'white', borderRadius: '50%', width: 20, height: 20, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 700, marginTop: 2 }}>{i + 1}</span>
-                {step}
-              </li>
-            ))}
-          </ol>
-        </section>
-      )}
-
-      {memory.audio_url && (
-        <section style={{ marginBottom: '1.25rem' }}>
-          <h2 style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--muted)', marginBottom: '0.6rem' }}>Original Recording</h2>
-          <AudioPlayer src={memory.audio_url} />
-        </section>
-      )}
-
-      {isAudioMemory(memory) && memory.transcript_english && (
-        <section style={{ marginBottom: '1.25rem' }}>
-          <h2 style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--muted)', marginBottom: '0.5rem' }}>Description</h2>
-          <p style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: '0.85rem', fontSize: '0.88rem', color: 'var(--text2)', lineHeight: 1.7 }}>
-            {memory.transcript_english}
-          </p>
-        </section>
-      )}
-
-      {!isAudioMemory(memory) && (memory.transcript_raw || memory.transcript_english) && (
-        <details style={{ marginBottom: '1.25rem' }}>
-          <summary style={{ cursor: 'pointer', fontSize: '0.82rem', color: 'var(--muted)', marginBottom: '0.5rem' }}>Full transcript</summary>
-          {memory.transcript_raw && (
-            <>
-              <p style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--muted)', marginTop: '0.75rem', marginBottom: '0.35rem' }}>Original</p>
-              <p style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: '0.85rem', fontSize: '0.85rem', color: 'var(--text2)', lineHeight: 1.7 }}>
-                {memory.transcript_raw}
-              </p>
-            </>
+            </section>
           )}
-          {memory.transcript_english && (
-            <>
-              <p style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--muted)', marginTop: '0.75rem', marginBottom: '0.35rem' }}>English translation</p>
-              <p style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: '0.85rem', fontSize: '0.85rem', color: 'var(--text2)', lineHeight: 1.7 }}>
-                {memory.transcript_english}
-              </p>
-            </>
-          )}
-        </details>
-      )}
 
-      <section style={{ marginBottom: '1.5rem' }}>
-        <h2 style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--muted)', marginBottom: '0.6rem' }}>Your Notes</h2>
-        <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Add your personal notes…" rows={3} style={{ width: '100%', border: '1px solid var(--border)', borderRadius: 10, padding: '0.7rem', fontSize: '0.85rem', fontFamily: 'var(--sans)', color: 'var(--text)', background: 'var(--surface)', resize: 'vertical' }} />
-        <button onClick={saveNotes} disabled={saving} style={{ marginTop: '0.5rem', background: 'var(--accent)', color: 'white', border: 'none', borderRadius: 9, padding: '0.5rem 1.25rem', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}>
-          {saving ? 'Saving…' : 'Save notes'}
-        </button>
-      </section>
+          {/* Steps */}
+          {((display as Memory).steps?.length ?? 0) > 0 && (
+            <section style={{ marginBottom: '1.25rem' }}>
+              <h2 style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--muted)', marginBottom: '0.6rem' }}>Method</h2>
+              <ol style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingLeft: 0, listStyle: 'none' }}>
+                {(display as Memory).steps.map((step, i) => (
+                  <li key={i} style={{ display: 'flex', gap: '0.7rem', alignItems: 'flex-start', fontSize: '0.88rem', color: 'var(--text2)', lineHeight: 1.6 }}>
+                    <span style={{ background: 'var(--accent)', color: 'white', borderRadius: '50%', width: 20, height: 20, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 700, marginTop: 2 }}>{i + 1}</span>
+                    {step}
+                  </li>
+                ))}
+              </ol>
+            </section>
+          )}
+
+          {/* Audio player (recipe with audio) */}
+          {memory.audio_url && (
+            <section style={{ marginBottom: '1.25rem' }}>
+              <h2 style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--muted)', marginBottom: '0.6rem' }}>Original Recording</h2>
+              <AudioPlayer src={memory.audio_url} />
+            </section>
+          )}
+
+          {/* Transcript */}
+          {(memory.transcript_raw || memory.transcript_english) && (
+            <details style={{ marginBottom: '1.25rem' }}>
+              <summary style={{ cursor: 'pointer', fontSize: '0.82rem', color: 'var(--muted)', marginBottom: '0.5rem' }}>Full transcript</summary>
+              {memory.transcript_raw && (
+                <>
+                  <p style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--muted)', marginTop: '0.75rem', marginBottom: '0.35rem' }}>Original</p>
+                  <p style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: '0.85rem', fontSize: '0.85rem', color: 'var(--text2)', lineHeight: 1.7 }}>{memory.transcript_raw}</p>
+                </>
+              )}
+              {memory.transcript_english && (
+                <>
+                  <p style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--muted)', marginTop: '0.75rem', marginBottom: '0.35rem' }}>English translation</p>
+                  <p style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: '0.85rem', fontSize: '0.85rem', color: 'var(--text2)', lineHeight: 1.7 }}>{memory.transcript_english}</p>
+                </>
+              )}
+            </details>
+          )}
+
+          {/* Personal notes — auto-save on blur */}
+          <section style={{ marginBottom: '1.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.6rem' }}>
+              <h2 style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--muted)', margin: 0 }}>Your Notes</h2>
+              <SavedBadge show={savedFlash} />
+            </div>
+            <textarea
+              value={notes}
+              onChange={e => {
+                setNotes(e.target.value)
+                scheduleAutoSave({ user_notes: e.target.value })
+              }}
+              onBlur={() => patchField({ user_notes: notes })}
+              placeholder="Add your personal notes…"
+              rows={3}
+              style={{
+                width: '100%', border: '1px solid var(--border)', borderRadius: 10,
+                padding: '0.7rem', fontSize: '0.85rem', fontFamily: 'var(--sans)',
+                color: 'var(--text)', background: 'var(--surface)', resize: 'vertical',
+                boxSizing: 'border-box',
+              }}
+            />
+            <p style={{ fontSize: '0.72rem', color: 'var(--muted)', marginTop: '0.35rem' }}>
+              Saves automatically when you stop typing.
+            </p>
+          </section>
+        </>
+      )}
     </div>
   )
 }
