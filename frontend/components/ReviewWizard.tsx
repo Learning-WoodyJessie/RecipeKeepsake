@@ -16,7 +16,7 @@ type Draft = {
   image_url: string
 }
 
-export default function ReviewWizard({ draft, onCancel }: { draft: Draft; onCancel: () => void }) {
+export default function ReviewWizard({ draft, audioFile, onCancel }: { draft: Draft; audioFile: File; onCancel: () => void }) {
   const router = useRouter()
   const [step, setStep] = useState(1)
   const [title, setTitle] = useState(draft.dish_name ?? '')
@@ -28,7 +28,12 @@ export default function ReviewWizard({ draft, onCancel }: { draft: Draft; onCanc
   async function save() {
     setSaving(true)
     try {
-      const saved = await api.capture.save({ ...draft, dish_name: title, ingredients, steps })
+      const recipe = { ...draft, dish_name: title, ingredients, steps }
+      const form = new FormData()
+      form.append('audio', audioFile, audioFile.name)
+      form.append('recipe', JSON.stringify(recipe))
+      form.append('narrator', draft.narrator ?? '')
+      const saved = await api.capture.save(form)
       router.push(`/memory?token=${saved.token}`)
     } catch (e: unknown) { setError((e as Error).message); setSaving(false) }
   }

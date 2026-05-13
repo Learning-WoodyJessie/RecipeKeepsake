@@ -105,6 +105,7 @@ export default function CapturePage() {
   const [description, setDescription] = useState('')
   const [duration, setDuration] = useState(0)
   const [draft, setDraft] = useState<any>(null)
+  const [audioFile, setAudioFile] = useState<File | null>(null)
   const [error, setError] = useState('')
   const mrRef = useRef<MediaRecorder | null>(null)
   const chunksRef = useRef<Blob[]>([])
@@ -144,10 +145,12 @@ export default function CapturePage() {
 
   async function processAudio(blob: Blob) {
     const form = new FormData()
-    form.append('audio', blob, `recording${extRef.current}`)
+    const filename = `recording${extRef.current}`
+    form.append('audio', blob, filename)
     if (narrator) form.append('narrator', narrator)
     try {
       const result = await api.capture.process(form)
+      setAudioFile(new File([blob], filename, { type: blob.type }))
       setDraft(result)
       setStage('review')
     } catch (e: unknown) { setError((e as Error).message); setStage('error') }
@@ -165,8 +168,8 @@ export default function CapturePage() {
     } catch (e: unknown) { setError((e as Error).message); setStage('error') }
   }
 
-  if (stage === 'review' && draft) {
-    return <ReviewWizard draft={draft} onCancel={() => { setStage('idle'); setDraft(null) }} />
+  if (stage === 'review' && draft && audioFile) {
+    return <ReviewWizard draft={draft} audioFile={audioFile} onCancel={() => { setStage('idle'); setDraft(null); setAudioFile(null) }} />
   }
 
   const narratorLabel = narrator || 'she'

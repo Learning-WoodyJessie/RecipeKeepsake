@@ -95,6 +95,7 @@ export default function UploadPage() {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [draft, setDraft] = useState<any>(null)
+  const [audioFile, setAudioFile] = useState<File | null>(null)
   const [processing, setProcessing] = useState(false)
   const [error, setError] = useState('')
   const [dragOver, setDragOver] = useState(false)
@@ -108,6 +109,7 @@ export default function UploadPage() {
     if (narrator) form.append('narrator', narrator)
     try {
       const result = await api.capture.process(form)
+      setAudioFile(file)
       setDraft(result)
     } catch (e: unknown) {
       setError((e as Error).message)
@@ -148,7 +150,7 @@ export default function UploadPage() {
     if (file) handleFile(file)
   }, [narrator, title, mode])
 
-  if (draft) return <ReviewWizard draft={draft} onCancel={() => setDraft(null)} />
+  if (draft && audioFile) return <ReviewWizard draft={draft} audioFile={audioFile} onCancel={() => { setDraft(null); setAudioFile(null) }} />
 
   return (
     <div style={{ padding: '1.5rem 1.75rem 2.5rem', maxWidth: 1100, margin: '0 auto' }}>
