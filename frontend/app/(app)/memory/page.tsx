@@ -243,7 +243,7 @@ function MemoryDetail() {
               <SavedBadge show={savedFlash} />
             </p>
             <p style={{ fontFamily: 'var(--serif)', fontStyle: 'italic', fontSize: '0.92rem', color: 'var(--text2)', marginBottom: '1rem', lineHeight: 1.5 }}>
-              A song sung. A story told. A memory kept close.
+              A song. A story. A moment that stays.
             </p>
 
             {/* Narrator pill */}

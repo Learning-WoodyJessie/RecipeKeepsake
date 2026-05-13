@@ -469,8 +469,8 @@ export default function MemoriesPage() {
                     Tales &amp; Songs <span style={{ color: 'var(--accent)' }}>♪</span>
                   </h1>
                   <p style={{ fontSize: '0.92rem', color: 'var(--muted)', lineHeight: 1.65, maxWidth: 380, marginBottom: '1.2rem' }}>
-                    A song. A story. A prayer passed down.<br />
-                    Saved forever for the people who love it.
+                    A song. A story. A moment worth keeping.<br />
+                    Saved forever, for the people who love it.
                   </p>
                   <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap' }}>
                     <Link
