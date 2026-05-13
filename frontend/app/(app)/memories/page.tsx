@@ -22,17 +22,21 @@ type Memory = {
 const FILTER_TAGS = ['All', 'Favorites', 'Breakfast', 'Lunch', 'Sweets', 'Pickles', 'Snacks', 'Drinks', 'Recently added']
 const SORT_OPTIONS = ['Recently added', 'Oldest first', 'A–Z']
 
+function isAudio(m: Memory) { return (m.tags ?? []).includes('audio') }
+
 // ─── Right panel ────────────────────────────────────────────────────────
 function RightPanel({
   filter,
   setFilter,
   sort,
   setSort,
+  isAudioMode,
 }: {
   filter: string
   setFilter: (f: string) => void
   sort: string
   setSort: (s: string) => void
+  isAudioMode: boolean
 }) {
   const WHY = [
     {
@@ -73,43 +77,76 @@ function RightPanel({
 
   return (
     <aside style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      {/* Filter box */}
-      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 18, padding: '1.25rem', boxShadow: '0 4px 16px rgba(45,27,14,0.05)' }}>
-        <h3 style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '0.95rem', color: 'var(--text)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-          Filter recipes
-        </h3>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem' }}>
-          {FILTER_TAGS.map((tag) => (
-            <button
-              key={tag}
-              onClick={() => setFilter(tag)}
-              style={{
-                padding: '0.3rem 0.75rem',
-                borderRadius: 20,
-                fontSize: '0.78rem',
-                fontWeight: 500,
-                border: '1.5px solid',
-                cursor: 'pointer',
-                borderColor: filter === tag ? 'var(--accent)' : 'var(--border)',
-                background: filter === tag ? 'var(--accent-light)' : 'transparent',
-                color: filter === tag ? 'var(--accent)' : 'var(--text2)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.25rem',
-              }}
-            >
-              {tag === 'Favorites' && '♡ '}{tag}
-            </button>
-          ))}
+      {/* Filter box — recipes only */}
+      {!isAudioMode && (
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 18, padding: '1.25rem', boxShadow: '0 4px 16px rgba(45,27,14,0.05)' }}>
+          <h3 style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '0.95rem', color: 'var(--text)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            Filter recipes
+          </h3>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem' }}>
+            {FILTER_TAGS.map((tag) => (
+              <button
+                key={tag}
+                onClick={() => setFilter(tag)}
+                style={{
+                  padding: '0.3rem 0.75rem',
+                  borderRadius: 20,
+                  fontSize: '0.78rem',
+                  fontWeight: 500,
+                  border: '1.5px solid',
+                  cursor: 'pointer',
+                  borderColor: filter === tag ? 'var(--accent)' : 'var(--border)',
+                  background: filter === tag ? 'var(--accent-light)' : 'transparent',
+                  color: filter === tag ? 'var(--accent)' : 'var(--text2)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.25rem',
+                }}
+              >
+                {tag === 'Favorites' && '♡ '}{tag}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Why recipes matter */}
+      {/* Audio sort — audio mode only */}
+      {isAudioMode && (
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 18, padding: '1.25rem', boxShadow: '0 4px 16px rgba(45,27,14,0.05)' }}>
+          <h3 style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '0.95rem', color: 'var(--text)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+            Filter
+          </h3>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem' }}>
+            {['All', 'Favorites'].map((tag) => (
+              <button
+                key={tag}
+                onClick={() => setFilter(tag)}
+                style={{
+                  padding: '0.3rem 0.75rem',
+                  borderRadius: 20,
+                  fontSize: '0.78rem',
+                  fontWeight: 500,
+                  border: '1.5px solid',
+                  cursor: 'pointer',
+                  borderColor: filter === tag ? 'var(--accent)' : 'var(--border)',
+                  background: filter === tag ? 'var(--accent-light)' : 'transparent',
+                  color: filter === tag ? 'var(--accent)' : 'var(--text2)',
+                }}
+              >
+                {tag === 'Favorites' ? '♡ Favorites' : tag}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Contextual panel */}
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 18, padding: '1.25rem', boxShadow: '0 4px 16px rgba(45,27,14,0.05)' }}>
         <h3 style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '0.95rem', color: 'var(--text)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
-          Why recipes matter
+          {isAudioMode ? 'Why voices matter' : 'Why recipes matter'}
         </h3>
         {WHY.map((item) => (
           <div key={item.title} style={{ display: 'flex', gap: '0.7rem', marginBottom: '0.95rem' }}>
@@ -122,17 +159,76 @@ function RightPanel({
             </div>
           </div>
         ))}
-
-        {/* Quote */}
         <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem', marginTop: '0.25rem', textAlign: 'center' }}>
           <p style={{ fontSize: '1.5rem', color: 'var(--accent)', lineHeight: 1, marginBottom: '0.5rem' }}>&ldquo;</p>
           <p style={{ fontFamily: 'var(--serif)', fontStyle: 'italic', fontSize: '0.88rem', color: 'var(--text2)', lineHeight: 1.65, marginBottom: '0.65rem' }}>
-            A recipe is more than ingredients. It&apos;s a story we live and share.
+            {isAudioMode
+              ? 'A voice carries what words alone cannot — warmth, soul, and love.'
+              : 'A recipe is more than ingredients. It\'s a story we live and share.'}
           </p>
           <span style={{ color: 'var(--muted)' }}>♡</span>
         </div>
       </div>
     </aside>
+  )
+}
+
+// ─── Audio card ──────────────────────────────────────────────────────────
+function AudioCard({
+  memory,
+  isFav,
+  onToggleFav,
+  narratorPhoto,
+}: {
+  memory: Memory
+  isFav: boolean
+  onToggleFav: () => void
+  narratorPhoto: string
+}) {
+  return (
+    <Link
+      href={`/memory?token=${memory.token}`}
+      style={{ textDecoration: 'none', display: 'block', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, overflow: 'hidden', boxShadow: '0 2px 10px rgba(45,27,14,0.06)', transition: 'box-shadow 0.15s' }}
+    >
+      {/* Waveform banner */}
+      <div style={{ position: 'relative', background: 'linear-gradient(135deg, #FAE8D4 0%, #F0C9A0 100%)', padding: '1.25rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3, minHeight: 80 }}>
+        {[4,7,11,9,14,10,6,13,8,11,6,9,12,7,5].map((h, i) => (
+          <div key={i} style={{ width: 3, height: h * 3, borderRadius: 2, background: 'var(--accent)', opacity: 0.6 }} />
+        ))}
+        <div style={{ position: 'absolute', width: 40, height: 40, borderRadius: '50%', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(45,27,14,0.15)' }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+          </svg>
+        </div>
+        <button
+          type="button"
+          onClick={e => { e.preventDefault(); onToggleFav() }}
+          style={{ position: 'absolute', top: 8, right: 8, width: 28, height: 28, borderRadius: '50%', background: 'rgba(255,255,255,0.9)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.85rem', color: isFav ? 'var(--accent)' : 'var(--muted)' }}
+        >
+          {isFav ? '♥' : '♡'}
+        </button>
+      </div>
+
+      <div style={{ padding: '0.85rem' }}>
+        <p style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '0.95rem', color: 'var(--text)', marginBottom: '0.45rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {memory.dish_name ?? 'Untitled'}
+        </p>
+        {memory.narrator && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.4rem' }}>
+            <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'var(--accent-light)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              {narratorPhoto
+                ? <img src={narratorPhoto} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                : <span style={{ fontSize: '0.6rem', fontWeight: 700, color: 'var(--accent)' }}>{memory.narrator[0]?.toUpperCase()}</span>
+              }
+            </div>
+            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text2)' }}>{memory.narrator}</span>
+          </div>
+        )}
+        <p style={{ fontSize: '0.7rem', color: 'var(--muted)' }}>
+          {new Date(memory.recorded_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+        </p>
+      </div>
+    </Link>
   )
 }
 
@@ -289,8 +385,13 @@ export default function MemoriesPage() {
     return map
   }, [people])
 
+  const isAudioMode = typeParam === 'audio'
+
   const displayed = useMemo(() => {
     let list = [...memories]
+    // Separate recipe vs audio — never mix them
+    if (isAudioMode) list = list.filter(isAudio)
+    else list = list.filter(m => !isAudio(m))
     // Narrator filter from ?narrator= param (coming from Our People page)
     if (narratorParam) list = list.filter(m => (m.narrator ?? '').toLowerCase() === narratorParam.toLowerCase())
     // Search
@@ -304,7 +405,7 @@ export default function MemoriesPage() {
     else if (sort === 'Oldest first') list = list.slice().sort((a, b) => new Date(a.recorded_at).getTime() - new Date(b.recorded_at).getTime())
     else if (sort === 'A–Z') list = list.slice().sort((a, b) => (a.dish_name ?? '').localeCompare(b.dish_name ?? ''))
     return list
-  }, [memories, filter, sort, q, narratorParam, favTick])
+  }, [memories, filter, sort, q, narratorParam, favTick, isAudioMode])
 
   if (loading) return <div style={{ padding: '2rem', color: 'var(--muted)' }}>Loading…</div>
   if (error) return <div style={{ padding: '2rem', color: 'var(--accent)' }}>{error}</div>
@@ -377,7 +478,9 @@ export default function MemoriesPage() {
                   )}
                 </div>
                 <p style={{ fontSize: '0.9rem', color: 'var(--muted)', lineHeight: 1.6, maxWidth: 360 }}>
-                  Timeless recipes, lovingly shared by the people who made our moments special.
+                  {isAudioMode
+                    ? 'Songs, poems, and voices — preserved forever for the family.'
+                    : 'Timeless recipes, lovingly shared by the people who made our moments special.'}
                 </p>
               </div>
               <HeroIllustration />
@@ -385,7 +488,9 @@ export default function MemoriesPage() {
 
             {/* Count + sort bar */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '0.65rem 1rem' }}>
-              <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text2)' }}>{displayed.length} Recipe{displayed.length !== 1 ? 's' : ''}</span>
+              <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text2)' }}>
+                {displayed.length} {isAudioMode ? `Recording${displayed.length !== 1 ? 's' : ''}` : `Recipe${displayed.length !== 1 ? 's' : ''}`}
+              </span>
               <label style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.8rem', color: 'var(--muted)' }}>
                 Sort by:
                 <select
@@ -401,14 +506,29 @@ export default function MemoriesPage() {
             {/* Grid */}
             {displayed.length === 0 ? (
               <div style={{ padding: '2.5rem', textAlign: 'center', color: 'var(--muted)', background: 'var(--surface)', borderRadius: 14, border: '1px dashed var(--border)', fontSize: '0.88rem' }}>
-                {q ? `No recipes matching "${q}"` : filter === 'Favorites' ? 'No favorites yet — heart a recipe to add it here.' : 'No recipes yet.'}
-                {' '}<Link href="/capture" style={{ color: 'var(--accent)', fontWeight: 600 }}>Capture the first one</Link>
+                {q
+                  ? `No ${isAudioMode ? 'recordings' : 'recipes'} matching "${q}"`
+                  : filter === 'Favorites'
+                  ? 'No favorites yet — heart one to add it here.'
+                  : isAudioMode ? 'No recordings yet.' : 'No recipes yet.'}
+                {' '}
+                <Link href={isAudioMode ? '/upload' : '/capture'} style={{ color: 'var(--accent)', fontWeight: 600 }}>
+                  {isAudioMode ? 'Upload the first one' : 'Capture the first one'}
+                </Link>
               </div>
             ) : (
               <div className="rk-recipe-grid">
                 {displayed.map(m => {
                   const info = peopleMap[m.narrator?.toLowerCase() ?? ''] ?? { photo: '', relationship: '' }
-                  return (
+                  return isAudioMode ? (
+                    <AudioCard
+                      key={m.token}
+                      memory={m}
+                      isFav={favTokens.includes(m.token)}
+                      onToggleFav={() => toggleFav(m.token)}
+                      narratorPhoto={info.photo}
+                    />
+                  ) : (
                     <RecipeCard
                       key={m.token}
                       memory={m}
@@ -424,7 +544,7 @@ export default function MemoriesPage() {
           </div>
 
           {/* ── Right panel ── */}
-          <RightPanel filter={filter} setFilter={setFilter} sort={sort} setSort={setSort} />
+          <RightPanel filter={filter} setFilter={setFilter} sort={sort} setSort={setSort} isAudioMode={isAudioMode} />
         </div>
 
         {/* ── Full-width bottom CTA ── */}
@@ -452,14 +572,16 @@ export default function MemoriesPage() {
             flexShrink: 0,
             boxShadow: '0 4px 12px rgba(45,27,14,0.1)',
           }}>
-            🥘
+            {isAudioMode ? '🎵' : '🥘'}
           </div>
           <div style={{ flex: 1, minWidth: 200 }}>
             <p style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '1.05rem', color: 'var(--text)', marginBottom: '0.3rem' }}>
-              Have a family recipe to add?
+              {isAudioMode ? 'Have a song or poem to preserve?' : 'Have a family recipe to add?'}
             </p>
             <p style={{ fontSize: '0.83rem', color: 'var(--muted)', lineHeight: 1.55 }}>
-              Record it, write it or upload it. Keep your family&apos;s stories and flavors alive for generations to come.
+              {isAudioMode
+                ? 'Upload an audio file or record directly in the app. A voice is a gift — keep it forever.'
+                : 'Record it, write it or upload it. Keep your family\'s stories and flavors alive for generations to come.'}
             </p>
           </div>
         </div>
