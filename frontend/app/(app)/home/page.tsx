@@ -1,6 +1,5 @@
-// Home dashboard — aligned to Echoes of Home product mockup.
-// Layout: 2-column (main content | right panel). Main has hero card, favorites scroll, recent memories.
-// Right panel has quote card + tips.
+// Home dashboard — recent memories primary, ♥ filter pill for favorites.
+// Layout: 2-column (main | right panel). Main has hero card + unified memory list.
 
 'use client'
 
@@ -30,14 +29,6 @@ function firstName(user: { user_metadata?: Record<string, unknown>; email?: stri
   return user.email?.split('@')[0] ?? 'friend'
 }
 
-
-function pseudoDuration(token: string): string {
-  let n = 0
-  for (let i = 0; i < token.length; i++) n += token.charCodeAt(i)
-  const sec = 95 + (n % 220)
-  return `${String(Math.floor(sec / 60)).padStart(2, '0')}:${String(sec % 60).padStart(2, '0')}`
-}
-
 function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
 }
@@ -48,37 +39,20 @@ function HeroCard({ userName }: { userName: string }) {
   return (
     <>
       <style>{`
-        .rk-hero-card {
-          display: flex;
-          flex-direction: row;
-          align-items: stretch;
-        }
+        .rk-hero-card { display: flex; flex-direction: row; align-items: stretch; }
         .rk-hero-text {
           flex: 1;
           padding: clamp(1.25rem, 3vw, 2rem);
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          min-width: 0;
+          display: flex; flex-direction: column; justify-content: center; min-width: 0;
         }
         .rk-hero-img-wrap {
           width: clamp(200px, 32vw, 340px);
-          flex-shrink: 0;
-          overflow: hidden;
-          background: var(--cream);
+          flex-shrink: 0; overflow: hidden; background: var(--cream);
         }
-        /* Mobile: stack vertically, image on top */
         @media (max-width: 600px) {
           .rk-hero-card { flex-direction: column; }
-          .rk-hero-img-wrap {
-            width: 100%;
-            height: 200px;
-            order: 0 !important;
-          }
-          .rk-hero-text {
-            padding: 1rem 1.1rem;
-            order: 1 !important;
-          }
+          .rk-hero-img-wrap { width: 100%; height: 190px; order: 0 !important; }
+          .rk-hero-text { padding: 1rem 1.1rem; order: 1 !important; }
         }
       `}</style>
       <section
@@ -88,23 +62,18 @@ function HeroCard({ userName }: { userName: string }) {
           border: '1px solid var(--border)',
           borderRadius: 20,
           overflow: 'hidden',
-          marginBottom: '1.75rem',
+          marginBottom: '1.5rem',
           boxShadow: '0 8px 32px rgba(45,27,14,0.07)',
         }}
       >
-        {/* Image — top on mobile, right on desktop */}
         <div className="rk-hero-img-wrap" style={{ order: 2 }}>
           <img
             src="/hero-home.png"
             alt=""
-            className="rk-hero-img"
             style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: '65% center' }}
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
           />
-          <style>{`.rk-hero-img { object-position: 65% center; } @media (max-width: 600px) { .rk-hero-img { object-position: 70% 40%; } }`}</style>
         </div>
-
-        {/* Text + action tiles */}
         <div className="rk-hero-text" style={{ order: 1 }}>
           <h1 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.35rem, 3vw, 2rem)', fontWeight: 700, color: 'var(--text)', lineHeight: 1.2, marginBottom: '0.5rem' }}>
             Welcome home, {userName}!{' '}
@@ -150,9 +119,7 @@ const UploadIcon = () => (
   </svg>
 )
 
-function ActionTile({
-  href, icon, label, desc, iconBg,
-}: {
+function ActionTile({ href, icon, label, desc, iconBg }: {
   href: string; icon: React.ReactNode; label: string; desc: string; iconBg?: string
 }) {
   return (
@@ -171,21 +138,9 @@ function ActionTile({
         minWidth: 180,
         flex: '1 1 180px',
         maxWidth: 240,
-        transition: 'box-shadow 0.15s',
       }}
     >
-      <div
-        style={{
-          width: 36,
-          height: 36,
-          borderRadius: '50%',
-          background: iconBg ?? 'var(--accent-light)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexShrink: 0,
-        }}
-      >
+      <div style={{ width: 36, height: 36, borderRadius: '50%', background: iconBg ?? 'var(--accent-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
         {icon}
       </div>
       <div>
@@ -196,7 +151,9 @@ function ActionTile({
   )
 }
 
-function FavoritesScroll({
+// ─── Unified memories list ─────────────────────────────────────────────────
+
+function MemoriesSection({
   memories,
   favTokens,
   onToggle,
@@ -207,134 +164,79 @@ function FavoritesScroll({
   onToggle: (token: string) => void
   peopleMap: Record<string, string>
 }) {
-  // Only show memories the user has actually hearted
-  const favMemories = useMemo(
-    () => memories.filter((m) => favTokens.includes(m.token)),
-    [memories, favTokens],
-  )
+  const [showFavsOnly, setShowFavsOnly] = useState(false)
+
+  const displayed = useMemo(() => {
+    const list = showFavsOnly ? memories.filter(m => favTokens.includes(m.token)) : memories.slice(0, 6)
+    return list
+  }, [memories, favTokens, showFavsOnly])
+
+  const hasFavs = favTokens.some(t => memories.find(m => m.token === t))
 
   return (
-    <section style={{ marginBottom: '1.75rem' }}>
-      {/* Section header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.85rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-        <h2 style={{ fontFamily: 'var(--serif)', fontSize: '1.05rem', fontWeight: 600, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-          Your favorites <span aria-hidden style={{ color: 'var(--accent)' }}>♥</span>
+    <section>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.85rem', gap: '0.5rem', flexWrap: 'wrap' }}>
+        <h2 style={{ fontFamily: 'var(--serif)', fontSize: '1.05rem', fontWeight: 600, color: 'var(--text)' }}>
+          {showFavsOnly ? 'Your favorites' : 'Recent memories'}
         </h2>
-        <Link href="/memories" style={{ fontSize: '0.78rem', color: 'var(--accent)', textDecoration: 'none', fontWeight: 500, whiteSpace: 'nowrap' }}>
-          View all ›
-        </Link>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+          {/* ♥ filter pill */}
+          <button
+            type="button"
+            onClick={() => setShowFavsOnly(v => !v)}
+            title={showFavsOnly ? 'Show all recent' : 'Show favorites only'}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.3rem',
+              padding: '0.28rem 0.7rem',
+              borderRadius: 20,
+              border: `1.5px solid ${showFavsOnly ? 'var(--accent)' : 'var(--border)'}`,
+              background: showFavsOnly ? 'var(--accent-light)' : 'transparent',
+              color: showFavsOnly ? 'var(--accent)' : 'var(--muted)',
+              fontSize: '0.78rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'all 0.15s',
+            }}
+          >
+            {showFavsOnly ? '♥' : '♡'} Favorites
+          </button>
+          <Link href="/memories" style={{ fontSize: '0.78rem', color: 'var(--accent)', textDecoration: 'none', fontWeight: 500, whiteSpace: 'nowrap' }}>
+            View all ›
+          </Link>
+        </div>
       </div>
 
-      {favMemories.length === 0 ? (
-        <div style={{ padding: '1.25rem 1rem', borderRadius: 14, background: 'var(--surface)', border: '1px dashed var(--border2)', color: 'var(--muted)', fontSize: '0.85rem', textAlign: 'center', lineHeight: 1.55 }}>
-          Tap ♡ on any memory to save it here
+      {/* List */}
+      {displayed.length === 0 ? (
+        <div style={{ padding: '1.25rem 1rem', borderRadius: 14, background: 'var(--surface)', border: '1px dashed var(--border2)', color: 'var(--muted)', fontSize: '0.85rem', textAlign: 'center', lineHeight: 1.6 }}>
+          {showFavsOnly
+            ? <>Tap ♡ on any memory to add it to your favorites</>
+            : <>No memories yet — <Link href="/capture" style={{ color: 'var(--accent)', fontWeight: 600 }}>capture the first one</Link></>
+          }
         </div>
       ) : (
-        <div className="rk-favscroll-wrap">
-          {favMemories.map((m) => (
-            <FavoriteCard key={m.token} memory={m} isFav onToggle={() => onToggle(m.token)} narratorPhoto={peopleMap[m.narrator?.toLowerCase() ?? ''] ?? ''} />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
+          {displayed.map(m => (
+            <MemoryRow
+              key={m.token}
+              memory={m}
+              isFav={favTokens.includes(m.token)}
+              onToggle={() => onToggle(m.token)}
+              photoUrl={peopleMap[m.narrator?.toLowerCase() ?? ''] ?? ''}
+            />
           ))}
         </div>
       )}
-    </section>
-  )
-}
 
-function FavoriteCard({ memory, isFav, onToggle, narratorPhoto }: { memory: Memory; isFav: boolean; onToggle: () => void; narratorPhoto: string }) {
-  return (
-    <div style={{ flexShrink: 0, width: 180, borderRadius: 16, overflow: 'hidden', background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: '0 4px 12px rgba(45,27,14,0.06)' }}>
-      <div style={{ position: 'relative', aspectRatio: '1 / 1', background: isAudio(memory) ? 'linear-gradient(135deg, #FAE8D4 0%, #F0C9A0 100%)' : 'var(--cream2)', overflow: 'hidden' }}>
-        <Link href={`/memory?token=${memory.token}`} style={{ display: 'block', height: '100%' }}>
-          {isAudio(memory)
-            ? <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  {[4,7,11,8,13,9,6,12].map((h, i) => (
-                    <div key={i} style={{ width: 3, height: h * 2.5, borderRadius: 2, background: 'var(--accent)', opacity: 0.65 }} />
-                  ))}
-                </div>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.8 }}>
-                  <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
-                </svg>
-              </div>
-            : memory.image_url
-            ? <img src={memory.image_url} alt={memory.dish_name ?? ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.5rem' }}>🍽️</div>
-          }
-        </Link>
-        {/* Heart toggle overlay */}
-        <button
-          type="button"
-          aria-label={isFav ? 'Remove from favorites' : 'Add to favorites'}
-          onClick={onToggle}
-          style={{
-            position: 'absolute',
-            top: 8,
-            right: 8,
-            width: 30,
-            height: 30,
-            borderRadius: '50%',
-            background: 'rgba(255,255,255,0.88)',
-            border: 'none',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '0.95rem',
-            boxShadow: '0 2px 6px rgba(0,0,0,0.12)',
-            color: isFav ? '#C4522A' : '#C4A882',
-          }}
-        >
-          {isFav ? '♥' : '♡'}
-        </button>
-      </div>
-      <div style={{ padding: '0.65rem 0.75rem' }}>
-        <p style={{ fontFamily: 'var(--serif)', fontWeight: 600, fontSize: '0.88rem', color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: 5 }}>
-          {memory.dish_name ?? 'Untitled'}
+      {/* Subtle hint when viewing favorites and there are none yet */}
+      {!showFavsOnly && !hasFavs && memories.length > 0 && (
+        <p style={{ fontSize: '0.72rem', color: 'var(--muted)', marginTop: '0.65rem', textAlign: 'center' }}>
+          Tap ♡ on any memory to save it to favorites
         </p>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-          <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'var(--accent-light)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: '1.5px solid var(--border)' }}>
-            {narratorPhoto
-              ? <img src={narratorPhoto} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              : <span style={{ fontSize: '0.6rem', fontWeight: 700, color: 'var(--accent)' }}>{(memory.narrator ?? '?')[0]?.toUpperCase()}</span>
-            }
-          </div>
-          <p style={{ fontSize: '0.72rem', color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {memory.narrator ?? 'Narrator'}
-          </p>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function RecentMemoriesSection({
-  memories,
-  favTokens,
-  onToggle,
-  peopleMap,
-}: {
-  memories: Memory[]
-  favTokens: string[]
-  onToggle: (token: string) => void
-  peopleMap: Record<string, string>
-}) {
-  return (
-    <section>
-      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '0.85rem' }}>
-        <h2 style={{ fontFamily: 'var(--serif)', fontSize: '1.05rem', fontWeight: 600, color: 'var(--text)' }}>Recent memories</h2>
-        <Link href="/memories" style={{ fontSize: '0.78rem', color: 'var(--accent)', textDecoration: 'none', fontWeight: 500 }}>View all ›</Link>
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-        {memories.map((m) => (
-          <MemoryRow
-            key={m.token}
-            memory={m}
-            isFav={favTokens.includes(m.token)}
-            onToggle={() => onToggle(m.token)}
-            photoUrl={peopleMap[m.narrator?.toLowerCase() ?? ''] ?? ''}
-          />
-        ))}
-      </div>
+      )}
     </section>
   )
 }
@@ -367,7 +269,7 @@ function MemoryRow({
         position: 'relative',
       }}
     >
-      {/* Whole-card tap target (sits behind interactive buttons) */}
+      {/* Whole-card tap target */}
       <Link
         href={`/memory?token=${memory.token}`}
         aria-label={`Open ${title}`}
@@ -382,7 +284,7 @@ function MemoryRow({
         }
       </div>
 
-      {/* Name + meta + waveform */}
+      {/* Title + meta + waveform */}
       <div style={{ flex: 1, minWidth: 0, zIndex: 1 }}>
         <p style={{ fontFamily: 'var(--serif)', fontWeight: 600, color: 'var(--text)', fontSize: '0.9rem', marginBottom: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
           {isAudio(memory) && <span style={{ fontSize: '0.72rem', color: 'var(--accent)', flexShrink: 0 }}>♪</span>}
@@ -392,7 +294,7 @@ function MemoryRow({
         <WaveformBars token={memory.token} barCount={18} />
       </div>
 
-      {/* Heart — above the link overlay */}
+      {/* Heart */}
       <button
         type="button"
         onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggle() }}
@@ -402,23 +304,15 @@ function MemoryRow({
         {isFav ? '♥' : '♡'}
       </button>
 
-      {/* Play circle */}
+      {/* Play circle (visual only — card Link handles tap) */}
       <div
         aria-hidden
         style={{
-          width: 34,
-          height: 34,
-          borderRadius: '50%',
-          border: '2px solid var(--accent)',
-          color: 'var(--accent)',
+          width: 34, height: 34, borderRadius: '50%',
+          border: '2px solid var(--accent)', color: 'var(--accent)',
           background: 'transparent',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '0.7rem',
-          flexShrink: 0,
-          zIndex: 1,
-          pointerEvents: 'none',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: '0.7rem', flexShrink: 0, zIndex: 1, pointerEvents: 'none',
         }}
       >
         ▶
@@ -427,20 +321,12 @@ function MemoryRow({
   )
 }
 
+// ─── Right panel ───────────────────────────────────────────────────────────
+
 function QuotePanel() {
   return (
     <>
-      {/* Quote card */}
-      <div
-        style={{
-          background: 'var(--surface)',
-          border: '1px solid var(--border)',
-          borderRadius: 20,
-          padding: '1.5rem 1.25rem',
-          marginBottom: '1rem',
-          boxShadow: '0 4px 16px rgba(45,27,14,0.05)',
-        }}
-      >
+      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 20, padding: '1.5rem 1.25rem', marginBottom: '1rem', boxShadow: '0 4px 16px rgba(45,27,14,0.05)' }}>
         <p style={{ fontFamily: 'var(--serif)', fontSize: '2rem', color: 'var(--accent)', lineHeight: 1, marginBottom: '0.65rem' }}>&ldquo;</p>
         <p style={{ fontFamily: 'var(--serif)', fontSize: '1.05rem', fontStyle: 'italic', color: 'var(--text2)', lineHeight: 1.6, marginBottom: '1rem' }}>
           The stories she tells today are the recipes you&apos;ll cherish forever.
@@ -451,16 +337,7 @@ function QuotePanel() {
         </p>
       </div>
 
-      {/* Tips */}
-      <div
-        style={{
-          background: 'var(--surface)',
-          border: '1px solid var(--border)',
-          borderRadius: 20,
-          padding: '1.25rem',
-          boxShadow: '0 4px 16px rgba(45,27,14,0.05)',
-        }}
-      >
+      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 20, padding: '1.25rem', boxShadow: '0 4px 16px rgba(45,27,14,0.05)' }}>
         <h3 style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '0.95rem', color: 'var(--text)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
           <span aria-hidden>💡</span> Tips for a great memory
         </h3>
@@ -528,7 +405,6 @@ export default function HomePage() {
     setFavTick((x) => x + 1)
   }, [])
 
-  // Build narrator → photo_url lookup from people list
   const peopleMap = useMemo(() => {
     const map: Record<string, string> = {}
     for (const p of people) {
@@ -536,8 +412,6 @@ export default function HomePage() {
     }
     return map
   }, [people])
-
-  const recentRows = memories.slice(0, 4)
 
   if (loading) {
     return <div style={{ padding: '2.5rem 1.5rem', color: 'var(--muted)', fontSize: '0.9rem' }}>Loading your home…</div>
@@ -559,46 +433,23 @@ export default function HomePage() {
         @media (min-width: 860px) {
           .rk-home-cols { grid-template-columns: 1fr 272px; align-items: start; }
         }
-        .rk-hero-photo { display: none; }
-        @media (min-width: 700px) { .rk-hero-photo { display: block !important; } }
-        .rk-action-tiles {
-          display: flex;
-          gap: 0.65rem;
-          flex-wrap: wrap;
-        }
+        .rk-action-tiles { display: flex; gap: 0.65rem; flex-wrap: wrap; }
         @media (max-width: 480px) {
           .rk-action-tiles { flex-direction: column; gap: 0.5rem; }
           .rk-action-tile { max-width: 100% !important; min-width: 0 !important; flex: 0 0 auto !important; padding: 0.6rem 0.85rem !important; }
         }
-        .rk-favscroll-wrap {
-          display: flex;
-          gap: 0.85rem;
-          overflow-x: auto;
-          padding-bottom: 0.5rem;
-          scrollbar-width: none;
-          -webkit-overflow-scrolling: touch;
-        }
-        .rk-favscroll-wrap::-webkit-scrollbar { display: none; }
       `}</style>
 
       <div className="rk-home-cols">
         {/* ── Left: main content ── */}
         <div>
           <HeroCard userName={userName} />
-          <FavoritesScroll
+          <MemoriesSection
             memories={memories}
             favTokens={favTokens}
             onToggle={toggleFavorite}
             peopleMap={peopleMap}
           />
-          {recentRows.length > 0 && (
-            <RecentMemoriesSection
-              memories={recentRows}
-              favTokens={favTokens}
-              onToggle={toggleFavorite}
-              peopleMap={peopleMap}
-            />
-          )}
         </div>
 
         {/* ── Right: quote + tips ── */}
@@ -607,8 +458,7 @@ export default function HomePage() {
         </aside>
       </div>
 
-      {/* Bottom tagline */}
-      <p style={{ textAlign: 'center', marginTop: '2rem', fontSize: '0.88rem', color: 'var(--muted)', maxWidth: 1200, margin: '2rem auto 0' }}>
+      <p style={{ textAlign: 'center', fontSize: '0.88rem', color: 'var(--muted)', maxWidth: 1200, margin: '2rem auto 0' }}>
         Memories fade with time, but love keeps them alive. Capture today. <span style={{ color: 'var(--accent)' }}>❤️</span>
       </p>
     </div>
