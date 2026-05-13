@@ -41,11 +41,6 @@ export default function ReviewWizard({ draft, audioFile, onCancel }: { draft: Dr
   if (step === 1) return (
     <div style={{ maxWidth: 520, margin: '0 auto', padding: '1.5rem' }}>
       <h2 style={{ fontFamily: 'var(--serif)', color: 'var(--text)', marginBottom: '1rem' }}>Step 1 — Confirm title</h2>
-      {draft.review_flags?.length > 0 && (
-        <div style={{ background: '#FFFBEB', border: '1px solid var(--amber)', borderRadius: 10, padding: '0.75rem 1rem', marginBottom: '1rem', fontSize: '0.82rem', color: 'var(--text2)' }}>
-          {draft.review_flags.map((f, i) => <div key={i}>⚠️ {f}</div>)}
-        </div>
-      )}
       <input value={title} onChange={e => setTitle(e.target.value)} style={{ width: '100%', border: '1px solid var(--border)', borderRadius: 10, padding: '0.7rem', fontSize: '1rem', fontFamily: 'var(--serif)', color: 'var(--text)', background: 'var(--surface)' }} />
       <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.25rem' }}>
         <button onClick={onCancel} style={{ flex: 1, padding: '0.65rem', borderRadius: 10, border: '1px solid var(--border)', background: 'none', cursor: 'pointer', color: 'var(--text2)' }}>Cancel</button>
@@ -99,15 +94,72 @@ export default function ReviewWizard({ draft, audioFile, onCancel }: { draft: Dr
 
   return (
     <div style={{ maxWidth: 520, margin: '0 auto', padding: '1.5rem' }}>
-      <h2 style={{ fontFamily: 'var(--serif)', color: 'var(--text)', marginBottom: '0.5rem' }}>Step 3 — Save memory</h2>
-      <p style={{ color: 'var(--muted)', fontSize: '0.85rem', marginBottom: '1.25rem' }}>
-        &ldquo;{title}&rdquo; will be saved with {ingredients.length} ingredient{ingredients.length !== 1 ? 's' : ''}.
+      <h2 style={{ fontFamily: 'var(--serif)', color: 'var(--text)', marginBottom: '0.35rem' }}>Ready to save</h2>
+      <p style={{ color: 'var(--muted)', fontSize: '0.84rem', marginBottom: '1.25rem', lineHeight: 1.5 }}>
+        This memory will be preserved forever for your family.
       </p>
-      {error && <div style={{ color: 'var(--accent)', fontSize: '0.82rem', marginBottom: '0.75rem' }}>{error}</div>}
+
+      {/* Summary card */}
+      <div style={{ background: 'var(--cream)', border: '1px solid var(--border)', borderRadius: 14, padding: '1.25rem', marginBottom: '1.25rem' }}>
+
+        {/* Title */}
+        <div style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '1.2rem', color: 'var(--text)', marginBottom: '0.65rem' }}>
+          {title || 'Untitled recipe'}
+        </div>
+
+        {/* Stats row */}
+        <div style={{ display: 'flex', gap: '1.25rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
+          {draft.narrator && (
+            <div style={{ fontSize: '0.82rem', color: 'var(--text2)' }}>
+              <span style={{ color: 'var(--muted)' }}>Narrated by </span><strong>{draft.narrator}</strong>
+            </div>
+          )}
+          <div style={{ fontSize: '0.82rem', color: 'var(--text2)' }}>
+            <strong>{ingredients.length}</strong> <span style={{ color: 'var(--muted)' }}>ingredient{ingredients.length !== 1 ? 's' : ''}</span>
+          </div>
+          <div style={{ fontSize: '0.82rem', color: 'var(--text2)' }}>
+            <strong>{steps.length}</strong> <span style={{ color: 'var(--muted)' }}>step{steps.length !== 1 ? 's' : ''}</span>
+          </div>
+        </div>
+
+        {/* Ingredient preview */}
+        {ingredients.length > 0 && (
+          <div style={{ borderTop: '1px solid var(--border)', paddingTop: '0.85rem', marginBottom: steps.length > 0 ? '0.85rem' : 0 }}>
+            <div style={{ fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--muted)', marginBottom: '0.45rem' }}>Ingredients</div>
+            {ingredients.slice(0, 6).map((ing, i) => (
+              <div key={i} style={{ fontSize: '0.82rem', color: 'var(--text2)', marginBottom: '0.18rem' }}>
+                {ing.quantity ? <><strong>{ing.quantity}</strong> {ing.item}</> : ing.item}
+              </div>
+            ))}
+            {ingredients.length > 6 && (
+              <div style={{ fontSize: '0.78rem', color: 'var(--muted)', marginTop: '0.2rem' }}>+ {ingredients.length - 6} more</div>
+            )}
+          </div>
+        )}
+
+        {/* Steps preview */}
+        {steps.length > 0 && (
+          <div style={{ borderTop: '1px solid var(--border)', paddingTop: '0.85rem' }}>
+            <div style={{ fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--muted)', marginBottom: '0.45rem' }}>Method</div>
+            {steps.slice(0, 3).map((s, i) => (
+              <div key={i} style={{ fontSize: '0.82rem', color: 'var(--text2)', marginBottom: '0.3rem', display: 'flex', gap: '0.4rem' }}>
+                <span style={{ fontWeight: 700, color: 'var(--muted)', flexShrink: 0 }}>{i + 1}.</span>
+                <span style={{ lineHeight: 1.4 }}>{s.length > 80 ? s.slice(0, 80) + '…' : s}</span>
+              </div>
+            ))}
+            {steps.length > 3 && (
+              <div style={{ fontSize: '0.78rem', color: 'var(--muted)', marginTop: '0.2rem' }}>+ {steps.length - 3} more steps</div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {error && <div style={{ color: 'var(--accent)', fontSize: '0.82rem', marginBottom: '0.75rem', padding: '0.6rem 0.85rem', background: '#FFF5F5', borderRadius: 8 }}>{error}</div>}
+
       <div style={{ display: 'flex', gap: '0.75rem' }}>
-        <button onClick={() => { setError(''); setStep(2) }} style={{ flex: 1, padding: '0.65rem', borderRadius: 10, border: '1px solid var(--border)', background: 'none', cursor: 'pointer', color: 'var(--text2)' }}>← Back</button>
-        <button onClick={save} disabled={saving} style={{ flex: 2, padding: '0.65rem', borderRadius: 10, background: 'var(--accent)', color: 'white', border: 'none', fontWeight: 600, cursor: 'pointer' }}>
-          {saving ? 'Saving…' : 'Save forever ✓'}
+        <button onClick={() => { setError(''); setStep(2) }} style={{ flex: 1, padding: '0.7rem', borderRadius: 10, border: '1px solid var(--border)', background: 'none', cursor: 'pointer', color: 'var(--text2)' }}>← Edit</button>
+        <button onClick={save} disabled={saving} style={{ flex: 2, padding: '0.7rem', borderRadius: 10, background: saving ? '#C4A882' : 'var(--accent)', color: 'white', border: 'none', fontWeight: 600, cursor: saving ? 'default' : 'pointer' }}>
+          {saving ? 'Saving…' : '♡ Save this memory'}
         </button>
       </div>
     </div>
