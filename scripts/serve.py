@@ -114,7 +114,7 @@ _MAX_AUDIO_BYTES = int(os.environ.get("MAX_AUDIO_BYTES", str(25 * 1024 * 1024)))
 # Allowed file extensions.
 _ALLOWED_AUDIO_EXTS = {
     ".mp3", ".mp4", ".m4a", ".wav", ".webm",
-    ".ogg", ".oga", ".flac", ".aac", ".aiff",
+    ".ogg", ".oga", ".opus", ".flac", ".aac", ".aiff",
 }
 
 # Magic-byte signatures for the same formats.
@@ -149,7 +149,7 @@ def _validate_audio_upload(audio: UploadFile, data: bytes) -> None:
     if ext not in _ALLOWED_AUDIO_EXTS:
         raise HTTPException(
             status_code=400,
-            detail=f"Unsupported file type '{ext}'. Upload MP3, M4A, WAV, WebM, OGG, FLAC, AAC, or MP4.",
+            detail=f"Unsupported file type '{ext}'. Upload MP3, M4A, WAV, WebM, OGG, Opus, FLAC, AAC, or MP4.",
         )
 
     if len(data) > _MAX_AUDIO_BYTES:

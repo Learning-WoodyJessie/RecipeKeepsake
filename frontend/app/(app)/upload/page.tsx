@@ -284,7 +284,7 @@ export default function UploadPage() {
           >
             <input
               type="file"
-              accept="audio/*,.mp3,.m4a,.wav,.ogg,.webm"
+              accept="audio/*,.mp3,.m4a,.wav,.ogg,.opus,.webm"
               style={{ display: 'none' }}
               disabled={processing}
               onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f) }}
@@ -328,7 +328,7 @@ export default function UploadPage() {
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
             </svg>
-            Supported formats: MP3, M4A, WAV &nbsp;•&nbsp; Up to 50MB
+            Supported formats: MP3, M4A, WAV, WebM, Opus &nbsp;•&nbsp; Up to 50MB
           </div>
 
           {/* Privacy badge */}
