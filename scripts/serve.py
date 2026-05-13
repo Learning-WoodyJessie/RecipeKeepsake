@@ -117,6 +117,15 @@ _ALLOWED_AUDIO_EXTS = {
     ".ogg", ".oga", ".opus", ".flac", ".aac", ".aiff",
 }
 
+# Whisper doesn't recognise .opus as an extension even though it's OGG/Opus.
+# Map any such extensions to the equivalent Whisper-accepted extension.
+_WHISPER_EXT_MAP = {".opus": ".ogg"}
+
+
+def _whisper_suffix(ext: str) -> str:
+    """Return the extension Whisper will accept for this audio file."""
+    return _WHISPER_EXT_MAP.get(ext, ext)
+
 # Magic-byte signatures for the same formats.
 # Each entry: (byte_offset, bytes_to_match)
 _MAGIC: list[tuple[int, bytes]] = [
@@ -402,7 +411,7 @@ async def capture_endpoint(audio: UploadFile = File(...), user: dict = Depends(r
     _validate_audio_upload(audio, data)
 
     suffix = Path(audio.filename or "").suffix.lower() or ".webm"
-    with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
+    with tempfile.NamedTemporaryFile(suffix=_whisper_suffix(suffix), delete=False) as tmp:
         tmp.write(data)
         tmp_path = tmp.name
 
@@ -480,7 +489,7 @@ async def capture_process_endpoint(
     _validate_audio_upload(audio, data)
 
     suffix = Path(audio.filename or "").suffix.lower() or ".webm"
-    with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
+    with tempfile.NamedTemporaryFile(suffix=_whisper_suffix(suffix), delete=False) as tmp:
         tmp.write(data)
         tmp_path = tmp.name
 
@@ -543,7 +552,7 @@ async def capture_save_endpoint(
     _validate_audio_upload(audio, data)
 
     suffix = Path(audio.filename or "").suffix.lower() or ".webm"
-    with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
+    with tempfile.NamedTemporaryFile(suffix=_whisper_suffix(suffix), delete=False) as tmp:
         tmp.write(data)
         tmp_path = tmp.name
 
