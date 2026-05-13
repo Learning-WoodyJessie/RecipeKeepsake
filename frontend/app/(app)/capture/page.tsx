@@ -78,6 +78,17 @@ function WaveformDecoration() {
   )
 }
 
+function pickMimeType(): { mimeType: string; ext: string } {
+  const candidates = [
+    { mimeType: 'audio/webm;codecs=opus', ext: '.webm' },
+    { mimeType: 'audio/webm', ext: '.webm' },
+    { mimeType: 'audio/ogg;codecs=opus', ext: '.ogg' },
+    { mimeType: 'audio/mp4', ext: '.mp4' },
+  ]
+  const supported = candidates.find(c => MediaRecorder.isTypeSupported(c.mimeType))
+  return supported ?? { mimeType: '', ext: '.webm' }
+}
+
 export default function CapturePage() {
   const router = useRouter()
   const [mode, setMode] = useState<'ai' | 'direct'>('ai')
@@ -91,6 +102,7 @@ export default function CapturePage() {
   const mrRef = useRef<MediaRecorder | null>(null)
   const chunksRef = useRef<Blob[]>([])
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const extRef = useRef<string>('.webm')
 
   const fmt = (s: number) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`
 
@@ -99,13 +111,15 @@ export default function CapturePage() {
     setError('')
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true }).catch(() => null)
     if (!stream) { setError('Microphone access denied'); setStage('error'); return }
-    const mr = new MediaRecorder(stream, { mimeType: 'audio/webm' })
+    const { mimeType, ext } = pickMimeType()
+    extRef.current = ext
+    const mr = new MediaRecorder(stream, mimeType ? { mimeType } : {})
     mrRef.current = mr
     chunksRef.current = []
     mr.ondataavailable = e => { if (e.data.size > 0) chunksRef.current.push(e.data) }
     mr.onstop = () => {
       stream.getTracks().forEach(t => t.stop())
-      const blob = new Blob(chunksRef.current, { type: 'audio/webm' })
+      const blob = new Blob(chunksRef.current, { type: mr.mimeType })
       if (mode === 'direct') saveAudioDirect(blob)
       else processAudio(blob)
     }
@@ -123,7 +137,7 @@ export default function CapturePage() {
 
   async function processAudio(blob: Blob) {
     const form = new FormData()
-    form.append('audio', blob, 'recording.webm')
+    form.append('audio', blob, `recording${extRef.current}`)
     if (narrator) form.append('narrator', narrator)
     try {
       const result = await api.capture.process(form)
@@ -134,7 +148,7 @@ export default function CapturePage() {
 
   async function saveAudioDirect(blob: Blob) {
     const form = new FormData()
-    form.append('audio', blob, 'recording.webm')
+    form.append('audio', blob, `recording${extRef.current}`)
     form.append('title', title.trim())
     if (narrator) form.append('narrator', narrator)
     if (description.trim()) form.append('description', description.trim())
