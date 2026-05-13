@@ -259,12 +259,13 @@ export default function MemoriesPage() {
   const searchParams = useSearchParams()
   const q = searchParams.get('q') ?? ''
   const narratorParam = searchParams.get('narrator') ?? ''
+  const typeParam = searchParams.get('type') ?? ''
 
   const [memories, setMemories] = useState<Memory[]>([])
   const [people, setPeople] = useState<Person[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [filter, setFilter] = useState('All')
+  const [filter, setFilter] = useState(typeParam === 'audio' ? 'audio' : 'All')
   const [sort, setSort] = useState('Recently added')
   const [favTick, setFavTick] = useState(0)
 
@@ -328,8 +329,9 @@ export default function MemoriesPage() {
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap', marginBottom: '0.5rem' }}>
                   <h1 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.6rem, 3vw, 2rem)', fontWeight: 700, color: 'var(--text)', margin: 0, display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-                    All Recipes <span style={{ color: 'var(--accent)' }}>♡</span>
+                    {typeParam === 'audio' ? 'Songs & Audio' : 'All Recipes'} <span style={{ color: 'var(--accent)' }}>{typeParam === 'audio' ? '♪' : '♡'}</span>
                   </h1>
+                  {typeParam !== 'audio' && (
                   <Link
                     href="/capture"
                     style={{
@@ -350,6 +352,29 @@ export default function MemoriesPage() {
                   >
                     + Add Recipe
                   </Link>
+                  )}
+                  {typeParam === 'audio' && (
+                  <Link
+                    href="/upload"
+                    style={{
+                      background: 'var(--accent)',
+                      color: 'white',
+                      textDecoration: 'none',
+                      padding: '0.45rem 1rem',
+                      borderRadius: 10,
+                      fontSize: '0.82rem',
+                      fontWeight: 700,
+                      whiteSpace: 'nowrap',
+                      flexShrink: 0,
+                      boxShadow: '0 2px 8px rgba(196,82,42,0.22)',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.3rem',
+                    }}
+                  >
+                    + Upload Audio
+                  </Link>
+                  )}
                 </div>
                 <p style={{ fontSize: '0.9rem', color: 'var(--muted)', lineHeight: 1.6, maxWidth: 360 }}>
                   Timeless recipes, lovingly shared by the people who made our moments special.

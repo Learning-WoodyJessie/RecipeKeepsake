@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { EchoesLogoMark } from '@/components/EchoesLogoMark'
 import { useEffect, useState } from 'react'
@@ -54,6 +54,11 @@ const Icon = {
       <polyline points="6 9 12 15 18 9" />
     </svg>
   ),
+  music: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+    </svg>
+  ),
 }
 
 const GROUP_LABEL: React.CSSProperties = {
@@ -68,6 +73,7 @@ const GROUP_LABEL: React.CSSProperties = {
 
 export default function Sidebar({ isOpen = false, onClose }: { isOpen?: boolean; onClose?: () => void }) {
   const path = usePathname()
+  const searchParams = useSearchParams()
   const router = useRouter()
   const [profile, setProfile] = useState({ initial: '?', label: 'Account' })
 
@@ -83,8 +89,35 @@ export default function Sidebar({ isOpen = false, onClose }: { isOpen?: boolean;
     })
   }, [])
 
+  function navLinkAudio(href: string, label: string, icon: React.ReactNode) {
+    const active = pathMatches(path, '/memories') && searchParams.get('type') === 'audio'
+    return (
+      <Link
+        key={href}
+        href={href}
+        onClick={onClose}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.6rem',
+          padding: '0.52rem 0.75rem',
+          borderRadius: 10,
+          fontSize: '0.85rem',
+          fontWeight: active ? 600 : 500,
+          color: active ? 'var(--accent)' : 'var(--text2)',
+          background: active ? 'var(--accent-light)' : 'transparent',
+          textDecoration: 'none',
+          marginBottom: 2,
+        }}
+      >
+        <span style={{ opacity: active ? 1 : 0.65, flexShrink: 0 }}>{icon}</span>
+        {label}
+      </Link>
+    )
+  }
+
   function navLink(href: string, label: string, icon: React.ReactNode, danger = false) {
-    const active = pathMatches(path, href)
+    const active = pathMatches(path, href) && !(href === '/memories' && searchParams.get('type') === 'audio')
     return (
       <Link
         key={href}
@@ -194,6 +227,7 @@ export default function Sidebar({ isOpen = false, onClose }: { isOpen?: boolean;
 
         <div style={GROUP_LABEL}>Memories</div>
         {navLink('/memories', 'All Recipes', Icon.book)}
+        {navLinkAudio('/memories?type=audio', 'Songs & Audio', Icon.music)}
 
         <div style={GROUP_LABEL}>Record</div>
         {navLink('/capture', 'Capture a Memory', Icon.mic)}
