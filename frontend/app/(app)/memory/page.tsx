@@ -99,11 +99,16 @@ function MemoryDetail() {
     saveTimer.current = setTimeout(() => patchField(patch), 1200)
   }
 
-  function handleTitleBlur() {
+  function handleTitleSave() {
     setEditingTitle(false)
     if (memory && titleValue !== memory.dish_name) {
       patchField({ dish_name: titleValue })
     }
+  }
+
+  function handleTitleCancel() {
+    setEditingTitle(false)
+    setTitleValue(memory?.dish_name ?? '')
   }
 
   function toggleFavorite() {
@@ -142,50 +147,93 @@ function MemoryDetail() {
       {/* ── Header ── */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '1rem', gap: '1rem' }}>
         <div style={{ flex: 1, minWidth: 0 }}>
-          {/* Title row — heart toggle lives here, inline and unobtrusive */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            {audio && editingTitle ? (
+          {/* Title row */}
+          {audio && editingTitle ? (
+            /* ── Edit mode: input + Save + Cancel ── */
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
               <input
                 autoFocus
                 value={titleValue}
                 onChange={e => setTitleValue(e.target.value)}
-                onBlur={handleTitleBlur}
-                onKeyDown={e => { if (e.key === 'Enter') handleTitleBlur() }}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') handleTitleSave()
+                  if (e.key === 'Escape') handleTitleCancel()
+                }}
                 style={{
-                  fontFamily: 'var(--serif)', fontSize: '1.8rem', fontWeight: 700,
-                  color: 'var(--text)', border: 'none', borderBottom: '2px solid var(--accent)',
-                  background: 'transparent', outline: 'none', flex: 1, padding: '0.1rem 0',
+                  fontFamily: 'var(--serif)', fontSize: '1.6rem', fontWeight: 700,
+                  color: 'var(--text)', border: '1px solid var(--accent)',
+                  borderRadius: 8, background: 'var(--surface)',
+                  outline: 'none', flex: 1, padding: '0.3rem 0.6rem',
+                  minWidth: 0,
                 }}
               />
-            ) : (
-              <h1
-                onClick={() => audio && setEditingTitle(true)}
+              <button
+                onClick={handleTitleSave}
                 style={{
-                  fontFamily: 'var(--serif)', fontSize: '1.8rem', color: 'var(--text)',
-                  cursor: audio ? 'text' : 'default',
-                  display: 'inline-block', marginBottom: 0, flex: 1,
+                  background: 'var(--accent)', color: 'white', border: 'none',
+                  borderRadius: 8, padding: '0.4rem 0.85rem', cursor: 'pointer',
+                  fontSize: '0.82rem', fontWeight: 700, flexShrink: 0,
+                  display: 'flex', alignItems: 'center', gap: '0.3rem',
                 }}
-                title={audio ? 'Click to rename' : undefined}
               >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                Save
+              </button>
+              <button
+                onClick={handleTitleCancel}
+                style={{
+                  background: 'none', color: 'var(--muted)', border: '1px solid var(--border)',
+                  borderRadius: 8, padding: '0.4rem 0.7rem', cursor: 'pointer',
+                  fontSize: '0.82rem', fontWeight: 600, flexShrink: 0,
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          ) : (
+            /* ── View mode: title + pencil icon + heart ── */
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <h1 style={{ fontFamily: 'var(--serif)', fontSize: '1.8rem', color: 'var(--text)', margin: 0, flex: 1, minWidth: 0 }}>
                 {titleValue || 'Untitled'}
-                {audio && <span style={{ fontSize: '0.75rem', color: 'var(--muted)', marginLeft: '0.4rem', fontFamily: 'var(--sans)', fontWeight: 400 }}>✎</span>}
               </h1>
-            )}
 
-            {/* Heart — small, next to title */}
-            <button
-              onClick={toggleFavorite}
-              aria-label={favorite ? 'Remove from favorites' : 'Add to favorites'}
-              style={{
-                background: 'none', border: 'none', cursor: 'pointer', flexShrink: 0,
-                fontSize: '1.4rem', lineHeight: 1, padding: '4px',
-                color: favorite ? 'var(--accent)' : 'var(--border2)',
-                transition: 'color 0.15s',
-              }}
-            >
-              {favorite ? '♥' : '♡'}
-            </button>
-          </div>
+              {/* Pencil edit button — audio only */}
+              {audio && (
+                <button
+                  onClick={() => setEditingTitle(true)}
+                  aria-label="Edit title"
+                  title="Edit title"
+                  style={{
+                    background: 'none', border: '1px solid var(--border)', borderRadius: 7,
+                    padding: '5px 7px', cursor: 'pointer', flexShrink: 0,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: 'var(--muted)',
+                  }}
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                  </svg>
+                </button>
+              )}
+
+              {/* Heart */}
+              <button
+                onClick={toggleFavorite}
+                aria-label={favorite ? 'Remove from favorites' : 'Add to favorites'}
+                style={{
+                  background: 'none', border: 'none', cursor: 'pointer', flexShrink: 0,
+                  fontSize: '1.4rem', lineHeight: 1, padding: '4px',
+                  color: favorite ? 'var(--accent)' : 'var(--border2)',
+                  transition: 'color 0.15s',
+                }}
+              >
+                {favorite ? '♥' : '♡'}
+              </button>
+            </div>
+          )}
 
           <p style={{ color: 'var(--muted)', fontSize: '0.82rem', marginTop: '0.3rem' }}>
             {memory.narrator} · {new Date(memory.recorded_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
