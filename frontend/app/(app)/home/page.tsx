@@ -110,7 +110,7 @@ function HeroCard({ userName }: { userName: string }) {
           <p style={{ fontSize: '0.88rem', color: 'var(--muted)', lineHeight: 1.55, marginBottom: '1.2rem' }}>
             Every recipe has a story.<br />Every memory keeps her close.
           </p>
-          <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap' }}>
+          <div className="rk-action-tiles">
             <ActionTile
               href="/capture"
               icon={<MicIcon />}
@@ -155,6 +155,7 @@ function ActionTile({
   return (
     <Link
       href={href}
+      className="rk-action-tile"
       style={{
         textDecoration: 'none',
         display: 'flex',
@@ -256,7 +257,7 @@ function FavoritesScroll({
           <Link href="/capture" style={{ color: 'var(--accent)', fontWeight: 600 }}>capture the first one</Link>
         </div>
       ) : (
-        <div style={{ display: 'flex', gap: '0.85rem', overflowX: 'auto', paddingBottom: '0.5rem', scrollbarWidth: 'none', width: '100%', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
+        <div className="rk-favscroll-wrap">
           {sorted.map((m) => (
             <FavoriteCard key={m.token} memory={m} isFav={favTokens.includes(m.token)} onToggle={() => onToggle(m.token)} narratorPhoto={peopleMap[m.narrator?.toLowerCase() ?? ''] ?? ''} />
           ))}
@@ -552,7 +553,7 @@ export default function HomePage() {
   }
 
   return (
-    <div style={{ padding: '1.5rem 1.75rem 2.5rem', overflowX: 'hidden' }}>
+    <div style={{ padding: 'clamp(1rem, 3vw, 1.75rem) clamp(0.85rem, 3vw, 1.75rem) 2.5rem', overflowX: 'hidden' }}>
       <style>{`
         .rk-home-cols {
           display: grid;
@@ -561,14 +562,29 @@ export default function HomePage() {
           max-width: 1200px;
           margin: 0 auto;
         }
-        @media (max-width: 600px) {
-          .rk-home-cols { padding: 0; }
-        }
         @media (min-width: 860px) {
           .rk-home-cols { grid-template-columns: 1fr 272px; align-items: start; }
         }
         .rk-hero-photo { display: none; }
         @media (min-width: 700px) { .rk-hero-photo { display: block !important; } }
+        .rk-action-tiles {
+          display: flex;
+          gap: 0.65rem;
+          flex-wrap: wrap;
+        }
+        @media (max-width: 480px) {
+          .rk-action-tiles { flex-direction: column; }
+          .rk-action-tile { max-width: 100% !important; width: 100% !important; min-width: 0 !important; }
+        }
+        .rk-favscroll-wrap {
+          display: flex;
+          gap: 0.85rem;
+          overflow-x: auto;
+          padding-bottom: 0.5rem;
+          scrollbar-width: none;
+          -webkit-overflow-scrolling: touch;
+        }
+        .rk-favscroll-wrap::-webkit-scrollbar { display: none; }
       `}</style>
 
       <div className="rk-home-cols">
