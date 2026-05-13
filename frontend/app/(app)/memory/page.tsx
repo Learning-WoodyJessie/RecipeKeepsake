@@ -28,6 +28,10 @@ type Memory = {
   tags: string[] | null
 }
 
+function isAudioMemory(m: Memory) {
+  return (m.tags ?? []).includes('audio')
+}
+
 const CATEGORIES = ['Breakfast', 'Lunch', 'Sweets', 'Pickles', 'Snacks', 'Drinks', 'Other'] as const
 
 function MemoryDetail() {
@@ -201,7 +205,16 @@ function MemoryDetail() {
         </section>
       )}
 
-      {(memory.transcript_raw || memory.transcript_english) && (
+      {isAudioMemory(memory) && memory.transcript_english && (
+        <section style={{ marginBottom: '1.25rem' }}>
+          <h2 style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--muted)', marginBottom: '0.5rem' }}>Description</h2>
+          <p style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: '0.85rem', fontSize: '0.88rem', color: 'var(--text2)', lineHeight: 1.7 }}>
+            {memory.transcript_english}
+          </p>
+        </section>
+      )}
+
+      {!isAudioMemory(memory) && (memory.transcript_raw || memory.transcript_english) && (
         <details style={{ marginBottom: '1.25rem' }}>
           <summary style={{ cursor: 'pointer', fontSize: '0.82rem', color: 'var(--muted)', marginBottom: '0.5rem' }}>Full transcript</summary>
           {memory.transcript_raw && (

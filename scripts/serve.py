@@ -630,9 +630,9 @@ async def save_audio_endpoint(
             "tags": ["audio"],
             "ingredients": [],
             "steps": [],
-            "cook_notes": description.strip(),
+            "cook_notes": "",
             "transcript_raw": "",
-            "transcript_english": "",
+            "transcript_english": description.strip(),
         })
 
         audio_url = _sign_audio(row.get("audio_url", ""), _sb())
