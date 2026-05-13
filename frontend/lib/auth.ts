@@ -16,7 +16,7 @@ export async function signInWithApple(): Promise<void> {
     const nonce = Math.random().toString(36).substring(2, 18)
     const result = await SignInWithApple.authorize({
       clientId: 'com.echoesofhome.app',
-      redirectURI: 'https://vibrant-spontaneity-production-9f92.up.railway.app/auth/callback',
+      redirectURI: 'https://theechoesofhome.com/auth/callback',
       scopes: 'email name',
       nonce,
     })

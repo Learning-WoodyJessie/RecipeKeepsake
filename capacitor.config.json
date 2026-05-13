@@ -3,7 +3,7 @@
   "appName": "Echoes of Home",
   "webDir": "frontend/out",
   "server": {
-    "url": "https://vibrant-spontaneity-production-9f92.up.railway.app",
+    "url": "https://theechoesofhome.com",
     "cleartext": false,
     "androidScheme": "https"
   },
