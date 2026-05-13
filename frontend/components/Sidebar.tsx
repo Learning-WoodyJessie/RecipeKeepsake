@@ -227,7 +227,7 @@ export default function Sidebar({ isOpen = false, onClose }: { isOpen?: boolean;
 
         <div style={GROUP_LABEL}>Memories</div>
         {navLink('/memories', 'All Recipes', Icon.book)}
-        {navLinkAudio('/memories?type=audio', 'Songs & Audio', Icon.music)}
+        {navLinkAudio('/memories?type=audio', 'Voices from Home', Icon.music)}
 
         <div style={GROUP_LABEL}>Record</div>
         {navLink('/capture', 'Capture a Memory', Icon.mic)}
