@@ -200,69 +200,39 @@ function FavoritesScroll({
   memories,
   favTokens,
   onToggle,
-  sortBy,
-  onSortChange,
   peopleMap,
 }: {
   memories: Memory[]
   favTokens: string[]
   onToggle: (token: string) => void
-  sortBy: 'favorites' | 'recent'
-  onSortChange: (v: 'favorites' | 'recent') => void
   peopleMap: Record<string, string>
 }) {
-  const sorted = useMemo(() => {
-    if (sortBy === 'favorites') {
-      const favs = memories.filter((m) => favTokens.includes(m.token))
-      const rest = memories.filter((m) => !favTokens.includes(m.token))
-      return [...favs, ...rest]
-    }
-    return [...memories]
-  }, [memories, favTokens, sortBy])
+  // Only show memories the user has actually hearted
+  const favMemories = useMemo(
+    () => memories.filter((m) => favTokens.includes(m.token)),
+    [memories, favTokens],
+  )
 
   return (
     <section style={{ marginBottom: '1.75rem' }}>
       {/* Section header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.85rem', flexWrap: 'wrap', gap: '0.5rem' }}>
         <h2 style={{ fontFamily: 'var(--serif)', fontSize: '1.05rem', fontWeight: 600, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-          Your favorites <span aria-hidden style={{ color: 'var(--accent)' }}>♡</span>
+          Your favorites <span aria-hidden style={{ color: 'var(--accent)' }}>♥</span>
         </h2>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-          <label style={{ fontSize: '0.75rem', color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-            Sort by:
-            <select
-              value={sortBy}
-              onChange={(e) => onSortChange(e.target.value as 'favorites' | 'recent')}
-              style={{
-                border: '1px solid var(--border)',
-                borderRadius: 8,
-                padding: '0.25rem 0.55rem',
-                fontSize: '0.75rem',
-                background: 'var(--surface)',
-                color: 'var(--accent)',
-                fontWeight: 600,
-                cursor: 'pointer',
-              }}
-            >
-              <option value="favorites">Favorites</option>
-              <option value="recent">Recent</option>
-            </select>
-          </label>
-          <Link href="/memories" style={{ fontSize: '0.78rem', color: 'var(--accent)', textDecoration: 'none', fontWeight: 500, whiteSpace: 'nowrap' }}>
-            View all ›
-          </Link>
-        </div>
+        <Link href="/memories" style={{ fontSize: '0.78rem', color: 'var(--accent)', textDecoration: 'none', fontWeight: 500, whiteSpace: 'nowrap' }}>
+          View all ›
+        </Link>
       </div>
 
-      {sorted.length === 0 ? (
-        <div style={{ padding: '1.5rem', borderRadius: 14, background: 'var(--surface)', border: '1px dashed var(--border2)', color: 'var(--muted)', fontSize: '0.88rem', textAlign: 'center' }}>
-          No memories yet —{' '}
-          <Link href="/capture" style={{ color: 'var(--accent)', fontWeight: 600 }}>capture the first one</Link>
+      {favMemories.length === 0 ? (
+        <div style={{ padding: '1.25rem 1rem', borderRadius: 14, background: 'var(--surface)', border: '1px dashed var(--border2)', color: 'var(--muted)', fontSize: '0.85rem', textAlign: 'center', lineHeight: 1.55 }}>
+          Tap ♡ on any memory to save it here
         </div>
       ) : (
         <div className="rk-favscroll-wrap">
-          {sorted.map((m) => (
-            <FavoriteCard key={m.token} memory={m} isFav={favTokens.includes(m.token)} onToggle={() => onToggle(m.token)} narratorPhoto={peopleMap[m.narrator?.toLowerCase() ?? ''] ?? ''} />
+          {favMemories.map((m) => (
+            <FavoriteCard key={m.token} memory={m} isFav onToggle={() => onToggle(m.token)} narratorPhoto={peopleMap[m.narrator?.toLowerCase() ?? ''] ?? ''} />
           ))}
         </div>
       )}
@@ -380,7 +350,6 @@ function MemoryRow({
   onToggle: () => void
   photoUrl: string
 }) {
-  const duration = pseudoDuration(memory.token)
   const narr = memory.narrator ?? 'Narrator'
   const title = memory.dish_name ?? 'Untitled memory'
   const initial = narr[0]?.toUpperCase() ?? '?'
@@ -390,47 +359,55 @@ function MemoryRow({
       style={{
         display: 'flex',
         alignItems: 'center',
-        gap: '0.85rem',
-        padding: '0.75rem 1rem',
+        gap: '0.75rem',
+        padding: '0.7rem 0.85rem',
         background: 'var(--surface)',
         border: '1px solid var(--border)',
         borderRadius: 14,
+        position: 'relative',
       }}
     >
+      {/* Whole-card tap target (sits behind interactive buttons) */}
+      <Link
+        href={`/memory?token=${memory.token}`}
+        aria-label={`Open ${title}`}
+        style={{ position: 'absolute', inset: 0, borderRadius: 14, zIndex: 0 }}
+      />
+
       {/* Narrator avatar */}
-      <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'var(--accent-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0 }}>
+      <div style={{ width: 42, height: 42, borderRadius: '50%', background: 'var(--accent-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0, zIndex: 1 }}>
         {photoUrl
           ? <img src={photoUrl} alt={narr} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-          : <span style={{ fontFamily: 'var(--serif)', fontWeight: 700, color: 'var(--accent)', fontSize: '1.1rem' }}>{initial}</span>
+          : <span style={{ fontFamily: 'var(--serif)', fontWeight: 700, color: 'var(--accent)', fontSize: '1.05rem' }}>{initial}</span>
         }
       </div>
-      {/* Name + waveform */}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ fontFamily: 'var(--serif)', fontWeight: 600, color: 'var(--text)', fontSize: '0.95rem', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-          {isAudio(memory) && <span style={{ fontSize: '0.75rem', color: 'var(--accent)', flexShrink: 0 }}>♪</span>}
+
+      {/* Name + meta + waveform */}
+      <div style={{ flex: 1, minWidth: 0, zIndex: 1 }}>
+        <p style={{ fontFamily: 'var(--serif)', fontWeight: 600, color: 'var(--text)', fontSize: '0.9rem', marginBottom: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+          {isAudio(memory) && <span style={{ fontSize: '0.72rem', color: 'var(--accent)', flexShrink: 0 }}>♪</span>}
           {title}
         </p>
-        <p style={{ fontSize: '0.72rem', color: 'var(--muted)', marginBottom: 6 }}>{narr} · {fmtDate(memory.recorded_at)}</p>
-        <WaveformBars token={memory.token} barCount={22} />
+        <p style={{ fontSize: '0.7rem', color: 'var(--muted)', marginBottom: 5 }}>{narr} · {fmtDate(memory.recorded_at)}</p>
+        <WaveformBars token={memory.token} barCount={18} />
       </div>
-      {/* Duration */}
-      <span style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--text2)', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>{duration}</span>
-      {/* Heart */}
+
+      {/* Heart — above the link overlay */}
       <button
         type="button"
-        onClick={onToggle}
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggle() }}
         aria-label={isFav ? 'Remove from favorites' : 'Add to favorites'}
-        style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.05rem', lineHeight: 1, color: isFav ? 'var(--accent)' : 'var(--muted)', flexShrink: 0 }}
+        style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem', lineHeight: 1, color: isFav ? 'var(--accent)' : 'var(--border2)', flexShrink: 0, zIndex: 1, padding: '4px' }}
       >
         {isFav ? '♥' : '♡'}
       </button>
-      {/* Play — outline circle */}
-      <Link
-        href={`/memory?token=${memory.token}`}
-        aria-label={`Play ${title}`}
+
+      {/* Play circle */}
+      <div
+        aria-hidden
         style={{
-          width: 36,
-          height: 36,
+          width: 34,
+          height: 34,
           borderRadius: '50%',
           border: '2px solid var(--accent)',
           color: 'var(--accent)',
@@ -438,13 +415,14 @@ function MemoryRow({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          textDecoration: 'none',
-          fontSize: '0.75rem',
+          fontSize: '0.7rem',
           flexShrink: 0,
+          zIndex: 1,
+          pointerEvents: 'none',
         }}
       >
         ▶
-      </Link>
+      </div>
     </div>
   )
 }
@@ -527,7 +505,6 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [favTick, setFavTick] = useState(0)
-  const [sortBy, setSortBy] = useState<'favorites' | 'recent'>('favorites')
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => setUserName(firstName(user)))
@@ -570,7 +547,7 @@ export default function HomePage() {
   }
 
   return (
-    <div style={{ padding: 'clamp(1rem, 3vw, 1.75rem) clamp(0.85rem, 3vw, 1.75rem) 2.5rem', overflowX: 'hidden' }}>
+    <div style={{ padding: 'clamp(0.85rem, 3vw, 1.75rem) clamp(0.75rem, 3vw, 1.75rem) 2.5rem', overflowX: 'hidden' }}>
       <style>{`
         .rk-home-cols {
           display: grid;
@@ -612,8 +589,6 @@ export default function HomePage() {
             memories={memories}
             favTokens={favTokens}
             onToggle={toggleFavorite}
-            sortBy={sortBy}
-            onSortChange={setSortBy}
             peopleMap={peopleMap}
           />
           {recentRows.length > 0 && (
