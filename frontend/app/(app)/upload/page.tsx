@@ -170,10 +170,12 @@ export default function UploadPage() {
           <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
             <CassetteHero />
             <h1 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.5rem, 3vw, 2rem)', fontWeight: 700, color: 'var(--text)', marginBottom: '0.65rem', lineHeight: 1.2 }}>
-              Bring grandma&apos;s voice back to life
+              {mode === 'direct' ? 'Preserve a song or poem forever' : 'Bring grandma’s voice back to life'}
             </h1>
             <p style={{ color: 'var(--muted)', fontSize: '0.9rem', lineHeight: 1.6, maxWidth: 440, margin: '0 auto' }}>
-              Upload a recording and we&apos;ll turn it into<br />a recipe memory you can keep forever.
+              {mode === 'direct'
+                ? <>Upload the audio and we&apos;ll keep it safe —<br />just as it was recorded.</>
+                : <>Upload a recording and we&apos;ll turn it into<br />a recipe memory you can keep forever.</>}
             </p>
           </div>
 
@@ -199,7 +201,7 @@ export default function UploadPage() {
                   transition: 'all 0.15s',
                 }}
               >
-                {m === 'ai' ? '✨ Process with AI' : '💾 Save directly'}
+                {m === 'ai' ? '🎙 A recipe narration' : '🎵 A song or poem'}
               </button>
             ))}
           </div>
@@ -290,10 +292,10 @@ export default function UploadPage() {
             {processing ? (
               <div>
                 <p style={{ fontSize: '1.1rem', color: 'var(--text2)', marginBottom: '0.5rem' }}>
-                  {mode === 'direct' ? '⏳ Saving…' : '⏳ Processing…'}
+                  {mode === 'direct' ? '♪ Saving your keepsake…' : '✨ Listening carefully…'}
                 </p>
                 <p style={{ fontSize: '0.82rem', color: 'var(--muted)' }}>
-                  {mode === 'direct' ? 'Uploading your audio — just a moment' : 'Transcribing, translating, and structuring — about 30–60 seconds'}
+                  {mode === 'direct' ? 'Your audio is being preserved — just a moment' : 'Transcribing, translating, and structuring — about 30–60 seconds'}
                 </p>
               </div>
             ) : (
@@ -311,7 +313,7 @@ export default function UploadPage() {
                   or click anywhere to upload
                 </p>
                 <p style={{ fontSize: '0.78rem', color: 'var(--accent)', fontWeight: 500 }}>
-                  {mode === 'direct' ? '💾 Saved instantly — no AI processing' : '✦ Best results with clear voice recordings'}
+                  {mode === 'direct' ? '♪ Kept exactly as it is — a gift for the family' : '✦ Best results with clear voice recordings'}
                 </p>
               </>
             )}
