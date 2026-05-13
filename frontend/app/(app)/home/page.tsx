@@ -573,8 +573,8 @@ export default function HomePage() {
           flex-wrap: wrap;
         }
         @media (max-width: 480px) {
-          .rk-action-tiles { flex-direction: column; }
-          .rk-action-tile { max-width: 100% !important; width: 100% !important; min-width: 0 !important; }
+          .rk-action-tiles { flex-direction: column; gap: 0.5rem; }
+          .rk-action-tile { max-width: 100% !important; min-width: 0 !important; flex: 0 0 auto !important; padding: 0.6rem 0.85rem !important; }
         }
         .rk-favscroll-wrap {
           display: flex;
