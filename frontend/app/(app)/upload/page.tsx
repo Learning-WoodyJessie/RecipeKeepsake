@@ -32,7 +32,7 @@ const TIPS_AUDIO = [
   {
     icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>,
     title: 'Any format works',
-    desc: 'MP3, M4A, Opus, WAV — upload whatever your app exported.',
+    desc: 'MP3, M4A, AAC, WAV, FLAC, OGG, Opus, WebM, AIFF — upload whatever your app exported.',
   },
   {
     icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>,
@@ -45,6 +45,53 @@ const TIPS_AUDIO = [
     desc: 'Once saved, share via WhatsApp with one tap.',
   },
 ]
+
+const FORMATS = [
+  { ext: 'MP3', note: 'Most common — works everywhere' },
+  { ext: 'M4A', note: 'iPhone voice memos default' },
+  { ext: 'AAC', note: 'Apple / iTunes exports' },
+  { ext: 'WAV', note: 'Uncompressed, highest quality' },
+  { ext: 'FLAC', note: 'Lossless compressed' },
+  { ext: 'OGG / OGA', note: 'Open format' },
+  { ext: 'Opus', note: 'WhatsApp voice notes' },
+  { ext: 'WebM', note: 'Browser recordings' },
+  { ext: 'AIFF', note: 'Mac / GarageBand' },
+  { ext: 'MP4', note: 'Video with audio track' },
+]
+
+function FormatsDropdown() {
+  const [open, setOpen] = useState(false)
+  return (
+    <div style={{ marginBottom: '1rem' }}>
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)', fontSize: '0.8rem', padding: '0.25rem 0', margin: '0 auto' }}
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+        </svg>
+        Audio formats supported
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
+      {open && (
+        <div style={{ marginTop: '0.5rem', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '0.75rem 1rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.35rem 1.5rem' }}>
+          {FORMATS.map(f => (
+            <div key={f.ext} style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem' }}>
+              <span style={{ fontWeight: 700, fontSize: '0.78rem', color: 'var(--accent)', minWidth: 52 }}>{f.ext}</span>
+              <span style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>{f.note}</span>
+            </div>
+          ))}
+          <div style={{ gridColumn: '1 / -1', borderTop: '1px solid var(--border)', marginTop: '0.35rem', paddingTop: '0.35rem', fontSize: '0.75rem', color: 'var(--muted)' }}>
+            Max file size: 50 MB
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
 
 // Cassette illustration using SVG
 function CassetteHero() {
@@ -292,7 +339,7 @@ export default function UploadPage() {
           >
             <input
               type="file"
-              accept="audio/*,.mp3,.m4a,.wav,.ogg,.opus,.webm"
+              accept="audio/*,.mp3,.mp4,.m4a,.wav,.webm,.ogg,.oga,.opus,.flac,.aac,.aiff"
               style={{ display: 'none' }}
               disabled={processing}
               onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f) }}
@@ -331,13 +378,8 @@ export default function UploadPage() {
             <p style={{ color: 'var(--accent)', marginBottom: '0.75rem', fontSize: '0.82rem' }}>{error}</p>
           )}
 
-          {/* Formats */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--muted)', fontSize: '0.8rem', marginBottom: '1rem', justifyContent: 'center' }}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
-            </svg>
-            Supported formats: MP3, M4A, WAV, WebM, Opus &nbsp;•&nbsp; Up to 50MB
-          </div>
+          {/* Formats dropdown */}
+          <FormatsDropdown />
 
           {/* Privacy badge */}
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.85rem', padding: '1rem 1.25rem', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14 }}>
