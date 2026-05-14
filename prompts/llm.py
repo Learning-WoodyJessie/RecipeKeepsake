@@ -18,7 +18,7 @@ class OpenAIProvider(LLMProvider):
             self._client = OpenAI()
         return self._client
 
-    def generate(self, system: str, user: str, json_mode: bool = False) -> str:
+    def generate(self, system: str, user: str, json_mode: bool = False, temperature: float | None = None) -> str:
         kwargs = dict(
             model=self.model,
             messages=[
@@ -26,6 +26,8 @@ class OpenAIProvider(LLMProvider):
                 {"role": "user", "content": user},
             ],
         )
+        if temperature is not None:
+            kwargs["temperature"] = temperature
         if json_mode:
             kwargs["response_format"] = {"type": "json_object"}
         response = self.client.chat.completions.create(**kwargs)

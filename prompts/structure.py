@@ -26,7 +26,7 @@ Rules:
 
 def structure_recipe(english_text: str, provider: LLMProvider) -> dict:
     """Call B: extract structured recipe dict from English narration text."""
-    raw = provider.generate(system=STRUCTURE_SYSTEM, user=english_text, json_mode=True).strip()
+    raw = provider.generate(system=STRUCTURE_SYSTEM, user=english_text, json_mode=True, temperature=0).strip()
     # Strip markdown fences as fallback (some model versions still add them)
     if raw.startswith("```"):
         parts = raw.split("```")
