@@ -76,6 +76,7 @@ export default function Sidebar({ isOpen = false, onClose }: { isOpen?: boolean;
   const searchParams = useSearchParams()
   const router = useRouter()
   const [profile, setProfile] = useState({ initial: '?', label: 'Account' })
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false)
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -243,90 +244,106 @@ export default function Sidebar({ isOpen = false, onClose }: { isOpen?: boolean;
             <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
           </svg>
         ))}
-
-        <div style={GROUP_LABEL}>Account</div>
-        <button
-          type="button"
-          onClick={() => supabase.auth.signOut()}
-          style={{
-            display: 'flex',
-            width: '100%',
-            alignItems: 'center',
-            gap: '0.6rem',
-            padding: '0.52rem 0.75rem',
-            borderRadius: 10,
-            fontSize: '0.85rem',
-            fontWeight: 500,
-            color: 'var(--text2)',
-            background: 'transparent',
-            border: 'none',
-            cursor: 'pointer',
-            textAlign: 'left',
-            marginBottom: 2,
-          }}
-        >
-          <span style={{ opacity: 0.65, flexShrink: 0 }}>{Icon.signout}</span>
-          Sign out
-        </button>
-        <Link
-          href="/account"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.6rem',
-            padding: '0.52rem 0.75rem',
-            borderRadius: 10,
-            fontSize: '0.85rem',
-            fontWeight: 500,
-            color: 'var(--accent)',
-            textDecoration: 'none',
-          }}
-        >
-          <span style={{ flexShrink: 0 }}>{Icon.trash}</span>
-          Delete account
-        </Link>
       </nav>
 
       {/* ── Profile footer ── */}
-      <button
-        type="button"
-        onClick={() => router.push('/account')}
-        style={{
-          margin: '0 0.75rem 1rem',
-          padding: '0.6rem 0.75rem',
-          borderRadius: 12,
-          border: '1px solid var(--border)',
-          background: 'var(--cream)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.65rem',
-          cursor: 'pointer',
-          textAlign: 'left',
-        }}
-      >
-        <div
+      <div style={{ margin: '0 0.75rem 1rem', position: 'relative' }}>
+        {/* Dropdown menu */}
+        {profileMenuOpen && (
+          <>
+            {/* Backdrop to close on outside click */}
+            <div
+              style={{ position: 'fixed', inset: 0, zIndex: 40 }}
+              onClick={() => setProfileMenuOpen(false)}
+            />
+            <div
+              style={{
+                position: 'absolute',
+                bottom: 'calc(100% + 8px)',
+                left: 0,
+                right: 0,
+                background: 'var(--surface)',
+                border: '1px solid var(--border)',
+                borderRadius: 12,
+                boxShadow: '0 4px 20px rgba(0,0,0,0.12)',
+                zIndex: 50,
+                overflow: 'hidden',
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => { setProfileMenuOpen(false); router.push('/account') }}
+                style={{
+                  display: 'flex', width: '100%', alignItems: 'center', gap: '0.6rem',
+                  padding: '0.65rem 0.9rem', background: 'none', border: 'none',
+                  cursor: 'pointer', textAlign: 'left', fontSize: '0.85rem',
+                  fontWeight: 500, color: 'var(--text2)',
+                  borderBottom: '1px solid var(--border)',
+                }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.65, flexShrink: 0 }}>
+                  <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+                </svg>
+                Account settings
+              </button>
+              <button
+                type="button"
+                onClick={() => { setProfileMenuOpen(false); supabase.auth.signOut() }}
+                style={{
+                  display: 'flex', width: '100%', alignItems: 'center', gap: '0.6rem',
+                  padding: '0.65rem 0.9rem', background: 'none', border: 'none',
+                  cursor: 'pointer', textAlign: 'left', fontSize: '0.85rem',
+                  fontWeight: 500, color: 'var(--text2)',
+                }}
+              >
+                <span style={{ opacity: 0.65, flexShrink: 0 }}>{Icon.signout}</span>
+                Sign out
+              </button>
+            </div>
+          </>
+        )}
+
+        {/* Profile button */}
+        <button
+          type="button"
+          onClick={() => setProfileMenuOpen(o => !o)}
           style={{
-            width: 36,
-            height: 36,
-            borderRadius: '50%',
-            background: 'var(--accent)',
-            color: 'white',
-            fontFamily: 'var(--serif)',
-            fontWeight: 700,
+            width: '100%',
+            padding: '0.6rem 0.75rem',
+            borderRadius: 12,
+            border: '1px solid var(--border)',
+            background: profileMenuOpen ? 'var(--accent-light)' : 'var(--cream)',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '0.95rem',
-            flexShrink: 0,
+            gap: '0.65rem',
+            cursor: 'pointer',
+            textAlign: 'left',
           }}
         >
-          {profile.initial}
-        </div>
-        <span style={{ flex: 1, fontSize: '0.85rem', fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {profile.label}
-        </span>
-        <span style={{ opacity: 0.4, flexShrink: 0 }}>{Icon.chevron}</span>
-      </button>
+          <div
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: '50%',
+              background: 'var(--accent)',
+              color: 'white',
+              fontFamily: 'var(--serif)',
+              fontWeight: 700,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '0.95rem',
+              flexShrink: 0,
+            }}
+          >
+            {profile.initial}
+          </div>
+          <span style={{ flex: 1, fontSize: '0.85rem', fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {profile.label}
+          </span>
+          <span style={{ opacity: 0.4, flexShrink: 0, transform: profileMenuOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>{Icon.chevron}</span>
+        </button>
+      </div>
     </aside>
     </>
   )

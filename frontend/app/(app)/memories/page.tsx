@@ -424,11 +424,15 @@ export default function MemoriesPage() {
 
   const displayed = useMemo(() => {
     let list = [...memories]
-    // Separate recipe vs audio — never mix them
-    if (isAudioMode) list = list.filter(isAudio)
-    else list = list.filter(m => !isAudio(m))
     // Narrator filter from ?narrator= param (coming from Our People page)
-    if (narratorParam) list = list.filter(m => (m.narrator ?? '').toLowerCase() === narratorParam.toLowerCase())
+    // When viewing a specific person, show ALL their memories (recipes + audio combined)
+    if (narratorParam) {
+      list = list.filter(m => (m.narrator ?? '').toLowerCase() === narratorParam.toLowerCase())
+    } else {
+      // Global view: keep recipe and audio tabs separate
+      if (isAudioMode) list = list.filter(isAudio)
+      else list = list.filter(m => !isAudio(m))
+    }
     // Search
     if (q) list = list.filter(m => (m.dish_name ?? '').toLowerCase().includes(q.toLowerCase()) || (m.narrator ?? '').toLowerCase().includes(q.toLowerCase()))
     // Filter
@@ -534,7 +538,7 @@ export default function MemoriesPage() {
                     <line x1="2" y1="12" x2="4" y2="12"/><line x1="5" y1="8" x2="5" y2="16"/><line x1="8" y1="5" x2="8" y2="19"/><line x1="11" y1="9" x2="11" y2="15"/><line x1="14" y1="6" x2="14" y2="18"/><line x1="17" y1="10" x2="17" y2="14"/><line x1="20" y1="8" x2="20" y2="16"/><line x1="22" y1="12" x2="24" y2="12"/>
                   </svg>
                 )}
-                {displayed.length} {isAudioMode ? `Memory${displayed.length !== 1 ? 'ies' : ''}` : `Recipe${displayed.length !== 1 ? 's' : ''}`}
+                {displayed.length} {narratorParam ? `Memor${displayed.length !== 1 ? 'ies' : 'y'}` : isAudioMode ? `Memor${displayed.length !== 1 ? 'ies' : 'y'}` : `Recipe${displayed.length !== 1 ? 's' : ''}`}
               </span>
               <label style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.8rem', color: 'var(--muted)' }}>
                 Sort by:
@@ -552,20 +556,24 @@ export default function MemoriesPage() {
             {displayed.length === 0 ? (
               <div style={{ padding: '2.5rem', textAlign: 'center', color: 'var(--muted)', background: 'var(--surface)', borderRadius: 14, border: '1px dashed var(--border)', fontSize: '0.88rem' }}>
                 {q
-                  ? `No ${isAudioMode ? 'recordings' : 'recipes'} matching "${q}"`
+                  ? `No memories matching "${q}"`
                   : filter === 'Favorites'
                   ? 'No favorites yet — heart one to add it here.'
+                  : narratorParam
+                  ? `No memories saved for ${narratorParam} yet.`
                   : isAudioMode ? 'No recordings yet.' : 'No recipes yet.'}
                 {' '}
-                <Link href={isAudioMode ? '/upload' : '/capture'} style={{ color: 'var(--accent)', fontWeight: 600 }}>
-                  {isAudioMode ? 'Upload the first one' : 'Capture the first one'}
-                </Link>
+                {!narratorParam && (
+                  <Link href={isAudioMode ? '/upload' : '/capture'} style={{ color: 'var(--accent)', fontWeight: 600 }}>
+                    {isAudioMode ? 'Upload the first one' : 'Capture the first one'}
+                  </Link>
+                )}
               </div>
             ) : (
               <div className="rk-recipe-grid">
                 {displayed.map(m => {
                   const info = peopleMap[m.narrator?.toLowerCase() ?? ''] ?? { photo: '', relationship: '' }
-                  return isAudioMode ? (
+                  return isAudio(m) ? (
                     <AudioCard
                       key={m.token}
                       memory={m}
