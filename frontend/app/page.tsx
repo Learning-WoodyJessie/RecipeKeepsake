@@ -189,7 +189,7 @@ export default function LandingPage() {
               "Every family carries a world.<br />Don't let it fade."
             </p>
             <p style={{ fontSize: '0.85rem', opacity: 0.85, letterSpacing: '0.05em' }}>
-              Echoes of Home — Family Memory Keeper
+              Echoes of Home — Memory Keepsake
             </p>
           </div>
         </div>
@@ -242,7 +242,7 @@ export default function LandingPage() {
                   Echoes of Home
                 </p>
                 <p style={{ fontSize: '0.63rem', color: 'var(--muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: 2 }}>
-                  Family Memory Keeper
+                  Memory Keepsake
                 </p>
               </div>
             </div>
