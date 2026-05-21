@@ -227,13 +227,13 @@ export default function CapturePage() {
                     fontFamily: 'var(--sans)',
                     fontWeight: 600,
                     fontSize: '0.85rem',
-                    background: mode === m ? 'var(--surface)' : 'transparent',
-                    color: mode === m ? 'var(--accent)' : 'var(--muted)',
-                    boxShadow: mode === m ? '0 2px 8px rgba(45,27,14,0.08)' : 'none',
+                    background: mode === m ? 'var(--accent)' : 'transparent',
+                    color: mode === m ? 'white' : 'var(--muted)',
+                    boxShadow: mode === m ? '0 2px 8px rgba(45,27,14,0.15)' : 'none',
                     transition: 'all 0.15s',
                   }}
                 >
-                  {m === 'ai' ? '🎙 A recipe narration' : '🎵 A song or poem'}
+                  {m === 'ai' ? '🎙 Their recipe' : '🎵 Their voice'}
                 </button>
               ))}
             </div>

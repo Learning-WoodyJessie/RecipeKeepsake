@@ -210,6 +210,11 @@ export default function Sidebar({ isOpen = false, onClose }: { isOpen?: boolean;
           Echoes of Home
         </p>
 
+        {/* Tagline */}
+        <p style={{ fontFamily: 'var(--serif)', fontStyle: 'italic', fontSize: '0.72rem', color: '#C4A882', textAlign: 'center', letterSpacing: '0.04em', margin: '-0.1rem 0 0' }}>
+          Keepsake of memories
+        </p>
+
         {/* Decorative divider */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', opacity: 0.5 }}>
           <div style={{ width: 28, height: 1, background: '#C4A882' }}/>
