@@ -197,7 +197,7 @@ export default function UploadPage() {
     if (file) handleFile(file)
   }, [narrator, title, mode])
 
-  if (draft && audioFile) return <ReviewWizard draft={draft} audioFile={audioFile} onCancel={() => { setDraft(null); setAudioFile(null) }} />
+  if (draft && audioFile) return <ReviewWizard draft={draft} audioFile={audioFile} narrator={narrator} onCancel={() => { setDraft(null); setAudioFile(null) }} />
 
   return (
     <div style={{ padding: '1.5rem 1.75rem 2.5rem', maxWidth: 1100, margin: '0 auto' }}>

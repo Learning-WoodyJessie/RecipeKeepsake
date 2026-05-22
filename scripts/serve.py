@@ -130,9 +130,12 @@ def _whisper_suffix(ext: str) -> str:
 # Each entry: (byte_offset, bytes_to_match)
 _MAGIC: list[tuple[int, bytes]] = [
     (0, b"ID3"),           # MP3 with ID3 tag
-    (0, b"\xff\xfb"),      # MP3 frame sync
+    (0, b"\xff\xfb"),      # MP3 frame sync (MPEG1 Layer3 CBR)
+    (0, b"\xff\xfa"),      # MP3 frame sync (MPEG1 Layer3 VBR)
     (0, b"\xff\xf3"),      # MP3 frame sync variant
     (0, b"\xff\xf2"),      # MP3 frame sync variant
+    (0, b"\xff\xe3"),      # MP3 frame sync variant
+    (0, b"\xff\xe2"),      # MP3 frame sync variant
     (0, b"RIFF"),          # WAV / AIFF container
     (0, b"\x1aE\xdf\xa3"), # WebM / MKV
     (0, b"OggS"),          # OGG

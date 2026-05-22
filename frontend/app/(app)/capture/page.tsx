@@ -169,7 +169,7 @@ export default function CapturePage() {
   }
 
   if (stage === 'review' && draft && audioFile) {
-    return <ReviewWizard draft={draft} audioFile={audioFile} onCancel={() => { setStage('idle'); setDraft(null); setAudioFile(null) }} />
+    return <ReviewWizard draft={draft} audioFile={audioFile} narrator={narrator} onCancel={() => { setStage('idle'); setDraft(null); setAudioFile(null) }} />
   }
 
   const narratorLabel = narrator || 'she'
