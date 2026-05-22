@@ -16,6 +16,20 @@ type Draft = {
   image_url: string
 }
 
+const STICKY_BAR: React.CSSProperties = {
+  position: 'fixed',
+  bottom: 0,
+  left: 0,
+  right: 0,
+  background: 'var(--surface)',
+  borderTop: '1px solid var(--border)',
+  padding: '0.75rem 1rem',
+  display: 'flex',
+  gap: '0.75rem',
+  zIndex: 20,
+  boxShadow: '0 -4px 16px rgba(45,27,14,0.08)',
+}
+
 export default function ReviewWizard({ draft, audioFile, narrator: narratorProp, onCancel }: { draft: Draft; audioFile: File; narrator?: string; onCancel: () => void }) {
   const router = useRouter()
   const [step, setStep] = useState(1)
@@ -41,7 +55,7 @@ export default function ReviewWizard({ draft, audioFile, narrator: narratorProp,
 
   // ── Step 1: Title ──────────────────────────────────────────────────────────
   if (step === 1) return (
-    <div style={{ maxWidth: 520, margin: '0 auto', padding: '1.5rem' }}>
+    <div style={{ maxWidth: 520, margin: '0 auto', padding: '1.5rem 1.5rem 6rem' }}>
       <h2 style={{ fontFamily: 'var(--serif)', color: 'var(--text)', marginBottom: '0.35rem' }}>
         What's this recipe called?
       </h2>
@@ -54,11 +68,12 @@ export default function ReviewWizard({ draft, audioFile, narrator: narratorProp,
         placeholder="Recipe name"
         style={{ width: '100%', border: '1.5px solid var(--border)', borderRadius: 10, padding: '0.75rem 0.9rem', fontSize: '1.05rem', fontFamily: 'var(--serif)', color: 'var(--text)', background: 'var(--surface)', boxSizing: 'border-box' }}
       />
-      <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.25rem' }}>
-        <button onClick={onCancel} style={{ flex: 1, padding: '0.65rem', borderRadius: 10, border: '1px solid var(--border)', background: 'none', cursor: 'pointer', color: 'var(--text2)' }}>
+      {/* Sticky action bar */}
+      <div style={STICKY_BAR}>
+        <button onClick={onCancel} style={{ flex: 1, padding: '0.75rem', borderRadius: 10, border: '1px solid var(--border)', background: 'none', cursor: 'pointer', color: 'var(--text2)', fontWeight: 500, fontSize: '0.88rem' }}>
           Cancel
         </button>
-        <button onClick={() => setStep(2)} style={{ flex: 2, padding: '0.65rem', borderRadius: 10, background: 'var(--accent)', color: 'white', border: 'none', fontWeight: 600, cursor: 'pointer' }}>
+        <button onClick={() => setStep(2)} style={{ flex: 2, padding: '0.75rem', borderRadius: 10, background: 'var(--accent)', color: 'white', border: 'none', fontWeight: 700, cursor: 'pointer', fontSize: '0.95rem' }}>
           Review &amp; save →
         </button>
       </div>
@@ -67,7 +82,7 @@ export default function ReviewWizard({ draft, audioFile, narrator: narratorProp,
 
   // ── Step 2: Ingredients, Steps + Save ─────────────────────────────────────
   return (
-    <div style={{ maxWidth: 520, margin: '0 auto', padding: '1.5rem' }}>
+    <div style={{ maxWidth: 520, margin: '0 auto', padding: '1.5rem 1.5rem 6rem' }}>
       <h2 style={{ fontFamily: 'var(--serif)', color: 'var(--text)', marginBottom: '0.35rem' }}>
         {title || 'Review recipe'}
       </h2>
@@ -141,11 +156,12 @@ export default function ReviewWizard({ draft, audioFile, narrator: narratorProp,
         </div>
       )}
 
-      <div style={{ display: 'flex', gap: '0.75rem' }}>
-        <button onClick={() => setStep(1)} style={{ flex: 1, padding: '0.7rem', borderRadius: 10, border: '1px solid var(--border)', background: 'none', cursor: 'pointer', color: 'var(--text2)' }}>
+      {/* Sticky action bar */}
+      <div style={STICKY_BAR}>
+        <button onClick={() => setStep(1)} style={{ flex: 1, padding: '0.75rem', borderRadius: 10, border: '1px solid var(--border)', background: 'none', cursor: 'pointer', color: 'var(--text2)', fontWeight: 500, fontSize: '0.88rem' }}>
           ← Back
         </button>
-        <button onClick={save} disabled={saving} style={{ flex: 2, padding: '0.7rem', borderRadius: 10, background: saving ? '#C4A882' : 'var(--accent)', color: 'white', border: 'none', fontWeight: 600, cursor: saving ? 'default' : 'pointer' }}>
+        <button onClick={save} disabled={saving} style={{ flex: 2, padding: '0.75rem', borderRadius: 10, background: saving ? '#C4A882' : 'var(--accent)', color: 'white', border: 'none', fontWeight: 700, cursor: saving ? 'default' : 'pointer', fontSize: '0.95rem' }}>
           {saving ? 'Saving…' : '♡ Save this memory'}
         </button>
       </div>
