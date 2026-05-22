@@ -51,3 +51,13 @@ neyyi:
   meaning: "ghee (clarified butter)"
   variants: [neyi, neyyi, ghee]
   use: ingredient
+
+denmira:
+  meaning: "dried red chillies (endu mirapakayalu) — family/regional slang"
+  variants: [denmir, denmiru, denmira pagayalu, endu mirapakayalu, endu mirapa]
+  use: ingredient
+
+endu mirapakayalu:
+  meaning: "dried red chillies"
+  variants: [endu mirapa, endu mirapakaya, denmira, denmira pagayalu, denmir pagayalu, endu mirapalu]
+  use: ingredient
