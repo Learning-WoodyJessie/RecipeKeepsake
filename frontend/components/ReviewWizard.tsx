@@ -60,20 +60,33 @@ export default function ReviewWizard({ draft, audioFile, narrator: narratorProp,
         What's this recipe called?
       </h2>
       <p style={{ fontSize: '0.83rem', color: 'var(--muted)', marginBottom: '1rem', lineHeight: 1.5 }}>
-        Our best guess from the recording — edit if it's not right.
+        {title
+          ? 'Our best guess from the recording — edit if it\'s not right.'
+          : 'We couldn\'t detect a name from the recording — please enter one below.'}
       </p>
+      {!title && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#FFF8F0', border: '1px solid #F4C89A', borderRadius: 10, padding: '0.6rem 0.85rem', marginBottom: '0.75rem', fontSize: '0.82rem', color: '#8B5E3C' }}>
+          <span>💡</span>
+          <span>This sometimes happens with very short recordings or background noise.</span>
+        </div>
+      )}
       <input
+        autoFocus
         value={title}
         onChange={e => setTitle(e.target.value)}
-        placeholder="Recipe name"
-        style={{ width: '100%', border: '1.5px solid var(--border)', borderRadius: 10, padding: '0.75rem 0.9rem', fontSize: '1.05rem', fontFamily: 'var(--serif)', color: 'var(--text)', background: 'var(--surface)', boxSizing: 'border-box' }}
+        placeholder="e.g. Gongura Pachadi, Pesarattu…"
+        style={{ width: '100%', border: `1.5px solid ${title ? 'var(--border)' : 'var(--accent)'}`, borderRadius: 10, padding: '0.75rem 0.9rem', fontSize: '1.05rem', fontFamily: 'var(--serif)', color: 'var(--text)', background: 'var(--surface)', boxSizing: 'border-box' }}
       />
       {/* Sticky action bar */}
       <div style={STICKY_BAR}>
         <button onClick={onCancel} style={{ flex: 1, padding: '0.75rem', borderRadius: 10, border: '1px solid var(--border)', background: 'none', cursor: 'pointer', color: 'var(--text2)', fontWeight: 500, fontSize: '0.88rem' }}>
           Cancel
         </button>
-        <button onClick={() => setStep(2)} style={{ flex: 2, padding: '0.75rem', borderRadius: 10, background: 'var(--accent)', color: 'white', border: 'none', fontWeight: 700, cursor: 'pointer', fontSize: '0.95rem' }}>
+        <button
+          onClick={() => { if (!title.trim()) { return } setStep(2) }}
+          disabled={!title.trim()}
+          style={{ flex: 2, padding: '0.75rem', borderRadius: 10, background: title.trim() ? 'var(--accent)' : '#C4A882', color: 'white', border: 'none', fontWeight: 700, cursor: title.trim() ? 'pointer' : 'default', fontSize: '0.95rem' }}
+        >
           Review &amp; save →
         </button>
       </div>

@@ -17,8 +17,8 @@ Schema:
 Rules:
 - dish_name: use EXACTLY as spoken — preserve Telugu/regional names verbatim (e.g. "Gongura Pachadi", not "Sorrel Chutney"). Do NOT translate, simplify, or paraphrase. Only infer if never mentioned; use null if truly unknown.
 - steps: ONE physical action per step. "Wash and dry" must be TWO steps. "Roast, grind, and temper" must be THREE steps. Never combine separate actions into one step. Steps must be in cooking order even if narrated non-linearly.
-- ingredients quantity: use ONLY explicit measurements spoken by the narrator (e.g. "2 cups", "1 tsp", "a handful"). If the narrator gives no quantity, leave quantity as "" (empty string). NEVER fill in "to taste" or any vague amount as the quantity — record those in cook_notes instead.
-- cook_notes: capture ALL vague instructions verbatim: amounts like "a little", "to taste", "enough", "as needed", doneness cues like "until it smells right", and any technique nuance the narrator mentioned.
+- ingredients quantity: use explicit measurements when spoken (e.g. "2 cups", "1 tsp"). When the narrator uses a vague amount (konchem, koddiga, a little, a pinch, to taste, enough), translate it to plain English and use that as the quantity (e.g. "a little", "to taste", "a pinch"). If no quantity at all is mentioned, use "to taste" for spices/condiments or "as needed" for main ingredients — never leave quantity blank.
+- cook_notes: capture doneness cues and technique nuances verbatim (e.g. "until it smells right", "roast until slightly brown", "coarse paste not fine"). Also note any quantities that are genuinely ambiguous or narrator-specific.
 - review_flags: note implied steps or genuinely ambiguous instructions needing human review.
 - category: exactly one of: Breakfast, Lunch, Sweets, Pickles, Snacks, Drinks, Other.
 
@@ -30,16 +30,16 @@ Example output:
 {
   "dish_name": "Gongura Pachadi",
   "ingredients": [
-    {"item": "gongura leaves", "quantity": ""},
-    {"item": "fenugreek seeds", "quantity": ""},
-    {"item": "coriander seeds", "quantity": ""},
-    {"item": "red chillies", "quantity": ""},
-    {"item": "turmeric", "quantity": ""},
-    {"item": "salt", "quantity": ""},
-    {"item": "garlic", "quantity": ""},
-    {"item": "oil", "quantity": ""},
-    {"item": "mustard seeds", "quantity": ""},
-    {"item": "curry leaves", "quantity": ""}
+    {"item": "gongura leaves", "quantity": "as needed"},
+    {"item": "fenugreek seeds", "quantity": "to taste"},
+    {"item": "coriander seeds", "quantity": "to taste"},
+    {"item": "red chillies", "quantity": "to taste"},
+    {"item": "turmeric", "quantity": "a little"},
+    {"item": "salt", "quantity": "to taste"},
+    {"item": "garlic", "quantity": "to taste"},
+    {"item": "oil", "quantity": "as needed"},
+    {"item": "mustard seeds", "quantity": "to taste"},
+    {"item": "curry leaves", "quantity": "a few"}
   ],
   "steps": [
     "Wash the gongura leaves thoroughly.",
