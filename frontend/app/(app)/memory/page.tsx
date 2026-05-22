@@ -75,6 +75,10 @@ function MemoryDetail() {
   const [editingTitle, setEditingTitle] = useState(false)
   const [titleValue, setTitleValue] = useState('')
 
+  // Narrator editing
+  const [editingNarrator, setEditingNarrator] = useState(false)
+  const [narratorValue, setNarratorValue] = useState('')
+
   // Editable content
   const [about, setAbout] = useState('')
   const [notes, setNotes] = useState('')
@@ -90,6 +94,7 @@ function MemoryDetail() {
     api.recipes.get(token).then((m: Memory) => {
       setMemory(m)
       setTitleValue(m.dish_name ?? '')
+      setNarratorValue(m.narrator ?? '')
       setFavorite(readFavorites().includes(token))
       setCategory((m.tags ?? []).filter(t => t !== 'audio')[0] ?? '')
       setAbout(m.transcript_english ?? m.user_notes ?? '')
@@ -238,10 +243,44 @@ function MemoryDetail() {
               </div>
             )}
 
-            <p style={{ fontSize: '0.88rem', color: 'var(--text2)', marginBottom: '0.5rem' }}>
-              Narrated by {memory.narrator ?? 'Unknown'} · {new Date(memory.recorded_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
+              {editingNarrator ? (
+                <input
+                  autoFocus
+                  value={narratorValue}
+                  onChange={e => setNarratorValue(e.target.value)}
+                  onBlur={() => {
+                    setEditingNarrator(false)
+                    if (narratorValue !== memory.narrator) {
+                      patchField({ narrator: narratorValue })
+                      setMemory(m => m ? { ...m, narrator: narratorValue } : m)
+                    }
+                  }}
+                  onKeyDown={e => { if (e.key === 'Enter' || e.key === 'Escape') (e.target as HTMLInputElement).blur() }}
+                  placeholder="Narrator name"
+                  style={{ fontSize: '0.88rem', border: '1px solid var(--border)', borderRadius: 7, padding: '0.25rem 0.55rem', background: 'var(--surface)', color: 'var(--text)', fontFamily: 'var(--sans)', width: 160 }}
+                />
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setEditingNarrator(true)}
+                  title="Edit narrator"
+                  style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
+                >
+                  <span style={{ fontSize: '0.88rem', color: 'var(--text2)' }}>
+                    Narrated by <strong>{memory.narrator || 'Unknown'}</strong>
+                  </span>
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--muted)', opacity: 0.6 }}>
+                    <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                  </svg>
+                </button>
+              )}
+              <span style={{ fontSize: '0.88rem', color: 'var(--text2)' }}>
+                · {new Date(memory.recorded_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
+              </span>
               <SavedBadge show={savedFlash} />
-            </p>
+            </div>
             <p style={{ fontFamily: 'var(--serif)', fontStyle: 'italic', fontSize: '0.92rem', color: 'var(--text2)', marginBottom: '1rem', lineHeight: 1.5 }}>
               A song. A story. A moment that stays.
             </p>

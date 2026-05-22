@@ -769,17 +769,27 @@ async def generate_image_endpoint(body: ImageRequest, user: dict = Depends(requi
 
 
 class PatchRecipeRequest(BaseModel):
-    user_notes: str = ""
+    dish_name: str | None = None
+    narrator: str | None = None
+    user_notes: str | None = None
+    tags: list[str] | None = None
+    ingredients: list | None = None
+    steps: list[str] | None = None
+    cook_notes: str | None = None
 
 
 @app.patch("/recipe/{token}")
 async def patch_recipe_endpoint(token: str, body: PatchRecipeRequest, user: dict = Depends(require_auth)):
-    """Update user_notes on a recipe."""
+    """Update editable fields on a recipe. Only non-None fields are written."""
     if not (os.environ.get("SUPABASE_URL") and os.environ.get("SUPABASE_SERVICE_KEY")):
         raise HTTPException(status_code=503, detail="Storage not configured")
     from tools.storage import patch_recipe
+    # Build patch dict from only the fields that were explicitly provided
+    fields = {k: v for k, v in body.model_dump().items() if v is not None}
+    if not fields:
+        raise HTTPException(status_code=400, detail="No fields to update")
     try:
-        updated = patch_recipe(token, {"user_notes": body.user_notes})
+        updated = patch_recipe(token, fields)
         return JSONResponse(content=updated)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
