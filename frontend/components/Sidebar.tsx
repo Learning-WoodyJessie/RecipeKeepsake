@@ -212,7 +212,7 @@ export default function Sidebar({ isOpen = false, onClose }: { isOpen?: boolean;
         </p>
 
         {/* Tagline */}
-        <p style={{ fontFamily: 'var(--serif)', fontStyle: 'italic', fontSize: '0.72rem', color: '#C4A882', textAlign: 'center', letterSpacing: '0.04em', margin: '-0.1rem 0 0' }}>
+        <p style={{ fontFamily: 'var(--serif)', fontStyle: 'italic', fontSize: '0.72rem', color: 'var(--muted)', textAlign: 'center', letterSpacing: '0.04em', margin: '-0.1rem 0 0' }}>
           Keepsake of memories
         </p>
 
