@@ -49,7 +49,7 @@ export default function ReviewWizard({ draft, audioFile, narrator: narratorProp,
       // Use narrator from parent page (Upload/Capture) — draft.narrator is empty since /capture/process doesn't return it
       form.append('narrator', narratorProp || draft.narrator || '')
       const saved = await api.capture.save(form)
-      router.push(`/memory?token=${saved.token}`)
+      router.push(`/memory?token=${saved.token}&justSaved=1`)
     } catch (e: unknown) { setError((e as Error).message); setSaving(false) }
   }
 

@@ -63,6 +63,7 @@ function MemoryDetail() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [favorite, setFavorite] = useState(false)
+  const [heartPopping, setHeartPopping] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [category, setCategory] = useState('')
   const [savingCategory, setSavingCategory] = useState(false)
@@ -70,6 +71,9 @@ function MemoryDetail() {
   // Auto-save state
   const [savedFlash, setSavedFlash] = useState(false)
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // "Just preserved" toast — shown once on arrival from a fresh capture/save
+  const [justSavedToast, setJustSavedToast] = useState(false)
 
   // Title editing
   const [editingTitle, setEditingTitle] = useState(false)
@@ -102,6 +106,16 @@ function MemoryDetail() {
     }).catch((e: Error) => setError(e.message)).finally(() => setLoading(false))
   }, [token, router])
 
+  useEffect(() => {
+    if (params.get('justSaved') !== '1') return
+    setJustSavedToast(true)
+    const t = setTimeout(() => setJustSavedToast(false), 2600)
+    // Strip the param so a refresh/back-nav doesn't replay the toast
+    router.replace(`/memory?token=${token}`, { scroll: false })
+    return () => clearTimeout(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   function flash() {
     setSavedFlash(true)
     setTimeout(() => setSavedFlash(false), 2000)
@@ -131,6 +145,8 @@ function MemoryDetail() {
     if (!token) return
     toggleFav(token)
     setFavorite(f => !f)
+    setHeartPopping(true)
+    setTimeout(() => setHeartPopping(false), 350)
   }
 
   async function changeCategory(newCategory: string) {
@@ -178,6 +194,21 @@ function MemoryDetail() {
 
   const audio = isAudioMemory(memory)
 
+  const justSavedBanner = justSavedToast ? (
+    <div
+      className="rk-gold-pulse"
+      style={{
+        position: 'fixed', top: 16, left: '50%', transform: 'translateX(-50%)', zIndex: 50,
+        background: 'var(--gold-light)', border: '1px solid var(--amber)', borderRadius: 12,
+        padding: '0.6rem 1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text)',
+        boxShadow: '0 4px 16px rgba(0,0,0,0.12)', display: 'flex', alignItems: 'center', gap: '0.4rem',
+        whiteSpace: 'nowrap',
+      }}
+    >
+      <span style={{ color: 'var(--amber)' }}>✨</span> Preserved forever
+    </div>
+  ) : null
+
   // ══════════════════════════════════════════════════════
   //  AUDIO MEMORY LAYOUT
   // ══════════════════════════════════════════════════════
@@ -185,6 +216,7 @@ function MemoryDetail() {
     const displayTags = (memory.tags ?? []).filter(t => t !== 'audio')
     return (
       <div style={{ maxWidth: 900, margin: '0 auto', padding: '1.25rem 1.5rem 3rem' }}>
+        {justSavedBanner}
 
         {/* ── Hero banner ── */}
         <div style={{
@@ -287,7 +319,7 @@ function MemoryDetail() {
 
             {/* Narrator pill */}
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(201,148,31,0.25)', borderRadius: 20, padding: '0.3rem 0.85rem', width: 'fit-content' }}>
-              <span style={{ color: 'var(--accent)', fontSize: '0.82rem' }}>♡</span>
+              <span style={{ color: 'var(--muted)', fontSize: '0.82rem' }}>♡</span>
               <span style={{ fontSize: '0.8rem', color: 'var(--text2)' }}>Narrated by someone you love</span>
             </div>
           </div>
@@ -404,14 +436,14 @@ function MemoryDetail() {
             onClick={toggleFavorite}
             style={{
               flex: '1 1 140px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.45rem',
-              background: favorite ? 'var(--accent-light)' : 'var(--surface)',
-              border: `1.5px solid ${favorite ? 'var(--accent)' : 'var(--border)'}`,
+              background: favorite ? 'var(--gold-light)' : 'var(--surface)',
+              border: `1.5px solid ${favorite ? 'var(--amber)' : 'var(--border)'}`,
               borderRadius: 12, padding: '0.6rem 1rem', cursor: 'pointer',
               fontSize: '0.85rem', fontWeight: 600,
-              color: favorite ? 'var(--accent)' : 'var(--text2)',
+              color: favorite ? 'var(--amber)' : 'var(--text2)',
             }}
           >
-            <span style={{ fontSize: '1rem' }}>{favorite ? '♥' : '♡'}</span>
+            <span className={heartPopping ? 'rk-heart-pop' : undefined} style={{ fontSize: '1rem', display: 'inline-block' }}>{favorite ? '♥' : '♡'}</span>
             {favorite ? 'Saved to favorites' : 'Add to favorites'}
           </button>
 
@@ -516,6 +548,7 @@ function MemoryDetail() {
   // ══════════════════════════════════════════════════════
   return (
     <div style={{ maxWidth: 720, margin: '0 auto', padding: '1.5rem 2rem' }}>
+      {justSavedBanner}
 
       {/* ── Header ── */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '1rem', gap: '1rem' }}>
@@ -527,7 +560,8 @@ function MemoryDetail() {
             <button
               onClick={toggleFavorite}
               aria-label={favorite ? 'Remove from favorites' : 'Add to favorites'}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', flexShrink: 0, fontSize: '1.4rem', lineHeight: 1, padding: '4px', color: favorite ? 'var(--accent)' : 'var(--border2)' }}
+              className={heartPopping ? 'rk-heart-pop' : undefined}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', flexShrink: 0, fontSize: '1.4rem', lineHeight: 1, padding: '4px', color: favorite ? 'var(--amber)' : 'var(--border2)' }}
             >
               {favorite ? '♥' : '♡'}
             </button>

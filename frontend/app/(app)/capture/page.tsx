@@ -4,7 +4,7 @@
 
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import NarratorChip from '@/components/NarratorChip'
@@ -21,13 +21,13 @@ const TIPS_RECIPE = [
   },
   {
     icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>,
-    title: 'Ask for her tips and secrets',
+    title: 'Ask for their tips and secrets',
     desc: 'Those little details make it priceless.',
   },
   {
     icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>,
-    title: 'Let her talk naturally',
-    desc: 'The more she shares, the better!',
+    title: 'Let them talk naturally',
+    desc: 'The more they share, the better!',
   },
 ]
 
@@ -59,7 +59,9 @@ function TipsPanel({ mode }: { mode: 'ai' | 'direct' }) {
         </h3>
         {tips.map((tip) => (
           <div key={tip.title} style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.1rem' }}>
-            <div style={{ width: 38, height: 38, borderRadius: '50%', background: 'var(--accent-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent)', flexShrink: 0 }}>
+            {/* Flat, no circle — informational only, not an action like the
+                Record/Upload CTAs, so it shouldn't borrow their affordance. */}
+            <div style={{ width: 38, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text2)', flexShrink: 0 }}>
               {tip.icon}
             </div>
             <div>
@@ -73,13 +75,34 @@ function TipsPanel({ mode }: { mode: 'ai' | 'direct' }) {
   )
 }
 
-// Waveform decoration (static, decorative)
+// Waveform decoration (static, decorative — used at idle, before recording starts)
 function WaveformDecoration() {
   const bars = [3, 5, 8, 6, 10, 7, 4, 9, 6, 8, 5, 7, 10, 6, 4, 8, 5, 9, 6, 7, 4, 6, 9, 7, 5]
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2, height: 28, opacity: 0.45 }}>
       {bars.map((h, i) => (
-        <div key={i} style={{ width: 2.5, height: h * 2.5, borderRadius: 2, background: 'var(--accent)' }} />
+        <div key={i} style={{ width: 2.5, height: h * 2.5, borderRadius: 2, background: 'var(--border2)' }} />
+      ))}
+    </div>
+  )
+}
+
+// Live, audio-reactive waveform — real mic amplitude via Web Audio API,
+// not decoration. Used only while actually recording.
+function LiveWaveform({ levels }: { levels: number[] }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2, height: 28 }}>
+      {levels.map((h, i) => (
+        <div
+          key={i}
+          style={{
+            width: 2.5,
+            height: Math.max(3, h * 28),
+            borderRadius: 2,
+            background: '#DC2626',
+            transition: 'height 0.08s ease',
+          }}
+        />
       ))}
     </div>
   )
@@ -107,12 +130,54 @@ export default function CapturePage() {
   const [draft, setDraft] = useState<any>(null)
   const [audioFile, setAudioFile] = useState<File | null>(null)
   const [error, setError] = useState('')
+  const [levels, setLevels] = useState<number[]>(Array(20).fill(0.1))
   const mrRef = useRef<MediaRecorder | null>(null)
   const chunksRef = useRef<Blob[]>([])
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const extRef = useRef<string>('.webm')
+  const audioCtxRef = useRef<AudioContext | null>(null)
+  const rafRef = useRef<number | null>(null)
 
   const fmt = (s: number) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`
+
+  function startLevelMeter(stream: MediaStream) {
+    const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+    const ctx = new AudioCtx()
+    audioCtxRef.current = ctx
+    const source = ctx.createMediaStreamSource(stream)
+    const analyser = ctx.createAnalyser()
+    analyser.fftSize = 64
+    source.connect(analyser)
+    const data = new Uint8Array(analyser.frequencyBinCount)
+    const barCount = 20
+    const tick = () => {
+      analyser.getByteFrequencyData(data)
+      const step = Math.floor(data.length / barCount)
+      const bars = Array.from({ length: barCount }, (_, i) => {
+        const v = data[i * step] ?? 0
+        return Math.max(0.06, v / 255)
+      })
+      setLevels(bars)
+      rafRef.current = requestAnimationFrame(tick)
+    }
+    tick()
+  }
+
+  function stopLevelMeter() {
+    if (rafRef.current) cancelAnimationFrame(rafRef.current)
+    rafRef.current = null
+    audioCtxRef.current?.close().catch(() => {})
+    audioCtxRef.current = null
+    setLevels(Array(20).fill(0.1))
+  }
+
+  // Safety net if the user navigates away mid-recording
+  useEffect(() => {
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current)
+      audioCtxRef.current?.close().catch(() => {})
+    }
+  }, [])
 
   async function startRecording() {
     if (mode === 'direct' && !title.trim()) { setError('Please enter a title before recording.'); return }
@@ -124,9 +189,11 @@ export default function CapturePage() {
     const mr = new MediaRecorder(stream, mimeType ? { mimeType } : {})
     mrRef.current = mr
     chunksRef.current = []
+    startLevelMeter(stream)
     mr.ondataavailable = e => { if (e.data.size > 0) chunksRef.current.push(e.data) }
     mr.onstop = () => {
       stream.getTracks().forEach(t => t.stop())
+      stopLevelMeter()
       const blob = new Blob(chunksRef.current, { type: mr.mimeType })
       if (mode === 'direct') saveAudioDirect(blob)
       else processAudio(blob)
@@ -164,7 +231,7 @@ export default function CapturePage() {
     if (description.trim()) form.append('description', description.trim())
     try {
       const result = await api.audio.save(form) as { token: string }
-      router.push(`/memory?token=${result.token}`)
+      router.push(`/memory?token=${result.token}&justSaved=1`)
     } catch (e: unknown) { setError((e as Error).message); setStage('error') }
   }
 
@@ -172,7 +239,7 @@ export default function CapturePage() {
     return <ReviewWizard draft={draft} audioFile={audioFile} narrator={narrator} onCancel={() => { setStage('idle'); setDraft(null); setAudioFile(null) }} />
   }
 
-  const narratorLabel = narrator || 'she'
+  const narratorLabel = narrator || 'your loved one'
 
   return (
     <div style={{ padding: '1.5rem 1.75rem 2.5rem', maxWidth: 1100, margin: '0 auto' }}>
@@ -198,14 +265,14 @@ export default function CapturePage() {
             <h1 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.5rem, 3.5vw, 2rem)', fontWeight: 700, color: 'var(--text)', marginBottom: '0.5rem', lineHeight: 1.2 }}>
               {mode === 'direct'
                 ? <>What will {narratorLabel} share today? <span style={{ color: 'var(--accent)' }}>♪</span></>
-                : <>What is {narratorLabel} making today? <span style={{ color: 'var(--accent)' }}>♡</span></>}
+                : <>What is {narratorLabel} making today? <span style={{ color: 'var(--muted)' }}>♡</span></>}
             </h1>
             <p style={{ fontSize: '0.88rem', color: 'var(--muted)', marginBottom: '1rem' }}>
-              {mode === 'direct' ? 'Just press record. We’ll keep it safe forever.' : 'Just let her talk. We’ll take care of the rest.'}
+              {mode === 'direct' ? 'Just press record. We’ll keep it safe forever.' : 'Just let them talk. We’ll take care of the rest.'}
             </p>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.65rem' }}>
               <div style={{ height: 1, width: 80, background: 'var(--border)' }} />
-              <span style={{ color: 'var(--accent)', fontSize: '0.85rem', opacity: 0.6 }}>♥</span>
+              <span style={{ color: 'var(--muted)', fontSize: '0.85rem', opacity: 0.6 }}>♥</span>
               <div style={{ height: 1, width: 80, background: 'var(--border)' }} />
             </div>
           </div>
@@ -345,8 +412,11 @@ export default function CapturePage() {
 
             {stage === 'recording' && (
               <>
+                {/* This dashed ring previously referenced a "pulse" keyframe
+                    that was never defined anywhere — it silently never
+                    animated. Now uses .rk-rec-pulse (globals.css). */}
                 <div style={{ position: 'relative', width: 110, height: 110, margin: '0 auto 1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '2px dashed #DC2626', opacity: 0.5, animation: 'pulse 1.5s infinite' }} />
+                  <div className="rk-rec-pulse" style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '2px solid #DC2626', opacity: 0.5 }} />
                   <button
                     onClick={stopRecording}
                     style={{ width: 80, height: 80, borderRadius: '50%', background: '#FEE2E2', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#DC2626' }}
@@ -357,7 +427,7 @@ export default function CapturePage() {
                 </div>
                 <p style={{ fontFamily: 'monospace', fontSize: '1.75rem', fontWeight: 600, color: 'var(--text)', marginBottom: '0.5rem', letterSpacing: '0.05em' }}>{fmt(duration)}</p>
                 <p style={{ fontSize: '0.82rem', color: '#DC2626', marginBottom: '1.25rem' }}>Recording… tap to stop</p>
-                <WaveformDecoration />
+                <LiveWaveform levels={levels} />
               </>
             )}
 
@@ -416,9 +486,9 @@ export default function CapturePage() {
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--muted)', flexShrink: 0 }}><polyline points="9 18 15 12 9 6"/></svg>
               </Link>
 
-              {/* Privacy badge */}
+              {/* Privacy badge — informational, not a link, so no circle (matches Tips) */}
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.85rem', padding: '1rem 1.15rem', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14 }}>
-                <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--accent-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent)', flexShrink: 0 }}>
+                <div style={{ width: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text2)', flexShrink: 0 }}>
                   <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                   </svg>

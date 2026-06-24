@@ -94,7 +94,7 @@ export default function MemoryListRow({
             cursor: 'pointer',
             fontSize: '1.1rem',
             lineHeight: 1,
-            opacity: favorite ? 1 : 0.35,
+            color: favorite ? 'var(--amber)' : 'var(--border2)',
           }}
         >
           {favorite ? '♥' : '♡'}

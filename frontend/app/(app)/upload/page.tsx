@@ -106,7 +106,7 @@ function CassetteHero() {
       {/* Cassette body */}
       <div style={{ position: 'relative' }}>
         {/* Floating hearts */}
-        <span style={{ position: 'absolute', top: -14, left: -4, fontSize: '0.75rem', color: 'var(--accent)', opacity: 0.7 }}>♥</span>
+        <span style={{ position: 'absolute', top: -14, left: -4, fontSize: '0.75rem', color: 'var(--muted)', opacity: 0.7 }}>♥</span>
         <span style={{ position: 'absolute', top: -10, right: -6, fontSize: '0.6rem', color: 'var(--amber)', opacity: 0.8 }}>✦</span>
         <svg width="100" height="68" viewBox="0 0 100 68" fill="none" xmlns="http://www.w3.org/2000/svg">
           {/* Cassette body */}
@@ -177,7 +177,7 @@ export default function UploadPage() {
     if (description.trim()) form.append('description', description.trim())
     try {
       const result = await api.audio.save(form) as { token: string }
-      router.push(`/memory?token=${result.token}`)
+      router.push(`/memory?token=${result.token}&justSaved=1`)
     } catch (e: unknown) {
       setError((e as Error).message)
     } finally {

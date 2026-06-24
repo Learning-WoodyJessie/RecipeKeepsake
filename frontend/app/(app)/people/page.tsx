@@ -216,7 +216,7 @@ function PersonModal({
           { field: 'name' as keyof FormData, label: 'Name', placeholder: 'e.g. Grandma' },
           { field: 'relationship' as keyof FormData, label: 'Relationship', placeholder: 'e.g. Grandmother, Mom, Aunt' },
           { field: 'photo_url' as keyof FormData, label: 'Photo URL', placeholder: 'https://…' },
-          { field: 'bio' as keyof FormData, label: 'About her', placeholder: 'A short description…' },
+          { field: 'bio' as keyof FormData, label: 'About them', placeholder: 'A short description…' },
           { field: 'notes' as keyof FormData, label: 'Notes', placeholder: 'Anything else to remember…' },
         ].map(({ field, label, placeholder }) => (
           <div key={field} style={{ marginBottom: '0.85rem' }}>
@@ -327,7 +327,7 @@ export default function PeoplePage() {
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1.5rem', flex: 1 }}>
               <div style={{ flex: 1 }}>
                 <h1 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.6rem, 3vw, 2rem)', fontWeight: 700, color: 'var(--text)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-                  Our People <span style={{ color: 'var(--accent)' }}>♡</span>
+                  Our People <span style={{ color: 'var(--muted)' }}>♡</span>
                 </h1>
                 <p style={{ fontSize: '0.9rem', color: 'var(--muted)', lineHeight: 1.6, maxWidth: 400 }}>
                   The beautiful people who fill our kitchen with love, stories and unforgettable recipes.

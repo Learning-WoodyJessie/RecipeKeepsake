@@ -7,6 +7,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { api, type Person } from '@/lib/api'
 import WaveformBars from '@/components/WaveformBars'
+import FavoriteHeart from '@/components/FavoriteHeart'
+import { SkeletonRow } from '@/components/Skeleton'
 import { supabase } from '@/lib/supabase'
 import { readFavorites, toggleFavorite as toggleFav } from '@/lib/favorites'
 
@@ -79,10 +81,10 @@ function HeroCard({ userName }: { userName: string }) {
         <div className="rk-hero-text" style={{ order: 1 }}>
           <h1 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.35rem, 3vw, 2rem)', fontWeight: 700, color: 'var(--text)', lineHeight: 1.2, marginBottom: '0.5rem' }}>
             Welcome home, {userName}!{' '}
-            <span aria-hidden style={{ color: 'var(--accent2)' }}>♡</span>
+            <span aria-hidden style={{ color: 'var(--muted)' }}>♡</span>
           </h1>
           <p style={{ fontSize: '0.88rem', color: 'var(--muted)', lineHeight: 1.55, marginBottom: '1.2rem' }}>
-            Every recipe has a story.<br />Every memory keeps her close.
+            Every recipe has a story.<br />Every memory keeps them close.
           </p>
           <div className="rk-action-tiles">
             <ActionTile
@@ -194,9 +196,9 @@ function MemoriesSection({
               gap: '0.3rem',
               padding: '0.28rem 0.7rem',
               borderRadius: 20,
-              border: `1.5px solid ${showFavsOnly ? 'var(--accent)' : 'var(--border)'}`,
-              background: showFavsOnly ? 'var(--accent-light)' : 'transparent',
-              color: showFavsOnly ? 'var(--accent)' : 'var(--muted)',
+              border: `1.5px solid ${showFavsOnly ? 'var(--amber)' : 'var(--border)'}`,
+              background: showFavsOnly ? 'var(--gold-light)' : 'transparent',
+              color: showFavsOnly ? 'var(--amber)' : 'var(--muted)',
               fontSize: '0.78rem',
               fontWeight: 600,
               cursor: 'pointer',
@@ -260,6 +262,7 @@ function MemoryRow({
 
   return (
     <div
+      className="rk-card-hoverable"
       style={{
         display: 'flex',
         alignItems: 'center',
@@ -297,14 +300,7 @@ function MemoryRow({
       </div>
 
       {/* Heart */}
-      <button
-        type="button"
-        onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggle() }}
-        aria-label={isFav ? 'Remove from favorites' : 'Add to favorites'}
-        style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem', lineHeight: 1, color: isFav ? 'var(--accent)' : 'var(--border2)', flexShrink: 0, zIndex: 1, padding: '4px' }}
-      >
-        {isFav ? '♥' : '♡'}
-      </button>
+      <FavoriteHeart favorite={isFav} onToggle={onToggle} style={{ flexShrink: 0, zIndex: 1 }} />
 
       {/* Play circle (visual only — card Link handles tap) */}
       <div
@@ -331,10 +327,10 @@ function QuotePanel() {
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 20, padding: '1.5rem 1.25rem', marginBottom: '1rem', boxShadow: '0 4px 16px rgba(45,27,14,0.05)' }}>
         <p style={{ fontFamily: 'var(--serif)', fontSize: '2rem', color: 'var(--accent)', lineHeight: 1, marginBottom: '0.65rem' }}>&ldquo;</p>
         <p style={{ fontFamily: 'var(--serif)', fontSize: '1.05rem', fontStyle: 'italic', color: 'var(--text2)', lineHeight: 1.6, marginBottom: '1rem' }}>
-          The stories she tells today are the recipes you&apos;ll cherish forever.
+          The stories told today are the recipes you&apos;ll cherish forever.
         </p>
         <p style={{ fontSize: '0.75rem', color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-          <span aria-hidden style={{ color: 'var(--accent)' }}>♥</span>
+          <span aria-hidden style={{ color: 'var(--muted)' }}>♥</span>
           Share a memory. Keep the echoes alive.
         </p>
       </div>
@@ -351,17 +347,20 @@ function QuotePanel() {
           },
           {
             icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>,
-            title: 'Ask for her tips and little secrets',
+            title: 'Ask for their tips and little secrets',
             desc: 'Those little details make it priceless.',
           },
           {
             icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>,
-            title: 'Let her talk naturally',
-            desc: 'The more she shares, the better!',
+            title: 'Let them talk naturally',
+            desc: 'The more they share, the better!',
           },
         ].map((tip) => (
           <div key={tip.title} style={{ display: 'flex', gap: '0.65rem', marginBottom: '0.9rem' }}>
-            <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--accent-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent)', flexShrink: 0 }}>
+            {/* No circle background here, unlike the Record/Upload CTAs above —
+                these are informational, not actionable, and shouldn't compete
+                visually with the icon-in-circle pattern used for real actions. */}
+            <div style={{ width: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text2)', flexShrink: 0 }}>
               {tip.icon}
             </div>
             <div>
@@ -416,7 +415,13 @@ export default function HomePage() {
   }, [people])
 
   if (loading) {
-    return <div style={{ padding: '2.5rem 1.5rem', color: 'var(--muted)', fontSize: '0.9rem' }}>Loading your home…</div>
+    return (
+      <div style={{ padding: 'clamp(0.85rem, 3vw, 1.75rem)', maxWidth: 1200, margin: '0 auto' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
+          {Array.from({ length: 4 }, (_, i) => <SkeletonRow key={i} />)}
+        </div>
+      </div>
+    )
   }
   if (error) {
     return <div style={{ padding: '2rem 1.5rem', color: 'var(--accent)' }}>{error}</div>

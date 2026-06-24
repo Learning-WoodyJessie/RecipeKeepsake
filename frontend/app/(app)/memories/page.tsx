@@ -8,6 +8,8 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { api, type Person } from '@/lib/api'
 import { readFavorites, toggleFavorite } from '@/lib/favorites'
+import FavoriteHeart from '@/components/FavoriteHeart'
+import { SkeletonCard } from '@/components/Skeleton'
 
 type Memory = {
   token: string
@@ -116,22 +118,26 @@ function RightPanel({
             Filter recipes
           </h3>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem' }}>
-            {FILTER_TAGS.map((tag) => (
-              <button
-                key={tag}
-                onClick={() => setFilter(tag)}
-                style={{
-                  padding: '0.3rem 0.75rem', borderRadius: 20, fontSize: '0.78rem', fontWeight: 500,
-                  border: '1.5px solid', cursor: 'pointer',
-                  borderColor: filter === tag ? 'var(--accent)' : 'var(--border)',
-                  background: filter === tag ? 'var(--accent-light)' : 'transparent',
-                  color: filter === tag ? 'var(--accent)' : 'var(--text2)',
-                  display: 'flex', alignItems: 'center', gap: '0.25rem',
-                }}
-              >
-                {tag === 'Favorites' && '♡ '}{tag}
-              </button>
-            ))}
+            {FILTER_TAGS.map((tag) => {
+              const isFavTag = tag === 'Favorites'
+              const active = filter === tag
+              return (
+                <button
+                  key={tag}
+                  onClick={() => setFilter(tag)}
+                  style={{
+                    padding: '0.3rem 0.75rem', borderRadius: 20, fontSize: '0.78rem', fontWeight: 500,
+                    border: '1.5px solid', cursor: 'pointer',
+                    borderColor: active ? (isFavTag ? 'var(--amber)' : 'var(--accent)') : 'var(--border)',
+                    background: active ? (isFavTag ? 'var(--gold-light)' : 'var(--accent-light)') : 'transparent',
+                    color: active ? (isFavTag ? 'var(--amber)' : 'var(--accent)') : 'var(--text2)',
+                    display: 'flex', alignItems: 'center', gap: '0.25rem',
+                  }}
+                >
+                  {isFavTag && (active ? '♥ ' : '♡ ')}{tag}
+                </button>
+              )
+            })}
           </div>
         </div>
       )}
@@ -140,19 +146,23 @@ function RightPanel({
       {isAudioMode && (
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 18, padding: '1.25rem', boxShadow: '0 4px 16px rgba(45,27,14,0.05)' }}>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem' }}>
-            {['All', 'Favorites'].map((tag) => (
-              <button key={tag} onClick={() => setFilter(tag)}
-                style={{
-                  padding: '0.3rem 0.75rem', borderRadius: 20, fontSize: '0.78rem', fontWeight: 500,
-                  border: '1.5px solid', cursor: 'pointer',
-                  borderColor: filter === tag ? 'var(--accent)' : 'var(--border)',
-                  background: filter === tag ? 'var(--accent-light)' : 'transparent',
-                  color: filter === tag ? 'var(--accent)' : 'var(--text2)',
-                }}
-              >
-                {tag === 'Favorites' ? '♡ Favorites' : tag}
-              </button>
-            ))}
+            {['All', 'Favorites'].map((tag) => {
+              const isFavTag = tag === 'Favorites'
+              const active = filter === tag
+              return (
+                <button key={tag} onClick={() => setFilter(tag)}
+                  style={{
+                    padding: '0.3rem 0.75rem', borderRadius: 20, fontSize: '0.78rem', fontWeight: 500,
+                    border: '1.5px solid', cursor: 'pointer',
+                    borderColor: active ? (isFavTag ? 'var(--amber)' : 'var(--accent)') : 'var(--border)',
+                    background: active ? (isFavTag ? 'var(--gold-light)' : 'var(--accent-light)') : 'transparent',
+                    color: active ? (isFavTag ? 'var(--amber)' : 'var(--accent)') : 'var(--text2)',
+                  }}
+                >
+                  {isFavTag ? `${active ? '♥' : '♡'} Favorites` : tag}
+                </button>
+              )
+            })}
           </div>
         </div>
       )}
@@ -165,7 +175,8 @@ function RightPanel({
         </h3>
         {WHY.map((item) => (
           <div key={item.title} style={{ display: 'flex', gap: '0.7rem', marginBottom: '0.95rem' }}>
-            <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--accent-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent)', flexShrink: 0 }}>
+            {/* Flat, no circle — informational only (matches Tips panels) */}
+            <div style={{ width: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text2)', flexShrink: 0 }}>
               {item.icon}
             </div>
             <div>
@@ -181,7 +192,7 @@ function RightPanel({
               ? 'Some memories are meant to be heard.'
               : 'A recipe is more than ingredients. It\'s a story we live and share.'}
           </p>
-          <span style={{ color: 'var(--accent)', fontSize: '1rem' }}>♡</span>
+          <span style={{ color: 'var(--muted)', fontSize: '1rem' }}>♡</span>
         </div>
       </div>
     </aside>
@@ -203,7 +214,8 @@ function AudioCard({
   return (
     <Link
       href={`/memory?token=${memory.token}`}
-      style={{ textDecoration: 'none', display: 'block', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, overflow: 'hidden', boxShadow: '0 2px 10px rgba(45,27,14,0.06)', transition: 'box-shadow 0.15s' }}
+      className="rk-card-hoverable"
+      style={{ textDecoration: 'none', display: 'block', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, overflow: 'hidden', boxShadow: '0 2px 10px rgba(45,27,14,0.06)' }}
     >
       {/* Waveform banner */}
       <div style={{ position: 'relative', background: 'linear-gradient(135deg, var(--gold-light) 0%, #EAD9AE 100%)', padding: '1.25rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3, minHeight: 80 }}>
@@ -215,13 +227,12 @@ function AudioCard({
             <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
           </svg>
         </div>
-        <button
-          type="button"
-          onClick={e => { e.preventDefault(); onToggleFav() }}
-          style={{ position: 'absolute', top: 8, right: 8, width: 28, height: 28, borderRadius: '50%', background: 'rgba(255,255,255,0.9)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.85rem', color: isFav ? 'var(--accent)' : 'var(--muted)' }}
-        >
-          {isFav ? '♥' : '♡'}
-        </button>
+        <FavoriteHeart
+          favorite={isFav}
+          onToggle={onToggleFav}
+          size="0.85rem"
+          style={{ position: 'absolute', top: 8, right: 8, width: 28, height: 28, borderRadius: '50%', background: 'rgba(255,255,255,0.9)' }}
+        />
       </div>
 
       <div style={{ padding: '0.85rem' }}>
@@ -285,7 +296,7 @@ function RecipeCard({
   narratorRelationship: string
 }) {
   return (
-    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, overflow: 'hidden', boxShadow: '0 2px 10px rgba(45,27,14,0.06)' }}>
+    <div className="rk-card-hoverable" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, overflow: 'hidden', boxShadow: '0 2px 10px rgba(45,27,14,0.06)' }}>
       {/* Food photo */}
       <div style={{ position: 'relative', aspectRatio: '4/3', background: 'var(--cream2)', overflow: 'hidden' }}>
         <Link href={`/memory?token=${memory.token}`} style={{ display: 'block', height: '100%' }}>
@@ -295,22 +306,11 @@ function RecipeCard({
           }
         </Link>
         {/* Heart toggle */}
-        <button
-          type="button"
-          onClick={onToggleFav}
-          aria-label={isFav ? 'Remove from favorites' : 'Add to favorites'}
-          style={{
-            position: 'absolute', top: 8, right: 8,
-            width: 32, height: 32, borderRadius: '50%',
-            background: 'rgba(255,255,255,0.9)',
-            border: 'none', cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '1rem', boxShadow: '0 2px 6px rgba(0,0,0,0.12)',
-            color: isFav ? 'var(--accent)' : 'var(--muted)',
-          }}
-        >
-          {isFav ? '♥' : '♡'}
-        </button>
+        <FavoriteHeart
+          favorite={isFav}
+          onToggle={onToggleFav}
+          style={{ position: 'absolute', top: 8, right: 8, width: 32, height: 32, borderRadius: '50%', background: 'rgba(255,255,255,0.9)', boxShadow: '0 2px 6px rgba(0,0,0,0.12)' }}
+        />
       </div>
 
       <div style={{ padding: '0.85rem' }}>
@@ -449,7 +449,13 @@ export default function MemoriesPage() {
     return list
   }, [memories, filter, sort, q, narratorParam, favTick, isAudioMode])
 
-  if (loading) return <div style={{ padding: '2rem', color: 'var(--muted)' }}>Loading…</div>
+  if (loading) return (
+    <div style={{ padding: '1.5rem 1.75rem 2.5rem', maxWidth: 1200, margin: '0 auto' }}>
+      <div className="rk-recipe-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '1rem' }}>
+        {Array.from({ length: 8 }, (_, i) => <SkeletonCard key={i} />)}
+      </div>
+    </div>
+  )
   if (error) return <div style={{ padding: '2rem', color: 'var(--accent)' }}>{error}</div>
 
   return (
@@ -519,7 +525,7 @@ export default function MemoriesPage() {
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap', marginBottom: '0.5rem' }}>
                     <h1 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.6rem, 3vw, 2rem)', fontWeight: 700, color: 'var(--text)', margin: 0, display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-                      All Recipes <span style={{ color: 'var(--accent)' }}>♡</span>
+                      All Recipes <span style={{ color: 'var(--muted)' }}>♡</span>
                     </h1>
                     <Link href="/capture" style={{ background: 'var(--accent)', color: 'white', textDecoration: 'none', padding: '0.45rem 1rem', borderRadius: 10, fontSize: '0.82rem', fontWeight: 700, whiteSpace: 'nowrap', flexShrink: 0, boxShadow: '0 2px 8px rgba(24,107,94,0.22)', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
                       + Add Recipe
