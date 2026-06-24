@@ -15,3 +15,24 @@ export async function signInWithApple(): Promise<void> {
     options: { redirectTo: `${window.location.origin}/auth/callback` },
   })
 }
+
+/** Viewer role: send a one-time magic link to an email pre-approved by an owner. */
+export async function sendViewerEmailOtp(email: string): Promise<void> {
+  const { error } = await supabase.auth.signInWithOtp({
+    email,
+    options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+  })
+  if (error) throw error
+}
+
+/** Viewer role: send a one-time SMS code. Requires an SMS provider configured in Supabase. */
+export async function sendViewerPhoneOtp(phone: string): Promise<void> {
+  const { error } = await supabase.auth.signInWithOtp({ phone })
+  if (error) throw error
+}
+
+/** Viewer role: verify the 6-digit SMS code sent by sendViewerPhoneOtp(). */
+export async function verifyViewerPhoneOtp(phone: string, code: string): Promise<void> {
+  const { error } = await supabase.auth.verifyOtp({ phone, token: code, type: 'sms' })
+  if (error) throw error
+}

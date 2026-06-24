@@ -83,4 +83,11 @@ export const api = {
   account: {
     delete: () => authFetch('/account', { method: 'DELETE' }),
   },
+  viewers: {
+    list: () => authFetch('/viewers'),
+    add: (body: { email?: string; phone?: string }) =>
+      authFetch('/viewers', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }),
+    revoke: (id: string) => authFetch(`/viewers/${id}`, { method: 'DELETE' }),
+    sharedWithMe: () => authFetch('/viewers/shared-with-me'),
+  },
 }

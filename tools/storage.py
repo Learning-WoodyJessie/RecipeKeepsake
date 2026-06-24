@@ -276,3 +276,74 @@ def check_rate_limit_db(user_id: str, endpoint: str) -> int:
         _logger.warning(f"event=rate_limit_db_error error={type(e).__name__} msg={e}")
         return 0
 
+
+# ── Viewer role (Phase 5, Epic 16) ────────────────────────────────────────────
+
+def add_viewer(owner_user_id: str, email: str | None, phone: str | None) -> dict:
+    """Approve an email or phone for read-only access to owner_user_id's archive."""
+    result = (
+        _client()
+        .table("viewers")
+        .insert({"owner_user_id": owner_user_id, "email": email or None, "phone": phone or None})
+        .execute()
+    )
+    return result.data[0]
+
+
+def list_viewers(owner_user_id: str) -> list:
+    """List this owner's viewer invites (active and revoked)."""
+    result = (
+        _client()
+        .table("viewers")
+        .select("id, email, phone, created_at, revoked_at")
+        .eq("owner_user_id", owner_user_id)
+        .order("created_at", desc=True)
+        .execute()
+    )
+    return result.data
+
+
+def revoke_viewer(owner_user_id: str, viewer_id: str) -> None:
+    """Revoke a viewer invite. Scoped to owner_user_id so one owner can't revoke another's invite."""
+    from datetime import datetime, timezone
+    (
+        _client()
+        .table("viewers")
+        .update({"revoked_at": datetime.now(timezone.utc).isoformat()})
+        .eq("id", viewer_id)
+        .eq("owner_user_id", owner_user_id)
+        .execute()
+    )
+
+
+def get_owners_for_viewer(email: str | None, phone: str | None) -> list[str]:
+    """Return owner_user_ids that have approved this email or phone, and not revoked it."""
+    sb = _client()
+    owner_ids: set[str] = set()
+    if email:
+        result = sb.table("viewers").select("owner_user_id").eq("email", email).is_("revoked_at", "null").execute()
+        owner_ids.update(r["owner_user_id"] for r in result.data)
+    if phone:
+        result = sb.table("viewers").select("owner_user_id").eq("phone", phone).is_("revoked_at", "null").execute()
+        owner_ids.update(r["owner_user_id"] for r in result.data)
+    return list(owner_ids)
+
+
+def list_recipes_for_owners(owner_user_ids: list[str]) -> list:
+    """Read-only recipe list across multiple owners — used for the viewer's shared-with-me view."""
+    if not owner_user_ids:
+        return []
+    sb = _client()
+    result = (
+        sb.table("recipes")
+        .select("id, token, dish_name, narrator, recorded_at, image_url, audio_url, tags")
+        .in_("user_id", owner_user_ids)
+        .order("recorded_at", desc=True)
+        .execute()
+    )
+    recipes = result.data
+    for r in recipes:
+        if r.get("audio_url"):
+            r["audio_url"] = _sign_audio(r["audio_url"], sb)
+    return recipes
+

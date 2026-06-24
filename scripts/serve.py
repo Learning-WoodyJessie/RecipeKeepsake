@@ -601,36 +601,50 @@ async def capture_save_endpoint(
             pass
 
 
-# ── Direct audio save (no pipeline) ──────────────────────────────────────────
+# ── Direct tale/song save (no pipeline) ──────────────────────────────────────
 
 @app.post("/save-audio")
 async def save_audio_endpoint(
-    audio: UploadFile = File(...),
+    audio: UploadFile | None = File(default=None),
     title: str = File(...),
     narrator: str = File(default=""),
     description: str = File(default=""),
+    original_text: str = File(default=""),
     user: dict = Depends(require_auth),
 ):
     """
-    Save an audio file directly — no transcription or LLM pipeline.
-    Use for AI-generated audio (e.g. Suno) or any recording the user
-    wants to store and share without processing.
+    Save a tale/song/poem directly — no transcription or LLM pipeline.
+    Use for AI-generated audio (e.g. Suno), any recording the user wants to
+    store and share without processing, or a piece of writing with no audio
+    at all (e.g. a poem typed out, with or without an English translation).
+
+    At least one of `audio` or `original_text`/`description` must be given —
+    an entry with no audio and no text would have nothing to preserve.
     """
     if not os.environ.get("SUPABASE_URL") or not os.environ.get("SUPABASE_SERVICE_KEY"):
         raise HTTPException(status_code=500, detail="Supabase not configured")
 
-    data = await audio.read()
-    _validate_audio_upload(audio, data)
+    if audio is None and not original_text.strip() and not description.strip():
+        raise HTTPException(status_code=400, detail="Provide audio, original_text, or description.")
 
-    suffix = Path(audio.filename or "").suffix.lower() or ".mp3"
-    with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
-        tmp.write(data)
-        tmp_path = tmp.name
+    tmp_path = None
+    audio_filename = None
+    if audio is not None:
+        data = await audio.read()
+        _validate_audio_upload(audio, data)
+        suffix = Path(audio.filename or "").suffix.lower() or ".mp3"
+        with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
+            tmp.write(data)
+            tmp_path = tmp.name
+        audio_filename = f"{uuid.uuid4()}{suffix}"
 
     try:
         from tools.storage import upload_audio, insert_recipe, _sign_audio, _client as _sb
-        audio_filename = f"{uuid.uuid4()}{suffix}"
-        upload_audio(tmp_path, audio_filename)
+
+        tags = ["tale"]
+        if audio_filename:
+            upload_audio(tmp_path, audio_filename)
+            tags.append("audio")
 
         row = insert_recipe({
             "dish_name": title.strip() or "Untitled",
@@ -639,26 +653,27 @@ async def save_audio_endpoint(
             "recorded_by_email": user.get("email", ""),
             "recorded_by_name": (user.get("user_metadata") or {}).get("full_name", ""),
             "audio_url": audio_filename,
-            "tags": ["audio"],
+            "tags": tags,
             "ingredients": [],
             "steps": [],
             "cook_notes": "",
-            "transcript_raw": "",
+            "transcript_raw": original_text.strip(),
             "transcript_english": description.strip(),
         })
 
-        audio_url = _sign_audio(row.get("audio_url", ""), _sb())
-        _logger.info(f"event=save_audio_done id={row.get('id')}")
+        audio_url = _sign_audio(row.get("audio_url", ""), _sb()) if audio_filename else None
+        _logger.info(f"event=save_audio_done id={row.get('id')} has_audio={bool(audio_filename)}")
         return JSONResponse(content={"token": row["token"], "audio_url": audio_url})
 
     except Exception as e:
         _logger.error(f"event=save_audio_failed error={type(e).__name__} msg={e}")
         raise HTTPException(status_code=500, detail=str(e))
     finally:
-        try:
-            os.unlink(tmp_path)
-        except Exception:
-            pass
+        if tmp_path:
+            try:
+                os.unlink(tmp_path)
+            except Exception:
+                pass
 
 
 # ── People endpoints ─────────────────────────────────────────────────────────
@@ -747,6 +762,49 @@ async def delete_account_endpoint(user: dict = Depends(require_auth)):
         raise HTTPException(status_code=400, detail="Cannot identify user")
     delete_account(user_id)
     return JSONResponse(content={"deleted": True})
+
+
+# ── Viewer role (Phase 5, Epic 16) ───────────────────────────────────────────
+# Read-only access to an owner's whole archive for a pre-approved email or
+# phone, no full account needed — but still a real, revocable, authenticated
+# identity (via Supabase OTP), not a public link.
+
+class ViewerRequest(BaseModel):
+    email: str | None = None
+    phone: str | None = None
+
+
+@app.post("/viewers")
+async def add_viewer_endpoint(body: ViewerRequest, user: dict = Depends(require_auth)):
+    """Owner approves an email or phone for read-only access to their archive."""
+    if not body.email and not body.phone:
+        raise HTTPException(status_code=400, detail="Provide an email or phone.")
+    from tools.storage import add_viewer
+    viewer = add_viewer(_user_id(user), body.email, body.phone)
+    return JSONResponse(content={"viewer": viewer})
+
+
+@app.get("/viewers")
+async def list_viewers_endpoint(user: dict = Depends(require_auth)):
+    """Owner lists everyone they've approved to view their archive."""
+    from tools.storage import list_viewers
+    return JSONResponse(content={"viewers": list_viewers(_user_id(user))})
+
+
+@app.delete("/viewers/{viewer_id}")
+async def revoke_viewer_endpoint(viewer_id: str, user: dict = Depends(require_auth)):
+    """Owner revokes a previously approved viewer."""
+    from tools.storage import revoke_viewer
+    revoke_viewer(_user_id(user), viewer_id)
+    return JSONResponse(content={"revoked": viewer_id})
+
+
+@app.get("/viewers/shared-with-me")
+async def shared_with_me_endpoint(user: dict = Depends(require_auth)):
+    """Read-only archive for whichever owner(s) approved the signed-in user's email/phone."""
+    from tools.storage import get_owners_for_viewer, list_recipes_for_owners
+    owner_ids = get_owners_for_viewer(user.get("email"), user.get("phone"))
+    return JSONResponse(content={"recipes": list_recipes_for_owners(owner_ids), "is_viewer": bool(owner_ids)})
 
 
 # ── Image generation ──────────────────────────────────────────────────────────

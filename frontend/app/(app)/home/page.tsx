@@ -19,7 +19,9 @@ type Memory = {
   tags: string[] | null
 }
 
-function isAudio(m: Memory) { return (m.tags ?? []).includes('audio') }
+// "tale" covers Tales & Songs entries with or without audio; "audio" alone
+// is kept for back-compat with rows saved before the text-only split existed.
+function isAudio(m: Memory) { return (m.tags ?? []).some(t => t === 'tale' || t === 'audio') }
 
 function firstName(user: { user_metadata?: Record<string, unknown>; email?: string } | null): string {
   if (!user) return 'friend'

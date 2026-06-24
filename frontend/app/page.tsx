@@ -347,6 +347,12 @@ export default function LandingPage() {
               </svg>
               We never post publicly.
             </p>
+
+            {/* Viewer entry point — for family approved to view, not capture */}
+            <p style={{ fontSize: '0.8rem', color: 'var(--text2)', marginTop: '1rem' }}>
+              Were you invited to view a family archive?{' '}
+              <a href="/view" style={{ color: 'var(--accent)', fontWeight: 600, textDecoration: 'none' }}>View shared memories</a>
+            </p>
           </div>
         </div>
 

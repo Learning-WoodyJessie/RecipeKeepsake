@@ -7,6 +7,7 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { api } from '@/lib/api'
 
 export default function AuthCallback() {
   const router = useRouter()
@@ -14,7 +15,11 @@ export default function AuthCallback() {
   useEffect(() => {
     supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
-        router.replace('/home')
+        // Viewer-role accounts (approved by an owner, signed in via OTP) land
+        // on the read-only shared view instead of the normal capture/edit UI.
+        api.viewers.sharedWithMe()
+          .then((data: { is_viewer?: boolean }) => router.replace(data.is_viewer ? '/shared' : '/home'))
+          .catch(() => router.replace('/home'))
       }
     })
   }, [router])

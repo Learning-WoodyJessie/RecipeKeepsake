@@ -22,7 +22,10 @@ type Memory = {
 const FILTER_TAGS = ['All', 'Favorites', 'Breakfast', 'Lunch', 'Sweets', 'Pickles', 'Snacks', 'Drinks', 'Recently added']
 const SORT_OPTIONS = ['Recently added', 'Oldest first', 'A–Z']
 
-function isAudio(m: Memory) { return (m.tags ?? []).includes('audio') }
+// "tale" covers Tales & Songs entries with or without audio (e.g. a typed
+// poem with no recording). "audio" alone is kept for back-compat with rows
+// saved before the tale/text-only split existed.
+function isAudio(m: Memory) { return (m.tags ?? []).some(t => t === 'tale' || t === 'audio') }
 
 // ─── Right panel ────────────────────────────────────────────────────────
 function RightPanel({
