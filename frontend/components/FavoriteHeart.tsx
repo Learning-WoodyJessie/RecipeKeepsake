@@ -40,7 +40,10 @@ export default function FavoriteHeart({
         cursor: 'pointer',
         fontSize: size,
         lineHeight: 1,
-        color: favorite ? 'var(--amber)' : 'var(--border2)',
+        /* --border2 here measured ~1.5:1 against white/light card
+           backgrounds — invisible, not just subtle. --muted (~5:1) is the
+           floor for "visible but neutral." */
+        color: favorite ? 'var(--amber)' : 'var(--muted)',
         display: 'inline-flex',
         alignItems: 'center',
         justifyContent: 'center',

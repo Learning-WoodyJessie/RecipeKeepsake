@@ -561,7 +561,7 @@ function MemoryDetail() {
               onClick={toggleFavorite}
               aria-label={favorite ? 'Remove from favorites' : 'Add to favorites'}
               className={heartPopping ? 'rk-heart-pop' : undefined}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', flexShrink: 0, fontSize: '1.4rem', lineHeight: 1, padding: '4px', color: favorite ? 'var(--amber)' : 'var(--border2)' }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', flexShrink: 0, fontSize: '1.4rem', lineHeight: 1, padding: '4px', color: favorite ? 'var(--amber)' : 'var(--muted)' }}
             >
               {favorite ? '♥' : '♡'}
             </button>
