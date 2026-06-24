@@ -85,7 +85,7 @@ export default function ReviewWizard({ draft, audioFile, narrator: narratorProp,
         <button
           onClick={() => { if (!title.trim()) { return } setStep(2) }}
           disabled={!title.trim()}
-          style={{ flex: 2, padding: '0.75rem', borderRadius: 10, background: title.trim() ? 'var(--accent)' : '#C4A882', color: 'white', border: 'none', fontWeight: 700, cursor: title.trim() ? 'pointer' : 'default', fontSize: '0.95rem' }}
+          style={{ flex: 2, padding: '0.75rem', borderRadius: 10, background: title.trim() ? 'var(--accent)' : 'var(--muted)', color: 'white', border: 'none', fontWeight: 700, cursor: title.trim() ? 'pointer' : 'default', fontSize: '0.95rem' }}
         >
           Review &amp; save →
         </button>
@@ -174,7 +174,7 @@ export default function ReviewWizard({ draft, audioFile, narrator: narratorProp,
         <button onClick={() => setStep(1)} style={{ flex: 1, padding: '0.75rem', borderRadius: 10, border: '1px solid var(--border)', background: 'none', cursor: 'pointer', color: 'var(--text2)', fontWeight: 500, fontSize: '0.88rem' }}>
           ← Back
         </button>
-        <button onClick={save} disabled={saving} style={{ flex: 2, padding: '0.75rem', borderRadius: 10, background: saving ? '#C4A882' : 'var(--accent)', color: 'white', border: 'none', fontWeight: 700, cursor: saving ? 'default' : 'pointer', fontSize: '0.95rem' }}>
+        <button onClick={save} disabled={saving} style={{ flex: 2, padding: '0.75rem', borderRadius: 10, background: saving ? 'var(--muted)' : 'var(--accent)', color: 'white', border: 'none', fontWeight: 700, cursor: saving ? 'default' : 'pointer', fontSize: '0.95rem' }}>
           {saving ? 'Saving…' : '♡ Save this memory'}
         </button>
       </div>

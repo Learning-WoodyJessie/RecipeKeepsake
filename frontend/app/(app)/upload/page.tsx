@@ -107,22 +107,22 @@ function CassetteHero() {
       <div style={{ position: 'relative' }}>
         {/* Floating hearts */}
         <span style={{ position: 'absolute', top: -14, left: -4, fontSize: '0.75rem', color: 'var(--accent)', opacity: 0.7 }}>♥</span>
-        <span style={{ position: 'absolute', top: -10, right: -6, fontSize: '0.6rem', color: '#F4A261', opacity: 0.8 }}>✦</span>
+        <span style={{ position: 'absolute', top: -10, right: -6, fontSize: '0.6rem', color: 'var(--amber)', opacity: 0.8 }}>✦</span>
         <svg width="100" height="68" viewBox="0 0 100 68" fill="none" xmlns="http://www.w3.org/2000/svg">
           {/* Cassette body */}
           <rect x="2" y="8" width="96" height="54" rx="8" fill="#FDF5ED" stroke="#E8C9A8" strokeWidth="2"/>
           {/* Left reel */}
-          <circle cx="32" cy="35" r="14" fill="#FAE8D4" stroke="#E8C9A8" strokeWidth="1.5"/>
+          <circle cx="32" cy="35" r="14" fill="var(--gold-light)" stroke="#E0C68A" strokeWidth="1.5"/>
           <circle cx="32" cy="35" r="6" fill="white" stroke="#E8C9A8" strokeWidth="1.5"/>
           {/* Right reel */}
-          <circle cx="68" cy="35" r="14" fill="#FAE8D4" stroke="#E8C9A8" strokeWidth="1.5"/>
+          <circle cx="68" cy="35" r="14" fill="var(--gold-light)" stroke="#E0C68A" strokeWidth="1.5"/>
           <circle cx="68" cy="35" r="6" fill="white" stroke="#E8C9A8" strokeWidth="1.5"/>
           {/* Tape window */}
           <rect x="38" y="28" width="24" height="14" rx="3" fill="#F0DFD0" stroke="#E8C9A8" strokeWidth="1"/>
           {/* Label strip */}
-          <rect x="18" y="10" width="64" height="10" rx="3" fill="#FAE8D4" stroke="#E8C9A8" strokeWidth="1"/>
+          <rect x="18" y="10" width="64" height="10" rx="3" fill="var(--gold-light)" stroke="#E0C68A" strokeWidth="1"/>
           {/* Record button dot */}
-          <circle cx="50" cy="56" r="4" fill="#C4522A" opacity="0.7"/>
+          <circle cx="50" cy="56" r="4" fill="var(--accent)" opacity="0.7"/>
         </svg>
       </div>
       {/* Right waveform */}

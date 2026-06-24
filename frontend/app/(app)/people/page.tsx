@@ -127,7 +127,7 @@ function PersonCard({ person, recipeCount, onEdit, onNavigate }: { person: Perso
               fontWeight: 600,
               color: 'var(--accent)',
               background: 'var(--accent-light)',
-              border: '1px solid rgba(196,82,42,0.2)',
+              border: '1px solid rgba(24,107,94,0.2)',
               borderRadius: 20,
               padding: '0.2rem 0.65rem',
               whiteSpace: 'nowrap',

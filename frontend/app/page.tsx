@@ -234,7 +234,7 @@ export default function LandingPage() {
           >
             {/* Logo + wordmark */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.7rem', marginBottom: '1.5rem' }}>
-              <div style={{ flexShrink: 0, filter: 'drop-shadow(0 3px 8px rgba(196, 82, 42, 0.18))' }}>
+              <div style={{ flexShrink: 0, filter: 'drop-shadow(0 3px 8px rgba(24, 107, 94, 0.18))' }}>
                 <EchoesLogoMark size={40} />
               </div>
               <div style={{ textAlign: 'left' }}>
@@ -300,7 +300,7 @@ export default function LandingPage() {
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '0.6rem',
-                  boxShadow: '0 4px 14px rgba(196, 82, 42, 0.30)',
+                  boxShadow: '0 4px 14px rgba(24, 107, 94, 0.30)',
                 }}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">

@@ -1,25 +1,25 @@
 @import "tailwindcss";
 
 :root {
-  /* "Kumkum red & turmeric gold" — the vermilion bindi, sindoor, the colors
-     actually worn in the family photos — not kitchen-orange, not corporate
-     blue, not a desaturated antique. --accent carries the brand (a vivid,
-     saturated kumkum red: buttons, links, active states). --amber is
-     demoted from primary color to a rare "this memory is saved" accent —
-     favorites, the preserved-recipe badge, the closing confirmation card.
-     It should appear sparingly, never as a default button or icon color. */
+  /* "Jade & turmeric gold" — a peacock-feather pairing: a deep jewel teal
+     against warm cream, with gold reserved as a rare accent. No red/orange
+     family at all this time. --accent carries the brand (jade/teal: buttons,
+     links, active states) — its coolness against the warm cream background
+     is what should read as crisp rather than muddy. --amber stays a rare
+     "this memory is saved" accent — favorites, the preserved-recipe badge,
+     the closing confirmation card — never a default button or icon color. */
   --cream: #FBF6EF;
   --cream2: #F3E9DC;
   --cream3: #E8DAC6;
   --surface: #FFFFFF;
-  --accent: #A6293A;
-  --accent2: #7F1E2C;
-  --accent-light: #FBE5E3;
-  --text: #2B1A14;
-  --text2: #5C4436;
-  --muted: #9C8270;
-  --border: #ECDFD0;
-  --border2: #D9C4AA;
+  --accent: #186B5E;
+  --accent2: #0F4D43;
+  --accent-light: #E1F0EC;
+  --text: #1C2B28;
+  --text2: #4A5F5A;
+  --muted: #8AA09B;
+  --border: #E2EAE7;
+  --border2: #C9D8D3;
   --amber: #C9941F;
   --gold-light: #F8EBC9;
   --green: #2E7D52;

@@ -26,7 +26,7 @@ export default function MemoryCard({
   return (
     <Link href={`/memory?token=${memory.token}`} style={{ textDecoration: 'none' }}>
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden', transition: 'box-shadow 0.15s', cursor: 'pointer' }}>
-        <div style={{ aspectRatio: poster ? '3/4' : '4/3', background: audio ? 'linear-gradient(135deg, #FAE8D4 0%, #F0C9A0 100%)' : 'var(--cream2)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+        <div style={{ aspectRatio: poster ? '3/4' : '4/3', background: audio ? 'linear-gradient(135deg, var(--gold-light) 0%, #EAD9AE 100%)' : 'var(--cream2)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
           {audio
             ? <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
             : memory.image_url

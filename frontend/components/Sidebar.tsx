@@ -218,11 +218,11 @@ export default function Sidebar({ isOpen = false, onClose }: { isOpen?: boolean;
 
         {/* Decorative divider */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', opacity: 0.5 }}>
-          <div style={{ width: 28, height: 1, background: '#C4A882' }}/>
-          <svg width="8" height="8" viewBox="0 0 8 8" fill="#C4A882">
+          <div style={{ width: 28, height: 1, background: 'var(--amber)' }}/>
+          <svg width="8" height="8" viewBox="0 0 8 8" fill="var(--amber)">
             <path d="M4 0L4.8 3.2L8 4L4.8 4.8L4 8L3.2 4.8L0 4L3.2 3.2Z"/>
           </svg>
-          <div style={{ width: 28, height: 1, background: '#C4A882' }}/>
+          <div style={{ width: 28, height: 1, background: 'var(--amber)' }}/>
         </div>
       </div>
 

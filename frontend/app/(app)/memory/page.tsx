@@ -188,11 +188,11 @@ function MemoryDetail() {
 
         {/* ── Hero banner ── */}
         <div style={{
-          background: 'linear-gradient(135deg, #FAE8D4 0%, #F5D5B0 60%, #EEC99A 100%)',
+          background: 'linear-gradient(135deg, var(--gold-light) 0%, #EFDFB8 60%, #EAD9AE 100%)',
           borderRadius: 20, overflow: 'hidden', marginBottom: '1.25rem',
           position: 'relative', minHeight: 220,
           display: 'flex', alignItems: 'stretch',
-          border: '1px solid rgba(196,138,42,0.18)',
+          border: '1px solid rgba(201,148,31,0.18)',
           boxShadow: '0 8px 32px rgba(45,27,14,0.09)',
         }}>
           {/* Left: text content */}
@@ -233,7 +233,7 @@ function MemoryDetail() {
                 <button
                   onClick={() => setEditingTitle(true)}
                   aria-label="Edit title"
-                  style={{ background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(196,138,42,0.3)', borderRadius: 7, padding: '4px 7px', cursor: 'pointer', display: 'flex', alignItems: 'center', color: 'var(--muted)', flexShrink: 0 }}
+                  style={{ background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(201,148,31,0.3)', borderRadius: 7, padding: '4px 7px', cursor: 'pointer', display: 'flex', alignItems: 'center', color: 'var(--muted)', flexShrink: 0 }}
                 >
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                     <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
@@ -286,7 +286,7 @@ function MemoryDetail() {
             </p>
 
             {/* Narrator pill */}
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(196,138,42,0.25)', borderRadius: 20, padding: '0.3rem 0.85rem', width: 'fit-content' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(201,148,31,0.25)', borderRadius: 20, padding: '0.3rem 0.85rem', width: 'fit-content' }}>
               <span style={{ color: 'var(--accent)', fontSize: '0.82rem' }}>♡</span>
               <span style={{ fontSize: '0.8rem', color: 'var(--text2)' }}>Narrated by someone you love</span>
             </div>
@@ -330,7 +330,7 @@ function MemoryDetail() {
                   width: 56, height: 56, borderRadius: '50%',
                   background: 'var(--accent)', border: 'none', cursor: 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  flexShrink: 0, boxShadow: '0 4px 14px rgba(196,82,42,0.35)',
+                  flexShrink: 0, boxShadow: '0 4px 14px rgba(24,107,94,0.35)',
                   transition: 'transform 0.12s',
                 }}
               >
@@ -358,7 +358,7 @@ function MemoryDetail() {
                     return (
                       <div key={i} style={{
                         flex: 1, height: h * 2.8, borderRadius: 2,
-                        background: barPct <= pct ? 'var(--accent)' : 'rgba(196,82,42,0.2)',
+                        background: barPct <= pct ? 'var(--accent)' : 'rgba(24,107,94,0.2)',
                         transition: 'background 0.1s',
                       }} />
                     )
@@ -490,7 +490,7 @@ function MemoryDetail() {
               {displayTags.map(tag => (
                 <span key={tag} style={{
                   padding: '0.35rem 0.9rem', borderRadius: 20,
-                  background: 'var(--accent-light)', border: '1px solid rgba(196,82,42,0.2)',
+                  background: 'var(--accent-light)', border: '1px solid rgba(24,107,94,0.2)',
                   fontSize: '0.8rem', color: 'var(--accent)', fontWeight: 600,
                 }}>
                   {tag}

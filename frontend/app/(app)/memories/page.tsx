@@ -206,7 +206,7 @@ function AudioCard({
       style={{ textDecoration: 'none', display: 'block', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, overflow: 'hidden', boxShadow: '0 2px 10px rgba(45,27,14,0.06)', transition: 'box-shadow 0.15s' }}
     >
       {/* Waveform banner */}
-      <div style={{ position: 'relative', background: 'linear-gradient(135deg, #FAE8D4 0%, #F0C9A0 100%)', padding: '1.25rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3, minHeight: 80 }}>
+      <div style={{ position: 'relative', background: 'linear-gradient(135deg, var(--gold-light) 0%, #EAD9AE 100%)', padding: '1.25rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3, minHeight: 80 }}>
         {[4,7,11,9,14,10,6,13,8,11,6,9,12,7,5].map((h, i) => (
           <div key={i} style={{ width: 3, height: h * 3, borderRadius: 2, background: 'var(--accent)', opacity: 0.6 }} />
         ))}
@@ -329,7 +329,7 @@ function RecipeCard({
           </div>
           <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text2)' }}>{memory.narrator ?? 'Narrator'}</span>
           {narratorRelationship && (
-            <span style={{ fontSize: '0.68rem', fontWeight: 600, color: 'var(--accent)', background: 'var(--accent-light)', borderRadius: 20, padding: '0.15rem 0.5rem', border: '1px solid rgba(196,82,42,0.15)' }}>
+            <span style={{ fontSize: '0.68rem', fontWeight: 600, color: 'var(--accent)', background: 'var(--accent-light)', borderRadius: 20, padding: '0.15rem 0.5rem', border: '1px solid rgba(24,107,94,0.15)' }}>
               {narratorRelationship}
             </span>
           )}
@@ -486,7 +486,7 @@ export default function MemoriesPage() {
                         display: 'inline-flex', alignItems: 'center', gap: '0.45rem',
                         background: 'var(--accent)', color: 'white', textDecoration: 'none',
                         padding: '0.6rem 1.2rem', borderRadius: 12, fontSize: '0.88rem', fontWeight: 700,
-                        boxShadow: '0 3px 10px rgba(196,82,42,0.28)',
+                        boxShadow: '0 3px 10px rgba(24,107,94,0.28)',
                       }}
                     >
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -521,7 +521,7 @@ export default function MemoriesPage() {
                     <h1 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.6rem, 3vw, 2rem)', fontWeight: 700, color: 'var(--text)', margin: 0, display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
                       All Recipes <span style={{ color: 'var(--accent)' }}>♡</span>
                     </h1>
-                    <Link href="/capture" style={{ background: 'var(--accent)', color: 'white', textDecoration: 'none', padding: '0.45rem 1rem', borderRadius: 10, fontSize: '0.82rem', fontWeight: 700, whiteSpace: 'nowrap', flexShrink: 0, boxShadow: '0 2px 8px rgba(196,82,42,0.22)', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                    <Link href="/capture" style={{ background: 'var(--accent)', color: 'white', textDecoration: 'none', padding: '0.45rem 1rem', borderRadius: 10, fontSize: '0.82rem', fontWeight: 700, whiteSpace: 'nowrap', flexShrink: 0, boxShadow: '0 2px 8px rgba(24,107,94,0.22)', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
                       + Add Recipe
                     </Link>
                   </div>
@@ -619,7 +619,7 @@ export default function MemoriesPage() {
         }}>
           <div style={{
             width: 60, height: 60, borderRadius: '50%',
-            background: 'linear-gradient(135deg, #FAE8D4 0%, #F0C9A0 100%)',
+            background: 'linear-gradient(135deg, var(--gold-light) 0%, #EAD9AE 100%)',
             border: '2px solid #E8C9A8',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             flexShrink: 0, boxShadow: '0 4px 12px rgba(45,27,14,0.1)',

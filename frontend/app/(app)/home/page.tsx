@@ -79,7 +79,7 @@ function HeroCard({ userName }: { userName: string }) {
         <div className="rk-hero-text" style={{ order: 1 }}>
           <h1 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.35rem, 3vw, 2rem)', fontWeight: 700, color: 'var(--text)', lineHeight: 1.2, marginBottom: '0.5rem' }}>
             Welcome home, {userName}!{' '}
-            <span aria-hidden style={{ color: '#D4895A' }}>♡</span>
+            <span aria-hidden style={{ color: 'var(--accent2)' }}>♡</span>
           </h1>
           <p style={{ fontSize: '0.88rem', color: 'var(--muted)', lineHeight: 1.55, marginBottom: '1.2rem' }}>
             Every recipe has a story.<br />Every memory keeps her close.
@@ -90,14 +90,14 @@ function HeroCard({ userName }: { userName: string }) {
               icon={<MicIcon />}
               label="Record a memory"
               desc="Capture a voice, a story, a moment"
-              iconBg="rgba(196, 82, 42, 0.14)"
+              iconBg="rgba(24, 107, 94, 0.14)"
             />
             <ActionTile
               href="/upload"
               icon={<UploadIcon />}
               label="Upload audio"
               desc="Use an existing recording"
-              iconBg="rgba(196, 138, 26, 0.13)"
+              iconBg="rgba(201, 148, 31, 0.13)"
             />
           </div>
         </div>
@@ -107,14 +107,14 @@ function HeroCard({ userName }: { userName: string }) {
 }
 
 const MicIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C4522A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/>
     <path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/>
   </svg>
 )
 
 const UploadIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C48A1A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <polyline points="16 16 12 12 8 16"/>
     <line x1="12" y1="12" x2="12" y2="21"/>
     <path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/>
