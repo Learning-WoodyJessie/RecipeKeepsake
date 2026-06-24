@@ -15,11 +15,12 @@ Schema:
 }
 
 Rules:
-- dish_name: use EXACTLY as spoken — preserve Telugu/regional names verbatim (e.g. "Gongura Pachadi", not "Sorrel Chutney"). Do NOT translate, simplify, or paraphrase. Only infer if never mentioned; use null if truly unknown.
-- steps: ONE physical action per step. "Wash and dry" must be TWO steps. "Roast, grind, and temper" must be THREE steps. Never combine separate actions into one step. Steps must be in cooking order even if narrated non-linearly.
-- ingredients quantity: use explicit measurements when spoken (e.g. "2 cups", "1 tsp"). When the narrator uses a vague amount (konchem, koddiga, a little, a pinch, to taste, enough), translate it to plain English and use that as the quantity (e.g. "a little", "to taste", "a pinch"). If no quantity at all is mentioned, use "to taste" for spices/condiments or "as needed" for main ingredients — never leave quantity blank.
-- cook_notes: capture doneness cues and technique nuances verbatim (e.g. "until it smells right", "roast until slightly brown", "coarse paste not fine"). Also note any quantities that are genuinely ambiguous or narrator-specific.
-- review_flags: note implied steps or genuinely ambiguous instructions needing human review.
+- Only include what was explicitly stated. Never add an ingredient, step, or detail the narrator did not say, even if it seems like an obvious or conventional part of the dish. If the narration cuts off abruptly or mid-sentence, do not complete the thought — stop where the narration stops and add a review_flag noting the cutoff.
+- dish_name: use EXACTLY as spoken — preserve Telugu/regional names verbatim (e.g. "Gongura Pachadi", not "Sorrel Chutney"). Do NOT translate, simplify, or paraphrase. Do NOT guess a dish name from the ingredients/technique if it was never spoken; use null instead.
+- steps: ONE physical action per step. "Wash and dry" must be TWO steps. "Roast, grind, and temper" must be THREE steps. Never combine separate actions into one step. Preserve the order the narrator actually spoke them in — do NOT reorder into "correct" cooking sequence; if the order seems off, leave it as spoken and add a review_flag.
+- ingredients quantity: use explicit measurements when spoken (e.g. "2 cups", "1 tsp") VERBATIM in the quantity field. If the narrator gives ANY vague amount instead (konchem, koddiga, a little, a pinch, to taste, enough, just enough, etc.) — even if you could translate it to plain English — do NOT put that vague phrase in the quantity field. Use a neutral placeholder instead: "to taste" for spices/condiments, "as needed" for everything else. Then record the narrator's actual vague phrase, translated to plain English, in cook_notes. The quantity field must never contain words like "a little", "a pinch", "some", or "a bit" — those belong in cook_notes only. This is the single most important rule in this schema: vague measurements are the authentic voice of the narrator, and normalizing them into `quantity` erases that. Example: narrator says "add a little oil" → ingredients: {"item": "oil", "quantity": "as needed"}; cook_notes: "Oil: a little." NOT {"item": "oil", "quantity": "a little"}.
+- cook_notes: capture doneness cues, technique nuances, and EVERY vague quantity verbatim (e.g. "until it smells right", "roast until slightly brown", "coarse paste not fine", "turmeric: a little", "salt: to taste"). This is where vague measurement language lives — never in `ingredients[].quantity`.
+- review_flags: note implied steps, abrupt/incomplete sentences, non-linear ordering left as-is, or genuinely ambiguous instructions needing human review.
 - category: exactly one of: Breakfast, Lunch, Sweets, Pickles, Snacks, Drinks, Other.
 
 ---
@@ -34,7 +35,7 @@ Example output:
     {"item": "fenugreek seeds", "quantity": "to taste"},
     {"item": "coriander seeds", "quantity": "to taste"},
     {"item": "red chillies", "quantity": "to taste"},
-    {"item": "turmeric", "quantity": "a little"},
+    {"item": "turmeric", "quantity": "as needed"},
     {"item": "salt", "quantity": "to taste"},
     {"item": "garlic", "quantity": "to taste"},
     {"item": "oil", "quantity": "as needed"},

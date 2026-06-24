@@ -33,11 +33,10 @@ _GLOSSARY_CACHE.update(_load_from_disk())
 
 def build_glossary_hint() -> str:
     """
-    Build a compact glossary hint string for injection into Whisper initial_prompt
-    or LLM system prompts.
+    Build a compact glossary hint string for injection into LLM system prompts
+    (translation Call A). Includes meanings — the translation model needs them.
 
     Format: "konchem (konjam/konjem) = a little; koddiga = a small amount; ..."
-    Kept short so it fits in Whisper's 224-token initial_prompt window.
     """
     glossary = load_glossary()
     parts = []
@@ -46,3 +45,20 @@ def build_glossary_hint() -> str:
         variant_str = f" ({'/'.join(variants[:3])})" if variants else ""
         parts.append(f"{term}{variant_str} = {meta['meaning']}")
     return "; ".join(parts)
+
+
+def build_glossary_terms_list() -> str:
+    """
+    Build a terse, vocabulary-only term list for Whisper's initial_prompt.
+
+    Unlike build_glossary_hint(), this omits meanings/definitions — Whisper's
+    initial_prompt is a spelling/vocabulary primer, not a content source. Including
+    full meanings (e.g. "until it smells right") primes the model to expect and
+    fabricate that kind of content when audio cuts off abruptly (D-002). A bare
+    term list still helps Whisper spell Telugu words correctly without suggesting
+    what the narration "should" contain.
+
+    Format: "konchem, koddiga, chaalu, sari, veyinchu, ..."
+    """
+    glossary = load_glossary()
+    return ", ".join(glossary.keys())

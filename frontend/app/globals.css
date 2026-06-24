@@ -1,19 +1,27 @@
 @import "tailwindcss";
 
 :root {
-  --cream: #FDF8F3;
-  --cream2: #F5EDE2;
-  --cream3: #EBE0D3;
+  /* "Kumkum red & turmeric gold" — the vermilion bindi, sindoor, the colors
+     actually worn in the family photos — not kitchen-orange, not corporate
+     blue, not a desaturated antique. --accent carries the brand (a vivid,
+     saturated kumkum red: buttons, links, active states). --amber is
+     demoted from primary color to a rare "this memory is saved" accent —
+     favorites, the preserved-recipe badge, the closing confirmation card.
+     It should appear sparingly, never as a default button or icon color. */
+  --cream: #FBF6EF;
+  --cream2: #F3E9DC;
+  --cream3: #E8DAC6;
   --surface: #FFFFFF;
-  --accent: #C4522A;
-  --accent2: #BE4D25;
-  --accent-light: #FDEEE8;
-  --text: #2D1B0E;
-  --text2: #5C3D28;
-  --muted: #9B7E6A;
-  --border: #E8DDD0;
-  --border2: #D6C5B0;
-  --amber: #F5A623;
+  --accent: #A6293A;
+  --accent2: #7F1E2C;
+  --accent-light: #FBE5E3;
+  --text: #2B1A14;
+  --text2: #5C4436;
+  --muted: #9C8270;
+  --border: #ECDFD0;
+  --border2: #D9C4AA;
+  --amber: #C9941F;
+  --gold-light: #F8EBC9;
   --green: #2E7D52;
   --serif: 'Playfair Display', Georgia, serif;
   --sans: 'Inter', -apple-system, sans-serif;

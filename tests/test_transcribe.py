@@ -60,3 +60,35 @@ class TestTranscribeAudio:
 
         assert "prompt" in call_kwargs
         assert "konchem" in call_kwargs["prompt"].lower()
+
+    def test_passes_temperature_zero(self):
+        """D-002: temperature=0 keeps transcription deterministic, reducing hallucination."""
+        mock_transcript = MagicMock()
+        mock_transcript.text = "some text"
+
+        with patch("tools.transcribe.OpenAI") as mock_openai, \
+             patch("builtins.open", mock_open(read_data=b"audio bytes")):
+            mock_client = mock_openai.return_value
+            mock_client.audio.transcriptions.create.return_value = mock_transcript
+            transcribe_audio("test.m4a")
+
+            call_kwargs = mock_client.audio.transcriptions.create.call_args[1]
+
+        assert call_kwargs["temperature"] == 0
+
+    def test_initial_prompt_omits_term_meanings(self):
+        """D-002: prompt is a terse vocab list, not full meanings — full meanings
+        (e.g. "until it smells right") prime the model to fabricate that kind of
+        content when audio cuts off abruptly."""
+        mock_transcript = MagicMock()
+        mock_transcript.text = "some text"
+
+        with patch("tools.transcribe.OpenAI") as mock_openai, \
+             patch("builtins.open", mock_open(read_data=b"audio bytes")):
+            mock_client = mock_openai.return_value
+            mock_client.audio.transcriptions.create.return_value = mock_transcript
+            transcribe_audio("test.m4a")
+
+            call_kwargs = mock_client.audio.transcriptions.create.call_args[1]
+
+        assert "until it smells right" not in call_kwargs["prompt"].lower()
