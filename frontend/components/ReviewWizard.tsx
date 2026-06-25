@@ -34,6 +34,10 @@ export default function ReviewWizard({ draft, audioFile, narrator: narratorProp,
   const router = useRouter()
   const [step, setStep] = useState(1)
   const [title, setTitle] = useState(draft.dish_name ?? '')
+  // Required before save so a recipe never silently lands on the backend's
+  // "Grandma" fallback (File(default="Grandma")) just because no narrator
+  // chip was tapped before recording started.
+  const [narrator, setNarrator] = useState(narratorProp || draft.narrator || '')
   const [ingredients, setIngredients] = useState<Ingredient[]>(draft.ingredients ?? [])
   const [steps, setSteps] = useState<string[]>(draft.steps ?? [])
   const [saving, setSaving] = useState(false)
@@ -46,8 +50,7 @@ export default function ReviewWizard({ draft, audioFile, narrator: narratorProp,
       const form = new FormData()
       form.append('audio', audioFile, audioFile.name)
       form.append('recipe', JSON.stringify(recipe))
-      // Use narrator from parent page (Upload/Capture) — draft.narrator is empty since /capture/process doesn't return it
-      form.append('narrator', narratorProp || draft.narrator || '')
+      form.append('narrator', narrator)
       const saved = await api.capture.save(form)
       router.push(`/memory?token=${saved.token}&justSaved=1`)
     } catch (e: unknown) { setError((e as Error).message); setSaving(false) }
@@ -75,7 +78,20 @@ export default function ReviewWizard({ draft, audioFile, narrator: narratorProp,
         value={title}
         onChange={e => setTitle(e.target.value)}
         placeholder="e.g. Gongura Pachadi, Pesarattu…"
-        style={{ width: '100%', border: `1.5px solid ${title ? 'var(--border)' : 'var(--accent)'}`, borderRadius: 10, padding: '0.75rem 0.9rem', fontSize: '1.05rem', fontFamily: 'var(--serif)', color: 'var(--text)', background: 'var(--surface)', boxSizing: 'border-box' }}
+        style={{ width: '100%', border: `1.5px solid ${title ? 'var(--border)' : 'var(--accent)'}`, borderRadius: 10, padding: '0.75rem 0.9rem', fontSize: '1.05rem', fontFamily: 'var(--serif)', color: 'var(--text)', background: 'var(--surface)', boxSizing: 'border-box', marginBottom: '1.25rem' }}
+      />
+
+      <h2 style={{ fontFamily: 'var(--serif)', color: 'var(--text)', marginBottom: '0.35rem', fontSize: '1.1rem' }}>
+        Who narrated this?
+      </h2>
+      <p style={{ fontSize: '0.83rem', color: 'var(--muted)', marginBottom: '0.75rem', lineHeight: 1.5 }}>
+        Required — every memory should be attributed to a real person, not a default.
+      </p>
+      <input
+        value={narrator}
+        onChange={e => setNarrator(e.target.value)}
+        placeholder="e.g. Grandma, Dad, Lakshmi…"
+        style={{ width: '100%', border: `1.5px solid ${narrator.trim() ? 'var(--border)' : 'var(--accent)'}`, borderRadius: 10, padding: '0.75rem 0.9rem', fontSize: '1rem', fontFamily: 'var(--sans)', color: 'var(--text)', background: 'var(--surface)', boxSizing: 'border-box' }}
       />
       {/* Sticky action bar */}
       <div style={STICKY_BAR}>
@@ -83,9 +99,9 @@ export default function ReviewWizard({ draft, audioFile, narrator: narratorProp,
           Cancel
         </button>
         <button
-          onClick={() => { if (!title.trim()) { return } setStep(2) }}
-          disabled={!title.trim()}
-          style={{ flex: 2, padding: '0.75rem', borderRadius: 10, background: title.trim() ? 'var(--accent)' : 'var(--muted)', color: 'white', border: 'none', fontWeight: 700, cursor: title.trim() ? 'pointer' : 'default', fontSize: '0.95rem' }}
+          onClick={() => { if (!title.trim() || !narrator.trim()) { return } setStep(2) }}
+          disabled={!title.trim() || !narrator.trim()}
+          style={{ flex: 2, padding: '0.75rem', borderRadius: 10, background: (title.trim() && narrator.trim()) ? 'var(--accent)' : 'var(--muted)', color: 'white', border: 'none', fontWeight: 700, cursor: (title.trim() && narrator.trim()) ? 'pointer' : 'default', fontSize: '0.95rem' }}
         >
           Review &amp; save →
         </button>
