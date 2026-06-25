@@ -297,9 +297,8 @@ function RecipeCard({
 }) {
   return (
     <div className="rk-card-hoverable" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, overflow: 'hidden', boxShadow: '0 2px 10px rgba(45,27,14,0.06)' }}>
-      {/* Food photo — bottom border frames the warm photo against the
-          card's cool jade accent, rather than leaving them to clash */}
-      <div style={{ position: 'relative', aspectRatio: '4/3', background: 'var(--cream2)', overflow: 'hidden', borderBottom: '3px solid var(--accent)' }}>
+      {/* Food photo */}
+      <div style={{ position: 'relative', aspectRatio: '4/3', background: 'var(--cream2)', overflow: 'hidden' }}>
         <Link href={`/memory?token=${memory.token}`} style={{ display: 'block', height: '100%' }}>
           {memory.image_url
             ? <img src={memory.image_url} alt={memory.dish_name ?? ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -364,10 +363,6 @@ function HeroIllustration() {
           border-radius: 16px;
           overflow: hidden;
           height: 160px;
-          /* Warm sepia illustration doesn't blend with the cool jade accent
-             on its own — a deliberate teal frame makes the contrast read as
-             intentional instead of mismatched. */
-          border: 3px solid var(--accent);
         }
         @media (max-width: 600px) {
           .rk-mem-hero-img-wrap {

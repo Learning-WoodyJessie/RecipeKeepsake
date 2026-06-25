@@ -52,12 +52,6 @@ function HeroCard({ userName }: { userName: string }) {
         .rk-hero-img-wrap {
           width: clamp(200px, 32vw, 340px);
           flex-shrink: 0; overflow: hidden; background: var(--cream);
-          /* Warm sepia illustration framed deliberately against the cool
-             jade accent, rather than left to clash on its own. */
-          border-left: 3px solid var(--accent);
-        }
-        @media (max-width: 600px) {
-          .rk-hero-img-wrap { border-left: none; border-bottom: 3px solid var(--accent); }
         }
         @media (max-width: 600px) {
           .rk-hero-card { flex-direction: column; }
