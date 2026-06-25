@@ -231,7 +231,7 @@ function AudioCard({
           favorite={isFav}
           onToggle={onToggleFav}
           size="0.85rem"
-          style={{ position: 'absolute', top: 8, right: 8, width: 28, height: 28, borderRadius: '50%', background: 'rgba(255,255,255,0.9)' }}
+          style={{ position: 'absolute', top: 8, right: 8, width: 26, height: 26, borderRadius: '50%', background: 'rgba(255,255,255,0.9)' }}
         />
       </div>
 
@@ -309,7 +309,8 @@ function RecipeCard({
         <FavoriteHeart
           favorite={isFav}
           onToggle={onToggleFav}
-          style={{ position: 'absolute', top: 8, right: 8, width: 32, height: 32, borderRadius: '50%', background: 'rgba(255,255,255,0.9)', boxShadow: '0 2px 6px rgba(0,0,0,0.12)' }}
+          size="0.85rem"
+          style={{ position: 'absolute', top: 8, right: 8, width: 26, height: 26, borderRadius: '50%', background: 'rgba(255,255,255,0.9)', boxShadow: '0 2px 6px rgba(0,0,0,0.12)' }}
         />
       </div>
 
