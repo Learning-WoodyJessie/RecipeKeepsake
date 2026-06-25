@@ -3,7 +3,7 @@
   "appName": "Echoes of Home",
   "webDir": "frontend/out",
   "server": {
-    "url": "https://theechoesofhome.com",
+    "url": "https://www.theechoesofhome.com",
     "cleartext": false,
     "androidScheme": "https"
   },
