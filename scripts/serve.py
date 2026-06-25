@@ -32,7 +32,7 @@ load_dotenv(Path(__file__).parent.parent / ".env")
 from fastapi import FastAPI, UploadFile, File, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -302,6 +302,27 @@ class _RequestIDMiddleware(BaseHTTPMiddleware):
         return response
 
 
+class _ApexRedirectMiddleware(BaseHTTPMiddleware):
+    """301-redirect the bare apex domain to www, preserving path and query.
+
+    GoDaddy's domain forwarding only redirects the root path ("/"), not
+    subpaths like "/capture/" - those 404 directly against GoDaddy's
+    forwarding servers without ever reaching this app. This middleware only
+    takes effect once the apex domain's DNS A records point here (Railway)
+    instead of GoDaddy's forwarding IPs - it guarantees every route redirects
+    correctly, since path-preserving redirect logic lives in code we control
+    rather than a third-party forwarding product's UI.
+    """
+    async def dispatch(self, request, call_next):
+        host = request.url.hostname or ""
+        if host == "theechoesofhome.com":
+            target = f"https://www.theechoesofhome.com{request.url.path}"
+            if request.url.query:
+                target += f"?{request.url.query}"
+            return RedirectResponse(target, status_code=301)
+        return await call_next(request)
+
+
 app.add_middleware(_RequestIDMiddleware)
 app.add_middleware(
     CORSMiddleware,
@@ -309,6 +330,7 @@ app.add_middleware(
     allow_methods=["GET", "HEAD", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type", "apikey", "X-Client-Info", "X-Request-ID"],
 )
+app.add_middleware(_ApexRedirectMiddleware)
 
 
 _NO_CACHE_HEADERS = {
