@@ -603,7 +603,7 @@ function MemoryDetail() {
       </div>
 
       {memory.image_url && (
-        <div style={{ borderRadius: 14, overflow: 'hidden', marginBottom: '1.25rem', aspectRatio: '16/9', background: 'var(--cream2)' }}>
+        <div style={{ borderRadius: 14, overflow: 'hidden', marginBottom: '1.25rem', aspectRatio: '16/9', background: 'var(--cream2)', boxShadow: '0 0 28px rgba(24,107,94,0.18)' }}>
           <img src={memory.image_url} alt={(display as Memory).dish_name ?? ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         </div>
       )}

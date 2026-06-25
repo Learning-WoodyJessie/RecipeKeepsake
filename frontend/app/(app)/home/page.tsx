@@ -67,7 +67,12 @@ function HeroCard({ userName }: { userName: string }) {
           borderRadius: 20,
           overflow: 'hidden',
           marginBottom: '1.5rem',
-          boxShadow: '0 8px 32px rgba(45,27,14,0.07)',
+          /* Soft jade-tinted glow instead of a hard border around the warm
+             illustration inside — ties it to the palette ambiently. The
+             image itself can't carry its own shadow here since the card's
+             overflow:hidden (needed to clip the image into rounded corners)
+             would clip the shadow too, so the glow lives on the card. */
+          boxShadow: '0 8px 32px rgba(45,27,14,0.07), 0 0 40px rgba(24,107,94,0.18)',
         }}
       >
         <div className="rk-hero-img-wrap" style={{ order: 2 }}>

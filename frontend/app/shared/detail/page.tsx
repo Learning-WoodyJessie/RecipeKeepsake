@@ -49,7 +49,7 @@ function SharedDetail() {
           {memory.narrator && <p style={{ fontSize: '0.85rem', color: 'var(--muted)', marginBottom: '1rem' }}>By {memory.narrator}</p>}
 
           {memory.image_url && (
-            <img src={memory.image_url} alt="" style={{ width: '100%', borderRadius: 12, marginBottom: '1rem' }} />
+            <img src={memory.image_url} alt="" style={{ width: '100%', borderRadius: 12, marginBottom: '1rem', boxShadow: '0 0 28px rgba(24,107,94,0.18)' }} />
           )}
 
           {memory.audio_url && (

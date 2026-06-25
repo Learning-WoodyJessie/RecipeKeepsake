@@ -296,7 +296,7 @@ function RecipeCard({
   narratorRelationship: string
 }) {
   return (
-    <div className="rk-card-hoverable" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, overflow: 'hidden', boxShadow: '0 2px 10px rgba(45,27,14,0.06)' }}>
+    <div className="rk-card-hoverable" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, overflow: 'hidden', boxShadow: '0 2px 10px rgba(45,27,14,0.06), 0 0 22px rgba(24,107,94,0.14)' }}>
       {/* Food photo */}
       <div style={{ position: 'relative', aspectRatio: '4/3', background: 'var(--cream2)', overflow: 'hidden' }}>
         <Link href={`/memory?token=${memory.token}`} style={{ display: 'block', height: '100%' }}>
@@ -363,6 +363,9 @@ function HeroIllustration() {
           border-radius: 16px;
           overflow: hidden;
           height: 160px;
+          /* Soft jade glow, not a hard border, ties the warm illustration
+             into the palette ambiently */
+          box-shadow: 0 0 32px rgba(24,107,94,0.22);
         }
         @media (max-width: 600px) {
           .rk-mem-hero-img-wrap {
