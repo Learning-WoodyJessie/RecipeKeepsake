@@ -381,7 +381,12 @@ export default function CapturePage() {
               <>
                 {/* Dashed circle + mic button */}
                 <div style={{ position: 'relative', width: 110, height: 110, margin: '0 auto 1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '2px dashed var(--border)', opacity: 0.8 }} />
+                  {/* position:absolute siblings paint/hit-test above static
+                      siblings regardless of DOM order - this decorative ring
+                      was silently intercepting every click meant for the
+                      button beneath it. pointer-events:none lets clicks pass
+                      through to the actual button. */}
+                  <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '2px dashed var(--border)', opacity: 0.8, pointerEvents: 'none' }} />
                   <button
                     onClick={startRecording}
                     style={{
@@ -416,7 +421,10 @@ export default function CapturePage() {
                     that was never defined anywhere — it silently never
                     animated. Now uses .rk-rec-pulse (globals.css). */}
                 <div style={{ position: 'relative', width: 110, height: 110, margin: '0 auto 1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <div className="rk-rec-pulse" style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '2px solid #DC2626', opacity: 0.5 }} />
+                  {/* Same fix as the idle-stage ring: pointer-events:none so
+                      this decorative pulse doesn't intercept clicks meant
+                      for the stop button beneath it. */}
+                  <div className="rk-rec-pulse" style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '2px solid #DC2626', opacity: 0.5, pointerEvents: 'none' }} />
                   <button
                     onClick={stopRecording}
                     style={{ width: 80, height: 80, borderRadius: '50%', background: '#FEE2E2', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#DC2626' }}
