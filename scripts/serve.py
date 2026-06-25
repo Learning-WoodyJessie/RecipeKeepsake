@@ -39,7 +39,7 @@ from pydantic import BaseModel
 import httpx
 
 from pipeline.transcribe import run_transcribe
-from pipeline.transform import run_transform
+from pipeline.transform import run_transform, VALID_CATEGORIES
 from pipeline.persist import run_persist
 from pipeline.models import RecipeData
 from tools.storage import check_rate_limit_db
@@ -540,6 +540,7 @@ async def capture_process_endpoint(
             "cook_notes": recipe_data.cook_notes,
             "review_flags": recipe_data.review_flags,
             "image_url": recipe_data.image_url,
+            "category": recipe_data.category,
         }
         _logger.info(f"event=process_done dish={recipe_data.dish_name}")
         return JSONResponse(content=result)
@@ -583,6 +584,7 @@ async def capture_save_endpoint(
 
     try:
         # Rebuild a RecipeData from the client-edited dict
+        raw_category = recipe_dict.get("category", "Other")
         recipe_data = RecipeData(
             dish_name=recipe_dict.get("dish_name", ""),
             ingredients=recipe_dict.get("ingredients", []),
@@ -592,6 +594,7 @@ async def capture_save_endpoint(
             transcript_raw=recipe_dict.get("transcript_raw", ""),
             transcript_english=recipe_dict.get("transcript_english", ""),
             image_url=recipe_dict.get("image_url", ""),
+            category=raw_category if raw_category in VALID_CATEGORIES else "Other",
         )
 
         audio_filename = f"{uuid.uuid4()}{suffix}"

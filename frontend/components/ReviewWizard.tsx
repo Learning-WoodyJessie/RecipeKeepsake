@@ -14,7 +14,11 @@ type Draft = {
   transcript_english: string
   audio_url: string
   image_url: string
+  category?: string
 }
+
+// Matches pipeline/transform.py's VALID_CATEGORIES exactly
+const CATEGORIES = ['Breakfast', 'Lunch', 'Sweets', 'Pickles', 'Snacks', 'Drinks', 'Other'] as const
 
 const STICKY_BAR: React.CSSProperties = {
   position: 'fixed',
@@ -40,13 +44,16 @@ export default function ReviewWizard({ draft, audioFile, narrator: narratorProp,
   const [narrator, setNarrator] = useState(narratorProp || draft.narrator || '')
   const [ingredients, setIngredients] = useState<Ingredient[]>(draft.ingredients ?? [])
   const [steps, setSteps] = useState<string[]>(draft.steps ?? [])
+  // Pre-filled with the AI's guess, but always shown for confirmation - the
+  // model picks this from limited context and has no obligation to be right.
+  const [category, setCategory] = useState(draft.category ?? 'Other')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
   async function save() {
     setSaving(true)
     try {
-      const recipe = { ...draft, dish_name: title, ingredients, steps }
+      const recipe = { ...draft, dish_name: title, ingredients, steps, category }
       const form = new FormData()
       form.append('audio', audioFile, audioFile.name)
       form.append('recipe', JSON.stringify(recipe))
@@ -118,6 +125,30 @@ export default function ReviewWizard({ draft, audioFile, narrator: narratorProp,
       <p style={{ fontSize: '0.83rem', color: 'var(--muted)', marginBottom: '1.25rem', lineHeight: 1.5 }}>
         Edit anything the AI missed. Vague quantities like "a little" are kept as-is.
       </p>
+
+      {/* Category — confirm the AI's guess before saving */}
+      <div style={{ marginBottom: '1.5rem' }}>
+        <div style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--muted)', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>
+          Category
+        </div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+          {CATEGORIES.map(cat => (
+            <button
+              key={cat}
+              type="button"
+              onClick={() => setCategory(cat)}
+              style={{
+                padding: '0.35rem 0.85rem', borderRadius: 20, fontSize: '0.8rem', fontWeight: 500, cursor: 'pointer',
+                border: `1.5px solid ${category === cat ? 'var(--accent)' : 'var(--border)'}`,
+                background: category === cat ? 'var(--accent-light)' : 'transparent',
+                color: category === cat ? 'var(--accent)' : 'var(--text2)',
+              }}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {/* Ingredients */}
       <div style={{ marginBottom: '1.5rem' }}>

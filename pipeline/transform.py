@@ -15,6 +15,8 @@ from prompts.structure import structure_recipe
 from prompts.llm import LLMProvider, OpenAIProvider
 from pipeline.models import TranscriptResult, RecipeData
 
+VALID_CATEGORIES = {"Breakfast", "Lunch", "Sweets", "Pickles", "Snacks", "Drinks", "Other"}
+
 
 def run_transform(transcript: TranscriptResult, provider: LLMProvider | None = None) -> RecipeData:
     """
@@ -36,9 +38,8 @@ def run_transform(transcript: TranscriptResult, provider: LLMProvider | None = N
     structured = structure_recipe(transcript.english, provider)
     _logger.info(f"event=structure_done duration={time.perf_counter()-t0:.2f}s")
 
-    _VALID_CATEGORIES = {"Breakfast", "Lunch", "Sweets", "Pickles", "Snacks", "Drinks", "Other"}
     raw_category = structured.get("category", "Other")
-    category = raw_category if raw_category in _VALID_CATEGORIES else "Other"
+    category = raw_category if raw_category in VALID_CATEGORIES else "Other"
 
     return RecipeData(
         dish_name=structured.get("dish_name", ""),
