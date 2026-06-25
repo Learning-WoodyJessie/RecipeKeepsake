@@ -34,3 +34,18 @@ class TestTranslateToEnglish:
         """build_translate_system() injects the Telugu cooking glossary."""
         system = build_translate_system()
         assert "konchem" in system.lower()
+
+    def test_passes_temperature_zero(self):
+        """translate_to_english() must pin temperature=0 - without it, the
+        default sampling temperature fabricates content for short utterances
+        (e.g. expanding a bare dish name into a full invented recipe)."""
+        p = _provider("result")
+        translate_to_english("raw telugu text", p)
+        call_args = p.generate.call_args
+        assert call_args[1].get("temperature") == 0
+
+    def test_system_prompt_forbids_expanding_short_utterances(self):
+        """build_translate_system() must explicitly forbid filling in
+        ingredients/steps for a bare dish name or other short narration."""
+        system = build_translate_system()
+        assert "short" in system.lower() or "two-word" in system.lower()
