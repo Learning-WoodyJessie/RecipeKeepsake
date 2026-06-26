@@ -5,7 +5,8 @@ import pytest
 from unittest.mock import MagicMock, patch
 from fastapi import HTTPException
 
-from scripts.serve import _validate_audio_upload, _moderate_transcript
+import base64
+from scripts.serve import _validate_audio_upload, _moderate_transcript, _decode_photo_data, _sniff_image
 
 
 def _fake_upload(filename):
@@ -153,3 +154,68 @@ class TestModerateTranscript:
         with patch.dict("os.environ", {"OPENAI_API_KEY": "fake-key"}):
             with patch.dict(sys.modules, {"openai": MagicMock(OpenAI=mock_oai_cls)}):
                 _moderate_transcript("some recipe text")  # must not raise
+
+
+# ── _sniff_image / _decode_photo_data (narrator photo upload) ────────────────
+
+_JPEG = b"\xff\xd8\xff" + b"\x00" * 100
+_PNG = b"\x89PNG\r\n\x1a\n" + b"\x00" * 100
+_WEBP = b"RIFF" + b"\x00" * 100
+_HEIC = b"\x00\x00\x00\x00ftyp" + b"\x00" * 100  # ftyp at offset 4
+
+
+def _data_uri(mime: str, data: bytes) -> str:
+    return f"data:{mime};base64,{base64.b64encode(data).decode()}"
+
+
+class TestSniffImage:
+    def test_identifies_jpeg(self):
+        assert _sniff_image(_JPEG) == (".jpg", "image/jpeg")
+
+    def test_identifies_png(self):
+        assert _sniff_image(_PNG) == (".png", "image/png")
+
+    def test_identifies_webp(self):
+        assert _sniff_image(_WEBP) == (".webp", "image/webp")
+
+    def test_identifies_heic(self):
+        assert _sniff_image(_HEIC) == (".heic", "image/heic")
+
+    def test_rejects_unrecognised_bytes(self):
+        with pytest.raises(HTTPException) as exc:
+            _sniff_image(b"not an image" + b"\x00" * 100)
+        assert exc.value.status_code == 400
+
+
+class TestDecodePhotoData:
+    def test_decodes_valid_jpeg_data_uri(self):
+        """Even if the declared MIME is wrong, ext/content_type come from sniffing the bytes."""
+        uri = _data_uri("image/jpeg", _JPEG)
+        data, ext, content_type = _decode_photo_data(uri)
+        assert data == _JPEG
+        assert ext == ".jpg"
+        assert content_type == "image/jpeg"
+
+    def test_rejects_missing_comma(self):
+        with pytest.raises(HTTPException) as exc:
+            _decode_photo_data("not-a-data-uri")
+        assert exc.value.status_code == 400
+
+    def test_rejects_invalid_base64(self):
+        with pytest.raises(HTTPException) as exc:
+            _decode_photo_data("data:image/jpeg;base64,!!!not-base64!!!")
+        assert exc.value.status_code == 400
+
+    def test_rejects_oversized_photo(self, monkeypatch):
+        import scripts.serve as serve_mod
+        monkeypatch.setattr(serve_mod, "_MAX_IMAGE_BYTES", 50)
+        uri = _data_uri("image/jpeg", _JPEG)
+        with pytest.raises(HTTPException) as exc:
+            _decode_photo_data(uri)
+        assert exc.value.status_code == 413
+
+    def test_rejects_non_image_bytes(self):
+        uri = _data_uri("image/jpeg", b"not an image" + b"\x00" * 100)
+        with pytest.raises(HTTPException) as exc:
+            _decode_photo_data(uri)
+        assert exc.value.status_code == 400

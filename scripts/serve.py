@@ -14,6 +14,7 @@ Production (Railway):
     Reads PORT from environment. Set env vars in Railway dashboard.
 """
 
+import base64
 import json as _json
 import json as _json_stdlib
 import logging
@@ -175,6 +176,55 @@ def _validate_audio_upload(audio: UploadFile, data: bytes) -> None:
             status_code=400,
             detail="File does not appear to be a valid audio file. Please upload an actual audio recording.",
         )
+
+
+# Maximum photo upload size (bytes). 8 MB comfortably covers a phone camera photo.
+_MAX_IMAGE_BYTES = int(os.environ.get("MAX_IMAGE_UPLOAD_BYTES", str(8 * 1024 * 1024)))
+
+# (magic bytes, extension, content-type) — checked in order; magic bytes are
+# the authoritative check, the declared data-URI MIME type is not trusted.
+_IMAGE_MAGIC: list[tuple[bytes, str, str]] = [
+    (b"\xff\xd8\xff", ".jpg", "image/jpeg"),
+    (b"\x89PNG\r\n\x1a\n", ".png", "image/png"),
+    (b"RIFF", ".webp", "image/webp"),
+]
+_IMAGE_MAGIC_OFFSET4 = (b"ftyp", ".heic", "image/heic")  # ISO base media box at offset 4
+
+
+def _sniff_image(data: bytes) -> tuple[str, str]:
+    """Identify (ext, content_type) from magic bytes, or raise HTTP 400."""
+    for sig, ext, content_type in _IMAGE_MAGIC:
+        if data[: len(sig)] == sig:
+            return ext, content_type
+    if data[4:4 + len(_IMAGE_MAGIC_OFFSET4[0])] == _IMAGE_MAGIC_OFFSET4[0]:
+        return _IMAGE_MAGIC_OFFSET4[1], _IMAGE_MAGIC_OFFSET4[2]
+    raise HTTPException(
+        status_code=400,
+        detail="File does not appear to be a valid image. Please upload an actual photo (JPG, PNG, HEIC, or WebP).",
+    )
+
+
+def _decode_photo_data(photo_data: str) -> tuple[bytes, str, str]:
+    """Decode a `data:<mime>;base64,<...>` URI into (bytes, ext, content_type).
+
+    The declared MIME in the URI is ignored for validation purposes — ext/
+    content_type are derived from sniffing the decoded bytes' magic number,
+    same discipline as audio uploads.
+    """
+    if "," not in photo_data:
+        raise HTTPException(status_code=400, detail="Invalid photo data.")
+    _, _, b64 = photo_data.partition(",")
+    try:
+        data = base64.b64decode(b64)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid photo data.")
+
+    if len(data) > _MAX_IMAGE_BYTES:
+        mb = _MAX_IMAGE_BYTES // (1024 * 1024)
+        raise HTTPException(status_code=413, detail=f"Photo too large. Maximum size is {mb} MB.")
+
+    ext, content_type = _sniff_image(data)
+    return data, ext, content_type
 
 
 # ── Content moderation ────────────────────────────────────────────────────────
@@ -743,12 +793,25 @@ async def list_people_endpoint(
     raise HTTPException(status_code=401, detail="Not authenticated")
 
 
+def _person_payload(body: "PersonRequest") -> dict:
+    """Build the dict to persist, uploading photo_data (base64) to storage and
+    swapping it for a real photo_url - the people table has no photo_data
+    column, so this must never be passed through as-is.
+    """
+    from tools.storage import upload_user_photo
+    payload = body.model_dump(exclude_none=True, exclude={"photo_data"})
+    if body.photo_data:
+        data, ext, content_type = _decode_photo_data(body.photo_data)
+        payload["photo_url"] = upload_user_photo(data, ext, content_type)
+    return payload
+
+
 @app.post("/people")
 async def create_person_endpoint(body: PersonRequest, user: dict = Depends(require_auth)):
     """Create a narrator profile."""
     from tools.storage import create_person
     user_id = _user_id(user)
-    person = create_person(user_id, body.model_dump(exclude_none=True))
+    person = create_person(user_id, _person_payload(body))
     return JSONResponse(content={"person": person})
 
 
@@ -760,7 +823,7 @@ async def update_person_endpoint(person_id: str, body: PersonRequest, user: dict
     people = list_people(user_id)
     if not any(p["id"] == person_id for p in people):
         raise HTTPException(status_code=403, detail="Not your record")
-    person = update_person(person_id, body.model_dump(exclude_none=True))
+    person = update_person(person_id, _person_payload(body))
     return JSONResponse(content={"person": person})
 
 

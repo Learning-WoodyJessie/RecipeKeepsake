@@ -72,6 +72,24 @@ def store_image(image_url: str) -> str:
         return image_url  # graceful fallback
 
 
+def upload_user_photo(data: bytes, ext: str, content_type: str) -> str:
+    """Upload a user-provided photo (e.g. a narrator's picture) to the public
+    'images' bucket. Unlike store_image(), this is a direct upload of bytes
+    already in hand — no download step, no fallback-to-original since there
+    is no "original URL" to fall back to. Raises on failure rather than
+    swallowing it, since a narrator photo upload failing should be visible
+    to the user, not silently dropped the way a DALL-E image failure is.
+    """
+    sb = _client()
+    filename = f"{_uuid.uuid4()}{ext}"
+    sb.storage.from_("images").upload(
+        path=filename,
+        file=data,
+        file_options={"content-type": content_type, "upsert": "false"},
+    )
+    return sb.storage.from_("images").get_public_url(filename)
+
+
 def upload_audio(local_path: str, filename: str) -> str:
     """Upload an audio file to the private 'audio' bucket. Returns the filename (storage path)."""
     mime = mimetypes.guess_type(filename)[0] or "audio/webm"

@@ -8,8 +8,11 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { api, type Person } from '@/lib/api'
+import PhotoPicker from '@/components/PhotoPicker'
 
-type FormData = Omit<Person, 'id'>
+// photo_data (base64) is request-only - the server uploads it and responds
+// with a real photo_url, it's never part of the canonical Person shape.
+type FormData = Omit<Person, 'id'> & { photo_data?: string }
 const EMPTY: FormData = { name: '', relationship: '', emoji: '👤', photo_url: '', bio: '', notes: '' }
 
 // ─── SVG Icons ────────────────────────────────────────────────────────────
@@ -212,10 +215,26 @@ function PersonModal({
           {editing ? `Edit ${editing.name}` : 'Add someone special'}
         </h2>
 
+        <div style={{ marginBottom: '0.85rem' }}>
+          <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--muted)', marginBottom: '0.3rem' }}>Photo</label>
+          {/* Preview shows the new photo_data if just picked, otherwise the
+              existing photo_url - keeps the JSON payload from carrying the
+              same base64 image twice under two different keys. */}
+          <PhotoPicker
+            value={form.photo_data || form.photo_url || ''}
+            onChange={dataUri => {
+              // Empty string = "Remove" was clicked - clear photo_url too,
+              // not just stop sending new photo_data, otherwise the existing
+              // server-side photo_url would silently survive the "removal".
+              if (dataUri) setForm({ ...form, photo_data: dataUri })
+              else setForm({ ...form, photo_data: undefined, photo_url: '' })
+            }}
+          />
+        </div>
+
         {[
           { field: 'name' as keyof FormData, label: 'Name', placeholder: 'e.g. Grandma' },
           { field: 'relationship' as keyof FormData, label: 'Relationship', placeholder: 'e.g. Grandmother, Mom, Aunt' },
-          { field: 'photo_url' as keyof FormData, label: 'Photo URL', placeholder: 'https://…' },
           { field: 'bio' as keyof FormData, label: 'About them', placeholder: 'A short description…' },
           { field: 'notes' as keyof FormData, label: 'Notes', placeholder: 'Anything else to remember…' },
         ].map(({ field, label, placeholder }) => (
