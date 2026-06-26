@@ -6,6 +6,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { api, type Person } from '@/lib/api'
 import PhotoPicker from '@/components/PhotoPicker'
@@ -150,8 +151,25 @@ function PersonCard({ person, recipeCount, onEdit, onNavigate }: { person: Perso
         </div>
       </div>
 
-      {/* Edit + chevron */}
+      {/* Record + Edit + chevron */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexShrink: 0 }}>
+        <Link
+          href={`/capture?narrator=${encodeURIComponent(person.name)}`}
+          aria-label={`Record a memory for ${person.name}`}
+          title={`Record a memory for ${person.name}`}
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            width: 34, height: 34, borderRadius: '50%',
+            border: '1.5px solid var(--accent)',
+            background: 'var(--accent-light)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', color: 'var(--accent)',
+          }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/>
+          </svg>
+        </Link>
         <button
           type="button"
           aria-label="Edit"

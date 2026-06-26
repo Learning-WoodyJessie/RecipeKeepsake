@@ -4,9 +4,9 @@
 
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, Suspense } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import NarratorChip from '@/components/NarratorChip'
 import ReviewWizard from '@/components/ReviewWizard'
 import { api } from '@/lib/api'
@@ -119,11 +119,15 @@ function pickMimeType(): { mimeType: string; ext: string } {
   return supported ?? { mimeType: '', ext: '.webm' }
 }
 
-export default function CapturePage() {
+function CapturePageInner() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [mode, setMode] = useState<'ai' | 'direct'>('ai')
   const [stage, setStage] = useState<Stage>('idle')
-  const [narrator, setNarrator] = useState('')
+  // Deep-linked from "Our People" (e.g. /capture?narrator=Grandma) so adding
+  // someone there flows straight into recording for them, no re-selecting
+  // the chip you just effectively chose by clicking "Record a memory".
+  const [narrator, setNarrator] = useState(searchParams.get('narrator') ?? '')
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [duration, setDuration] = useState(0)
@@ -514,5 +518,13 @@ export default function CapturePage() {
         <TipsPanel mode={mode} />
       </div>
     </div>
+  )
+}
+
+export default function CapturePage() {
+  return (
+    <Suspense fallback={<div style={{ padding: '2rem', color: 'var(--muted)' }}>Loading…</div>}>
+      <CapturePageInner />
+    </Suspense>
   )
 }
