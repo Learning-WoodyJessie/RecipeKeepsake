@@ -11,6 +11,7 @@ type Draft = {
   steps: string[]
   cook_notes: string
   review_flags: string[]
+  transcript_raw: string
   transcript_english: string
   audio_url: string
   image_url: string
@@ -102,7 +103,7 @@ export default function ReviewWizard({ draft, audioFile, narrator: narratorProp,
         style={{ width: '100%', border: `1.5px solid ${narrator.trim() ? 'var(--border)' : 'var(--accent)'}`, borderRadius: 10, padding: '0.75rem 0.9rem', fontSize: '1rem', fontFamily: 'var(--sans)', color: 'var(--text)', background: 'var(--surface)', boxSizing: 'border-box' }}
       />
       {/* What we heard — collapsible transcript */}
-      {draft.transcript_english && (
+      {draft.transcript_raw && (
         <div style={{ marginTop: '1.5rem', borderTop: '1px solid var(--border)', paddingTop: '1rem' }}>
           <button
             type="button"
@@ -116,7 +117,7 @@ export default function ReviewWizard({ draft, audioFile, narrator: narratorProp,
           </button>
           {transcriptOpen && (
             <div style={{ marginTop: '0.65rem', background: 'var(--cream2)', borderRadius: 10, padding: '0.85rem 1rem', fontSize: '0.8rem', color: 'var(--text2)', lineHeight: 1.65, maxHeight: 220, overflowY: 'auto', whiteSpace: 'pre-wrap' }}>
-              {draft.transcript_english}
+              {draft.transcript_raw}
             </div>
           )}
         </div>
