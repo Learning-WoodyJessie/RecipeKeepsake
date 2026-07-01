@@ -13,7 +13,7 @@ narrator stops mid-sentence.
 from openai import OpenAI
 from tools.glossary import build_glossary_terms_list
 
-_WHISPER_PREFIX = "Telugu cooking terms: {glossary}"
+_WHISPER_PREFIX = "తెలుగు వంటకాలు: {glossary}"
 
 # If any sentence appears more than this many times consecutively it's a
 # hallucination loop (Whisper fabricating into silence). Collapse the run.
