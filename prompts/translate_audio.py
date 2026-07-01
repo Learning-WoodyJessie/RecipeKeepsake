@@ -19,6 +19,13 @@ _TRANSLATE_BASE = (
     "in ingredients, steps, or any other detail the speaker did not actually say, even if "
     "you recognize the dish and know what it typically contains. A two-word utterance "
     "must produce a two-word translation, not a paragraph.\n\n"
+    "CRITICAL — dish names: when the narrator says the name of a dish, keep it in the "
+    "original Telugu/regional form — do NOT translate it to English. "
+    "Examples: 'Chinthapandu Chutney' stays as 'Chinthapandu Chutney' (not 'Tamarind Chutney'), "
+    "'Gongura Pachadi' stays as 'Gongura Pachadi' (not 'Sorrel Chutney'), "
+    "'Pesarattu' stays as 'Pesarattu' (not 'Green Gram Crepe'). "
+    "Individual ingredient names (tamarind, sesame, etc.) should be translated to English "
+    "so the structuring step can identify them — only the dish name itself is preserved.\n\n"
     "Telugu cooking glossary for reference:\n{glossary}"
 )
 
