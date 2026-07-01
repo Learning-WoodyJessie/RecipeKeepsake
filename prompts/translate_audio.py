@@ -26,6 +26,10 @@ _TRANSLATE_BASE = (
     "'Pesarattu' stays as 'Pesarattu' (not 'Green Gram Crepe'). "
     "Individual ingredient names (tamarind, sesame, etc.) should be translated to English "
     "so the structuring step can identify them — only the dish name itself is preserved.\n\n"
+    "CRITICAL — use surrounding context to resolve ambiguous words, never translate in isolation. "
+    "Example: 'పచ్చికాయలు' literally means 'raw/unripe fruit' but in a cooking conversation "
+    "about chili powder it means 'green chilies', not 'raw mango'. Read the full exchange "
+    "before translating any single word.\n\n"
     "Telugu cooking glossary for reference:\n{glossary}"
 )
 

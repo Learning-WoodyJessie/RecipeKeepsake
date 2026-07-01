@@ -116,8 +116,10 @@ export default function ReviewWizard({ draft, audioFile, narrator: narratorProp,
             What we heard
           </button>
           {transcriptOpen && (
-            <div style={{ marginTop: '0.65rem', background: 'var(--cream2)', borderRadius: 10, padding: '0.85rem 1rem', fontSize: '0.8rem', color: 'var(--text2)', lineHeight: 1.65, maxHeight: 220, overflowY: 'auto', whiteSpace: 'pre-wrap' }}>
-              {draft.transcript_raw}
+            <div style={{ marginTop: '0.65rem', background: 'var(--cream2)', borderRadius: 10, padding: '0.85rem 1rem', fontSize: '0.8rem', color: 'var(--text2)', lineHeight: 1.85, maxHeight: 220, overflowY: 'auto' }}>
+              {draft.transcript_raw.split(/(?<=[.!?])\s+/).map((s, i) => (
+                <p key={i} style={{ margin: '0 0 0.35rem' }}>{s}</p>
+              ))}
             </div>
           )}
         </div>

@@ -490,7 +490,7 @@ function MemoryDetail() {
                 scheduleAutoSave({ transcript_english: e.target.value, user_notes: e.target.value })
               }}
               onBlur={() => patchField({ transcript_english: about, user_notes: about })}
-              placeholder="What is this — a song, a poem, a prayer? Why does it matter to your family?"
+              placeholder="What is this: a song, a poem, a prayer? Why does it matter to your family?"
               rows={5}
               style={{
                 width: '100%', border: '1px solid var(--border)', borderRadius: 10,
@@ -655,13 +655,21 @@ function MemoryDetail() {
           {memory.transcript_raw && (
             <>
               <p style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--muted)', marginTop: '0.75rem', marginBottom: '0.35rem' }}>Original</p>
-              <p style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: '0.85rem', fontSize: '0.85rem', color: 'var(--text2)', lineHeight: 1.7 }}>{memory.transcript_raw}</p>
+              <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: '0.85rem', fontSize: '0.85rem', color: 'var(--text2)', lineHeight: 1.85 }}>
+                {memory.transcript_raw.split(/(?<=[.!?])\s+/).map((s, i) => (
+                  <p key={i} style={{ margin: '0 0 0.35rem' }}>{s}</p>
+                ))}
+              </div>
             </>
           )}
           {memory.transcript_english && (
             <>
               <p style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--muted)', marginTop: '0.75rem', marginBottom: '0.35rem' }}>English translation</p>
-              <p style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: '0.85rem', fontSize: '0.85rem', color: 'var(--text2)', lineHeight: 1.7 }}>{memory.transcript_english}</p>
+              <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: '0.85rem', fontSize: '0.85rem', color: 'var(--text2)', lineHeight: 1.85 }}>
+                {memory.transcript_english.split(/(?<=[.!?])\s+/).map((s, i) => (
+                  <p key={i} style={{ margin: '0 0 0.35rem' }}>{s}</p>
+                ))}
+              </div>
             </>
           )}
         </details>
