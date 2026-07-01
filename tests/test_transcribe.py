@@ -1,5 +1,5 @@
 from unittest.mock import patch, MagicMock, mock_open
-from tools.transcribe import transcribe_audio
+from tools.transcribe import transcribe_audio, _strip_hallucination_loops
 
 
 class TestTranscribeAudio:
@@ -92,3 +92,36 @@ class TestTranscribeAudio:
             call_kwargs = mock_client.audio.transcriptions.create.call_args[1]
 
         assert "until it smells right" not in call_kwargs["prompt"].lower()
+
+
+class TestStripHallucinationLoops:
+    def test_collapses_repeated_word_runs(self):
+        """Word-level repetition (e.g. Telugu word repeated without punctuation) is collapsed."""
+        text = "నూవులు మోటియింది మోటియింది మోటియింది మోటియింది"
+        result = _strip_hallucination_loops(text)
+        assert result.count("మోటియింది") <= 2
+
+    def test_collapses_repeated_sentence_runs(self):
+        """Sentence-level repetition (English hallucination loop) is collapsed."""
+        text = "Add sugar. " * 50
+        result = _strip_hallucination_loops(text.strip())
+        assert result.count("Add sugar.") <= 2
+
+    def test_preserves_real_content_before_loop(self):
+        """Content before the hallucination loop is kept intact."""
+        text = "Soak tamarind. Add onions. Add cumin seeds. Add sugar. Add sugar. Add sugar. Add sugar."
+        result = _strip_hallucination_loops(text)
+        assert "Soak tamarind." in result
+        assert "Add onions." in result
+        assert "Add cumin seeds." in result
+
+    def test_normal_text_passes_through(self):
+        """Text with no repetition is returned unchanged."""
+        text = "Soak tamarind well. Add oil and onions. Grind sesame seeds with salt."
+        assert _strip_hallucination_loops(text) == text
+
+    def test_legitimate_double_mention_kept(self):
+        """Two mentions of the same sentence are allowed (not hallucination)."""
+        text = "Add oil. Mix well. Add oil. Cook until done."
+        result = _strip_hallucination_loops(text)
+        assert result.count("Add oil.") == 2
