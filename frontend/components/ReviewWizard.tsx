@@ -49,6 +49,7 @@ export default function ReviewWizard({ draft, audioFile, narrator: narratorProp,
   const [category, setCategory] = useState(draft.category ?? 'Other')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [transcriptOpen, setTranscriptOpen] = useState(false)
 
   async function save() {
     setSaving(true)
@@ -71,8 +72,8 @@ export default function ReviewWizard({ draft, audioFile, narrator: narratorProp,
       </h2>
       <p style={{ fontSize: '0.83rem', color: 'var(--muted)', marginBottom: '1rem', lineHeight: 1.5 }}>
         {title
-          ? 'Our best guess from the recording — edit if it\'s not right.'
-          : 'We couldn\'t detect a name from the recording — please enter one below.'}
+          ? 'Our best guess from the recording. Edit if it\'s not right.'
+          : 'We couldn\'t detect a name from the recording. Please enter one below.'}
       </p>
       {!title && (
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#FFF8F0', border: '1px solid #F4C89A', borderRadius: 10, padding: '0.6rem 0.85rem', marginBottom: '0.75rem', fontSize: '0.82rem', color: '#8B5E3C' }}>
@@ -92,7 +93,7 @@ export default function ReviewWizard({ draft, audioFile, narrator: narratorProp,
         Who narrated this?
       </h2>
       <p style={{ fontSize: '0.83rem', color: 'var(--muted)', marginBottom: '0.75rem', lineHeight: 1.5 }}>
-        Required — every memory should be attributed to a real person, not a default.
+        Required. Every memory should be attributed to a real person, not a default.
       </p>
       <input
         value={narrator}
@@ -100,6 +101,27 @@ export default function ReviewWizard({ draft, audioFile, narrator: narratorProp,
         placeholder="e.g. Grandma, Dad, Lakshmi…"
         style={{ width: '100%', border: `1.5px solid ${narrator.trim() ? 'var(--border)' : 'var(--accent)'}`, borderRadius: 10, padding: '0.75rem 0.9rem', fontSize: '1rem', fontFamily: 'var(--sans)', color: 'var(--text)', background: 'var(--surface)', boxSizing: 'border-box' }}
       />
+      {/* What we heard — collapsible transcript */}
+      {draft.transcript_english && (
+        <div style={{ marginTop: '1.5rem', borderTop: '1px solid var(--border)', paddingTop: '1rem' }}>
+          <button
+            type="button"
+            onClick={() => setTranscriptOpen(o => !o)}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)', fontSize: '0.8rem', fontWeight: 600, padding: 0, width: '100%' }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: transcriptOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', flexShrink: 0 }}>
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+            What we heard
+          </button>
+          {transcriptOpen && (
+            <div style={{ marginTop: '0.65rem', background: 'var(--cream2)', borderRadius: 10, padding: '0.85rem 1rem', fontSize: '0.8rem', color: 'var(--text2)', lineHeight: 1.65, maxHeight: 220, overflowY: 'auto', whiteSpace: 'pre-wrap' }}>
+              {draft.transcript_english}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Sticky action bar */}
       <div style={STICKY_BAR}>
         <button onClick={onCancel} style={{ flex: 1, padding: '0.75rem', borderRadius: 10, border: '1px solid var(--border)', background: 'none', cursor: 'pointer', color: 'var(--text2)', fontWeight: 500, fontSize: '0.88rem' }}>
@@ -157,7 +179,7 @@ export default function ReviewWizard({ draft, audioFile, narrator: narratorProp,
         </div>
         {ingredients.length === 0 && (
           <p style={{ fontSize: '0.82rem', color: 'var(--muted)', fontStyle: 'italic', marginBottom: '0.5rem' }}>
-            No ingredients detected — add them below.
+            No ingredients detected. Add them below.
           </p>
         )}
         {ingredients.map((ing, i) => (
@@ -189,7 +211,7 @@ export default function ReviewWizard({ draft, audioFile, narrator: narratorProp,
         </div>
         {steps.length === 0 && (
           <p style={{ fontSize: '0.82rem', color: 'var(--muted)', fontStyle: 'italic', marginBottom: '0.5rem' }}>
-            No steps detected — add them below.
+            No steps detected. Add them below.
           </p>
         )}
         {steps.map((s, i) => (
