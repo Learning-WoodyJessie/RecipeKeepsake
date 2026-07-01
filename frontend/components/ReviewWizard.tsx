@@ -145,7 +145,7 @@ export default function ReviewWizard({ draft, audioFile, narrator: narratorProp,
         {title || 'Review recipe'}
       </h2>
       <p style={{ fontSize: '0.83rem', color: 'var(--muted)', marginBottom: '1.25rem', lineHeight: 1.5 }}>
-        Edit anything the AI missed. Vague quantities like "a little" are kept as-is.
+        Edit anything we missed. Vague quantities like "a little" are kept as-is.
       </p>
 
       {/* Category — confirm the AI's guess before saving */}
