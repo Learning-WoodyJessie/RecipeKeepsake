@@ -117,4 +117,32 @@ markers =
 
 ---
 
+## Whisper hallucination loop on silence
+
+**Pattern**: `gpt-4o-transcribe` locks onto the last real word/sentence and repeats it hundreds of times when the recording ends with silence. Happens in two forms: word-level (unpunctuated Telugu: "మోటియింది మోటియింది...") and sentence-level (English: "Add sugar. Add sugar. ..."). Both cause the structure step to receive a bloated, garbage transcript.
+
+**Tell**: `transcript_raw` contains a short real recipe followed by hundreds of identical words/sentences.
+
+**Wrong**: Pass raw Whisper output directly to translation/structure.
+
+**Right**: Post-process with two-pass dedup — collapse consecutive identical words (max 2), then collapse consecutive identical sentences (max 2).
+
+**Rule**: Always strip hallucination loops from Whisper output before any LLM step. See `_strip_hallucination_loops()` in `tools/transcribe.py`.
+
+---
+
+## Whisper script output depends on initial_prompt language
+
+**Pattern**: `gpt-4o-transcribe` with `language="te"` outputs romanized Latin script (e.g. "Chintapandu naanavettu") for browser WebM recordings when the `initial_prompt` is in Latin script. M4A uploads produce Telugu script because they have higher audio quality and don't need the prompt to tip the model.
+
+**Tell**: Upload → Telugu script in ORIGINAL. Live record → romanized Latin in ORIGINAL.
+
+**Wrong**: `initial_prompt = "Telugu cooking terms: konchem, koddiga, ..."`
+
+**Right**: `initial_prompt = "తెలుగు వంటకాలు: konchem, koddiga, ..."` (Telugu script prefix forces Telugu script output regardless of audio format)
+
+**Rule**: Whisper's initial_prompt script language is a signal for output script. Always start it in the target script.
+
+---
+
 *(Add new patterns here as they're discovered during build)*
