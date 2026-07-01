@@ -491,7 +491,7 @@ export default function MemoriesPage() {
                   </p>
                   <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap' }}>
                     <Link
-                      href="/capture"
+                      href={narratorParam ? `/capture?narrator=${encodeURIComponent(narratorParam)}` : '/capture'}
                       style={{
                         display: 'inline-flex', alignItems: 'center', gap: '0.45rem',
                         background: 'var(--accent)', color: 'white', textDecoration: 'none',
@@ -531,7 +531,7 @@ export default function MemoriesPage() {
                     <h1 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.6rem, 3vw, 2rem)', fontWeight: 700, color: 'var(--text)', margin: 0, display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
                       All Recipes <span style={{ color: 'var(--muted)' }}>♡</span>
                     </h1>
-                    <Link href="/capture" style={{ background: 'var(--accent)', color: 'white', textDecoration: 'none', padding: '0.45rem 1rem', borderRadius: 10, fontSize: '0.82rem', fontWeight: 700, whiteSpace: 'nowrap', flexShrink: 0, boxShadow: '0 2px 8px rgba(24,107,94,0.22)', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                    <Link href={narratorParam ? `/capture?narrator=${encodeURIComponent(narratorParam)}` : '/capture'} style={{ background: 'var(--accent)', color: 'white', textDecoration: 'none', padding: '0.45rem 1rem', borderRadius: 10, fontSize: '0.82rem', fontWeight: 700, whiteSpace: 'nowrap', flexShrink: 0, boxShadow: '0 2px 8px rgba(24,107,94,0.22)', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
                       + Add Recipe
                     </Link>
                   </div>
@@ -571,7 +571,7 @@ export default function MemoriesPage() {
                 {q
                   ? `No memories matching "${q}"`
                   : filter === 'Favorites'
-                  ? 'No favorites yet — heart one to add it here.'
+                  ? 'No favorites yet. Heart one to add it here.'
                   : narratorParam
                   ? `No memories saved for ${narratorParam} yet.`
                   : isAudioMode ? 'No recordings yet.' : 'No recipes yet.'}
