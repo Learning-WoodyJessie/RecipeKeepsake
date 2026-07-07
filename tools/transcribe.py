@@ -21,17 +21,19 @@ from tools.glossary import build_glossary_terms_list
 _MODEL = "gemini-2.5-flash"
 
 _TRANSCRIPTION_PROMPT = """\
-Transcribe the following Telugu audio recording exactly as spoken.
+Transcribe the following Telugu audio recording accurately.
 
 Rules:
-- The speaker may use Telangana, Andhra, Rayalaseema, or Hyderabadi dialect — \
-preserve all dialect-specific words, verb forms, and Urdu/Persian loanwords exactly \
-as spoken (e.g. Telangana -లి endings like పెట్టాలి, చేయాలి; words like పోషి, పెన్నం).
+- The speaker may use Telangana, Andhra, Rayalaseema, or Hyderabadi dialect.
+- Use your knowledge of Telugu dialects to write the CORRECT Telugu spelling of \
+dialect words — even when they sound phonetically different from standard Telugu. \
+For example: if you hear "thaida pindi" recognise it as తైదా పిండి (ragi flour), \
+not a phonetic guess. If you hear "poshi pettali" write పోషి పెట్టాలి, not వోష్.
+- Preserve dialectal verb forms exactly (e.g. Telangana -లి endings: పెట్టాలి, చేయాలి).
 - Return only the transcription in Telugu script. No English explanations, no \
 translation, no commentary.
 - If the speaker code-switches into English mid-sentence, transcribe those words \
 in English as spoken.
-- Do not correct, standardise, or normalise dialect words to formal Telugu.
 - Telugu cooking vocabulary that may appear: {glossary}
 """
 

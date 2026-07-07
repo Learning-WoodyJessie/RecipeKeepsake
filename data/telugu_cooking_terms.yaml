@@ -61,3 +61,28 @@ endu mirapakayalu:
   meaning: "dried red chillies"
   variants: [endu mirapa, endu mirapakaya, denmira, denmira pagayalu, denmir pagayalu, endu mirapalu]
   use: ingredient
+
+తైదా పిండి:
+  meaning: "ragi flour / finger millet flour (Telangana dialect word)"
+  variants: [thaida pindi, taida pindi, తైద పిండి, raagi pindi, ragi pindi]
+  use: ingredient
+
+పెసల పిండి:
+  meaning: "moong dal flour / green gram flour"
+  variants: [pesala pindi, pesarapindi, pesara pindi]
+  use: ingredient
+
+పోషి పెట్టాలి:
+  meaning: "to soak / immerse (Telangana dialect for nanabettali)"
+  variants: [poshi pettali, poshi pettaali, పోషి పెట్టాలి]
+  use: technique
+
+పెనం:
+  meaning: "flat griddle / tawa (Telangana dialect word)"
+  variants: [penam, penamu, పెన్నం]
+  use: equipment
+
+అంబలి:
+  meaning: "thin porridge / gruel typically made from ragi flour"
+  variants: [ambali, ambali, అంబట్ల]
+  use: dish_type

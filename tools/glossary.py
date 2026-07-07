@@ -49,16 +49,25 @@ def build_glossary_hint() -> str:
 
 def build_glossary_terms_list() -> str:
     """
-    Build a terse, vocabulary-only term list for Whisper's initial_prompt.
+    Build a vocabulary list for Gemini's transcription prompt.
 
-    Unlike build_glossary_hint(), this omits meanings/definitions — Whisper's
-    initial_prompt is a spelling/vocabulary primer, not a content source. Including
-    full meanings (e.g. "until it smells right") primes the model to expect and
-    fabricate that kind of content when audio cuts off abruptly (D-002). A bare
-    term list still helps Whisper spell Telugu words correctly without suggesting
-    what the narration "should" contain.
+    Includes each term with its romanized variants so Gemini can match audio
+    sounds to the correct Telugu spelling. For example: "తైదా పిండి (thaida
+    pindi / taida pindi)" lets Gemini recognise that sound and write the correct
+    Telugu word rather than making a phonetic guess.
 
-    Format: "konchem, koddiga, chaalu, sari, veyinchu, ..."
+    Format: "konchem (konjam/konjem), తైదా పిండి (thaida pindi/taida pindi), ..."
     """
     glossary = load_glossary()
-    return ", ".join(glossary.keys())
+    parts = []
+    for term, meta in glossary.items():
+        variants = meta.get("variants", [])
+        # Include romanized variants so Gemini can bridge audio sound → correct spelling
+        roman_variants = [v for v in variants if not any(
+            'ఀ' <= c <= '౿' for c in v  # filter out Telugu-script variants
+        )]
+        if roman_variants:
+            parts.append(f"{term} ({'/'.join(roman_variants[:3])})")
+        else:
+            parts.append(term)
+    return ", ".join(parts)
