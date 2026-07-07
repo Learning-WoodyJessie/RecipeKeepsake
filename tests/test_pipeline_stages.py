@@ -1,4 +1,5 @@
-from unittest.mock import MagicMock, patch, mock_open
+import pytest
+from unittest.mock import MagicMock, patch
 from pipeline.transcribe import run_transcribe
 from pipeline.transform import run_transform
 from pipeline.models import TranscriptResult, RecipeData
@@ -10,18 +11,26 @@ def _provider(text):
     return m
 
 
+def _gemini_mock(transcript_text: str):
+    mock_response = MagicMock()
+    mock_response.text = transcript_text
+    mock_client = MagicMock()
+    mock_client.files.upload.return_value = MagicMock()
+    mock_client.models.generate_content.return_value = mock_response
+    return mock_client
+
+
 class TestRunTranscribe:
+    @pytest.fixture(autouse=True)
+    def _set_gemini_key(self, monkeypatch):
+        monkeypatch.setenv("GEMINI_API_KEY", "test-key")
+
     def test_returns_transcript_result(self):
         """run_transcribe() returns a TranscriptResult with raw + english fields."""
-        mock_tr = MagicMock()
-        mock_tr.text = "ఇది ఒక రెసిపీ"
         p = _provider("This is a recipe")
-
-        with patch("tools.transcribe.OpenAI") as mock_openai, \
-             patch("builtins.open", mock_open(read_data=b"audio")):
-            mock_openai.return_value.audio.transcriptions.create.return_value = mock_tr
-            with patch("pipeline.transcribe.translate_to_english", return_value="This is a recipe"):
-                result = run_transcribe("test.m4a", provider=p)
+        with patch("tools.transcribe.genai.Client", return_value=_gemini_mock("ఇది ఒక రెసిపీ")), \
+             patch("pipeline.transcribe.translate_to_english", return_value="This is a recipe"):
+            result = run_transcribe("test.m4a", provider=p)
 
         assert isinstance(result, TranscriptResult)
         assert result.raw == "ఇది ఒక రెసిపీ"
@@ -29,45 +38,30 @@ class TestRunTranscribe:
 
     def test_passes_provider_to_translate(self):
         """run_transcribe() forwards the provider argument to translate_to_english."""
-        mock_tr = MagicMock()
-        mock_tr.text = "raw"
-
-        with patch("tools.transcribe.OpenAI") as mock_openai, \
-             patch("builtins.open", mock_open(read_data=b"audio")):
-            mock_openai.return_value.audio.transcriptions.create.return_value = mock_tr
-            with patch("pipeline.transcribe.translate_to_english", return_value="eng") as mock_translate:
-                p = _provider("eng")
-                run_transcribe("test.m4a", provider=p)
-                assert mock_translate.call_args[0][1] is p
+        with patch("tools.transcribe.genai.Client", return_value=_gemini_mock("raw")), \
+             patch("pipeline.transcribe.translate_to_english", return_value="eng") as mock_translate:
+            p = _provider("eng")
+            run_transcribe("test.m4a", provider=p)
+            assert mock_translate.call_args[0][1] is p
 
     def test_creates_default_provider_when_none(self):
         """run_transcribe() creates an OpenAIProvider when no provider is given."""
-        mock_tr = MagicMock()
-        mock_tr.text = "raw"
-
-        with patch("tools.transcribe.OpenAI") as mock_openai, \
-             patch("builtins.open", mock_open(read_data=b"audio")), \
+        with patch("tools.transcribe.genai.Client", return_value=_gemini_mock("raw")), \
              patch("pipeline.transcribe.translate_to_english", return_value="eng"), \
              patch("pipeline.transcribe.load_config", return_value={"llm": {"model": "gpt-4o"}}), \
              patch("pipeline.transcribe.OpenAIProvider") as mock_prov_cls:
-            mock_openai.return_value.audio.transcriptions.create.return_value = mock_tr
             mock_prov_cls.return_value = _provider("eng")
             run_transcribe("test.m4a")
             mock_prov_cls.assert_called_once()
 
     def test_uses_translate_model_from_config(self):
         """run_transcribe() uses translate_model key over generic model when present."""
-        mock_tr = MagicMock()
-        mock_tr.text = "raw"
-
-        with patch("tools.transcribe.OpenAI") as mock_openai, \
-             patch("builtins.open", mock_open(read_data=b"audio")), \
+        with patch("tools.transcribe.genai.Client", return_value=_gemini_mock("raw")), \
              patch("pipeline.transcribe.translate_to_english", return_value="eng"), \
              patch("pipeline.transcribe.load_config", return_value={
                  "llm": {"model": "gpt-4o", "translate_model": "gpt-4o-mini"}
              }), \
              patch("pipeline.transcribe.OpenAIProvider") as mock_prov_cls:
-            mock_openai.return_value.audio.transcriptions.create.return_value = mock_tr
             mock_prov_cls.return_value = _provider("eng")
             run_transcribe("test.m4a")
             call_kwargs = mock_prov_cls.call_args[1]

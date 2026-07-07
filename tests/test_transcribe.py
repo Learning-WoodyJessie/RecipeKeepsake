@@ -1,97 +1,72 @@
-from unittest.mock import patch, MagicMock, mock_open
+import os
+import pytest
+from unittest.mock import patch, MagicMock
 from tools.transcribe import transcribe_audio, _strip_hallucination_loops, _collapse_ngram_runs, _MAX_CONSECUTIVE_REPEATS
 
 
+def _make_gemini_mock(transcript_text: str):
+    """Build a minimal Gemini client mock returning the given transcript."""
+    mock_response = MagicMock()
+    mock_response.text = transcript_text
+    mock_client = MagicMock()
+    mock_client.files.upload.return_value = MagicMock()
+    mock_client.models.generate_content.return_value = mock_response
+    return mock_client
+
+
 class TestTranscribeAudio:
+    @pytest.fixture(autouse=True)
+    def _set_gemini_key(self, monkeypatch):
+        monkeypatch.setenv("GEMINI_API_KEY", "test-key")
+
     def test_returns_transcript_text(self):
-        """transcribe_audio() calls Whisper and returns the .text field."""
-        mock_transcript = MagicMock()
-        mock_transcript.text = "ఇది ఒక రెసిపీ"
-
-        with patch("tools.transcribe.OpenAI") as mock_openai, \
-             patch("builtins.open", mock_open(read_data=b"audio bytes")):
-            mock_openai.return_value.audio.transcriptions.create.return_value = mock_transcript
+        """transcribe_audio() returns the text from Gemini's response."""
+        mock_client = _make_gemini_mock("ఇది ఒక రెసిపీ")
+        with patch("tools.transcribe.genai.Client", return_value=mock_client):
             result = transcribe_audio("test.m4a")
-
         assert result == "ఇది ఒక రెసిపీ"
 
-    def test_passes_telugu_language_code(self):
-        """transcribe_audio() passes language='te' — gpt-4o-transcribe supports it."""
-        mock_transcript = MagicMock()
-        mock_transcript.text = "some text"
-
-        with patch("tools.transcribe.OpenAI") as mock_openai, \
-             patch("builtins.open", mock_open(read_data=b"audio bytes")):
-            mock_client = mock_openai.return_value
-            mock_client.audio.transcriptions.create.return_value = mock_transcript
+    def test_uploads_audio_via_files_api(self):
+        """transcribe_audio() uploads the audio path via the Gemini Files API."""
+        mock_client = _make_gemini_mock("some text")
+        with patch("tools.transcribe.genai.Client", return_value=mock_client):
             transcribe_audio("test.m4a")
+        mock_client.files.upload.assert_called_once()
+        assert "test.m4a" in str(mock_client.files.upload.call_args)
 
-            call_kwargs = mock_client.audio.transcriptions.create.call_args[1]
-
-        assert call_kwargs["language"] == "te"
-
-    def test_uses_gpt4o_transcribe_model(self):
-        """transcribe_audio() uses gpt-4o-transcribe, not whisper-1."""
-        mock_transcript = MagicMock()
-        mock_transcript.text = "some text"
-
-        with patch("tools.transcribe.OpenAI") as mock_openai, \
-             patch("builtins.open", mock_open(read_data=b"audio bytes")):
-            mock_client = mock_openai.return_value
-            mock_client.audio.transcriptions.create.return_value = mock_transcript
+    def test_uses_gemini_flash_model(self):
+        """transcribe_audio() targets gemini-2.5-flash."""
+        mock_client = _make_gemini_mock("some text")
+        with patch("tools.transcribe.genai.Client", return_value=mock_client):
             transcribe_audio("test.m4a")
+        call_kwargs = mock_client.models.generate_content.call_args[1]
+        assert call_kwargs["model"] == "gemini-2.5-flash"
 
-            call_kwargs = mock_client.audio.transcriptions.create.call_args[1]
-
-        assert call_kwargs["model"] == "gpt-4o-transcribe"
-
-    def test_passes_initial_prompt_with_glossary(self):
-        """transcribe_audio() passes initial_prompt containing Telugu cooking terms."""
-        mock_transcript = MagicMock()
-        mock_transcript.text = "some text"
-
-        with patch("tools.transcribe.OpenAI") as mock_openai, \
-             patch("builtins.open", mock_open(read_data=b"audio bytes")):
-            mock_client = mock_openai.return_value
-            mock_client.audio.transcriptions.create.return_value = mock_transcript
+    def test_prompt_contains_dialect_context(self):
+        """Prompt tells Gemini to handle Telangana/Andhra/Rayalaseema/Hyderabadi dialects."""
+        mock_client = _make_gemini_mock("some text")
+        with patch("tools.transcribe.genai.Client", return_value=mock_client):
             transcribe_audio("test.m4a")
+        contents = mock_client.models.generate_content.call_args[1]["contents"]
+        prompt_text = contents[0]
+        assert "telangana" in prompt_text.lower()
+        assert "andhra" in prompt_text.lower()
 
-            call_kwargs = mock_client.audio.transcriptions.create.call_args[1]
-
-        assert "prompt" in call_kwargs
-        assert "konchem" in call_kwargs["prompt"].lower()
-
-    def test_passes_temperature_zero(self):
-        """D-002: temperature=0 keeps transcription deterministic, reducing hallucination."""
-        mock_transcript = MagicMock()
-        mock_transcript.text = "some text"
-
-        with patch("tools.transcribe.OpenAI") as mock_openai, \
-             patch("builtins.open", mock_open(read_data=b"audio bytes")):
-            mock_client = mock_openai.return_value
-            mock_client.audio.transcriptions.create.return_value = mock_transcript
+    def test_prompt_contains_glossary_terms(self):
+        """Prompt includes Telugu cooking vocabulary from the glossary."""
+        mock_client = _make_gemini_mock("some text")
+        with patch("tools.transcribe.genai.Client", return_value=mock_client):
             transcribe_audio("test.m4a")
+        contents = mock_client.models.generate_content.call_args[1]["contents"]
+        assert "konchem" in contents[0].lower()
 
-            call_kwargs = mock_client.audio.transcriptions.create.call_args[1]
-
-        assert call_kwargs["temperature"] == 0
-
-    def test_initial_prompt_omits_term_meanings(self):
-        """D-002: prompt is a terse vocab list, not full meanings — full meanings
-        (e.g. "until it smells right") prime the model to fabricate that kind of
-        content when audio cuts off abruptly."""
-        mock_transcript = MagicMock()
-        mock_transcript.text = "some text"
-
-        with patch("tools.transcribe.OpenAI") as mock_openai, \
-             patch("builtins.open", mock_open(read_data=b"audio bytes")):
-            mock_client = mock_openai.return_value
-            mock_client.audio.transcriptions.create.return_value = mock_transcript
+    def test_prompt_requests_telugu_script_output(self):
+        """Prompt explicitly requests Telugu script, not romanized output."""
+        mock_client = _make_gemini_mock("some text")
+        with patch("tools.transcribe.genai.Client", return_value=mock_client):
             transcribe_audio("test.m4a")
-
-            call_kwargs = mock_client.audio.transcriptions.create.call_args[1]
-
-        assert "until it smells right" not in call_kwargs["prompt"].lower()
+        contents = mock_client.models.generate_content.call_args[1]["contents"]
+        assert "telugu script" in contents[0].lower()
 
 
 class TestStripHallucinationLoops:

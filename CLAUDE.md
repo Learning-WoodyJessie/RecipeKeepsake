@@ -232,7 +232,8 @@ Classes and key functions should have similar docstrings. This ensures maintaina
 
 | Secret | Description |
 |---|---|
-| `OPENAI_API_KEY` | Whisper + GPT-4o + DALL-E |
+| `OPENAI_API_KEY` | GPT-4o (translate + structure) + DALL-E |
+| `GEMINI_API_KEY` | Gemini 2.5 Flash — audio transcription (replaces gpt-4o-transcribe) |
 | `SUPABASE_URL` | Supabase project URL |
 | `SUPABASE_SERVICE_KEY` | Supabase service role key (server-side only) |
 | `SUPABASE_ANON_KEY` | Supabase anon key (used in auth fallback header) |
