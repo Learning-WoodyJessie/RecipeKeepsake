@@ -15,9 +15,11 @@ from tools.glossary import build_glossary_terms_list
 
 _WHISPER_PREFIX = "తెలుగు వంటకాలు: {glossary}"
 
-# If any sentence appears more than this many times consecutively it's a
-# hallucination loop (Whisper fabricating into silence). Collapse the run.
-_MAX_CONSECUTIVE_REPEATS = 2
+# If any word or sentence appears more than this many times consecutively it's
+# a hallucination loop (Whisper fabricating into silence). Collapse the run.
+# Set to 1: recipe instructions never legitimately repeat the identical sentence
+# back-to-back, so any consecutive duplicate is noise.
+_MAX_CONSECUTIVE_REPEATS = 1
 
 
 def _strip_hallucination_loops(text: str) -> str:

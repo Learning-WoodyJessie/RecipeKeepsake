@@ -125,7 +125,7 @@ markers =
 
 **Wrong**: Pass raw Whisper output directly to translation/structure.
 
-**Right**: Post-process with two-pass dedup — collapse consecutive identical words (max 2), then collapse consecutive identical sentences (max 2).
+**Right**: Post-process with two-pass dedup — collapse consecutive identical words (max 1), then collapse consecutive identical sentences (max 1). Max 1 is correct because recipe narration never legitimately repeats the exact same sentence back-to-back.
 
 **Rule**: Always strip hallucination loops from Whisper output before any LLM step. See `_strip_hallucination_loops()` in `tools/transcribe.py`.
 
