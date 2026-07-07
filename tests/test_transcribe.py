@@ -1,5 +1,5 @@
 from unittest.mock import patch, MagicMock, mock_open
-from tools.transcribe import transcribe_audio, _strip_hallucination_loops
+from tools.transcribe import transcribe_audio, _strip_hallucination_loops, _collapse_ngram_runs, _MAX_CONSECUTIVE_REPEATS
 
 
 class TestTranscribeAudio:
@@ -121,7 +121,29 @@ class TestStripHallucinationLoops:
         assert _strip_hallucination_loops(text) == text
 
     def test_legitimate_double_mention_kept(self):
-        """Two mentions of the same sentence are allowed (not hallucination)."""
+        """Two mentions of the same sentence are allowed when non-consecutive."""
         text = "Add oil. Mix well. Add oil. Cook until done."
         result = _strip_hallucination_loops(text)
         assert result.count("Add oil.") == 2
+
+    def test_collapses_bigram_loops(self):
+        """Alternating two-word phrase loop (no punctuation) is collapsed to one copy."""
+        real_content = "పిండీ నీలు వేయాలి ఉప్పు"
+        hallucination = " పిండీ కలపాలు" * 100
+        text = real_content + hallucination
+        result = _strip_hallucination_loops(text)
+        assert result.count("పిండీ కలపాలు") <= _MAX_CONSECUTIVE_REPEATS
+        assert "ఉప్పు" in result
+
+    def test_collapse_ngram_runs_single_word(self):
+        """_collapse_ngram_runs with n=1 collapses identical consecutive words."""
+        words = ["A", "B", "B", "B", "C"]
+        assert _collapse_ngram_runs(words, 1) == ["A", "B", "C"]
+
+    def test_collapse_ngram_runs_bigram(self):
+        """_collapse_ngram_runs with n=2 collapses consecutive identical bigrams."""
+        words = ["X", "Y", "X", "Y", "X", "Y", "Z"]
+        result = _collapse_ngram_runs(words, 2)
+        assert result.count("X") == 1
+        assert result.count("Y") == 1
+        assert "Z" in result

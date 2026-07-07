@@ -15,56 +15,65 @@ from tools.glossary import build_glossary_terms_list
 
 _WHISPER_PREFIX = "తెలుగు వంటకాలు: {glossary}"
 
-# If any word or sentence appears more than this many times consecutively it's
-# a hallucination loop (Whisper fabricating into silence). Collapse the run.
-# Set to 1: recipe instructions never legitimately repeat the identical sentence
-# back-to-back, so any consecutive duplicate is noise.
+# If any word/phrase appears more than this many times consecutively it's a
+# hallucination loop (Whisper fabricating into silence). Collapse the run.
 _MAX_CONSECUTIVE_REPEATS = 1
+
+
+def _collapse_ngram_runs(words: list[str], n: int) -> list[str]:
+    """Collapse consecutive runs of identical n-grams to _MAX_CONSECUTIVE_REPEATS copies.
+
+    Works for any phrase length n. Running for n=1..6 catches:
+      n=1 — "మోటియింది మోటియింది మోటియింది"  (single word repeating)
+      n=2 — "పిండీ కలపాలు పిండీ కలపాలు"      (bigram alternating, no punctuation)
+      n=3+ — longer phrase loops
+    """
+    result: list[str] = []
+    i = 0
+    while i <= len(words) - n:
+        phrase = tuple(words[i:i + n])
+        j = i
+        while j + n <= len(words) and tuple(words[j:j + n]) == phrase:
+            j += n
+        reps = (j - i) // n
+        if reps > _MAX_CONSECUTIVE_REPEATS:
+            for _ in range(_MAX_CONSECUTIVE_REPEATS):
+                result.extend(phrase)
+            i = j
+        else:
+            result.append(words[i])
+            i += 1
+    result.extend(words[i:])
+    return result
 
 
 def _strip_hallucination_loops(text: str) -> str:
     """Collapse consecutive repeated tokens caused by Whisper hallucinating into silence.
 
-    Whisper (including gpt-4o-transcribe) sometimes locks onto the last real
-    word or sentence and repeats it hundreds of times when the recording ends
-    with silence. Handles two patterns:
-      - Word-level: "మోటియింది మోటియింది మోటియింది ..." (no punctuation)
-      - Sentence-level: "Add sugar. Add sugar. Add sugar. ..."
-    Both are collapsed to at most _MAX_CONSECUTIVE_REPEATS copies.
+    Whisper (including gpt-4o-transcribe) locks onto the last real word or phrase
+    and repeats it hundreds of times when the recording ends with silence. Three
+    patterns handled:
+      - Sentence-level: "Add sugar. Add sugar. Add sugar. ..."  (punctuated)
+      - Word-level:     "మోటియింది మోటియింది ..."              (single word, no punctuation)
+      - Bigram-level:   "పిండీ కలపాలు పిండీ కలపాలు ..."       (alternating pair, no punctuation)
     """
     import re
 
-    # Pass 1: collapse consecutive identical word runs (catches unpunctuated loops)
-    words = text.split()
-    deduped: list[str] = []
-    run = 0
-    prev: str | None = None
-    for w in words:
-        if w == prev:
-            run += 1
-            if run <= _MAX_CONSECUTIVE_REPEATS:
-                deduped.append(w)
-        else:
-            run = 1
-            prev = w
-            deduped.append(w)
-    text = ' '.join(deduped)
-
-    # Pass 2: collapse consecutive identical sentence runs (catches punctuated loops)
+    # Pass 1: sentence-level dedup (punctuated loops)
     sentences = re.split(r'(?<=[.!?])\s+', text.strip())
     out: list[str] = []
-    run = 0
     prev_s: str | None = None
     for s in sentences:
-        if s == prev_s:
-            run += 1
-            if run <= _MAX_CONSECUTIVE_REPEATS:
-                out.append(s)
-        else:
-            run = 1
-            prev_s = s
+        if s != prev_s:
             out.append(s)
-    return ' '.join(out)
+        prev_s = s
+    text = ' '.join(out)
+
+    # Pass 2: n-gram run dedup for n=1..6 (unpunctuated alternating loops)
+    words = text.split()
+    for n in range(1, 7):
+        words = _collapse_ngram_runs(words, n)
+    return ' '.join(words)
 
 
 def transcribe_audio(audio_path: str) -> str:
