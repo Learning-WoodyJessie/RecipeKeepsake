@@ -1,6 +1,6 @@
 # Echoes of Home — System Design
 
-*Technical architecture reference. Last updated: 2026-05-05.*
+*Technical architecture reference. Last updated: 2026-07-07.*
 
 ---
 
@@ -34,7 +34,7 @@
 | **Auth** | Supabase Auth | 2.x | Google OAuth, JWT session management |
 | **Database** | Supabase (PostgreSQL 15) | — | Recipe rows, people rows, translations cache, rate limits |
 | **Object storage** | Supabase Storage | — | Private audio bucket, public images bucket |
-| **Transcription** | OpenAI gpt-4o-transcribe | — | Telugu audio → raw transcript |
+| **Transcription** | Google Gemini 2.5 Flash | — | Telugu audio → raw transcript (dialect-aware; handles Telangana/Andhra/Rayalaseema/Hyderabadi) |
 | **Translation (Call A)** | OpenAI GPT-4o | — | Raw Telugu transcript → faithful English |
 | **Structuring (Call B)** | OpenAI GPT-4o | — | English narration → typed recipe JSON |
 | **Image generation** | OpenAI DALL-E 3 | — | Recipe-enriched food photography prompt |
@@ -112,7 +112,7 @@ RecipeKeepsake/
 │       └── hero-memories.png     ← Watercolor: recipe book + food
 │
 ├── data/
-│   ├── config.yaml              ← LLM model config (gpt-4o, gpt-4o-transcribe)
+│   ├── config.yaml              ← LLM + transcription model config (gpt-4o, gemini-2.5-flash)
 │   ├── telugu_cooking_terms.yaml ← Cooking glossary (injected into Whisper + LLM)
 │   └── migrations/
 │       ├── 001_add_image_url.sql ← image_url + token columns; storage buckets; RLS
@@ -153,12 +153,12 @@ RecipeKeepsake/
 └─────────────────────────────────────────────────────────────┘
           │                          │
           ▼                          ▼
- ┌─────────────────┐       ┌──────────────────────┐
- │  Supabase        │       │  OpenAI API           │
- │  - PostgreSQL    │       │  - gpt-4o-transcribe  │
- │  - Auth (Google) │       │  - GPT-4o (text)      │
- │  - Storage       │       │  - DALL-E 3 (images)  │
- │    audio bucket  │       └──────────────────────┘
+ ┌─────────────────┐   ┌──────────────────┐  ┌──────────────────┐
+ │  Supabase        │   │  OpenAI API       │  │  Google AI API   │
+ │  - PostgreSQL    │   │  - GPT-4o (text)  │  │  - Gemini 2.5    │
+ │  - Auth (Google) │   │  - DALL-E 3       │  │    Flash (audio  │
+ │  - Storage       │   │  - Moderation API │  │    transcription)│
+ │    audio bucket  │   └──────────────────┘  └──────────────────┘
  │    images bucket │
  └─────────────────┘
           ▲
@@ -330,18 +330,30 @@ class SavedRecipe:
 ### Stage 1 — Transcribe (`pipeline/transcribe.py`)
 
 ```
-tools/transcribe.py → gpt-4o-transcribe (language="te")
-                      initial_prompt: Telugu cooking glossary (tools/glossary.py)
+tools/transcribe.py → Gemini 2.5 Flash (multimodal — audio file + text prompt)
+                      dialect-aware prompt: Telangana / Andhra / Rayalaseema / Hyderabadi
+                      glossary: Telugu cooking terms with romanized phonetic variants
                       → raw: str  (Telugu script + English code-switching)
+                      → _strip_hallucination_loops(raw)  (safety post-processing)
 
 prompts/translate_audio.py → GPT-4o (Call A)
                        system: faithful translation prompt + glossary
                        → english: str  (preserves vague quantities verbatim)
 ```
 
-**Why `gpt-4o-transcribe` instead of `whisper-1`:** `whisper-1` rejects `language="te"` and auto-detects Telugu as Hindi, producing incorrect script. `gpt-4o-transcribe` supports Telugu natively.
+**Why Gemini 2.5 Flash instead of gpt-4o-transcribe:** Gemini was trained on significantly more South Asian language data and handles Telugu regional dialects (Telangana -లి endings, Urdu borrowings like పోషి; Andhra, Rayalaseema, Hyderabadi vocabulary) far better. Crucially, Gemini is natively multimodal — it receives the audio file directly alongside a detailed text prompt expressing dialect-specific rules, something gpt-4o-transcribe's `initial_prompt` parameter cannot express with comparable precision.
 
-**Why the glossary injection:** Telugu cooking terms like `konchem` (a little) have many spelling variants. Injecting the glossary as `initial_prompt` primes the model toward canonical spellings. The glossary lives in `data/telugu_cooking_terms.yaml` — new terms require no code changes.
+**Dialect-aware prompt rules:**
+- The model is explicitly told to use dialect *world knowledge* to write the **correct Telugu spelling**, not a phonetic guess. Example: if it hears "thaida pindi" it should write తైదా పిండి (ragi flour), not improvise a spelling.
+- Telangana -లి verb endings are preserved verbatim (e.g. పెట్టాలి, చేయాలి, not -లు).
+- Code-switching to English is transcribed as-is.
+
+**Glossary with romanized variants (`tools/glossary.py`):** `build_glossary_terms_list()` emits each term alongside its romanized phonetic variants, e.g. `"తైదా పిండి (thaida pindi/taida pindi)"`. This bridges the gap between what Gemini hears phonetically and the correct Telugu orthography — especially for regional dialect words that differ significantly from standard Telugu pronunciation.
+
+**Hallucination loop detection (`_strip_hallucination_loops` in `tools/transcribe.py`):** Models can loop when they encounter silence or ambiguous audio. Three distinct loop patterns are collapsed:
+- **Sentence-level:** "Add sugar. Add sugar. Add sugar." — detected by consecutive identical sentence dedup.
+- **Word-level:** "మోటియింది మోటియింది …" — single word repeating without punctuation.
+- **Bigram/n-gram-level:** "పిండీ కలపాలు పిండీ కలపాలు …" — alternating pair, neither word individually consecutive. Caught by `_collapse_ngram_runs(words, n)` for n=1..6.
 
 **Why two separate LLM calls (Call A + Call B) instead of one:**
 Combined translate+structure causes the model to normalise vague measurements ("a handful" → "200g"). Separate calls let Call A be a faithful translator (no normalisation) and Call B be a pure structurer operating on clean English.
@@ -705,7 +717,9 @@ Capacitor (mobile) uses the system browser for OAuth (`Capacitor.Plugins.Browser
 │  8. audio saved to tempfile                                      │
 │  9. pipeline.transcribe.run_transcribe(audio_path)               │
 │     a. tools/transcribe.transcribe_audio()                       │
-│        → OpenAI gpt-4o-transcribe (language=te, glossary prompt) │
+│        → Gemini 2.5 Flash (audio + dialect-aware prompt)         │
+│        → glossary with romanized variants injected               │
+│        → _strip_hallucination_loops() post-processing            │
 │        → raw: str (Telugu + English code-switching)              │
 │     b. prompts/translate_audio.translate_to_english(raw, provider)     │
 │        → GPT-4o Call A (preserve vague terms)                    │

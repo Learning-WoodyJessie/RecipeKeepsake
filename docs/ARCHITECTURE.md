@@ -1,6 +1,6 @@
 # RecipeKeepsake — Architecture Document
 
-*Last updated: 2026-05-04 — Data models + security sections added*
+*Last updated: 2026-07-07 — Gemini 2.5 Flash transcription; env vars; test strategy; auth flow*
 
 ---
 
@@ -402,35 +402,36 @@ Marks favourites — visible to all archive members
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                        Browser (SPA)                        │
-│  web/app.html — single HTML file, vanilla JS                │
-│  • Auth wall (Google OAuth via Supabase JS)                 │
-│  • Home: recipe grid                                        │
-│  • Capture: record audio → POST /capture                    │
-│  • Recipe detail: tabs (Transcript/Ingredients/Steps/Notes/ │
-│    Listen), floating hear-bar, share link                   │
-│  • People: narrator list (localStorage)                     │
+│              Browser — Next.js static export                 │
+│  frontend/out/ — served by FastAPI from Railway             │
+│  • Landing (Google Sign-In) + /auth/callback OAuth handler  │
+│  • Home, Memories, Memory detail, People, Capture, Upload   │
+│  • AuthGuard + Sidebar + AppTopBar shell                    │
+│  • ReviewWizard — 3-step post-capture review before save    │
+│  • LanguageSwitcher — EN/TE/HI/KN/ES/FR on-demand          │
 └───────────────────────┬─────────────────────────────────────┘
                         │ HTTPS (JSON + multipart)
 ┌───────────────────────▼─────────────────────────────────────┐
 │                    FastAPI Server                           │
 │  scripts/serve.py                                           │
-│  • GET  /           → serves web/app.html                   │
-│  • GET  /recipes    → list (auth required)                  │
-│  • GET  /recipe/:t  → fetch by token (open, for share links)│
-│  • POST /capture    → full pipeline (auth required)         │
-│  • PATCH /recipe/:t → save user_notes (auth required)       │
+│  • POST /capture/process → Stages 1–2: transcribe+structure │
+│  • POST /capture/save   → Stage 3: persist to Supabase      │
+│  • GET  /recipes        → list (auth required)              │
+│  • GET  /recipe/{token} → fetch (auth required)             │
+│  • GET  /recipe/{token}/translate → multi-language          │
 │  • POST /generate-image → DALL-E on-demand                  │
-│  Auth: HTTPBearer → validates JWT via Supabase /auth/v1/user│
-└──────┬──────────────────────────────────┬────────────────────┘
-       │                                  │
-┌──────▼────────┐               ┌─────────▼──────────────────┐
-│  OpenAI APIs  │               │      Supabase              │
-│               │               │  • PostgreSQL (recipes)    │
-│  Whisper      │               │  • Storage bucket (audio)  │
-│  GPT-4o       │               │  • Auth (Google OAuth)     │
-│  DALL-E 3     │               └────────────────────────────┘
-└───────────────┘
+│  • GET/POST/PUT/DELETE /people → narrator CRUD              │
+│  Auth: PyJWT local verify → fallback Supabase network call  │
+└──────┬────────────────────────┬──────────────────────────────┘
+       │                        │                    │
+┌──────▼───────┐   ┌────────────▼────┐  ┌───────────▼─────────┐
+│  OpenAI APIs  │   │  Google AI API  │  │      Supabase       │
+│  GPT-4o (×2) │   │  Gemini 2.5     │  │  • PostgreSQL       │
+│  DALL-E 3    │   │  Flash (audio   │  │  • Storage (audio,  │
+│  Moderation  │   │  transcription) │  │    images buckets)  │
+└──────────────┘   └─────────────────┘  │  • Auth (Google     │
+                                        │    OAuth / JWT)     │
+                                        └─────────────────────┘
 ```
 
 ### Directory Layout
@@ -439,38 +440,43 @@ Marks favourites — visible to all archive members
 RecipeKeepsake/
 │
 ├── scripts/
-│   ├── serve.py          ← FastAPI server + all HTTP endpoints
-│   └── capture.py        ← Legacy CLI capture orchestrator (superseded by serve.py)
+│   ├── serve.py          ← FastAPI server + all HTTP endpoints + static file serving
+│   └── capture.py        ← CLI pipeline orchestrator (local dev only)
+│
+├── pipeline/             ← 3-stage typed pipeline (pure functions, no HTTP)
+│   ├── models.py         ← TranscriptResult, RecipeData, SavedRecipe dataclasses
+│   ├── transcribe.py     ← Stage 1: audio_path → TranscriptResult
+│   ├── transform.py      ← Stage 2: TranscriptResult → RecipeData
+│   └── persist.py        ← Stage 3: RecipeData + audio → SavedRecipe (Supabase)
 │
 ├── tools/
-│   ├── transcribe.py     ← Whisper call — audio file → raw Telugu transcript
+│   ├── transcribe.py     ← Gemini 2.5 Flash call — audio file → Telugu transcript
+│   ├── glossary.py       ← Glossary loader + build_glossary_terms_list() for Gemini
 │   ├── storage.py        ← Supabase CRUD — insert, fetch, list, patch, signed URLs
-│   └── config.py         ← _load_config() helper (shared by serve + capture)
+│   └── config.py         ← load_config() helper
 │
 ├── prompts/
 │   ├── llm.py            ← LLMProvider ABC + OpenAIProvider (lazy client)
-│   ├── translate.py      ← Call A: Telugu → English (faithful, no normalization)
-│   ├── structure.py      ← Call B: English text → recipe JSON schema
-│   └── image.py          ← DALL-E 3 image generation
+│   ├── translate_audio.py← Call A: raw transcript → faithful English
+│   ├── structure.py      ← Call B: English → structured recipe JSON
+│   ├── translate_fields.py ← Multi-language field translation (EN/TE/HI/KN/ES/FR)
+│   └── image.py          ← DALL-E 3 enriched prompt builder
 │
 ├── data/
-│   ├── config.yaml       ← LLM model, Whisper model, Supabase table name
-│   └── migrations/       ← SQL migration scripts (gitignored from Railway)
+│   ├── config.yaml              ← LLM + transcription model config
+│   ├── telugu_cooking_terms.yaml ← Cooking glossary (injected into Gemini prompt)
+│   └── migrations/              ← SQL migration scripts
 │
-├── tests/                ← All mocked — zero live API calls
-│   ├── test_transcribe.py
-│   ├── test_translate.py
-│   ├── test_structure.py
-│   ├── test_storage.py
-│   ├── test_capture.py
-│   ├── test_image.py
-│   └── test_llm.py
+├── frontend/             ← Next.js 16 static export (served by FastAPI from Railway)
+│   ├── app/              ← Pages: landing, auth/callback, (app)/* authenticated routes
+│   ├── components/       ← Shared: ReviewWizard, AudioPlayer, Sidebar, AuthGuard …
+│   └── lib/              ← api.ts, supabase.ts, favorites.ts
 │
-├── web/
-│   └── app.html          ← Single-file SPA (~1800 lines)
+├── tests/                ← 137+ tests, all mocked — zero live API calls
 │
 ├── docs/
 │   ├── ARCHITECTURE.md   ← This file
+│   ├── SYSTEM_DESIGN.md  ← Full technical reference (stack, components, flows)
 │   ├── ROADMAP.md
 │   ├── BUGS.md
 │   └── plans/            ← Feature PRDs and implementation plans
@@ -497,22 +503,24 @@ User taps "Stop" in browser
 Browser blobs audio → POST /capture (multipart, Bearer token)
         │
         ▼
-┌── require_auth ──────────────────────────────────────┐
-│   HTTPBearer extracts JWT from Authorization header  │
-│   httpx GET {SUPABASE_URL}/auth/v1/user              │
-│   200 → returns user dict {id, email, user_metadata} │
-│   non-200 → 401 Unauthorized                         │
-└──────────────────────────────────────────────────────┘
+┌── require_auth ──────────────────────────────────────────┐
+│   HTTPBearer extracts JWT from Authorization header      │
+│   1. PyJWT local verify (SUPABASE_JWT_SECRET, ~0ms)      │
+│   2. Fallback: GET {SUPABASE_URL}/auth/v1/user (~75ms)   │
+│   200 → { id/sub, email, user_metadata }                 │
+│   fail → 401 Unauthorized                               │
+└──────────────────────────────────────────────────────────┘
         │
         ▼
 Save audio to tmp file (tempfile.NamedTemporaryFile)
         │
         ▼ tools/transcribe.py
 transcribe_audio(tmp_path)
-  OpenAI().audio.transcriptions.create(
-    model="gpt-4o-transcribe",
-    language="te"              ← explicit Telugu; auto-detect misidentifies as Hindi
-  )
+  genai.Client(GEMINI_API_KEY).files.upload(tmp_path)
+  → generate_content(model="gemini-2.5-flash", contents=[dialect_prompt, audio_file])
+  dialect_prompt: Telangana/Andhra/Rayalaseema/Hyderabadi rules
+                  + glossary with romanized variants (build_glossary_terms_list())
+  → _strip_hallucination_loops() post-processing
   → transcript_raw (Telugu + English code-switching verbatim)
         │
         ▼ prompts/translate.py  [Call A]
@@ -609,17 +617,18 @@ initAuth() → supabase.auth.getSession()
 **Rejected:** Single combined "translate and structure" prompt.  
 **Why:** Combined call causes GPT-4o to normalize vague measurements ("a little oil" → "1 tbsp oil"). The vagueness *is* the data — grandma's language is what makes this a keepsake, not a recipe app. Keeping them separate gives each call a single job and a system prompt that can enforce its constraint precisely.
 
-### D-002 — Whisper `language="te"` (explicit Telugu)
+### D-002 — Telugu transcription: explicit language, not auto-detect *(superseded by D-009)*
 
-**Decision:** `gpt-4o-transcribe` with `language="te"`.  
-**Rejected:** `whisper-1` with auto-detect, or no language param.  
-**Why:** `whisper-1` with `language="te"` returns 400 (unsupported). Without a language param, `whisper-1` auto-detects Telugu as Hindi, producing incorrect script. `gpt-4o-transcribe` correctly handles `language="te"` and produces Telugu script with natural code-switching intact.
+**Original decision:** `gpt-4o-transcribe` with `language="te"`.  
+**Rationale at the time:** `whisper-1` rejects `language="te"` (400 error) and auto-detects Telugu as Hindi without it. Explicit Telugu was required.  
+**Superseded by D-009:** gpt-4o-transcribe was replaced by Gemini 2.5 Flash, which receives the target language + dialect rules in a natural language prompt rather than a parameter. The core principle — explicit Telugu targeting, not auto-detect — is preserved in the Gemini prompt.
 
-### D-003 — Single-file SPA (web/app.html) instead of Next.js
+### D-003 — Frontend: Next.js static export served by FastAPI *(revised Phase 1.7)*
 
-**Decision:** Serve one static HTML file from FastAPI.  
-**Rejected:** Next.js app in `web/nextjs/`, FastAPI as sidecar.  
-**Why:** The `/capture` pipeline takes 20-50 seconds (Whisper + 2x LLM + DALL-E + Storage). Vercel Hobby has a 10-second function timeout — not viable. Railway runs a persistent Python process with no timeout limit. A single-file SPA served by FastAPI eliminates the Next.js build step, Vercel dependency, and CORS complexity. The skeleton Next.js app (`web/nextjs/`) has been removed.
+**Current decision:** Next.js 16 static export (`output: 'export'`) in `frontend/`. Build output in `frontend/out/` served by FastAPI as static files. No second service needed at runtime.  
+**Original decision (Phase 1):** Single-file `web/app.html` vanilla JS SPA, served by FastAPI.  
+**Why originally:** Rapid prototyping; no build step; single file is trivially deployable.  
+**Why revised:** `web/app.html` grew to ~4,900 lines with no component boundaries, no type checking, and no test coverage. Phase 1.7 migrated to Next.js for maintainability. Deployment constraint remains unchanged: Railway runs the FastAPI process; Next.js is built to a static export at deploy time, requiring no Node.js runtime. The Vercel timeout concern (10s limit) that ruled out SSR still applies — `output: 'export'` means no server rendering, no timeout problem.
 
 ### D-004 — Private Supabase storage bucket + server-side signed URLs
 
@@ -645,11 +654,17 @@ initAuth() → supabase.auth.getSession()
 **Original decision (Phase 1):** Narrator list stored in `localStorage('rk_people')`.  
 **Why revised:** Narrator profiles include photos, bios, and personal notes about family members — sensitive personal data. localStorage is unencrypted, device-local, and cleared by cache wipe. Moving to Supabase gave encryption at rest, cross-device access, and correct cascade on account deletion. The original decision was right for a UI convenience label; it became wrong the moment profiles gained real personal content.
 
-### D-008 — DALL-E image URL stored directly (not copied to Storage)
+### D-008 — DALL-E image downloaded and stored in Supabase at capture time *(revised Phase 1.5)*
 
-**Decision:** `image_url` in DB is the DALL-E CDN URL.  
-**Known limitation:** DALL-E URLs expire after ~1 hour.  
-**Deferral:** Phase 2 should download and re-upload to Supabase Storage at capture time. Not worth the complexity in Phase 1 since the recipe detail page shows it immediately after capture, and revisiting old recipes with expired images is an acceptable trade-off for now.
+**Decision:** At capture time, `store_image()` downloads the ephemeral DALL-E CDN URL via httpx and re-uploads to the Supabase `images` bucket (public). `image_url` in DB is the permanent Supabase URL.  
+**Original decision (Phase 1):** `image_url` stored the raw DALL-E CDN URL directly.  
+**Why revised:** DALL-E CDN URLs expire after ~1 hour. Memory cards on the home and grid screens would show broken images for any recipe older than an hour. Downloading at capture time is a one-time cost that keeps images permanently accessible.
+
+### D-009 — Gemini 2.5 Flash for transcription instead of gpt-4o-transcribe *(Phase 2)*
+
+**Decision:** `tools/transcribe.py` uses `google-genai` with `gemini-2.5-flash`. Audio is uploaded via the Gemini File API and sent multimodally alongside a detailed dialect-aware prompt.  
+**Rejected:** Continuing with `gpt-4o-transcribe`.  
+**Why:** Real narration audio (Ambali, biyyam dosa) revealed two failure modes with gpt-4o-transcribe: (1) hallucination loops — "పిండీ కలపాలు" repeated 300+ times into silence, producing transcripts 100× the correct length; (2) dialect vocabulary failures — "తైదా పిండి" (ragi flour, Telangana dialect) transcribed as "పలపిండి", "సైద పిండి" etc., with fabricated ingredients appearing in the structured output as a downstream consequence. Gemini 2.5 Flash has substantially more South Asian language training data, and crucially accepts a multimodal text prompt expressing dialect-specific rules — something gpt-4o-transcribe's `initial_prompt` parameter cannot express. The `_strip_hallucination_loops()` safety net is retained as a defensive post-processor.
 
 ---
 
@@ -689,15 +704,21 @@ initAuth() → supabase.auth.getSession()
 
 | Variable | Where set | Purpose |
 |---|---|---|
-| `OPENAI_API_KEY` | Railway / `.env` | Whisper + GPT-4o + DALL-E |
+| `OPENAI_API_KEY` | Railway / `.env` | GPT-4o (Call A translation + Call B structuring) + DALL-E 3 + Moderation API |
+| `GEMINI_API_KEY` | Railway / `.env` | Gemini 2.5 Flash — dialect-aware Telugu audio transcription (replaced gpt-4o-transcribe) |
 | `SUPABASE_URL` | Railway / `.env` | Supabase project URL |
 | `SUPABASE_SERVICE_KEY` | Railway / `.env` | Server-side DB + Storage (never sent to browser) |
-| `SUPABASE_ANON_KEY` | Railway / `.env` | JWT validation call + hardcoded in `app.html` JS |
+| `SUPABASE_ANON_KEY` | Railway / `.env` | JWT validation fallback + browser Supabase JS SDK |
+| `SUPABASE_JWT_SECRET` | Railway / `.env` | JWT signing secret for local PyJWT verification (no network on hot path) |
 | `ALLOWED_ORIGINS` | Railway / `.env` | Comma-separated CORS origins |
 | `PORT` | Railway (auto) | Server listen port (default 8080) |
+| `MAX_CAPTURE_PER_DAY` | Railway / `.env` | Daily capture limit per user (default: 10) |
+| `MAX_TRANSLATE_PER_DAY` | Railway / `.env` | Daily translate limit per user (default: 50) |
+| `MAX_IMAGE_PER_DAY` | Railway / `.env` | Daily image generation limit per user (default: 20) |
 
 **`SUPABASE_SERVICE_KEY` is server-only.** The browser uses `SUPABASE_ANON_KEY`.  
-**`SUPABASE_ANON_KEY` is safe to expose** — it's a publishable key with RLS-enforced permissions.
+**`SUPABASE_ANON_KEY` is safe to expose** — it's a publishable key with RLS-enforced permissions.  
+**`GEMINI_API_KEY` is server-only** — the Gemini API call happens in `tools/transcribe.py` on the FastAPI server; it is never sent to the browser.
 
 ---
 
@@ -707,15 +728,32 @@ All tests are fully mocked — no live API calls, no network, no Supabase. Runs 
 
 | Test file | What it covers | Mock strategy |
 |---|---|---|
-| `test_transcribe.py` | Whisper call, returns `.text` | `patch('tools.transcribe.OpenAI')` |
+| `test_transcribe.py` | Gemini call, hallucination loop detection, n-gram dedup | `patch('tools.transcribe.genai.Client')` + `monkeypatch.setenv("GEMINI_API_KEY")` |
 | `test_translate.py` | System prompt content, passes transcript verbatim | `MagicMock()` LLMProvider |
 | `test_structure.py` | JSON parsing, markdown fence stripping, schema fields | `MagicMock()` LLMProvider |
 | `test_storage.py` | CRUD operations, `list_recipes` filters by user_id | `patch('tools.storage.create_client')` |
-| `test_capture.py` | Pipeline order, all fields stored | `patch` all tools + `OpenAIProvider` |
-| `test_image.py` | DALL-E prompt format, returns URL | `patch('prompts.image.OpenAI')` |
+| `test_pipeline_stages.py` | Pipeline stage typing, TranscriptResult/RecipeData contract | `patch('tools.transcribe.genai.Client')` + `patch('pipeline.transcribe.translate_to_english')` |
+| `test_pipeline_timing.py` | Stage duration logging (event=transcribe_done etc.) | same Gemini mock pattern |
+| `test_image.py` | DALL-E enriched prompt, vessel/region/garnish/texture extraction | `patch('prompts.image.OpenAI')` |
 | `test_llm.py` | `OpenAIProvider.generate()` shape | `patch('prompts.llm.OpenAI')` |
 
 **Rule:** Every external call must be mocked. If a test touches the network, it's a bug.
+
+**Gemini mock pattern** (used across all transcribe-touching tests):
+```python
+def _make_gemini_mock(transcript_text: str):
+    mock_response = MagicMock()
+    mock_response.text = transcript_text
+    mock_client = MagicMock()
+    mock_client.files.upload.return_value = MagicMock()
+    mock_client.models.generate_content.return_value = mock_response
+    return mock_client
+
+@pytest.fixture(autouse=True)
+def _set_gemini_key(self, monkeypatch):
+    monkeypatch.setenv("GEMINI_API_KEY", "test-key")
+```
+The env var fixture is required because `os.environ["GEMINI_API_KEY"]` is evaluated before the `genai.Client` mock intercepts the call.
 
 ---
 

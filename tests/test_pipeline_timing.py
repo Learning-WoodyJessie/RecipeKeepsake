@@ -10,8 +10,11 @@ from pipeline.models import TranscriptResult
 def _gemini_mock(transcript_text: str):
     mock_response = MagicMock()
     mock_response.text = transcript_text
+    active_file = MagicMock()
+    active_file.state.name = "ACTIVE"
     mock_client = MagicMock()
-    mock_client.files.upload.return_value = MagicMock()
+    mock_client.files.upload.return_value = active_file
+    mock_client.files.get.return_value = active_file
     mock_client.models.generate_content.return_value = mock_response
     return mock_client
 

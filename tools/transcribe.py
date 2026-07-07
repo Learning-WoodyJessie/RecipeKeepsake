@@ -13,6 +13,7 @@ Gemini can still occasionally loop on silence, though far less than Whisper.
 """
 import mimetypes
 import os
+import time
 
 from google import genai
 
@@ -126,6 +127,18 @@ def transcribe_audio(audio_path: str) -> str:
         file=audio_path,
         config={"mime_type": _mime_type(audio_path)},
     )
+
+    # File goes through PROCESSING → ACTIVE before it can be used.
+    # Poll until ACTIVE (usually < 5s for audio files).
+    for _ in range(20):
+        audio_file = client.files.get(name=audio_file.name)
+        if audio_file.state.name == "ACTIVE":
+            break
+        if audio_file.state.name == "FAILED":
+            raise RuntimeError(f"Gemini file processing failed: {audio_file.name}")
+        time.sleep(2)
+    else:
+        raise RuntimeError(f"Gemini file never became ACTIVE: {audio_file.name}")
 
     response = client.models.generate_content(
         model=_MODEL,

@@ -8,8 +8,15 @@ def _make_gemini_mock(transcript_text: str):
     """Build a minimal Gemini client mock returning the given transcript."""
     mock_response = MagicMock()
     mock_response.text = transcript_text
+
+    # File returned by upload() and get() — state.name must be "ACTIVE"
+    # so the polling loop exits on the first iteration.
+    active_file = MagicMock()
+    active_file.state.name = "ACTIVE"
+
     mock_client = MagicMock()
-    mock_client.files.upload.return_value = MagicMock()
+    mock_client.files.upload.return_value = active_file
+    mock_client.files.get.return_value = active_file
     mock_client.models.generate_content.return_value = mock_response
     return mock_client
 
@@ -67,6 +74,42 @@ class TestTranscribeAudio:
             transcribe_audio("test.m4a")
         contents = mock_client.models.generate_content.call_args[1]["contents"]
         assert "telugu script" in contents[0].lower()
+
+
+    def test_polls_until_file_active(self):
+        """transcribe_audio() calls files.get() until state is ACTIVE before generating."""
+        processing_file = MagicMock()
+        processing_file.state.name = "PROCESSING"
+        active_file = MagicMock()
+        active_file.state.name = "ACTIVE"
+
+        mock_response = MagicMock()
+        mock_response.text = "ready"
+        mock_client = MagicMock()
+        mock_client.files.upload.return_value = processing_file
+        # First get() still PROCESSING, second is ACTIVE
+        mock_client.files.get.side_effect = [processing_file, active_file]
+        mock_client.models.generate_content.return_value = mock_response
+
+        with patch("tools.transcribe.genai.Client", return_value=mock_client), \
+             patch("tools.transcribe.time.sleep"):
+            result = transcribe_audio("test.m4a")
+
+        assert mock_client.files.get.call_count == 2
+        assert result == "ready"
+
+    def test_raises_if_file_fails(self):
+        """transcribe_audio() raises RuntimeError if Gemini reports file FAILED."""
+        failed_file = MagicMock()
+        failed_file.state.name = "FAILED"
+        mock_client = MagicMock()
+        mock_client.files.upload.return_value = failed_file
+        mock_client.files.get.return_value = failed_file
+
+        with patch("tools.transcribe.genai.Client", return_value=mock_client), \
+             patch("tools.transcribe.time.sleep"), \
+             pytest.raises(RuntimeError, match="processing failed"):
+            transcribe_audio("test.m4a")
 
 
 class TestStripHallucinationLoops:

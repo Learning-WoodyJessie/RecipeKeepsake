@@ -93,6 +93,20 @@ function MemoryDetail() {
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
 
+  // Signed URLs expire after 1 hour. If the audio element errors, re-fetch the
+  // recipe to get a fresh signed URL. Guard prevents concurrent refresh calls.
+  const audioRefreshingRef = useRef(false)
+  async function refreshAudioUrl() {
+    if (audioRefreshingRef.current) return
+    audioRefreshingRef.current = true
+    try {
+      const fresh = await api.recipes.get(token) as Memory
+      setMemory(m => m ? { ...m, audio_url: fresh.audio_url } : m)
+    } catch {
+      // Silent — user can reload the page if audio still fails
+    }
+  }
+
   useEffect(() => {
     if (!token) { router.replace('/memories'); return }
     api.recipes.get(token).then((m: Memory) => {
@@ -350,6 +364,7 @@ function MemoryDetail() {
               onEnded={() => setPlaying(false)}
               onTimeUpdate={() => setCurrentTime(audioRef.current?.currentTime ?? 0)}
               onLoadedMetadata={() => setDuration(audioRef.current?.duration ?? 0)}
+              onError={refreshAudioUrl}
             />
 
             {/* Player row */}
@@ -645,7 +660,7 @@ function MemoryDetail() {
       {memory.audio_url && (
         <section style={{ marginBottom: '1.25rem' }}>
           <h2 style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--muted)', marginBottom: '0.6rem' }}>Original Recording</h2>
-          <AudioPlayer src={memory.audio_url} />
+          <AudioPlayer src={memory.audio_url} onExpired={refreshAudioUrl} />
         </section>
       )}
 
