@@ -49,6 +49,7 @@ def run_persist(
         _logger.warning(f"event=audio_upload_failed error={type(e).__name__} msg={e}")
 
     row = {
+        "type": "recipe",
         "dish_name": recipe.dish_name,
         "ingredients": recipe.ingredients,
         "steps": recipe.steps,

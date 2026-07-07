@@ -112,6 +112,8 @@ def _check_rate_limit_db_or_raise(user_id: str, endpoint: str, limit: int) -> No
 # Maximum audio file size accepted (bytes). 25 MB covers ~2 h of compressed audio.
 _MAX_AUDIO_BYTES = int(os.environ.get("MAX_AUDIO_BYTES", str(25 * 1024 * 1024)))
 
+_VALID_MEMORY_TYPES = {"recipe", "song", "story", "fable", "moral"}
+
 # Allowed file extensions.
 _ALLOWED_AUDIO_EXTS = {
     ".mp3", ".mp4", ".m4a", ".wav", ".webm",
@@ -685,6 +687,7 @@ async def save_audio_endpoint(
     narrator: str = File(default=""),
     description: str = File(default=""),
     original_text: str = File(default=""),
+    memory_type: str = File(default="song"),
     user: dict = Depends(require_auth),
 ):
     """
@@ -722,6 +725,7 @@ async def save_audio_endpoint(
             tags.append("audio")
 
         row = insert_recipe({
+            "type": memory_type if memory_type in _VALID_MEMORY_TYPES else "song",
             "dish_name": title.strip() or "Untitled",
             "narrator": narrator.strip() or None,
             "user_id": _user_id(user),
