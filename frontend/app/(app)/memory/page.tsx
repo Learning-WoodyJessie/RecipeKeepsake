@@ -27,6 +27,7 @@ type Memory = {
   user_notes: string | null
   tags: string[] | null
   type: MemoryType | null
+  portal_visible: boolean
 }
 
 function isAudioMemory(m: Memory) {
@@ -94,6 +95,9 @@ function MemoryDetail() {
   const [playing, setPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
+  const [inPortal, setInPortal] = useState(false)
+  const [portalBusy, setPortalBusy] = useState(false)
+  const [isInGroup, setIsInGroup] = useState(false)
 
   // Signed URLs expire after 1 hour. If the audio element errors, re-fetch the
   // recipe to get a fresh signed URL. Guard prevents concurrent refresh calls.
@@ -119,8 +123,13 @@ function MemoryDetail() {
       setCategory((m.tags ?? []).filter(t => t !== 'audio')[0] ?? '')
       setAbout(m.transcript_english ?? m.user_notes ?? '')
       setNotes(m.user_notes ?? '')
+      setInPortal(m.portal_visible ?? false)
     }).catch((e: Error) => setError(e.message)).finally(() => setLoading(false))
   }, [token, router])
+
+  useEffect(() => {
+    api.family.getMyGroup().then(() => setIsInGroup(true)).catch(() => {})
+  }, [])
 
   useEffect(() => {
     if (params.get('justSaved') !== '1') return
@@ -135,6 +144,20 @@ function MemoryDetail() {
   function flash() {
     setSavedFlash(true)
     setTimeout(() => setSavedFlash(false), 2000)
+  }
+
+  async function togglePortal() {
+    if (!memory || portalBusy) return
+    setPortalBusy(true)
+    const next = !inPortal
+    try {
+      await api.recipes.patch(memory.token, { portal_visible: next })
+      setInPortal(next)
+    } catch {
+      // silent — state reverts on next page load
+    } finally {
+      setPortalBusy(false)
+    }
   }
 
   async function patchField(patch: Record<string, unknown>) {
@@ -633,6 +656,26 @@ function MemoryDetail() {
           }}>
             {memory.type}
           </span>
+        </div>
+      )}
+
+      {isInGroup && (
+        <div style={{ marginBottom: '1rem' }}>
+          <button
+            onClick={togglePortal}
+            disabled={portalBusy}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              padding: '5px 14px', borderRadius: 20, fontSize: 13,
+              border: '1px solid var(--border)',
+              background: inPortal ? 'var(--accent)' : 'transparent',
+              color: inPortal ? 'white' : 'var(--muted)',
+              cursor: portalBusy ? 'default' : 'pointer',
+              fontFamily: 'var(--sans)',
+            }}
+          >
+            {inPortal ? '✓ In family portal' : '+ Add to family portal'}
+          </button>
         </div>
       )}
 
