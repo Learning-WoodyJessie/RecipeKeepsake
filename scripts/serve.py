@@ -899,6 +899,77 @@ async def shared_with_me_endpoint(user: dict = Depends(require_auth)):
     return JSONResponse(content={"recipes": list_recipes_for_owners(owner_ids), "is_viewer": bool(owner_ids)})
 
 
+# ── Family groups ─────────────────────────────────────────────────────────────
+
+@app.post("/family/groups")
+async def create_family_group_endpoint(request: Request, user: dict = Depends(require_auth)):
+    """Create a new family group. Body: {name: string}"""
+    from tools.groups import create_group, get_group_for_user
+    body = await request.json()
+    user_id = _user_id(user)
+    if get_group_for_user(user_id):
+        raise HTTPException(status_code=409, detail="Already in a family group.")
+    name = (body.get("name") or "").strip()
+    if not name:
+        raise HTTPException(status_code=400, detail="Group name is required.")
+    group = create_group(owner_id=user_id, name=name)
+    base = os.environ.get("NEXT_PUBLIC_APP_URL", "")
+    return JSONResponse(content={
+        "group": group,
+        "portal_url": f"{base}/family/{group['portal_token']}",
+        "invite_url": f"{base}/join?invite={group['invite_token']}",
+    })
+
+
+@app.get("/family/groups/me")
+async def get_my_family_group_endpoint(user: dict = Depends(require_auth)):
+    """Return the authenticated user's family group, or 404."""
+    from tools.groups import get_group_for_user
+    group = get_group_for_user(_user_id(user))
+    if not group:
+        raise HTTPException(status_code=404, detail="Not in a family group.")
+    base = os.environ.get("NEXT_PUBLIC_APP_URL", "")
+    return JSONResponse(content={
+        "group": group,
+        "portal_url": f"{base}/family/{group['portal_token']}",
+        "invite_url": f"{base}/join?invite={group['invite_token']}",
+    })
+
+
+@app.post("/family/groups/join/{invite_token}")
+async def join_family_group_endpoint(invite_token: str, user: dict = Depends(require_auth)):
+    """Join a family group via invite token."""
+    from tools.groups import get_group_by_invite, join_group, get_group_for_user
+    user_id = _user_id(user)
+    if get_group_for_user(user_id):
+        raise HTTPException(status_code=409, detail="Already in a family group.")
+    group = get_group_by_invite(invite_token)
+    if not group:
+        raise HTTPException(status_code=404, detail="Invite link not found.")
+    join_group(group_id=group["id"], user_id=user_id)
+    return JSONResponse(content={"joined": True, "group_name": group["name"]})
+
+
+@app.get("/family/members")
+async def list_family_members_endpoint(user: dict = Depends(require_auth)):
+    """List all members of the authenticated user's family group."""
+    from tools.groups import get_group_for_user, list_group_members
+    group = get_group_for_user(_user_id(user))
+    if not group:
+        raise HTTPException(status_code=404, detail="Not in a family group.")
+    return JSONResponse(content={"members": list_group_members(group["id"])})
+
+
+@app.get("/family/recipes")
+async def list_family_recipes_endpoint(user: dict = Depends(require_auth)):
+    """List all recipes from all members of the user's family group."""
+    from tools.groups import get_group_for_user, list_group_recipes
+    group = get_group_for_user(_user_id(user))
+    if not group:
+        return JSONResponse(content={"recipes": []})
+    return JSONResponse(content={"recipes": list_group_recipes(group["id"])})
+
+
 # ── Image generation ──────────────────────────────────────────────────────────
 
 class ImageRequest(BaseModel):
