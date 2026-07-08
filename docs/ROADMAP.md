@@ -313,6 +313,55 @@ Migrated production frontend from `web/app.html` (single-file vanilla JS SPA, 4,
 
 ---
 
+## Phase 1.9 — Family Sharing ✅
+
+*Completed 2026-07-07. PRD: `docs/plans/2026-07-07-family-sharing-design.md`.*
+
+Multi-phase feature: content type system, family groups, public portal, and WhatsApp sharing.
+
+### Phase A — Content Types ✅
+
+| Story | Status |
+|---|---|
+| `type` field on `/save-audio` endpoint — `recipe\|song\|story\|fable\|moral` | ✅ |
+| Type picker UI on upload page (5 types with emoji) | ✅ |
+| Type badge on memory detail page | ✅ |
+| `pipeline/persist.py` writes `type: "recipe"` by default | ✅ |
+
+### Phase B — Family Groups ✅
+
+| Story | Status |
+|---|---|
+| `tools/groups.py` — 8 CRUD functions (create, join, member list, recipe list, portal lookup) | ✅ |
+| `POST /family/groups` — create group | ✅ |
+| `GET /family/groups/me` — get current user's group | ✅ |
+| `POST /family/groups/join/{invite_token}` — join via invite link | ✅ |
+| `GET /family/members` — list group members | ✅ |
+| `GET /family/recipes` — all recipes from all group members | ✅ |
+| Account page `FamilyGroupSection` — create group, copy portal/invite URLs | ✅ |
+| Home page shows family recipes with contributor attribution | ✅ |
+| `/join` public page — invite link landing, Suspense-wrapped | ✅ |
+
+### Phase C — Public Portal ✅
+
+| Story | Status |
+|---|---|
+| `portal_visible` boolean column on recipes — explicit opt-in, default false | ✅ |
+| `GET /portal/{token}` — public endpoint, no auth required | ✅ |
+| Portal toggle button on memory detail page | ✅ |
+| `publicFetch` helper + `api.portal.get` in `frontend/lib/api.ts` | ✅ |
+| `/family?p=TOKEN` public portal page — type filter tabs, inline audio, join nudge | ✅ |
+
+### Phase D — WhatsApp Sharing ✅
+
+| Story | Status |
+|---|---|
+| `frontend/lib/share.ts` — bilingual (EN + TE) message builder for all 5 types | ✅ |
+| Memory detail `openWhatsApp()` — per-type bilingual copy + portal URL destination | ✅ |
+| Account page — green WhatsApp Share button for family portal | ✅ |
+
+---
+
 ## Phase 4 — Memories Expansion 🔜
 
 *Next priority after open bugs D-002 and D-004 are resolved. The Memories nav group and pipeline abstraction are already in place as scaffolding.*

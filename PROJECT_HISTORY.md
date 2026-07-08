@@ -4,6 +4,38 @@ One-paragraph summary per session. Most recent first.
 
 ---
 
+## 2026-07-07 — Family Sharing: Content Types, Groups, Portal, WhatsApp
+
+### Accomplished
+- **Gemini file polling fix**: Added `client.files.get()` polling loop in `tools/transcribe.py` — waits for `state.name == "ACTIVE"` before calling `generate_content()`. Fixed `400 FAILED_PRECONDITION` crash on real device. Tests updated in `test_transcribe.py`, `test_pipeline_stages.py`, `test_pipeline_timing.py`.
+- **Content types (Phase A)**: `type` field added to `/save-audio` endpoint (`recipe|song|story|fable|moral`). Type picker UI on upload page. Type badge on memory detail page. `run_persist()` writes `type: "recipe"` by default.
+- **Family groups (Phase B)**: `tools/groups.py` — 8 functions for family group CRUD (create, join, member list, recipe list). 5 new endpoints in `serve.py` (`POST /family/groups`, `GET /family/groups/me`, `POST /family/groups/join/{token}`, `GET /family/members`, `GET /family/recipes`). Account page `FamilyGroupSection` — create group, copy portal/invite URLs. Home page shows family recipes with contributor attribution when in a group. Join page (`/join`) with Suspense wrapper.
+- **Public portal (Phase C)**: `portal_visible` boolean column opt-in per memory. `GET /portal/{token}` — public, no auth. Portal toggle button on memory detail (Chunk 3.3). `publicFetch` + `api.portal.get` in `api.ts` (Chunk 3.4). Public `/family?p=TOKEN` page with type filter tabs, inline audio, join nudge (Chunk 3.5).
+- **WhatsApp sharing (Phase D)**: `frontend/lib/share.ts` — bilingual (English + Telugu) message builder for all 5 content types + portal intro. `openWhatsApp()` on memory detail upgraded to use per-type bilingual copy pointing to portal URL. Green WhatsApp Share button on account page next to portal URL copy row.
+- **Architecture docs**: `docs/ARCHITECTURE.md` and `docs/SYSTEM_DESIGN.md` updated to reflect Gemini 2.5 Flash, Next.js frontend, current layout, and security model.
+- **Test count**: 137 → 192 (+55 tests across groups, persist, transcribe, pipeline)
+
+### Learned
+- Gemini File API is async — `files.upload()` returns before the file is ready. Must poll `files.get()` until `state.name == "ACTIVE"`. Tests need `files.get.return_value.state.name = "ACTIVE"`.
+- `useSearchParams()` in Next.js static export (`output: 'export'`) requires the calling component to be wrapped in `<Suspense>` — otherwise `next build` fails with prerendering error. Use `?p=TOKEN` query params (not `/[token]` route segments) for runtime tokens.
+- WhatsApp Business Groups API only works for business-created groups (max 8 members) — cannot read consumer group membership. Deep link (`wa.me/?text=...`) is the only viable approach for family sharing.
+- `window.open()` must be the first synchronous call in a click handler on iOS Safari — any `await` before it causes the popup to be silently blocked.
+- Family group data model doesn't need a `family_group_id` on recipes — two-query pattern (member `user_id`s → recipes `IN` those ids) derives group membership without schema changes.
+
+### Deferred
+- D-017: `WaIcon` SVG duplicated in `memory/page.tsx` and `account/page.tsx` — extract to `frontend/components/WaIcon.tsx` when a third usage appears (nitpick)
+- Instagram sharing — future phase, requires image card generation
+- WhatsApp Business API — not feasible; documented as won't-build
+- Phase 4 (Memories Expansion) — full schema migration (`memories` table replacing `recipes`), per-type Call B prompts, type-aware review wizard
+
+### Next
+- Phase 4 — Memories Expansion: `memories` table, type-discriminated schema, per-type pipelines (remedy, song, story, wisdom)
+- D-002 real-model eval confirmation (Whisper hallucination — fix applied, live eval still pending)
+- D-015 `gpt-4o-mini` re-eval (structure prompt fix applied, live eval still pending)
+- Android app identity rename (Phase 2 — paused)
+
+---
+
 ## 2026-05-06 — Structured Logging, Cache Correctness, and Observability Gaps
 
 ### Accomplished

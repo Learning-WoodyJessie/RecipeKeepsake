@@ -145,4 +145,69 @@ markers =
 
 ---
 
+## Gemini File API — file not ACTIVE before generate_content
+
+**Pattern**: `client.files.upload()` returns immediately but the file is still in `PROCESSING` state. Calling `generate_content()` immediately throws `400 FAILED_PRECONDITION: The File ... is not in an ACTIVE state`.
+
+**Tell**: `google.api_core.exceptions.FailedPrecondition: 400 The File p42vc5tvbg12 is not in an ACTIVE state`
+
+**Wrong**:
+```python
+audio_file = client.files.upload(path, ...)
+response = client.models.generate_content(..., contents=[audio_file])  # crashes
+```
+
+**Right**:
+```python
+audio_file = client.files.upload(path, ...)
+for _ in range(20):
+    audio_file = client.files.get(name=audio_file.name)
+    if audio_file.state.name == "ACTIVE":
+        break
+    if audio_file.state.name == "FAILED":
+        raise RuntimeError(f"Gemini file processing failed: {audio_file.name}")
+    time.sleep(2)
+else:
+    raise RuntimeError(f"Gemini file never became ACTIVE: {audio_file.name}")
+response = client.models.generate_content(...)
+```
+
+**Rule**: Always poll `client.files.get()` until `state.name == "ACTIVE"` before calling `generate_content()`. Tests must set `files.get.return_value.state.name = "ACTIVE"`.
+
+---
+
+## Next.js static export — `useSearchParams()` requires Suspense
+
+**Pattern**: A page component calls `useSearchParams()` directly. `next build` with `output: 'export'` fails with `Error occurred prerendering page "/..."` because `useSearchParams()` causes the page to opt into dynamic rendering, which is incompatible with static export.
+
+**Tell**: `Error occurred prerendering page "/join"` during `next build`; works fine in `next dev`.
+
+**Wrong**:
+```tsx
+export default function JoinPage() {
+  const params = useSearchParams()   // crashes static export
+  ...
+}
+```
+
+**Right**:
+```tsx
+function JoinContent() {
+  const params = useSearchParams()   // inside Suspense — safe
+  ...
+}
+
+export default function JoinPage() {
+  return (
+    <Suspense fallback={<p>Loading…</p>}>
+      <JoinContent />
+    </Suspense>
+  )
+}
+```
+
+**Rule**: In Next.js static export (`output: 'export'`), any component calling `useSearchParams()` must be split into a child component and wrapped in `<Suspense>` in the page default export. Also applies to any page using query params (`?p=TOKEN`) — never use dynamic route segments `[token]` for runtime tokens in static export.
+
+---
+
 *(Add new patterns here as they're discovered during build)*
