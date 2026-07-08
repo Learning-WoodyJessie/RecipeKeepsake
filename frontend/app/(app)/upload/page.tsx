@@ -32,7 +32,7 @@ const TIPS_AUDIO = [
   {
     icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>,
     title: 'Any format works',
-    desc: 'MP3, M4A, AAC, WAV, FLAC, OGG, Opus, WebM, AIFF — upload whatever your app exported.',
+    desc: 'MP3, M4A, AAC, WAV, FLAC, OGG, Opus, WebM, AIFF. Upload whatever your app exported.',
   },
   {
     icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>,
@@ -47,7 +47,7 @@ const TIPS_AUDIO = [
 ]
 
 const FORMATS = [
-  { ext: 'MP3', note: 'Most common — works everywhere' },
+  { ext: 'MP3', note: 'Most common, works everywhere' },
   { ext: 'M4A', note: 'iPhone voice memos default' },
   { ext: 'AAC', note: 'Apple / iTunes exports' },
   { ext: 'WAV', note: 'Uncompressed, highest quality' },
@@ -138,6 +138,7 @@ function CassetteHero() {
 export default function UploadPage() {
   const router = useRouter()
   const [mode, setMode] = useState<'ai' | 'direct'>('ai')
+  const [memoryType, setMemoryType] = useState<'song' | 'story' | 'fable' | 'moral'>('song')
   const [narrator, setNarrator] = useState('')
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
@@ -173,6 +174,7 @@ export default function UploadPage() {
     const form = new FormData()
     form.append('audio', file)
     form.append('title', title.trim())
+    form.append('memory_type', memoryType)
     if (narrator) form.append('narrator', narrator)
     if (description.trim()) form.append('description', description.trim())
     try {
@@ -229,7 +231,7 @@ export default function UploadPage() {
             </h1>
             <p style={{ color: 'var(--muted)', fontSize: '0.9rem', lineHeight: 1.6, maxWidth: 440, margin: '0 auto' }}>
               {mode === 'direct'
-                ? <>Upload the audio and we&apos;ll keep it safe —<br />just as it was recorded.</>
+                ? <>Upload the audio and we&apos;ll keep it safe,<br />just as it was recorded.</>
                 : <>Upload a recording and we&apos;ll turn it into<br />a recipe memory you can keep forever.</>}
             </p>
           </div>
@@ -265,6 +267,36 @@ export default function UploadPage() {
             <>
               <div style={{ marginBottom: '1.25rem' }}>
                 <div style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--muted)', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>
+                  Type
+                </div>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  {([
+                    { value: 'song',  label: '🎵 Song' },
+                    { value: 'story', label: '📖 Story' },
+                    { value: 'fable', label: '✨ Fable' },
+                    { value: 'moral', label: '🙏 Moral' },
+                  ] as const).map(({ value, label }) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => setMemoryType(value)}
+                      style={{
+                        padding: '6px 14px',
+                        borderRadius: 20,
+                        border: '1px solid var(--border)',
+                        background: memoryType === value ? 'var(--accent)' : 'transparent',
+                        color: memoryType === value ? 'white' : 'var(--muted)',
+                        fontSize: 13,
+                        cursor: 'pointer',
+                        fontFamily: 'var(--sans)',
+                      }}
+                    >{label}</button>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '1.25rem' }}>
+                <div style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--muted)', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>
                   Title *
                 </div>
                 <input
@@ -293,7 +325,7 @@ export default function UploadPage() {
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="A short note about this audio — what it is, why it matters…"
+                  placeholder="A short note about this audio: what it is, why it matters…"
                   rows={2}
                   style={{
                     width: '100%',
@@ -350,7 +382,7 @@ export default function UploadPage() {
                   {mode === 'direct' ? '♪ Saving your keepsake…' : '✨ Listening carefully…'}
                 </p>
                 <p style={{ fontSize: '0.82rem', color: 'var(--muted)' }}>
-                  {mode === 'direct' ? 'Your audio is being preserved — just a moment' : 'Transcribing, translating, and structuring — about 30–60 seconds'}
+                  {mode === 'direct' ? 'Your audio is being preserved, just a moment' : 'Transcribing, translating, and structuring, about 30–60 seconds'}
                 </p>
               </div>
             ) : (
@@ -368,7 +400,7 @@ export default function UploadPage() {
                   or click anywhere to upload
                 </p>
                 <p style={{ fontSize: '0.78rem', color: 'var(--accent)', fontWeight: 500 }}>
-                  {mode === 'direct' ? '♪ Kept exactly as it is — a gift for the family' : '✦ Best results with clear voice recordings'}
+                  {mode === 'direct' ? '♪ Kept exactly as it is, a gift for the family' : '✦ Best results with clear voice recordings'}
                 </p>
               </>
             )}

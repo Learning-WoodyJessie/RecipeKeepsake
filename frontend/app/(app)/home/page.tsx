@@ -19,6 +19,7 @@ type Memory = {
   recorded_at: string
   image_url: string | null
   tags: string[] | null
+  type: string | null
 }
 
 // "tale" covers Tales & Songs entries with or without audio; "audio" alone
@@ -223,7 +224,7 @@ function MemoriesSection({
         <div style={{ padding: '1.25rem 1rem', borderRadius: 14, background: 'var(--surface)', border: '1px dashed var(--border2)', color: 'var(--muted)', fontSize: '0.85rem', textAlign: 'center', lineHeight: 1.6 }}>
           {showFavsOnly
             ? <>Tap ♡ on any memory to add it to your favorites</>
-            : <>No memories yet — <Link href="/capture" style={{ color: 'var(--accent)', fontWeight: 600 }}>capture the first one</Link></>
+            : <>No memories yet. <Link href="/capture" style={{ color: 'var(--accent)', fontWeight: 600 }}>Capture the first one</Link></>
           }
         </div>
       ) : (
@@ -300,7 +301,12 @@ function MemoryRow({
           {isAudio(memory) && <span style={{ fontSize: '0.72rem', color: 'var(--accent)', flexShrink: 0 }}>♪</span>}
           {title}
         </p>
-        <p style={{ fontSize: '0.7rem', color: 'var(--muted)', marginBottom: 5 }}>{narr} · {fmtDate(memory.recorded_at)}</p>
+        <p style={{ fontSize: '0.7rem', color: 'var(--muted)', marginBottom: 5 }}>
+          {narr} · {fmtDate(memory.recorded_at)}
+          {memory.type && memory.type !== 'recipe' && (
+            <span style={{ marginLeft: 6, padding: '1px 7px', borderRadius: 8, background: 'var(--surface)', border: '1px solid var(--border)', fontSize: 10, textTransform: 'capitalize', verticalAlign: 'middle' }}>{memory.type}</span>
+          )}
+        </p>
         <WaveformBars token={memory.token} barCount={18} />
       </div>
 

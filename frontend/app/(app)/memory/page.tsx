@@ -11,6 +11,7 @@ import LanguageSwitcher from '@/components/LanguageSwitcher'
 import { readFavorites, toggleFavorite as toggleFav } from '@/lib/favorites'
 
 type Ingredient = { item: string; quantity: string }
+type MemoryType = 'recipe' | 'song' | 'story' | 'fable' | 'moral'
 type Memory = {
   token: string
   dish_name: string | null
@@ -25,6 +26,7 @@ type Memory = {
   steps: string[]
   user_notes: string | null
   tags: string[] | null
+  type: MemoryType | null
 }
 
 function isAudioMemory(m: Memory) {
@@ -617,44 +619,65 @@ function MemoryDetail() {
         <LanguageSwitcher token={token} onTranslated={setTranslated} />
       </div>
 
+      {memory.type && memory.type !== 'recipe' && (
+        <div style={{ marginBottom: '1rem' }}>
+          <span style={{
+            display: 'inline-block',
+            padding: '3px 12px',
+            borderRadius: 12,
+            background: 'var(--surface)',
+            border: '1px solid var(--border)',
+            fontSize: 12,
+            color: 'var(--muted)',
+            textTransform: 'capitalize',
+          }}>
+            {memory.type}
+          </span>
+        </div>
+      )}
+
       {memory.image_url && (
         <div style={{ borderRadius: 14, overflow: 'hidden', marginBottom: '1.25rem', aspectRatio: '16/9', background: 'var(--cream2)', boxShadow: '0 0 28px rgba(24,107,94,0.18)' }}>
           <img src={memory.image_url} alt={(display as Memory).dish_name ?? ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         </div>
       )}
 
-      {(display as Memory).cook_notes && (
-        <div style={{ background: 'var(--accent-light)', border: '1px solid var(--border2)', borderLeft: '3px solid var(--accent)', borderRadius: 10, padding: '0.85rem 1rem', marginBottom: '1.25rem', fontStyle: 'italic', color: 'var(--text2)', fontSize: '0.88rem', lineHeight: 1.6 }}>
-          {(display as Memory).cook_notes}
-        </div>
-      )}
+      {(!memory.type || memory.type === 'recipe') && (
+        <>
+          {(display as Memory).cook_notes && (
+            <div style={{ background: 'var(--accent-light)', border: '1px solid var(--border2)', borderLeft: '3px solid var(--accent)', borderRadius: 10, padding: '0.85rem 1rem', marginBottom: '1.25rem', fontStyle: 'italic', color: 'var(--text2)', fontSize: '0.88rem', lineHeight: 1.6 }}>
+              {(display as Memory).cook_notes}
+            </div>
+          )}
 
-      {((display as Memory).ingredients?.length ?? 0) > 0 && (
-        <section style={{ marginBottom: '1.25rem' }}>
-          <h2 style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--muted)', marginBottom: '0.6rem' }}>Ingredients</h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            {(display as Memory).ingredients.map((ing, i) => (
-              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, padding: '0.45rem 0.85rem', fontSize: '0.85rem' }}>
-                <span style={{ color: 'var(--text)' }}>{ing.item}</span>
-                <span style={{ color: 'var(--muted)' }}>{ing.quantity}</span>
+          {((display as Memory).ingredients?.length ?? 0) > 0 && (
+            <section style={{ marginBottom: '1.25rem' }}>
+              <h2 style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--muted)', marginBottom: '0.6rem' }}>Ingredients</h2>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {(display as Memory).ingredients.map((ing, i) => (
+                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, padding: '0.45rem 0.85rem', fontSize: '0.85rem' }}>
+                    <span style={{ color: 'var(--text)' }}>{ing.item}</span>
+                    <span style={{ color: 'var(--muted)' }}>{ing.quantity}</span>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </section>
-      )}
+            </section>
+          )}
 
-      {((display as Memory).steps?.length ?? 0) > 0 && (
-        <section style={{ marginBottom: '1.25rem' }}>
-          <h2 style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--muted)', marginBottom: '0.6rem' }}>Method</h2>
-          <ol style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingLeft: 0, listStyle: 'none' }}>
-            {(display as Memory).steps.map((step, i) => (
-              <li key={i} style={{ display: 'flex', gap: '0.7rem', alignItems: 'flex-start', fontSize: '0.88rem', color: 'var(--text2)', lineHeight: 1.6 }}>
-                <span style={{ background: 'var(--accent)', color: 'white', borderRadius: '50%', width: 20, height: 20, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 700, marginTop: 2 }}>{i + 1}</span>
-                {step}
-              </li>
-            ))}
-          </ol>
-        </section>
+          {((display as Memory).steps?.length ?? 0) > 0 && (
+            <section style={{ marginBottom: '1.25rem' }}>
+              <h2 style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--muted)', marginBottom: '0.6rem' }}>Method</h2>
+              <ol style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingLeft: 0, listStyle: 'none' }}>
+                {(display as Memory).steps.map((step, i) => (
+                  <li key={i} style={{ display: 'flex', gap: '0.7rem', alignItems: 'flex-start', fontSize: '0.88rem', color: 'var(--text2)', lineHeight: 1.6 }}>
+                    <span style={{ background: 'var(--accent)', color: 'white', borderRadius: '50%', width: 20, height: 20, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 700, marginTop: 2 }}>{i + 1}</span>
+                    {step}
+                  </li>
+                ))}
+              </ol>
+            </section>
+          )}
+        </>
       )}
 
       {memory.audio_url && (
