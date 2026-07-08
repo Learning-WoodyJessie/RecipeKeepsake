@@ -9,6 +9,7 @@ import { api } from '@/lib/api'
 import AudioPlayer from '@/components/AudioPlayer'
 import LanguageSwitcher from '@/components/LanguageSwitcher'
 import { readFavorites, toggleFavorite as toggleFav } from '@/lib/favorites'
+import { buildMemoryShareMessage, toWhatsAppUrl } from '@/lib/share'
 
 type Ingredient = { item: string; quantity: string }
 type MemoryType = 'recipe' | 'song' | 'story' | 'fable' | 'moral'
@@ -98,6 +99,7 @@ function MemoryDetail() {
   const [inPortal, setInPortal] = useState(false)
   const [portalBusy, setPortalBusy] = useState(false)
   const [isInGroup, setIsInGroup] = useState(false)
+  const [portalUrl, setPortalUrl] = useState('')
 
   // Signed URLs expire after 1 hour. If the audio element errors, re-fetch the
   // recipe to get a fresh signed URL. Guard prevents concurrent refresh calls.
@@ -128,7 +130,10 @@ function MemoryDetail() {
   }, [token, router])
 
   useEffect(() => {
-    api.family.getMyGroup().then(() => setIsInGroup(true)).catch(() => {})
+    api.family.getMyGroup().then((d: { portal_url?: string }) => {
+      setIsInGroup(true)
+      setPortalUrl(d?.portal_url ?? '')
+    }).catch(() => {})
   }, [])
 
   useEffect(() => {
@@ -219,10 +224,9 @@ function MemoryDetail() {
   }
 
   function openWhatsApp() {
-    const shareUrl = `${window.location.origin}/memory?token=${token}`
-    const emoji = audio ? '🎵' : '🍽️'
-    const waUrl = `https://wa.me/?text=${encodeURIComponent(`${emoji} "${memory?.dish_name ?? 'this memory'}" on Echoes of Home:\n${shareUrl}`)}`
-    window.open(waUrl, '_blank')
+    const url = portalUrl || `${window.location.origin}/memory?token=${token}`
+    const msg = buildMemoryShareMessage(memory?.type, memory?.dish_name, memory?.narrator, url)
+    window.open(toWhatsAppUrl(msg), '_blank')
   }
 
   const display = translated ?? memory
