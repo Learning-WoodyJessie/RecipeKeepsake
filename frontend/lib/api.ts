@@ -83,6 +83,26 @@ export const api = {
   account: {
     delete: () => authFetch('/account', { method: 'DELETE' }),
   },
+  family: {
+    createGroup: (name: string) =>
+      authFetch('/family/groups', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name }),
+      }),
+    getMyGroup: () => authFetch('/family/groups/me'),
+    join: (inviteToken: string) =>
+      authFetch(`/family/groups/join/${inviteToken}`, { method: 'POST' }),
+    members: () => authFetch('/family/members'),
+    recipes: async () => {
+      const data: unknown = await authFetch('/family/recipes')
+      if (data && typeof data === 'object' && 'recipes' in data) {
+        const rows = (data as { recipes: unknown }).recipes
+        return Array.isArray(rows) ? rows : []
+      }
+      return []
+    },
+  },
   viewers: {
     list: () => authFetch('/viewers'),
     add: (body: { email?: string; phone?: string }) =>

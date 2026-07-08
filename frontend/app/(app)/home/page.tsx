@@ -20,6 +20,7 @@ type Memory = {
   image_url: string | null
   tags: string[] | null
   type: string | null
+  recorded_by_name: string | null
 }
 
 // "tale" covers Tales & Songs entries with or without audio; "audio" alone
@@ -168,9 +169,11 @@ function MemoriesSection({
   favTokens,
   onToggle,
   peopleMap,
+  isFamily,
 }: {
   memories: Memory[]
   favTokens: string[]
+  isFamily?: boolean
   onToggle: (token: string) => void
   peopleMap: Record<string, string>
 }) {
@@ -188,7 +191,7 @@ function MemoriesSection({
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.85rem', gap: '0.5rem', flexWrap: 'wrap' }}>
         <h2 style={{ fontFamily: 'var(--serif)', fontSize: '1.05rem', fontWeight: 600, color: 'var(--text)' }}>
-          {showFavsOnly ? 'Your favorites' : 'Recent memories'}
+          {showFavsOnly ? 'Your favorites' : isFamily ? 'Family Memories' : 'Recent memories'}
         </h2>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
           {/* ♥ filter pill */}
@@ -306,6 +309,9 @@ function MemoryRow({
           {memory.type && memory.type !== 'recipe' && (
             <span style={{ marginLeft: 6, padding: '1px 7px', borderRadius: 8, background: 'var(--surface)', border: '1px solid var(--border)', fontSize: 10, textTransform: 'capitalize', verticalAlign: 'middle' }}>{memory.type}</span>
           )}
+          {memory.recorded_by_name && (
+            <span style={{ marginLeft: 6, fontSize: 10, color: 'var(--muted)' }}>by {memory.recorded_by_name}</span>
+          )}
         </p>
         <WaveformBars token={memory.token} barCount={18} />
       </div>
@@ -394,6 +400,7 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [favTick, setFavTick] = useState(0)
+  const [isFamily, setIsFamily] = useState(false)
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => setUserName(firstName(user)))
@@ -401,7 +408,16 @@ export default function HomePage() {
 
   useEffect(() => {
     let cancelled = false
-    Promise.all([api.recipes.list().catch((e: Error) => { throw e }), api.people.list().catch(() => [])])
+    Promise.all([
+      // Try family recipes first; fall back to own
+      api.family.recipes()
+        .then((rows) => {
+          if (Array.isArray(rows) && rows.length > 0) { setIsFamily(true); return rows }
+          return api.recipes.list()
+        })
+        .catch(() => api.recipes.list()),
+      api.people.list().catch(() => []),
+    ])
       .then(([m, p]) => {
         if (!cancelled) { setMemories(m as Memory[]); setPeople(p as Person[]) }
       })
@@ -467,6 +483,7 @@ export default function HomePage() {
             favTokens={favTokens}
             onToggle={toggleFavorite}
             peopleMap={peopleMap}
+            isFamily={isFamily}
           />
         </div>
 

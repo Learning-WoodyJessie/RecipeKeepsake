@@ -4,7 +4,7 @@
 // How: Uses Next.js and React hooks to handle state and API calls for account deletion.
 
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { api } from '@/lib/api'
 import { supabase } from '@/lib/supabase'
@@ -45,7 +45,7 @@ function ShareWithFamily() {
     <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '1.5rem', marginBottom: '1.5rem' }}>
       <h2 style={{ color: 'var(--text)', fontWeight: 600, marginBottom: '0.5rem', fontSize: '1rem' }}>Share with family</h2>
       <p style={{ color: 'var(--text2)', fontSize: '0.85rem', marginBottom: '1.25rem', lineHeight: 1.6 }}>
-        Approve an email or phone for read-only viewing, no account creation needed on their end. They'll get a one-time code to sign in — revoke access here anytime.
+        Approve an email or phone for read-only viewing, no account creation needed on their end. They'll get a one-time code to sign in. Revoke access here anytime.
       </p>
 
       <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem' }}>
@@ -82,6 +82,116 @@ function ShareWithFamily() {
   )
 }
 
+type FamilyGroupData = {
+  group: { id: string; name: string; portal_token: string; invite_token: string }
+  portal_url: string
+  invite_url: string
+}
+
+function FamilyGroupSection() {
+  const [data, setData] = useState<FamilyGroupData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [groupName, setGroupName] = useState('')
+  const [creating, setCreating] = useState(false)
+  const [error, setError] = useState('')
+  const [copied, setCopied] = useState<'portal' | 'invite' | null>(null)
+  const copyTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    api.family.getMyGroup()
+      .then(d => setData(d as FamilyGroupData))
+      .catch(() => setData(null))
+      .finally(() => setLoading(false))
+  }, [])
+
+  async function createGroup() {
+    if (!groupName.trim()) { setError('Enter a group name.'); return }
+    setCreating(true); setError('')
+    try {
+      const d = await api.family.createGroup(groupName.trim())
+      setData(d as FamilyGroupData)
+    } catch (e: unknown) {
+      setError((e as Error).message)
+    } finally {
+      setCreating(false)
+    }
+  }
+
+  function copy(text: string, which: 'portal' | 'invite') {
+    navigator.clipboard.writeText(text)
+    setCopied(which)
+    if (copyTimer.current) clearTimeout(copyTimer.current)
+    copyTimer.current = setTimeout(() => setCopied(null), 2000)
+  }
+
+  const card: React.CSSProperties = {
+    background: 'var(--surface)', border: '1px solid var(--border)',
+    borderRadius: 14, padding: '1.5rem', marginBottom: '1.5rem',
+  }
+  const label: React.CSSProperties = {
+    fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase',
+    color: 'var(--muted)', letterSpacing: '0.08em', marginBottom: '0.4rem',
+  }
+
+  if (loading) return null
+
+  if (!data) return (
+    <div style={card}>
+      <h2 style={{ color: 'var(--accent)', fontWeight: 600, marginBottom: '0.5rem', fontSize: '1rem' }}>Family Group</h2>
+      <p style={{ color: 'var(--text2)', fontSize: '0.85rem', marginBottom: '1.25rem', lineHeight: 1.6 }}>
+        Create a group so your whole family can share and browse memories together.
+        Share the invite link in your WhatsApp group — anyone who clicks it can join.
+      </p>
+      {error && <p style={{ color: 'var(--accent)', fontSize: '0.82rem', marginBottom: '0.75rem' }}>{error}</p>}
+      <div style={{ display: 'flex', gap: '0.5rem' }}>
+        <input
+          type="text"
+          value={groupName}
+          onChange={e => setGroupName(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && createGroup()}
+          placeholder="e.g. Lakshmi Family"
+          style={{ flex: 1, border: '1px solid var(--border)', borderRadius: 10, padding: '0.6rem 0.85rem', fontSize: '0.9rem', fontFamily: 'var(--sans)', background: 'var(--bg)', color: 'var(--text)' }}
+        />
+        <button onClick={createGroup} disabled={creating} style={{ background: 'var(--accent)', color: 'white', border: 'none', borderRadius: 10, padding: '0.6rem 1.25rem', fontWeight: 600, cursor: creating ? 'default' : 'pointer', fontSize: '0.9rem' }}>
+          {creating ? '…' : 'Create →'}
+        </button>
+      </div>
+    </div>
+  )
+
+  return (
+    <div style={card}>
+      <h2 style={{ color: 'var(--accent)', fontWeight: 600, marginBottom: '1rem', fontSize: '1rem' }}>
+        Family Group · {data.group.name}
+      </h2>
+
+      <div style={{ marginBottom: '0.85rem' }}>
+        <p style={label}>Portal URL</p>
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          <span style={{ flex: 1, fontSize: '0.8rem', color: 'var(--text2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{data.portal_url}</span>
+          <button onClick={() => copy(data.portal_url, 'portal')} style={{ flexShrink: 0, background: 'transparent', border: '1px solid var(--border)', borderRadius: 8, padding: '0.3rem 0.75rem', fontSize: '0.78rem', cursor: 'pointer', color: copied === 'portal' ? 'var(--accent)' : 'var(--muted)' }}>
+            {copied === 'portal' ? 'Copied!' : 'Copy'}
+          </button>
+        </div>
+      </div>
+
+      <div style={{ marginBottom: '1rem' }}>
+        <p style={label}>Invite Link</p>
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          <span style={{ flex: 1, fontSize: '0.8rem', color: 'var(--text2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{data.invite_url}</span>
+          <button onClick={() => copy(data.invite_url, 'invite')} style={{ flexShrink: 0, background: 'transparent', border: '1px solid var(--border)', borderRadius: 8, padding: '0.3rem 0.75rem', fontSize: '0.78rem', cursor: 'pointer', color: copied === 'invite' ? 'var(--accent)' : 'var(--muted)' }}>
+            {copied === 'invite' ? 'Copied!' : 'Copy'}
+          </button>
+        </div>
+      </div>
+
+      <p style={{ color: 'var(--muted)', fontSize: '0.8rem', lineHeight: 1.5 }}>
+        Share the invite link in your WhatsApp group. Pin the portal URL so everyone can browse memories anytime.
+      </p>
+    </div>
+  )
+}
+
 export default function AccountPage() {
   const router = useRouter()
   const [deleting, setDeleting] = useState(false)
@@ -103,6 +213,8 @@ export default function AccountPage() {
       <h1 style={{ fontFamily: 'var(--serif)', fontSize: '1.6rem', color: 'var(--text)', marginBottom: '2rem' }}>Account</h1>
 
       <ShareWithFamily />
+
+      <FamilyGroupSection />
 
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '1.5rem' }}>
         <h2 style={{ color: 'var(--accent)', fontWeight: 600, marginBottom: '0.5rem', fontSize: '1rem' }}>Delete account</h2>
