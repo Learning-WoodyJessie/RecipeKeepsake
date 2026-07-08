@@ -103,6 +103,43 @@ def list_group_members(group_id: str) -> list:
     )
 
 
+def get_portal_group(portal_token: str) -> dict | None:
+    """Return a group by its public portal token, or None if not found."""
+    rows = (
+        _client()
+        .table("family_groups")
+        .select("*")
+        .eq("portal_token", portal_token)
+        .execute()
+        .data
+    )
+    return rows[0] if rows else None
+
+
+def list_portal_recipes(group_id: str) -> list:
+    """Return portal_visible=true recipes from all group members, newest first."""
+    sb = _client()
+    member_rows = (
+        sb.table("family_group_members")
+        .select("user_id")
+        .eq("group_id", group_id)
+        .execute()
+        .data
+    )
+    if not member_rows:
+        return []
+    user_ids = [r["user_id"] for r in member_rows]
+    return (
+        sb.table("recipes")
+        .select("id, token, dish_name, narrator, recorded_at, image_url, audio_url, tags, type, recorded_by_name")
+        .in_("user_id", user_ids)
+        .eq("portal_visible", True)
+        .order("recorded_at", desc=True)
+        .execute()
+        .data
+    )
+
+
 def list_group_recipes(group_id: str) -> list:
     """Return all recipes from all members of the group, newest first."""
     sb = _client()

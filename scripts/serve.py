@@ -916,7 +916,7 @@ async def create_family_group_endpoint(request: Request, user: dict = Depends(re
     base = os.environ.get("NEXT_PUBLIC_APP_URL", "")
     return JSONResponse(content={
         "group": group,
-        "portal_url": f"{base}/family/{group['portal_token']}",
+        "portal_url": f"{base}/family?p={group['portal_token']}",
         "invite_url": f"{base}/join?invite={group['invite_token']}",
     })
 
@@ -931,7 +931,7 @@ async def get_my_family_group_endpoint(user: dict = Depends(require_auth)):
     base = os.environ.get("NEXT_PUBLIC_APP_URL", "")
     return JSONResponse(content={
         "group": group,
-        "portal_url": f"{base}/family/{group['portal_token']}",
+        "portal_url": f"{base}/family?p={group['portal_token']}",
         "invite_url": f"{base}/join?invite={group['invite_token']}",
     })
 
@@ -970,6 +970,20 @@ async def list_family_recipes_endpoint(user: dict = Depends(require_auth)):
     return JSONResponse(content={"recipes": list_group_recipes(group["id"])})
 
 
+@app.get("/portal/{portal_token}")
+async def get_portal_endpoint(portal_token: str):
+    """Public endpoint — no auth required. Returns group name + portal_visible recipes."""
+    from tools.groups import get_portal_group, list_portal_recipes
+    group = get_portal_group(portal_token)
+    if not group:
+        raise HTTPException(status_code=404, detail="Portal not found.")
+    recipes = list_portal_recipes(group["id"])
+    return JSONResponse(content={
+        "group_name": group["name"],
+        "recipes": recipes,
+    })
+
+
 # ── Image generation ──────────────────────────────────────────────────────────
 
 class ImageRequest(BaseModel):
@@ -997,6 +1011,7 @@ class PatchRecipeRequest(BaseModel):
     ingredients: list | None = None
     steps: list[str] | None = None
     cook_notes: str | None = None
+    portal_visible: bool | None = None
 
 
 @app.patch("/recipe/{token}")

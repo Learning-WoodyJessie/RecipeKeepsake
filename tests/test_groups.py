@@ -6,6 +6,7 @@ import tools.groups as _groups_mod
 from tools.groups import (
     create_group, get_group_for_user, get_group_by_invite,
     join_group, list_group_members, list_group_recipes,
+    get_portal_group, list_portal_recipes,
 )
 
 
@@ -153,3 +154,48 @@ class TestListGroupRecipes:
         assert len(result) == 2
         assert recipes_select.in_.call_args.args[0] == "user_id"
         assert set(recipes_select.in_.call_args.args[1]) == {"u1", "u2"}
+
+
+class TestGetPortalGroup:
+    def test_returns_group_for_valid_token(self, monkeypatch):
+        """get_portal_group() returns the group row for a valid portal token."""
+        mock = MagicMock()
+        mock.table.return_value.select.return_value.eq.return_value.execute.return_value.data = [
+            {"id": "g1", "name": "Lakshmi Family", "portal_token": "pt-abc"}
+        ]
+        monkeypatch.setattr(_groups_mod, "_supabase", mock)
+        result = get_portal_group("pt-abc")
+        assert result["id"] == "g1"
+
+    def test_returns_none_for_invalid_token(self, monkeypatch):
+        """get_portal_group() returns None for an unknown portal token."""
+        mock = MagicMock()
+        mock.table.return_value.select.return_value.eq.return_value.execute.return_value.data = []
+        monkeypatch.setattr(_groups_mod, "_supabase", mock)
+        assert get_portal_group("bad-token") is None
+
+
+class TestListPortalRecipes:
+    def test_returns_only_portal_visible_recipes(self, monkeypatch):
+        """list_portal_recipes() filters to portal_visible=true recipes for group members."""
+        mock = MagicMock()
+        members_select = MagicMock()
+        members_select.eq.return_value.execute.return_value.data = [
+            {"user_id": "u1"}, {"user_id": "u2"}
+        ]
+        recipes_select = MagicMock()
+        recipes_select.in_.return_value.eq.return_value.order.return_value.execute.return_value.data = [
+            {"id": "r1", "dish_name": "Pesarattu", "portal_visible": True},
+        ]
+        mock.table.return_value.select.side_effect = [members_select, recipes_select]
+        monkeypatch.setattr(_groups_mod, "_supabase", mock)
+        result = list_portal_recipes("g1")
+        assert len(result) == 1
+        assert result[0]["dish_name"] == "Pesarattu"
+
+    def test_returns_empty_when_no_members(self, monkeypatch):
+        """list_portal_recipes() returns [] when the group has no members."""
+        mock = MagicMock()
+        mock.table.return_value.select.return_value.eq.return_value.execute.return_value.data = []
+        monkeypatch.setattr(_groups_mod, "_supabase", mock)
+        assert list_portal_recipes("g1") == []
