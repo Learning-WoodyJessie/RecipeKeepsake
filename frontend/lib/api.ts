@@ -13,6 +13,17 @@ export type Person = {
   notes?: string
 }
 
+async function publicFetch(path: string) {
+  const res = await fetch(`${API}${path}`)
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: 'Request failed' }))
+    const detail = err.detail
+    const message = typeof detail === 'string' ? detail : 'Request failed'
+    throw new Error(message)
+  }
+  return res.json()
+}
+
 async function authFetch(path: string, options: RequestInit = {}) {
   const { data: { session } } = await supabase.auth.getSession()
   const headers: HeadersInit = {
@@ -102,6 +113,9 @@ export const api = {
       }
       return []
     },
+  },
+  portal: {
+    get: (portalToken: string) => publicFetch(`/portal/${portalToken}`),
   },
   viewers: {
     list: () => authFetch('/viewers'),
