@@ -9,7 +9,7 @@ const FAQS = [
     items: [
       {
         q: 'What languages can I record in?',
-        a: 'Any language. We support Telugu, Hindi, Tamil, Kannada, Malayalam, Marathi, Bengali, Urdu, and more — as well as English and mixed-language recordings. If your grandmother switches between Telugu and English mid-sentence, that\'s fine.',
+        a: 'Any language. We support Telugu, Hindi, Tamil, Kannada, Malayalam, Marathi, Bengali, Urdu, and more, as well as English and mixed-language recordings. If your grandmother switches between Telugu and English mid-sentence, that\'s fine.',
       },
       {
         q: 'What audio formats can I upload?',
@@ -17,7 +17,7 @@ const FAQS = [
       },
       {
         q: 'How long can the recording be?',
-        a: 'Between 30 seconds and about 15 minutes works best. Very short clips may not have enough detail. Very long recordings (30+ minutes) can be split into parts — one per dish or section.',
+        a: 'Between 30 seconds and about 15 minutes works best. Very short clips may not have enough detail. Very long recordings (30+ minutes) can be split into parts, one per dish or section.',
       },
       {
         q: 'What if the recording quality is poor or there\'s background noise?',
@@ -25,7 +25,7 @@ const FAQS = [
       },
       {
         q: 'Do I need to be present when recording?',
-        a: 'No — you can record on any device and upload later. Many families record on a phone during a cooking session and upload from a laptop afterwards.',
+        a: 'No, you can record on any device and upload later. Many families record on a phone during a cooking session and upload from a laptop afterwards.',
       },
     ],
   },
@@ -34,11 +34,11 @@ const FAQS = [
     items: [
       {
         q: 'How do I share a memory with my family?',
-        a: 'Open any memory and tap the Share button. This creates a link you can send via WhatsApp, SMS, or email. Anyone with the link can view the memory — they don\'t need an account.',
+        a: 'Open any memory and tap the Share button. This creates a link you can send via WhatsApp, SMS, or email. Anyone with the link can view the memory, they don\'t need an account.',
       },
       {
         q: 'Does my family need to sign up to view a shared memory?',
-        a: 'No. Shared links are viewable by anyone you send them to — no account needed. Only creating and saving new memories requires signing in.',
+        a: 'No. Shared links are viewable by anyone you send them to, no account needed. Only creating and saving new memories requires signing in.',
       },
       {
         q: 'Can multiple family members add memories to the same collection?',
@@ -51,7 +51,7 @@ const FAQS = [
     items: [
       {
         q: 'Who can see my memories?',
-        a: 'Only you — unless you share a link. Your recordings, transcripts, and recipes are private to your account. We don\'t share your data with anyone.',
+        a: 'Only you, unless you share a link. Your recordings, transcripts, and recipes are private to your account. We don\'t share your data with anyone.',
       },
       {
         q: 'Where is my audio stored?',
@@ -68,7 +68,7 @@ const FAQS = [
     items: [
       {
         q: 'What if the AI got the recipe wrong?',
-        a: 'You can edit the title, ingredients, and steps before saving — and again afterwards from the memory page. The original audio is always preserved, so nothing is ever lost.',
+        a: 'You can edit the title, ingredients, and steps before saving, and again afterwards from the memory page. The original audio is always preserved, so nothing is ever lost.',
       },
       {
         q: 'Can I edit a memory after saving?',
@@ -76,7 +76,7 @@ const FAQS = [
       },
       {
         q: 'Can I delete a memory?',
-        a: 'Yes — open the memory and scroll to the bottom. The delete option is available there. Deletion is permanent.',
+        a: 'Yes, open the memory and scroll to the bottom. The delete option is available there. Deletion is permanent.',
       },
       {
         q: 'Can I favourite a memory to find it quickly?',
@@ -93,7 +93,7 @@ const FAQS = [
       },
       {
         q: 'How do I sign in?',
-        a: 'You can sign in with Google or Apple. We don\'t offer password login — this keeps your account secure without having to remember another password.',
+        a: 'You can sign in with Google or Apple. We don\'t offer password login, this keeps your account secure without having to remember another password.',
       },
       {
         q: 'Is there a limit on how many memories I can save?',
