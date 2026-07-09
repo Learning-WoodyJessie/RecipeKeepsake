@@ -362,9 +362,9 @@ Multi-phase feature: content type system, family groups, public portal, and What
 
 ---
 
-## Phase 4 — Memories Expansion 🔜
+## Phase 4 — Memories Expansion 🚧
 
-*Next priority after open bugs D-002 and D-004 are resolved. The Memories nav group and pipeline abstraction are already in place as scaffolding.*
+*Started 2026-07-08. Schema migration + song/story light pipeline complete. Per-type Call B prompts and review wizard next.*
 
 Recipe proved the pipeline. Every new memory type follows the same pattern — voice → transcribe → translate → structure — with a different Call B schema and display config.
 
@@ -372,9 +372,13 @@ Recipe proved the pipeline. Every new memory type follows the same pattern — v
 
 | Story | Status |
 |---|---|
-| Brainstorm — finalise which memory types to build first | 🔜 |
-| Schema design — `memories` table with `type` discriminator replacing `recipes` | 🔜 |
-| Unified capture flow — memory type selector before record | 🔜 |
+| Brainstorm — finalise which memory types to build first (song + story) | ✅ |
+| Schema design — `memories` table with `type` discriminator replacing `recipes` | ✅ Supabase SQL pending dashboard run |
+| Python layer migration — `recipes` → `memories`, `dish_name` → `title` | ✅ 2026-07-08 |
+| Frontend migration — `dish_name` → `title` across all pages and components | ✅ 2026-07-08 |
+| `/save-audio` auto-transcription — Whisper + translate for song/story when audio uploaded | ✅ 2026-07-08 |
+| Song/story detail view — transcript open by default, recipe fields suppressed | ✅ 2026-07-08 |
+| Unified capture flow — memory type selector before record | ✅ (existing type picker from Phase 1.9) |
 | Memories browse — type grid landing, "All Memories" replaces "All Recipes" | 🔜 |
 
 ### Epic 10 — Remedies Memory Type
@@ -389,17 +393,17 @@ Recipe proved the pipeline. Every new memory type follows the same pattern — v
 
 | Story | Status |
 |---|---|
-| Call B prompt for story schema — `title`, `era`, `people_mentioned`, `transcript` | 🔜 |
-| Review wizard fields for story | 🔜 |
-| Story detail view — narrative display | 🔜 |
+| Light pipeline (Whisper + translate, no Call B) — transcript is the structured output | ✅ 2026-07-08 |
+| Single-screen review (title + save, no wizard) | 🔜 |
+| Story detail view — transcript as primary content | ✅ 2026-07-08 |
 
 ### Epic 12 — Songs & Lullabies Memory Type
 
 | Story | Status |
 |---|---|
-| Call B prompt for song schema — `title`, `language`, `occasion`, `lyrics` | 🔜 |
-| Review wizard fields for song | 🔜 |
-| Song detail view — lyrics display with audio | 🔜 |
+| Light pipeline (Whisper + translate, no Call B) — transcript is the structured output | ✅ 2026-07-08 |
+| Single-screen review (title + save, no wizard) | 🔜 |
+| Song detail view — transcript + audio | ✅ 2026-07-08 |
 
 ### Epic 13 — Wisdom & Proverbs Memory Type
 

@@ -4,6 +4,34 @@ One-paragraph summary per session. Most recent first.
 
 ---
 
+## 2026-07-08 — Phase 4: Memories Expansion (recipes→memories migration + song/story pipeline)
+
+### Accomplished
+- **M.1 — Python migration**: Renamed `recipes` table → `memories`, `dish_name` → `title` across all Python files (`tools/storage.py`, `tools/groups.py`, `pipeline/persist.py`, `pipeline/transform.py`, `pipeline/models.py`, `scripts/serve.py`, `scripts/capture.py`, `prompts/structure.py`, `prompts/image.py`, `prompts/translate_fields.py`) and all test files (12 files swept via batch sed). 137 tests stayed green.
+- **M.2 — Frontend migration**: Swept `dish_name` → `title` across 9 frontend files (`home`, `memories`, `memory`, `family`, `shared/detail`, `shared`, `MemoryCard`, `MemoryListRow`, `ReviewWizard`). Next.js build verified clean (20 static routes, 0 TS errors).
+- **A.1 — Auto-transcription for song/story**: `/save-audio` endpoint now calls `run_transcribe()` (Whisper + translate) when audio is uploaded, `original_text` is empty, and `memory_type != "recipe"`. Recipes continue using `/capture/process`. New test file `tests/test_save_audio.py` with 4 tests covering: auto-transcribe path, transcript fields populated correctly, user-supplied text skips Whisper, recipe type skips Whisper.
+- **C.1 — Song/story detail view**: Added `isNonRecipe()` helper. Transcript `<details>` now opens by default for song/story (closed for recipe). Label changes to "Transcript" vs "Full transcript". Recipe fields (ingredients, steps, cook notes) already gated behind `!memory.type || memory.type === 'recipe'` — confirmed working.
+- **Test count**: 137 → 196 (+59 tests)
+
+### Learned
+- FastAPI `File(...)` form fields must be passed as `data={}` in TestClient requests, not bundled into `files={}` — mixing them causes 422 Unprocessable Entity.
+- `pipeline.transcribe.run_transcribe()` already does Whisper + translate as a single composable call returning `TranscriptResult(raw, english)` — reuse it in `/save-audio` rather than duplicating the logic.
+- Migration scope is always larger than the initial grep: `scripts/capture.py` and `prompts/translate_fields.py` were missed in the initial plan but surfaced immediately by running the test suite after the first sweep.
+
+### Deferred
+- Supabase SQL must be run in dashboard before deploying: `ALTER TABLE recipes RENAME TO memories; ALTER TABLE memories RENAME COLUMN dish_name TO title;` (project: `wucsfihcophwqynqkqkf`)
+- `isNonRecipe()` added but lines 653/696 in `memory/page.tsx` still use inline `memory.type !== 'recipe'` — nitpick, consistent logic
+- Call B prompts for song/story (lyrics, era, people_mentioned) — Phase 4 continued work
+- Per-type review wizard (song/story gets single-screen; recipe stays 3-step) — Phase 4 continued work
+
+### Next
+- Phase 4 continued: per-type Call B prompts (song schema, story schema), type-aware review wizard, memories browse by type
+- D-002 real-model eval confirmation (Whisper hallucination)
+- D-015 `gpt-4o-mini` re-eval
+- Android app identity rename (Phase 2 — paused)
+
+---
+
 ## 2026-07-07 — Family Sharing: Content Types, Groups, Portal, WhatsApp
 
 ### Accomplished
