@@ -724,6 +724,15 @@ async def save_audio_endpoint(
             upload_audio(tmp_path, audio_filename)
             tags.append("audio")
 
+        # Auto-transcribe when audio is present, no user-supplied text, and not a recipe
+        # (recipes use /capture/process which runs the full 3-step pipeline)
+        transcript_raw = original_text.strip()
+        transcript_english = description.strip()
+        if tmp_path and not transcript_raw and memory_type != "recipe":
+            result = run_transcribe(tmp_path)
+            transcript_raw = result.raw
+            transcript_english = result.english
+
         row = insert_recipe({
             "type": memory_type if memory_type in _VALID_MEMORY_TYPES else "song",
             "title": title.strip() or "Untitled",
@@ -736,8 +745,8 @@ async def save_audio_endpoint(
             "ingredients": [],
             "steps": [],
             "cook_notes": "",
-            "transcript_raw": original_text.strip(),
-            "transcript_english": description.strip(),
+            "transcript_raw": transcript_raw,
+            "transcript_english": transcript_english,
         })
 
         audio_url = _sign_audio(row.get("audio_url", ""), _sb()) if audio_filename else None
