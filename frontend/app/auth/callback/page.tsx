@@ -18,8 +18,17 @@ export default function AuthCallback() {
         // Viewer-role accounts (approved by an owner, signed in via OTP) land
         // on the read-only shared view instead of the normal capture/edit UI.
         api.viewers.sharedWithMe()
-          .then((data: { is_viewer?: boolean }) => router.replace(data.is_viewer ? '/shared' : '/home'))
-          .catch(() => router.replace('/home'))
+          .then((data: { is_viewer?: boolean }) => {
+            if (data.is_viewer) { router.replace('/shared'); return }
+            const returnTo = sessionStorage.getItem('returnTo')
+            sessionStorage.removeItem('returnTo')
+            router.replace(returnTo || '/home')
+          })
+          .catch(() => {
+            const returnTo = sessionStorage.getItem('returnTo')
+            sessionStorage.removeItem('returnTo')
+            router.replace(returnTo || '/home')
+          })
       }
     })
   }, [router])
