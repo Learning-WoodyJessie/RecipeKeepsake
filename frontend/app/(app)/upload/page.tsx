@@ -8,6 +8,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import NarratorChip from '@/components/NarratorChip'
 import ReviewWizard from '@/components/ReviewWizard'
+import SingleScreenReview from '@/components/SingleScreenReview'
 import { api } from '@/lib/api'
 
 const TIPS_RECIPE = [
@@ -144,6 +145,7 @@ export default function UploadPage() {
   const [description, setDescription] = useState('')
   const [draft, setDraft] = useState<any>(null)
   const [audioFile, setAudioFile] = useState<File | null>(null)
+  const [directReview, setDirectReview] = useState<{ token: string; transcriptRaw: string; transcriptEnglish: string } | null>(null)
   const [processing, setProcessing] = useState(false)
   const [error, setError] = useState('')
   const [dragOver, setDragOver] = useState(false)
@@ -178,8 +180,12 @@ export default function UploadPage() {
     if (narrator) form.append('narrator', narrator)
     if (description.trim()) form.append('description', description.trim())
     try {
-      const result = await api.audio.save(form) as { token: string }
-      router.push(`/memory?token=${result.token}&justSaved=1`)
+      const result = await api.audio.save(form) as { token: string; transcript_raw?: string; transcript_english?: string }
+      setDirectReview({
+        token: result.token,
+        transcriptRaw: result.transcript_raw ?? '',
+        transcriptEnglish: result.transcript_english ?? '',
+      })
     } catch (e: unknown) {
       setError((e as Error).message)
     } finally {
@@ -198,6 +204,19 @@ export default function UploadPage() {
     const file = e.dataTransfer.files?.[0]
     if (file) handleFile(file)
   }, [narrator, title, mode])
+
+  if (directReview) {
+    return (
+      <SingleScreenReview
+        token={directReview.token}
+        initialTitle={title}
+        transcriptRaw={directReview.transcriptRaw}
+        transcriptEnglish={directReview.transcriptEnglish}
+        memoryType={memoryType}
+        onReRecord={() => setDirectReview(null)}
+      />
+    )
+  }
 
   if (draft && audioFile) return <ReviewWizard draft={draft} audioFile={audioFile} narrator={narrator} onCancel={() => { setDraft(null); setAudioFile(null) }} />
 
