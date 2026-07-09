@@ -5,7 +5,7 @@ import { api } from '@/lib/api'
 
 type Ingredient = { item: string; quantity: string }
 type Draft = {
-  dish_name: string
+  title: string
   narrator: string
   ingredients: Ingredient[]
   steps: string[]
@@ -38,7 +38,7 @@ const STICKY_BAR: React.CSSProperties = {
 export default function ReviewWizard({ draft, audioFile, narrator: narratorProp, onCancel }: { draft: Draft; audioFile: File; narrator?: string; onCancel: () => void }) {
   const router = useRouter()
   const [step, setStep] = useState(1)
-  const [title, setTitle] = useState(draft.dish_name ?? '')
+  const [title, setTitle] = useState(draft.title ?? '')
   // Required before save so a recipe never silently lands on the backend's
   // "Grandma" fallback (File(default="Grandma")) just because no narrator
   // chip was tapped before recording started.
@@ -55,7 +55,7 @@ export default function ReviewWizard({ draft, audioFile, narrator: narratorProp,
   async function save() {
     setSaving(true)
     try {
-      const recipe = { ...draft, dish_name: title, ingredients, steps, category }
+      const recipe = { ...draft, title: title, ingredients, steps, category }
       const form = new FormData()
       form.append('audio', audioFile, audioFile.name)
       form.append('recipe', JSON.stringify(recipe))

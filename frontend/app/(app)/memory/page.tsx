@@ -15,7 +15,7 @@ type Ingredient = { item: string; quantity: string }
 type MemoryType = 'recipe' | 'song' | 'story' | 'fable' | 'moral'
 type Memory = {
   token: string
-  dish_name: string | null
+  title: string | null
   narrator: string | null
   recorded_at: string
   image_url: string | null
@@ -119,7 +119,7 @@ function MemoryDetail() {
     if (!token) { router.replace('/memories'); return }
     api.recipes.get(token).then((m: Memory) => {
       setMemory(m)
-      setTitleValue(m.dish_name ?? '')
+      setTitleValue(m.title ?? '')
       setNarratorValue(m.narrator ?? '')
       setFavorite(readFavorites().includes(token))
       setCategory((m.tags ?? []).filter(t => t !== 'audio')[0] ?? '')
@@ -177,12 +177,12 @@ function MemoryDetail() {
 
   function handleTitleSave() {
     setEditingTitle(false)
-    if (memory && titleValue !== memory.dish_name) patchField({ dish_name: titleValue })
+    if (memory && titleValue !== memory.title) patchField({ title: titleValue })
   }
 
   function handleTitleCancel() {
     setEditingTitle(false)
-    setTitleValue(memory?.dish_name ?? '')
+    setTitleValue(memory?.title ?? '')
   }
 
   function toggleFavorite() {
@@ -203,7 +203,7 @@ function MemoryDetail() {
   }
 
   async function deleteMemory() {
-    if (!confirm(`Delete "${memory?.dish_name}"? This cannot be undone.`)) return
+    if (!confirm(`Delete "${memory?.title}"? This cannot be undone.`)) return
     setDeleting(true)
     try { await api.recipes.delete(token); router.replace('/memories') }
     catch (e: unknown) { setError((e as Error).message); setDeleting(false) }
@@ -225,7 +225,7 @@ function MemoryDetail() {
 
   function openWhatsApp() {
     const url = portalUrl || `${window.location.origin}/memory?token=${token}`
-    const msg = buildMemoryShareMessage(memory?.type, memory?.dish_name, memory?.narrator, url)
+    const msg = buildMemoryShareMessage(memory?.type, memory?.title, memory?.narrator, url)
     window.open(toWhatsAppUrl(msg), '_blank')
   }
 
@@ -685,7 +685,7 @@ function MemoryDetail() {
 
       {memory.image_url && (
         <div style={{ borderRadius: 14, overflow: 'hidden', marginBottom: '1.25rem', aspectRatio: '16/9', background: 'var(--cream2)', boxShadow: '0 0 28px rgba(24,107,94,0.18)' }}>
-          <img src={memory.image_url} alt={(display as Memory).dish_name ?? ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          <img src={memory.image_url} alt={(display as Memory).title ?? ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         </div>
       )}
 

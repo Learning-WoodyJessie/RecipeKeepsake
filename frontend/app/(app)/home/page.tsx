@@ -14,7 +14,7 @@ import { readFavorites, toggleFavorite as toggleFav } from '@/lib/favorites'
 
 type Memory = {
   token: string
-  dish_name: string | null
+  title: string | null
   narrator: string | null
   recorded_at: string
   image_url: string | null
@@ -266,7 +266,7 @@ function MemoryRow({
   photoUrl: string
 }) {
   const narr = memory.narrator ?? 'Narrator'
-  const title = memory.dish_name ?? 'Untitled memory'
+  const title = memory.title ?? 'Untitled memory'
   const initial = narr[0]?.toUpperCase() ?? '?'
 
   return (

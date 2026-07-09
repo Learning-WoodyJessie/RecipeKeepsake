@@ -14,7 +14,7 @@ type Ingredient = { item: string; quantity: string }
 
 type Memory = {
   token: string
-  dish_name: string | null
+  title: string | null
   narrator: string | null
   image_url: string | null
   audio_url: string | null
@@ -45,7 +45,7 @@ function SharedDetail() {
         <Link href="/shared" style={{ color: 'var(--accent)', fontSize: '0.85rem', textDecoration: 'none', display: 'inline-block', marginBottom: '1rem' }}>← Back</Link>
 
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, padding: '1.5rem' }}>
-          <h1 style={{ fontFamily: 'var(--serif)', fontSize: '1.5rem', fontWeight: 700, color: 'var(--text)', marginBottom: '0.4rem' }}>{memory.dish_name ?? 'Untitled'}</h1>
+          <h1 style={{ fontFamily: 'var(--serif)', fontSize: '1.5rem', fontWeight: 700, color: 'var(--text)', marginBottom: '0.4rem' }}>{memory.title ?? 'Untitled'}</h1>
           {memory.narrator && <p style={{ fontSize: '0.85rem', color: 'var(--muted)', marginBottom: '1rem' }}>By {memory.narrator}</p>}
 
           {memory.image_url && (
@@ -60,7 +60,7 @@ function SharedDetail() {
             <div style={{ marginBottom: '1rem' }}>
               <h2 style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text)', marginBottom: '0.5rem' }}>Ingredients</h2>
               <ul style={{ fontSize: '0.88rem', color: 'var(--text2)', lineHeight: 1.6 }}>
-                {memory.ingredients.map((ing, i) => <li key={i}>{ing.item} — {ing.quantity}</li>)}
+                {memory.ingredients.map((ing, i) => <li key={i}>{ing.item}: {ing.quantity}</li>)}
               </ul>
             </div>
           )}

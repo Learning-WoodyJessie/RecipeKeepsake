@@ -5,7 +5,7 @@ import WaveformBars from './WaveformBars'
 
 export type MemoryRow = {
   token: string
-  dish_name: string | null
+  title: string | null
   narrator: string | null
   recorded_at: string
 }
@@ -34,7 +34,7 @@ export default function MemoryListRow({
   onToggleFavorite: () => void
 }) {
   const duration = pseudoDuration(memory.token)
-  const title = memory.dish_name ?? 'Untitled memory'
+  const title = memory.title ?? 'Untitled memory'
   const sub = `${memory.narrator ?? 'Narrator'} · ${new Date(memory.recorded_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}`
 
   return (
@@ -66,7 +66,7 @@ export default function MemoryListRow({
           flexShrink: 0,
         }}
       >
-        {initialFromName(memory.narrator ?? memory.dish_name)}
+        {initialFromName(memory.narrator ?? memory.title)}
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <p style={{ fontFamily: 'var(--serif)', fontWeight: 600, color: 'var(--text)', fontSize: '0.95rem', marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>

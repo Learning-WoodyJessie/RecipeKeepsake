@@ -13,7 +13,7 @@ import { SkeletonCard } from '@/components/Skeleton'
 
 type Memory = {
   token: string
-  dish_name: string | null
+  title: string | null
   narrator: string | null
   recorded_at: string
   image_url: string | null
@@ -237,7 +237,7 @@ function AudioCard({
 
       <div style={{ padding: '0.85rem' }}>
         <p style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '0.95rem', color: 'var(--text)', marginBottom: '0.45rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {memory.dish_name ?? 'Untitled'}
+          {memory.title ?? 'Untitled'}
         </p>
         {memory.narrator && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.4rem' }}>
@@ -260,7 +260,7 @@ function AudioCard({
             onClick={e => {
               e.preventDefault()
               const shareUrl = `${typeof window !== 'undefined' ? window.location.origin : 'https://www.theechoesofhome.com'}/memory?token=${memory.token}`
-              const waUrl = `https://wa.me/?text=${encodeURIComponent(`🎵 "${memory.dish_name ?? 'this memory'}" on Echoes of Home:\n${shareUrl}`)}`
+              const waUrl = `https://wa.me/?text=${encodeURIComponent(`🎵 "${memory.title ?? 'this memory'}" on Echoes of Home:\n${shareUrl}`)}`
               window.open(waUrl, '_blank')
             }}
             style={{
@@ -301,7 +301,7 @@ function RecipeCard({
       <div style={{ position: 'relative', aspectRatio: '4/3', background: 'var(--cream2)', overflow: 'hidden' }}>
         <Link href={`/memory?token=${memory.token}`} style={{ display: 'block', height: '100%' }}>
           {memory.image_url
-            ? <img src={memory.image_url} alt={memory.dish_name ?? ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ? <img src={memory.image_url} alt={memory.title ?? ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '3rem' }}>🍽️</div>
           }
         </Link>
@@ -317,7 +317,7 @@ function RecipeCard({
       <div style={{ padding: '0.85rem' }}>
         {/* Name */}
         <p style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '0.98rem', color: 'var(--text)', marginBottom: '0.55rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {memory.dish_name ?? 'Untitled'}
+          {memory.title ?? 'Untitled'}
         </p>
 
         {/* Narrator row */}
@@ -441,7 +441,7 @@ export default function MemoriesPage() {
       else list = list.filter(m => !isAudio(m))
     }
     // Search
-    if (q) list = list.filter(m => (m.dish_name ?? '').toLowerCase().includes(q.toLowerCase()) || (m.narrator ?? '').toLowerCase().includes(q.toLowerCase()))
+    if (q) list = list.filter(m => (m.title ?? '').toLowerCase().includes(q.toLowerCase()) || (m.narrator ?? '').toLowerCase().includes(q.toLowerCase()))
     // Filter
     if (filter === 'Favorites') list = list.filter(m => favTokens.includes(m.token))
     else if (filter === 'Recently added') list = list.slice().sort((a, b) => new Date(b.recorded_at).getTime() - new Date(a.recorded_at).getTime())
@@ -449,7 +449,7 @@ export default function MemoriesPage() {
     // Sort
     if (sort === 'Recently added') list = list.slice().sort((a, b) => new Date(b.recorded_at).getTime() - new Date(a.recorded_at).getTime())
     else if (sort === 'Oldest first') list = list.slice().sort((a, b) => new Date(a.recorded_at).getTime() - new Date(b.recorded_at).getTime())
-    else if (sort === 'A–Z') list = list.slice().sort((a, b) => (a.dish_name ?? '').localeCompare(b.dish_name ?? ''))
+    else if (sort === 'A–Z') list = list.slice().sort((a, b) => (a.title ?? '').localeCompare(b.title ?? ''))
     return list
   }, [memories, filter, sort, q, narratorParam, favTick, isAudioMode])
 

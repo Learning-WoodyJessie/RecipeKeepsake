@@ -13,7 +13,7 @@ import { EchoesLogoMark } from '@/components/EchoesLogoMark'
 
 type Memory = {
   token: string
-  dish_name: string | null
+  title: string | null
   narrator: string | null
   recorded_at: string
   image_url: string | null
@@ -75,7 +75,7 @@ function SharedContent() {
                       : <span style={{ fontSize: '2rem' }}>🍽️</span>}
                   </div>
                   <div style={{ padding: '0.75rem' }}>
-                    <p style={{ fontFamily: 'var(--serif)', fontWeight: 600, color: 'var(--text)', fontSize: '0.92rem', marginBottom: '0.25rem' }}>{m.dish_name ?? 'Untitled'}</p>
+                    <p style={{ fontFamily: 'var(--serif)', fontWeight: 600, color: 'var(--text)', fontSize: '0.92rem', marginBottom: '0.25rem' }}>{m.title ?? 'Untitled'}</p>
                     {m.narrator && <p style={{ fontSize: '0.78rem', color: 'var(--muted)' }}>{m.narrator}</p>}
                   </div>
                 </div>

@@ -7,7 +7,7 @@ import { api } from '../../lib/api'
 type PortalMemory = {
   id: string
   token: string
-  dish_name: string
+  title: string
   narrator?: string
   recorded_at?: string
   image_url?: string
@@ -134,14 +134,14 @@ function PortalContent() {
               {m.image_url && (
                 <img
                   src={m.image_url}
-                  alt={m.dish_name}
+                  alt={m.title}
                   style={{ width: '100%', height: 180, objectFit: 'cover' }}
                 />
               )}
               <div style={{ padding: '1rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
                   <h2 style={{ fontSize: 17, fontWeight: 600, margin: 0, color: 'var(--foreground)' }}>
-                    {m.dish_name}
+                    {m.title}
                   </h2>
                   {m.type && m.type !== 'recipe' && (
                     <span style={{
