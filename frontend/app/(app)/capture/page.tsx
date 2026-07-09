@@ -11,7 +11,7 @@ import NarratorChip from '@/components/NarratorChip'
 import ReviewWizard from '@/components/ReviewWizard'
 import { api } from '@/lib/api'
 
-type Stage = 'idle' | 'recording' | 'processing' | 'review' | 'error'
+type Stage = 'idle' | 'recording' | 'processing' | 'review' | 'direct-review' | 'error'
 
 const TIPS_RECIPE = [
   {
@@ -48,6 +48,13 @@ const TIPS_AUDIO = [
     desc: 'One tap to send via WhatsApp to the whole family.',
   },
 ]
+
+const MEMORY_TYPES = [
+  { value: 'song',  label: 'Song',  emoji: '🎵' },
+  { value: 'story', label: 'Story', emoji: '📖' },
+  { value: 'fable', label: 'Fable', emoji: '✨' },
+  { value: 'moral', label: 'Moral', emoji: '🙏' },
+] as const
 
 function TipsPanel({ mode }: { mode: 'ai' | 'direct' }) {
   const tips = mode === 'direct' ? TIPS_AUDIO : TIPS_RECIPE
@@ -130,9 +137,11 @@ function CapturePageInner() {
   const [narrator, setNarrator] = useState(searchParams.get('narrator') ?? '')
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
+  const [memoryType, setMemoryType] = useState<string>('song')
   const [duration, setDuration] = useState(0)
   const [draft, setDraft] = useState<any>(null)
   const [audioFile, setAudioFile] = useState<File | null>(null)
+  const [directReview, setDirectReview] = useState<{ token: string; transcriptRaw: string; transcriptEnglish: string } | null>(null)
   const [error, setError] = useState('')
   const [levels, setLevels] = useState<number[]>(Array(20).fill(0.1))
   const mrRef = useRef<MediaRecorder | null>(null)
@@ -231,11 +240,17 @@ function CapturePageInner() {
     const form = new FormData()
     form.append('audio', blob, `recording${extRef.current}`)
     form.append('title', title.trim())
+    form.append('memory_type', memoryType)
     if (narrator) form.append('narrator', narrator)
     if (description.trim()) form.append('description', description.trim())
     try {
-      const result = await api.audio.save(form) as { token: string }
-      router.push(`/memory?token=${result.token}&justSaved=1`)
+      const result = await api.audio.save(form) as { token: string; transcript_raw?: string; transcript_english?: string }
+      setDirectReview({
+        token: result.token,
+        transcriptRaw: result.transcript_raw ?? '',
+        transcriptEnglish: result.transcript_english ?? '',
+      })
+      setStage('direct-review')
     } catch (e: unknown) { setError((e as Error).message); setStage('error') }
   }
 
@@ -310,6 +325,32 @@ function CapturePageInner() {
             </div>
           )}
 
+          {/* Type picker — direct mode only, visible before/during recording */}
+          {mode === 'direct' && (stage === 'idle' || stage === 'recording') && (
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
+              {MEMORY_TYPES.map(t => (
+                <button
+                  key={t.value}
+                  onClick={() => setMemoryType(t.value)}
+                  disabled={stage === 'recording'}
+                  style={{
+                    padding: '5px 14px',
+                    borderRadius: 20,
+                    border: `1px solid ${memoryType === t.value ? 'var(--accent)' : 'var(--border)'}`,
+                    background: memoryType === t.value ? 'var(--accent-light)' : 'transparent',
+                    color: memoryType === t.value ? 'var(--accent)' : 'var(--muted)',
+                    fontSize: 13,
+                    cursor: stage === 'recording' ? 'default' : 'pointer',
+                    fontFamily: 'var(--sans)',
+                    fontWeight: memoryType === t.value ? 600 : 400,
+                  }}
+                >
+                  {t.emoji} {t.label}
+                </button>
+              ))}
+            </div>
+          )}
+
           {/* Title + description for direct mode */}
           {mode === 'direct' && stage === 'idle' && (
             <>
@@ -342,7 +383,7 @@ function CapturePageInner() {
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="What is this — a poem, a song, a prayer? Why does it matter?"
+                  placeholder="What is this: a poem, a song, a prayer? Why does it matter?"
                   rows={2}
                   style={{
                     width: '100%',
@@ -449,7 +490,7 @@ function CapturePageInner() {
                   {mode === 'direct' ? '♪ Saving your keepsake…' : '✨ Listening carefully…'}
                 </p>
                 <p style={{ fontSize: '0.82rem', color: 'var(--muted)' }}>
-                  {mode === 'direct' ? 'Your recording is being preserved — just a moment' : 'Transcribing, translating, and structuring — about 30–60 seconds'}
+                  {mode === 'direct' ? 'Your recording is being preserved, just a moment' : 'Transcribing, translating, and structuring, about 30–60 seconds'}
                 </p>
               </div>
             )}
