@@ -4,6 +4,30 @@ One-paragraph summary per session. Most recent first.
 
 ---
 
+## 2026-07-08 — Phase 4B: Single-Screen Review + Type Picker for song/story captures
+
+### Accomplished
+- **S.1 — Backend response extension**: `/save-audio` now returns `transcript_raw` and `transcript_english` alongside `token` and `audio_url`. 1 new test added (`test_response_includes_transcript_fields`).
+- **S.2 — Type picker**: `MEMORY_TYPES` constant (Song/Story/Fable/Moral) + chip row added to capture page in `direct` mode. Selection sent as `memory_type` in the multipart form. Chips disabled during recording. `memoryType` state defaults to `'song'`.
+- **S.3 — SingleScreenReview component**: New `frontend/components/SingleScreenReview.tsx` — shows type badge, editable title (pre-filled), read-only transcript (Original + English), sticky Save button. PATCH `/recipe/{token}` fires only if title changed. Re-record button returns to idle without deleting the saved memory.
+- **Capture flow wired**: Added `'direct-review'` to Stage type; `saveAudioDirect()` now intercepts post-save navigation and renders `SingleScreenReview` instead of pushing to `/memory` directly.
+- **Test count**: 196 → 197 (+1)
+
+### Learned
+- In a `'use client'` component, `setSaving(true)` before an `async` operation that always navigates on completion (success or catch) doesn't need a reset path — the component unmounts on navigation, so the stuck `saving=true` state is never visible.
+- `directReview` state and `Stage` type extension can be wired in the same commit as the type picker without breaking the build, because the new stage is only reachable when the component is set — the build sees valid TypeScript regardless.
+
+### Deferred
+- `TYPE_LABELS` dict defined in both `SingleScreenReview.tsx` and `family/page.tsx` — extract to a shared const if a third usage appears
+- No error UI if PATCH fails and navigation also fails (extremely unlikely — non-blocking)
+
+### Next
+- Phase 4 continued: per-type Call B prompts (song lyrics schema, story schema)
+- Single-screen review for upload flow (currently upload also goes direct to memory page)
+- Phase 2: Android app identity rename
+
+---
+
 ## 2026-07-08 — Phase 4: Memories Expansion (recipes→memories migration + song/story pipeline)
 
 ### Accomplished

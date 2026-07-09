@@ -378,7 +378,7 @@ Recipe proved the pipeline. Every new memory type follows the same pattern — v
 | Frontend migration — `dish_name` → `title` across all pages and components | ✅ 2026-07-08 |
 | `/save-audio` auto-transcription — Whisper + translate for song/story when audio uploaded | ✅ 2026-07-08 |
 | Song/story detail view — transcript open by default, recipe fields suppressed | ✅ 2026-07-08 |
-| Unified capture flow — memory type selector before record | ✅ (existing type picker from Phase 1.9) |
+| Unified capture flow — type picker (Song/Story/Fable/Moral) before record in direct mode | ✅ 2026-07-08 |
 | Memories browse — type grid landing, "All Memories" replaces "All Recipes" | 🔜 |
 
 ### Epic 10 — Remedies Memory Type
@@ -394,7 +394,7 @@ Recipe proved the pipeline. Every new memory type follows the same pattern — v
 | Story | Status |
 |---|---|
 | Light pipeline (Whisper + translate, no Call B) — transcript is the structured output | ✅ 2026-07-08 |
-| Single-screen review (title + save, no wizard) | 🔜 |
+| Single-screen review (title + save, no wizard) | ✅ 2026-07-08 |
 | Story detail view — transcript as primary content | ✅ 2026-07-08 |
 
 ### Epic 12 — Songs & Lullabies Memory Type
@@ -402,7 +402,7 @@ Recipe proved the pipeline. Every new memory type follows the same pattern — v
 | Story | Status |
 |---|---|
 | Light pipeline (Whisper + translate, no Call B) — transcript is the structured output | ✅ 2026-07-08 |
-| Single-screen review (title + save, no wizard) | 🔜 |
+| Single-screen review (title + save, no wizard) | ✅ 2026-07-08 |
 | Song detail view — transcript + audio | ✅ 2026-07-08 |
 
 ### Epic 13 — Wisdom & Proverbs Memory Type
