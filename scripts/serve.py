@@ -751,7 +751,12 @@ async def save_audio_endpoint(
 
         audio_url = _sign_audio(row.get("audio_url", ""), _sb()) if audio_filename else None
         _logger.info(f"event=save_audio_done id={row.get('id')} has_audio={bool(audio_filename)}")
-        return JSONResponse(content={"token": row["token"], "audio_url": audio_url})
+        return JSONResponse(content={
+            "token": row["token"],
+            "audio_url": audio_url,
+            "transcript_raw": transcript_raw,
+            "transcript_english": transcript_english,
+        })
 
     except Exception as e:
         _logger.error(f"event=save_audio_failed error={type(e).__name__} msg={e}")

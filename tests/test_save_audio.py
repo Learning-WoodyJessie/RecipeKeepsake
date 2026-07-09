@@ -105,6 +105,36 @@ class TestSaveAudioTranscription:
         finally:
             app.dependency_overrides.clear()
 
+    def test_response_includes_transcript_fields(self):
+        """POST /save-audio response body includes transcript_raw and transcript_english."""
+        app.dependency_overrides[require_auth] = lambda: _DUMMY_USER
+        try:
+            mock_transcript = MagicMock()
+            mock_transcript.raw = "ఒక పాట"
+            mock_transcript.english = "A song"
+
+            with patch("scripts.serve.run_transcribe", return_value=mock_transcript), \
+                 patch("scripts.serve.check_rate_limit_db", return_value=0), \
+                 patch("tools.storage.upload_audio"), \
+                 patch("tools.storage.insert_recipe", side_effect=_mock_insert), \
+                 patch("tools.storage._sign_audio", return_value="https://signed.url/audio.mp3"), \
+                 patch("tools.storage._client"):
+                client = TestClient(app)
+                response = client.post(
+                    "/save-audio",
+                    files={"audio": ("test.mp3", io.BytesIO(_MP3_MAGIC), "audio/mpeg")},
+                    data={"title": "Lullaby", "memory_type": "song"},
+                )
+
+            assert response.status_code == 200
+            body = response.json()
+            assert "transcript_raw" in body
+            assert "transcript_english" in body
+            assert body["transcript_raw"] == "ఒక పాట"
+            assert body["transcript_english"] == "A song"
+        finally:
+            app.dependency_overrides.clear()
+
     def test_recipe_type_skips_run_transcribe_even_without_original_text(self):
         """memory_type=recipe never auto-transcribes in /save-audio (recipe uses /capture/process)."""
         app.dependency_overrides[require_auth] = lambda: _DUMMY_USER
