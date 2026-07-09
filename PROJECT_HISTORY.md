@@ -4,6 +4,29 @@ One-paragraph summary per session. Most recent first.
 
 ---
 
+## 2026-07-08 — Phase 4 continued: Upload review screen + Memories browse by type + C decision
+
+### Accomplished
+- **T.1 — Upload flow SingleScreenReview**: `upload/page.tsx` `handleFileDirect()` now sets `directReview` state instead of navigating away. `SingleScreenReview` renders as an intercept before the existing `ReviewWizard` check. User sees type badge, editable title, transcript, sticky Save button — same as capture flow. Re-record clears `directReview` and returns to upload form.
+- **T.2 — Memories browse by type tabs**: Audio mode right panel in `memories/page.tsx` now shows six filter chips (All / 🎵 Songs / 📖 Stories / ✨ Fables / 🙏 Morals / ♥ Favorites). `Memory` type extended with `type?: string | null`. `displayed` memo updated with type-based filter branch before tag catch-all.
+- **C — Decided: no Call B for Fable/Moral**: Brainstorm confirmed the light pipeline (Whisper + translate + store, no Call B) is correct for fable and moral. The transcript IS the keepsake; structuring adds hallucination risk without value.
+- Test count stable at 197 (no new Python code).
+
+### Learned
+- Fable and Moral don't benefit from structured extraction — the same reasoning that made song/story light-pipeline applies: voice + transcript is the artifact. Deciding "no Call B" is as valuable as building Call B.
+- The upload page already had `memoryType` state and the `SingleScreenReview` component signature was stable — T.1 was a 4-line state + 8-line intercept, nothing more.
+
+### Deferred
+- Epics 10 (Remedies) and 13 (Wisdom/Proverbs) — both get Call B with distinct schemas; need separate sessions
+- Supabase SQL migration still pending dashboard run (noted in Phase 4 session)
+
+### Next
+- Epic 10: Remedies memory type (Call B schema: `ailment`, `ingredients`, `preparation`, `caution`)
+- Epic 13: Wisdom/Proverbs memory type (Call B schema: `saying`, `meaning`, `origin`, `language`)
+- Phase 2: Android app identity rename
+
+---
+
 ## 2026-07-08 — Phase 4B: Single-Screen Review + Type Picker for song/story captures
 
 ### Accomplished

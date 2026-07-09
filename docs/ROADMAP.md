@@ -379,7 +379,10 @@ Recipe proved the pipeline. Every new memory type follows the same pattern — v
 | `/save-audio` auto-transcription — Whisper + translate for song/story when audio uploaded | ✅ 2026-07-08 |
 | Song/story detail view — transcript open by default, recipe fields suppressed | ✅ 2026-07-08 |
 | Unified capture flow — type picker (Song/Story/Fable/Moral) before record in direct mode | ✅ 2026-07-08 |
-| Memories browse — type grid landing, "All Memories" replaces "All Recipes" | 🔜 |
+| Memories browse — type grid landing, "All Memories" replaces "All Recipes" | ✅ 2026-07-08 |
+| Audio memories browse — type filter tabs (Song/Story/Fable/Moral/Favorites) | ✅ 2026-07-08 |
+| Upload flow SingleScreenReview — post-save review screen in direct mode | ✅ 2026-07-08 |
+| Fable/Moral pipeline — light pipeline confirmed, no Call B needed | ✅ 2026-07-08 |
 
 ### Epic 10 — Remedies Memory Type
 
