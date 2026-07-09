@@ -18,11 +18,20 @@ type Memory = {
   recorded_at: string
   image_url: string | null
   tags: string[] | null
+  type?: string | null
 }
 
 
 const FILTER_TAGS = ['All', 'Favorites', 'Breakfast', 'Lunch', 'Sweets', 'Pickles', 'Snacks', 'Drinks', 'Recently added']
 const SORT_OPTIONS = ['Recently added', 'Oldest first', 'A–Z']
+const AUDIO_TYPE_FILTERS = [
+  { value: 'All',       label: 'All' },
+  { value: 'song',      label: '🎵 Songs' },
+  { value: 'story',     label: '📖 Stories' },
+  { value: 'fable',     label: '✨ Fables' },
+  { value: 'moral',     label: '🙏 Morals' },
+  { value: 'Favorites', label: '♥ Favorites' },
+] as const
 
 // "tale" covers Tales & Songs entries with or without audio (e.g. a typed
 // poem with no recording). "audio" alone is kept for back-compat with rows
@@ -142,24 +151,27 @@ function RightPanel({
         </div>
       )}
 
-      {/* Audio filter — favorites only */}
+      {/* Audio filter — type tabs */}
       {isAudioMode && (
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 18, padding: '1.25rem', boxShadow: '0 4px 16px rgba(45,27,14,0.05)' }}>
+          <h3 style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '0.95rem', color: 'var(--text)', marginBottom: '1rem' }}>
+            Filter memories
+          </h3>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem' }}>
-            {['All', 'Favorites'].map((tag) => {
-              const isFavTag = tag === 'Favorites'
-              const active = filter === tag
+            {AUDIO_TYPE_FILTERS.map(({ value, label }) => {
+              const isFav = value === 'Favorites'
+              const active = filter === value
               return (
-                <button key={tag} onClick={() => setFilter(tag)}
+                <button key={value} onClick={() => setFilter(value)}
                   style={{
                     padding: '0.3rem 0.75rem', borderRadius: 20, fontSize: '0.78rem', fontWeight: 500,
                     border: '1.5px solid', cursor: 'pointer',
-                    borderColor: active ? (isFavTag ? 'var(--amber)' : 'var(--accent)') : 'var(--border)',
-                    background: active ? (isFavTag ? 'var(--gold-light)' : 'var(--accent-light)') : 'transparent',
-                    color: active ? (isFavTag ? 'var(--amber)' : 'var(--accent)') : 'var(--text2)',
+                    borderColor: active ? (isFav ? 'var(--amber)' : 'var(--accent)') : 'var(--border)',
+                    background: active ? (isFav ? 'var(--gold-light)' : 'var(--accent-light)') : 'transparent',
+                    color: active ? (isFav ? 'var(--amber)' : 'var(--accent)') : 'var(--text2)',
                   }}
                 >
-                  {isFavTag ? `${active ? '♥' : '♡'} Favorites` : tag}
+                  {label}
                 </button>
               )
             })}
@@ -445,6 +457,7 @@ export default function MemoriesPage() {
     // Filter
     if (filter === 'Favorites') list = list.filter(m => favTokens.includes(m.token))
     else if (filter === 'Recently added') list = list.slice().sort((a, b) => new Date(b.recorded_at).getTime() - new Date(a.recorded_at).getTime())
+    else if (['song', 'story', 'fable', 'moral'].includes(filter)) list = list.filter(m => m.type === filter)
     else if (filter !== 'All') list = list.filter(m => (m.tags ?? []).includes(filter))
     // Sort
     if (sort === 'Recently added') list = list.slice().sort((a, b) => new Date(b.recorded_at).getTime() - new Date(a.recorded_at).getTime())
