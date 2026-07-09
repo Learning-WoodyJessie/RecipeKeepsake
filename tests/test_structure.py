@@ -10,7 +10,7 @@ def _provider(json_dict: dict):
 
 
 _SAMPLE = {
-    "dish_name": "Pesarattu",
+    "title": "Pesarattu",
     "ingredients": [{"item": "moong dal", "quantity": "1 cup"}],
     "steps": ["Soak moong dal for 4 hours.", "Grind to a smooth batter."],
     "cook_notes": "Add oil until it smells right.",
@@ -28,7 +28,7 @@ class TestStructureRecipe:
     def test_preserves_all_fields(self):
         """All schema fields are present in the returned dict."""
         result = structure_recipe("some english text", _provider(_SAMPLE))
-        for key in ("dish_name", "ingredients", "steps", "cook_notes", "review_flags", "category"):
+        for key in ("title", "ingredients", "steps", "cook_notes", "review_flags", "category"):
             assert key in result
 
     def test_category_field_present(self):
@@ -48,7 +48,7 @@ class TestStructureRecipe:
         mock = MagicMock()
         mock.generate.return_value = f"```json\n{json.dumps(_SAMPLE)}\n```"
         result = structure_recipe("some text", mock)
-        assert result["dish_name"] == "Pesarattu"
+        assert result["title"] == "Pesarattu"
 
     def test_system_prompt_forbids_normalization(self):
         """STRUCTURE_SYSTEM must tell the model to put vague quantities in cook_notes."""

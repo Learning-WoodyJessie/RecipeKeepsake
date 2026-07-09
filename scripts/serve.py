@@ -266,7 +266,7 @@ def _moderate_transcript(text: str) -> None:
 
 
 def _generate_image(
-    dish_name: str,
+    title: str,
     ingredients: list | None = None,
     steps: list | None = None,
     cook_notes: str | None = None,
@@ -277,7 +277,7 @@ def _generate_image(
         from tools.storage import store_image
         t0 = time.perf_counter()
         raw_url = generate_dish_image(
-            dish_name or "Indian dish",
+            title or "Indian dish",
             ingredients=ingredients,
             steps=steps,
             cook_notes=cook_notes,
@@ -396,7 +396,7 @@ _NO_CACHE_HEADERS = {
 async def health():
     from tools.storage import _client
     try:
-        _client().table("recipes").select("id").limit(1).execute()
+        _client().table("memories").select("id").limit(1).execute()
         return {"status": "ok", "db": "ok", "version": "1"}
     except Exception as e:
         return JSONResponse(
@@ -499,7 +499,7 @@ async def capture_endpoint(audio: UploadFile = File(...), user: dict = Depends(r
         _moderate_transcript(transcript.english)
         recipe_data = run_transform(transcript)
         recipe_data.image_url = _generate_image(
-            recipe_data.dish_name,
+            recipe_data.title,
             ingredients=recipe_data.ingredients,
             steps=recipe_data.steps,
             cook_notes=recipe_data.cook_notes,
@@ -508,7 +508,7 @@ async def capture_endpoint(audio: UploadFile = File(...), user: dict = Depends(r
         recipe = {
             "transcript_raw": recipe_data.transcript_raw,
             "transcript_english": recipe_data.transcript_english,
-            "dish_name": recipe_data.dish_name,
+            "title": recipe_data.title,
             "ingredients": recipe_data.ingredients,
             "steps": recipe_data.steps,
             "cook_notes": recipe_data.cook_notes,
@@ -532,7 +532,7 @@ async def capture_endpoint(audio: UploadFile = File(...), user: dict = Depends(r
             if saved.audio_url:
                 from tools.storage import _sign_audio, _client as _sb
                 recipe["audio_url"] = _sign_audio(saved.audio_url, _sb())
-            _logger.info(f"event=capture_saved id={saved.id} dish={recipe_data.dish_name}")
+            _logger.info(f"event=capture_saved id={saved.id} dish={recipe_data.title}")
         else:
             _logger.warning("event=capture_no_db")
 
@@ -577,7 +577,7 @@ async def capture_process_endpoint(
         _moderate_transcript(transcript.english)
         recipe_data = run_transform(transcript)
         recipe_data.image_url = _generate_image(
-            recipe_data.dish_name,
+            recipe_data.title,
             ingredients=recipe_data.ingredients,
             steps=recipe_data.steps,
             cook_notes=recipe_data.cook_notes,
@@ -586,7 +586,7 @@ async def capture_process_endpoint(
         result = {
             "transcript_raw": recipe_data.transcript_raw,
             "transcript_english": recipe_data.transcript_english,
-            "dish_name": recipe_data.dish_name,
+            "title": recipe_data.title,
             "ingredients": recipe_data.ingredients,
             "steps": recipe_data.steps,
             "cook_notes": recipe_data.cook_notes,
@@ -594,7 +594,7 @@ async def capture_process_endpoint(
             "image_url": recipe_data.image_url,
             "category": recipe_data.category,
         }
-        _logger.info(f"event=process_done dish={recipe_data.dish_name}")
+        _logger.info(f"event=process_done dish={recipe_data.title}")
         return JSONResponse(content=result)
 
     except Exception as e:
@@ -638,7 +638,7 @@ async def capture_save_endpoint(
         # Rebuild a RecipeData from the client-edited dict
         raw_category = recipe_dict.get("category", "Other")
         recipe_data = RecipeData(
-            dish_name=recipe_dict.get("dish_name", ""),
+            title=recipe_dict.get("title", ""),
             ingredients=recipe_dict.get("ingredients", []),
             steps=recipe_dict.get("steps", []),
             cook_notes=recipe_dict.get("cook_notes", ""),
@@ -726,7 +726,7 @@ async def save_audio_endpoint(
 
         row = insert_recipe({
             "type": memory_type if memory_type in _VALID_MEMORY_TYPES else "song",
-            "dish_name": title.strip() or "Untitled",
+            "title": title.strip() or "Untitled",
             "narrator": narrator.strip() or None,
             "user_id": _user_id(user),
             "recorded_by_email": user.get("email", ""),
@@ -987,7 +987,7 @@ async def get_portal_endpoint(portal_token: str):
 # ── Image generation ──────────────────────────────────────────────────────────
 
 class ImageRequest(BaseModel):
-    dish_name: str
+    title: str
     ingredients: list | None = None
     steps: list | None = None
     cook_notes: str | None = None
@@ -999,12 +999,12 @@ async def generate_image_endpoint(body: ImageRequest, user: dict = Depends(requi
     _check_rate_limit_db_or_raise(_user_id(user), "generate-image", _LIMITS["generate-image"])
     if not os.environ.get("OPENAI_API_KEY"):
         raise HTTPException(status_code=500, detail="OPENAI_API_KEY not set")
-    url = _generate_image(body.dish_name, ingredients=body.ingredients, steps=body.steps, cook_notes=body.cook_notes)
+    url = _generate_image(body.title, ingredients=body.ingredients, steps=body.steps, cook_notes=body.cook_notes)
     return JSONResponse(content={"image_url": url})
 
 
 class PatchRecipeRequest(BaseModel):
-    dish_name: str | None = None
+    title: str | None = None
     narrator: str | None = None
     user_notes: str | None = None
     tags: list[str] | None = None
@@ -1087,7 +1087,7 @@ async def translate_recipe_endpoint(token: str, lang: str = "en", force: bool = 
     if lang == "en":
         return JSONResponse(content={
             "lang": "en",
-            "dish_name": recipe.get("dish_name", ""),
+            "title": recipe.get("title", ""),
             "ingredients": recipe.get("ingredients", []),
             "steps": recipe.get("steps", []),
             "cook_notes": recipe.get("cook_notes", ""),
@@ -1114,7 +1114,7 @@ async def translate_recipe_endpoint(token: str, lang: str = "en", force: bool = 
     provider = OpenAIProvider(model=model)
 
     fields = {
-        "dish_name": recipe.get("dish_name", ""),
+        "title": recipe.get("title", ""),
         "ingredients": recipe.get("ingredients", []),
         "steps": recipe.get("steps", []),
         "cook_notes": recipe.get("cook_notes", ""),

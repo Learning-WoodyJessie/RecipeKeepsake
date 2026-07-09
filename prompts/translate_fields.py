@@ -2,7 +2,7 @@
 Translate structured English recipe fields → target language via LLM.
 
 Distinct from prompts/translate.py (Telugu audio → English).
-This module takes already-structured fields (dish_name, ingredients, steps,
+This module takes already-structured fields (title, ingredients, steps,
 cook_notes) and outputs a translated version in the target language.
 
 Vague quantity words ("a little", "to taste", "enough") are explicitly
@@ -50,10 +50,10 @@ _SYSTEM = (
 
 
 def translate_recipe_fields(fields: dict, lang: str, provider: LLMProvider) -> dict:
-    """Translate dish_name, ingredients, steps, cook_notes into target language.
+    """Translate title, ingredients, steps, cook_notes into target language.
 
     Args:
-        fields:   dict with keys dish_name, ingredients, steps, cook_notes
+        fields:   dict with keys title, ingredients, steps, cook_notes
         lang:     2-letter language code (must be in SUPPORTED_LANGS)
         provider: LLMProvider instance
 
@@ -83,7 +83,7 @@ def translate_recipe_fields(fields: dict, lang: str, provider: LLMProvider) -> d
 
     user_text = json.dumps(
         {
-            "dish_name": fields.get("dish_name", ""),
+            "title": fields.get("title", ""),
             "ingredients": fields.get("ingredients", []),
             "steps": fields.get("steps", []),
             "cook_notes": fields.get("cook_notes", ""),

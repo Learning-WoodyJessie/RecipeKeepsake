@@ -77,13 +77,13 @@ _TEXTURE_CUES = [
 
 
 def _extract_visual_details(
-    dish_name: str,
+    title: str,
     ingredients: list,
     steps: list,
     cook_notes: str,
 ) -> dict:
     """Derive visual attributes from structured recipe data."""
-    dish_lower = dish_name.lower()
+    dish_lower = title.lower()
     step_text  = " ".join(steps).lower() if steps else ""
     notes_text = (cook_notes or "").lower()
     combined   = step_text + " " + notes_text
@@ -138,21 +138,21 @@ def _extract_visual_details(
 
 
 def _build_prompt(
-    dish_name: str,
+    title: str,
     ingredients: list | None = None,
     steps: list | None = None,
     cook_notes: str | None = None,
 ) -> str:
     """Build an enriched DALL-E prompt from dish name + optional recipe data."""
     details = _extract_visual_details(
-        dish_name,
+        title,
         ingredients or [],
         steps or [],
         cook_notes or "",
     )
 
     parts = [
-        f"A beautiful, appetizing close-up photograph of {dish_name}.",
+        f"A beautiful, appetizing close-up photograph of {title}.",
     ]
     if details["key_ingredients"]:
         parts.append(f"The dish showcases {details['key_ingredients']}.")
@@ -170,7 +170,7 @@ def _build_prompt(
 # ── Public API ─────────────────────────────────────────────────────────────
 
 def generate_dish_image(
-    dish_name: str,
+    title: str,
     ingredients: list | None = None,
     steps: list | None = None,
     cook_notes: str | None = None,
@@ -184,7 +184,7 @@ def generate_dish_image(
     Supabase Storage via tools.storage.store_image().
     """
     client = OpenAI()
-    prompt = _build_prompt(dish_name, ingredients, steps, cook_notes)
+    prompt = _build_prompt(title, ingredients, steps, cook_notes)
     response = client.images.generate(
         model="dall-e-3",
         prompt=prompt,

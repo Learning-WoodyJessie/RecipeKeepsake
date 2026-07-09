@@ -10,13 +10,13 @@ def _mock_sb():
 class TestGetCachedTranslation:
     def test_returns_cached_data_when_present(self):
         """get_cached_translation() returns the stored dict when lang key exists."""
-        fake_data = {"translations": {"hi": {"dish_name": "रागी मुद्दा", "ingredients": [], "steps": [], "cook_notes": ""}}}
+        fake_data = {"translations": {"hi": {"title": "रागी मुद्दा", "ingredients": [], "steps": [], "cook_notes": ""}}}
         with patch("tools.storage._client") as mock_client:
             sb = _mock_sb()
             mock_client.return_value = sb
             sb.table.return_value.select.return_value.eq.return_value.single.return_value.execute.return_value.data = fake_data
             result = get_cached_translation("abc", "hi")
-        assert result["dish_name"] == "रागी मुद्दा"
+        assert result["title"] == "रागी मुद्दा"
 
     def test_returns_none_when_lang_not_cached(self):
         """get_cached_translation() returns None when the lang key is absent."""
@@ -45,10 +45,10 @@ class TestCacheTranslation:
         import tools.storage as s
         mock_sb = MagicMock()
         monkeypatch.setattr(s, "_supabase", mock_sb)
-        s.cache_translation("tok-abc", "te", {"dish_name": "పెసరట్టు"})
+        s.cache_translation("tok-abc", "te", {"title": "పెసరట్టు"})
         mock_sb.rpc.assert_called_once_with(
             "set_recipe_translation",
-            {"p_token": "tok-abc", "p_lang": "te", "p_data": {"dish_name": "పెసరట్టు"}},
+            {"p_token": "tok-abc", "p_lang": "te", "p_data": {"title": "పెసరట్టు"}},
         )
         mock_sb.table.assert_not_called()
 
@@ -57,7 +57,7 @@ class TestCacheTranslation:
         import tools.storage as s
         mock_sb = MagicMock()
         monkeypatch.setattr(s, "_supabase", mock_sb)
-        s.cache_translation("tok-xyz", "hi", {"dish_name": "पेसरट्टू"})
-        s.cache_translation("tok-xyz", "kn", {"dish_name": "ರಾಗಿ ಮುದ್ದೆ"})
+        s.cache_translation("tok-xyz", "hi", {"title": "पेसरट्टू"})
+        s.cache_translation("tok-xyz", "kn", {"title": "ರಾಗಿ ಮುದ್ದೆ"})
         assert mock_sb.rpc.call_count == 2
         mock_sb.table.assert_not_called()

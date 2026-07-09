@@ -130,8 +130,8 @@ def list_portal_recipes(group_id: str) -> list:
         return []
     user_ids = [r["user_id"] for r in member_rows]
     return (
-        sb.table("recipes")
-        .select("id, token, dish_name, narrator, recorded_at, image_url, audio_url, tags, type, recorded_by_name")
+        sb.table("memories")
+        .select("id, token, title, narrator, recorded_at, image_url, audio_url, tags, type, recorded_by_name")
         .in_("user_id", user_ids)
         .eq("portal_visible", True)
         .order("recorded_at", desc=True)
@@ -154,8 +154,8 @@ def list_group_recipes(group_id: str) -> list:
         return []
     user_ids = [r["user_id"] for r in member_rows]
     return (
-        sb.table("recipes")
-        .select("id, token, dish_name, narrator, recorded_at, image_url, audio_url, tags, type, recorded_by_name")
+        sb.table("memories")
+        .select("id, token, title, narrator, recorded_at, image_url, audio_url, tags, type, recorded_by_name")
         .in_("user_id", user_ids)
         .order("recorded_at", desc=True)
         .execute()

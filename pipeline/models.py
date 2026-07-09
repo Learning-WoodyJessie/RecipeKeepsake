@@ -24,7 +24,7 @@ class TranscriptResult:
 @dataclass
 class RecipeData:
     """Output of Stage 2: structured recipe ready for human review."""
-    dish_name: str
+    title: str
     ingredients: list          # [{"item": str, "quantity": str}]
     steps: list                # ["step text", ...]
     cook_notes: str            # vague instructions preserved verbatim

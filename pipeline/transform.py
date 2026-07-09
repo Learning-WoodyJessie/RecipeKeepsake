@@ -42,7 +42,7 @@ def run_transform(transcript: TranscriptResult, provider: LLMProvider | None = N
     category = raw_category if raw_category in VALID_CATEGORIES else "Other"
 
     return RecipeData(
-        dish_name=structured.get("dish_name", ""),
+        title=structured.get("title", ""),
         ingredients=structured.get("ingredients", []),
         steps=structured.get("steps", []),
         cook_notes=structured.get("cook_notes", ""),

@@ -8,7 +8,7 @@ from pipeline.models import RecipeData
 
 def _recipe(**kwargs):
     defaults = dict(
-        dish_name="Pesarattu", ingredients=[], steps=[],
+        title="Pesarattu", ingredients=[], steps=[],
         cook_notes="", review_flags=[], transcript_raw="",
         transcript_english="", image_url="", category="",
     )

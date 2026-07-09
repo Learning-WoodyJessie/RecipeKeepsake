@@ -93,7 +93,7 @@ class TestListRecipesForOwners:
     def test_queries_with_in_filter(self, monkeypatch):
         mock_sb = MagicMock()
         chain = mock_sb.table.return_value.select.return_value.in_.return_value.order.return_value.execute.return_value
-        chain.data = [{"token": "t1", "dish_name": "Song", "audio_url": None, "tags": ["tale"]}]
+        chain.data = [{"token": "t1", "title": "Song", "audio_url": None, "tags": ["tale"]}]
         monkeypatch.setattr(_storage_mod, "_supabase", mock_sb)
         from tools.storage import list_recipes_for_owners
         result = list_recipes_for_owners(["owner-1", "owner-2"])

@@ -28,23 +28,23 @@ def _mock_supabase(return_data):
 class TestInsertRecipe:
     def test_returns_inserted_row(self, monkeypatch):
         """insert_recipe() returns the first element of result.data."""
-        expected = {"id": "abc-123", "dish_name": "Pesarattu"}
+        expected = {"id": "abc-123", "title": "Pesarattu"}
         monkeypatch.setattr(_storage_mod, "_supabase", _mock_supabase(expected))
-        result = insert_recipe({"dish_name": "Pesarattu"})
+        result = insert_recipe({"title": "Pesarattu"})
         assert result == expected
 
     def test_inserts_into_recipes_table(self, monkeypatch):
         """insert_recipe() targets the 'recipes' table."""
         mock_client = _mock_supabase({"id": "abc"})
         monkeypatch.setattr(_storage_mod, "_supabase", mock_client)
-        insert_recipe({"dish_name": "Pesarattu"})
-        mock_client.table.assert_called_with("recipes")
+        insert_recipe({"title": "Pesarattu"})
+        mock_client.table.assert_called_with("memories")
 
 
 class TestGetRecipeByToken:
     def test_returns_recipe_data(self, monkeypatch):
         """get_recipe_by_token() returns result.data for the matching token."""
-        expected = {"id": "abc-123", "token": "tok-xyz", "dish_name": "Pesarattu"}
+        expected = {"id": "abc-123", "token": "tok-xyz", "title": "Pesarattu"}
         monkeypatch.setattr(_storage_mod, "_supabase", _mock_supabase(expected))
         result = get_recipe_by_token("tok-xyz")
         assert result == expected
@@ -53,7 +53,7 @@ class TestGetRecipeByToken:
 class TestListRecipes:
     def test_returns_list(self, monkeypatch):
         """list_recipes(user_id) returns a list of recipe summaries for that user."""
-        expected = [{"id": "abc", "dish_name": "Pesarattu", "token": "tok-1"}]
+        expected = [{"id": "abc", "title": "Pesarattu", "token": "tok-1"}]
         mock_client = MagicMock()
         mock_client.table.return_value.select.return_value.eq.return_value.order.return_value.execute.return_value.data = expected
         monkeypatch.setattr(_storage_mod, "_supabase", mock_client)

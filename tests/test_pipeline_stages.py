@@ -77,7 +77,7 @@ class TestRunTransform:
         transcript = TranscriptResult(raw="raw", english="eng")
 
         with patch("pipeline.transform.structure_recipe", return_value={
-            "dish_name": "Pesarattu",
+            "title": "Pesarattu",
             "ingredients": [{"item": "moong dal", "quantity": "1 cup"}],
             "steps": ["Soak", "Grind"],
             "cook_notes": "konchem salt",
@@ -87,7 +87,7 @@ class TestRunTransform:
             result = run_transform(transcript, provider=_provider(""))
 
         assert isinstance(result, RecipeData)
-        assert result.dish_name == "Pesarattu"
+        assert result.title == "Pesarattu"
         assert result.transcript_raw == "raw"
         assert result.transcript_english == "eng"
         assert result.image_url == ""       # not set at this stage
@@ -98,7 +98,7 @@ class TestRunTransform:
         transcript = TranscriptResult(raw="Telugu raw", english="English translation")
 
         with patch("pipeline.transform.structure_recipe", return_value={
-            "dish_name": "Dish", "ingredients": [], "steps": [],
+            "title": "Dish", "ingredients": [], "steps": [],
             "cook_notes": "", "review_flags": [], "category": "Other",
         }):
             result = run_transform(transcript, provider=_provider(""))
@@ -111,7 +111,7 @@ class TestRunTransform:
         transcript = TranscriptResult(raw="r", english="e")
 
         with patch("pipeline.transform.structure_recipe", return_value={
-            "dish_name": "Mystery", "ingredients": [], "steps": [],
+            "title": "Mystery", "ingredients": [], "steps": [],
             "cook_notes": "", "review_flags": [], "category": "Junk",
         }):
             result = run_transform(transcript, provider=_provider(""))
@@ -123,7 +123,7 @@ class TestRunTransform:
         transcript = TranscriptResult(raw="r", english="e")
 
         with patch("pipeline.transform.structure_recipe", return_value={
-                 "dish_name": "X", "ingredients": [], "steps": [],
+                 "title": "X", "ingredients": [], "steps": [],
                  "cook_notes": "", "review_flags": [], "category": "Other",
              }), \
              patch("pipeline.transform.load_config", return_value={

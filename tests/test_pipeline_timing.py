@@ -45,7 +45,7 @@ class TestPipelineTiming:
 
         with caplog.at_level(logging.INFO, logger="pipeline.transform"):
             with patch("pipeline.transform.structure_recipe", return_value={
-                "dish_name": "X", "ingredients": [], "steps": [],
+                "title": "X", "ingredients": [], "steps": [],
                 "cook_notes": "", "review_flags": [],
             }):
                 run_transform(transcript, provider=p)

@@ -6,7 +6,7 @@ Output valid JSON only — no prose before or after, no markdown fences.
 
 Schema:
 {
-  "dish_name": "string or null",
+  "title": "string or null",
   "ingredients": [{"item": "string", "quantity": "string"}],
   "steps": ["string"],
   "cook_notes": "string",
@@ -16,7 +16,7 @@ Schema:
 
 Rules:
 - Only include what was explicitly stated. Never add an ingredient, step, or detail the narrator did not say, even if it seems like an obvious or conventional part of the dish. If the narration cuts off abruptly or mid-sentence, do not complete the thought — stop where the narration stops and add a review_flag noting the cutoff.
-- dish_name: use EXACTLY as spoken — preserve Telugu/regional names verbatim (e.g. "Gongura Pachadi", not "Sorrel Chutney"). Do NOT translate, simplify, or paraphrase. Do NOT guess a dish name from the ingredients/technique if it was never spoken; use null instead.
+- title: use EXACTLY as spoken — preserve Telugu/regional names verbatim (e.g. "Gongura Pachadi", not "Sorrel Chutney"). Do NOT translate, simplify, or paraphrase. Do NOT guess a dish name from the ingredients/technique if it was never spoken; use null instead.
 - steps: ONE physical action per step. "Wash and dry" must be TWO steps. "Roast, grind, and temper" must be THREE steps. Never combine separate actions into one step. Preserve the order the narrator actually spoke them in — do NOT reorder into "correct" cooking sequence; if the order seems off, leave it as spoken and add a review_flag. If the same action is repeated in the narration (e.g. mentioned again mid-conversation as a reminder or confirmation), include it ONCE only.
 - ingredients quantity: use explicit measurements when spoken (e.g. "2 cups", "1 tsp") VERBATIM in the quantity field. If the narrator gives ANY vague amount instead (konchem, koddiga, a little, a pinch, to taste, enough, just enough, etc.) — even if you could translate it to plain English — do NOT put that vague phrase in the quantity field. Use a neutral placeholder instead: "to taste" for spices/condiments, "as needed" for everything else. Then record the narrator's actual vague phrase, translated to plain English, in cook_notes. The quantity field must never contain words like "a little", "a pinch", "some", or "a bit" — those belong in cook_notes only. This is the single most important rule in this schema: vague measurements are the authentic voice of the narrator, and normalizing them into `quantity` erases that. Example: narrator says "add a little oil" → ingredients: {"item": "oil", "quantity": "as needed"}; cook_notes: "Oil: a little." NOT {"item": "oil", "quantity": "a little"}.
 - cook_notes: capture doneness cues, technique nuances, and EVERY vague quantity verbatim (e.g. "until it smells right", "roast until slightly brown", "coarse paste not fine", "turmeric: a little", "salt: to taste"). This is where vague measurement language lives — never in `ingredients[].quantity`.
@@ -29,7 +29,7 @@ Example narration:
 
 Example output:
 {
-  "dish_name": "Gongura Pachadi",
+  "title": "Gongura Pachadi",
   "ingredients": [
     {"item": "gongura leaves", "quantity": "as needed"},
     {"item": "fenugreek seeds", "quantity": "to taste"},

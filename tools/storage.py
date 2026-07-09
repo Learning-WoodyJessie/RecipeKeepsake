@@ -108,14 +108,14 @@ def upload_audio(local_path: str, filename: str) -> str:
 
 def insert_recipe(recipe: dict) -> dict:
     """Insert a recipe row into Supabase. Returns the saved row with id + token."""
-    result = _client().table("recipes").insert(recipe).execute()
+    result = _client().table("memories").insert(recipe).execute()
     return result.data[0]
 
 
 def get_recipe_by_token(token: str) -> dict:
     """Fetch a single recipe by its share token. audio_url is replaced with a fresh signed URL."""
     sb = _client()
-    result = sb.table("recipes").select("*").eq("token", token).single().execute()
+    result = sb.table("memories").select("*").eq("token", token).single().execute()
     recipe = result.data
     if recipe.get("audio_url"):
         recipe["audio_url"] = _sign_audio(recipe["audio_url"], sb)
@@ -125,7 +125,7 @@ def get_recipe_by_token(token: str) -> dict:
 def patch_recipe(token: str, fields: dict) -> dict:
     """Update specific fields on a recipe row by token. Returns updated row."""
     result = (
-        _client().table("recipes").update(fields).eq("token", token).execute()
+        _client().table("memories").update(fields).eq("token", token).execute()
     )
     return result.data[0]
 
@@ -134,8 +134,8 @@ def list_recipes(user_id: str) -> list:
     """Fetch recipes for a specific user, ordered by recorded_at desc."""
     sb = _client()
     result = (
-        sb.table("recipes")
-        .select("id, token, dish_name, narrator, recorded_at, image_url, audio_url, tags")
+        sb.table("memories")
+        .select("id, token, title, narrator, recorded_at, image_url, audio_url, tags")
         .eq("user_id", user_id)
         .order("recorded_at", desc=True)
         .execute()
@@ -150,14 +150,14 @@ def list_recipes(user_id: str) -> list:
 def get_cached_translation(token: str, lang: str) -> dict | None:
     """Return a cached translation for (token, lang) or None if not yet translated."""
     sb = _client()
-    result = sb.table("recipes").select("translations").eq("token", token).single().execute()
+    result = sb.table("memories").select("translations").eq("token", token).single().execute()
     translations = result.data.get("translations") or {}
     return translations.get(lang)
 
 
 def delete_recipe(token: str) -> None:
     """Hard-delete a recipe row by share token."""
-    _client().table("recipes").delete().eq("token", token).execute()
+    _client().table("memories").delete().eq("token", token).execute()
 
 
 def cache_translation(token: str, lang: str, data: dict) -> None:
@@ -183,7 +183,7 @@ def clear_translation_cache(lang: str) -> int:
     sb = _client()
     # Fetch all recipes that have a cached translation for this lang
     result = (
-        sb.table("recipes")
+        sb.table("memories")
         .select("token, translations")
         .not_.is_("translations", "null")
         .execute()
@@ -193,7 +193,7 @@ def clear_translation_cache(lang: str) -> int:
         translations = row.get("translations") or {}
         if lang in translations:
             del translations[lang]
-            sb.table("recipes").update({"translations": translations}).eq("token", row["token"]).execute()
+            sb.table("memories").update({"translations": translations}).eq("token", row["token"]).execute()
             updated += 1
     return updated
 
@@ -242,7 +242,7 @@ def delete_account(user_id: str) -> None:
 
     # 1. Delete audio files from Storage for each recipe
     recipes = (
-        sb.table("recipes")
+        sb.table("memories")
         .select("token, audio_url")
         .eq("user_id", user_id)
         .order("recorded_at", desc=False)
@@ -260,7 +260,7 @@ def delete_account(user_id: str) -> None:
 
     # 2. Delete all recipe rows for this user
     try:
-        sb.table("recipes").delete().eq("user_id", user_id).execute()
+        sb.table("memories").delete().eq("user_id", user_id).execute()
     except Exception as e:
         _logger.error(f"event=delete_account_recipes_failed error={type(e).__name__} msg={e}")
 
@@ -353,8 +353,8 @@ def list_recipes_for_owners(owner_user_ids: list[str]) -> list:
         return []
     sb = _client()
     result = (
-        sb.table("recipes")
-        .select("id, token, dish_name, narrator, recorded_at, image_url, audio_url, tags")
+        sb.table("memories")
+        .select("id, token, title, narrator, recorded_at, image_url, audio_url, tags")
         .in_("user_id", owner_user_ids)
         .order("recorded_at", desc=True)
         .execute()

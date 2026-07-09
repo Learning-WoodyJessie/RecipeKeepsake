@@ -11,7 +11,7 @@ class TestTranscriptResult:
 class TestRecipeData:
     def test_fields(self):
         r = RecipeData(
-            dish_name="Pesarattu",
+            title="Pesarattu",
             ingredients=[{"item": "moong dal", "quantity": "1 cup"}],
             steps=["Soak dal", "Grind"],
             cook_notes="konchem salt",
@@ -19,13 +19,13 @@ class TestRecipeData:
             transcript_raw="raw",
             transcript_english="eng",
         )
-        assert r.dish_name == "Pesarattu"
+        assert r.title == "Pesarattu"
         assert r.image_url == ""       # default
         assert r.category == "Other"   # default
 
     def test_category_explicit(self):
         r = RecipeData(
-            dish_name="Idli",
+            title="Idli",
             ingredients=[],
             steps=[],
             cook_notes="",
@@ -38,7 +38,7 @@ class TestRecipeData:
 
     def test_ingredients_list(self):
         r = RecipeData(
-            dish_name="Test",
+            title="Test",
             ingredients=[{"item": "oil", "quantity": "konchem"}],
             steps=[],
             cook_notes="",

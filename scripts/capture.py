@@ -25,7 +25,7 @@ def process_recipe(audio_path: str) -> dict:
     return {
         "transcript_raw": recipe_data.transcript_raw,
         "transcript_english": recipe_data.transcript_english,
-        "dish_name": recipe_data.dish_name,
+        "title": recipe_data.title,
         "ingredients": recipe_data.ingredients,
         "steps": recipe_data.steps,
         "cook_notes": recipe_data.cook_notes,
@@ -45,7 +45,7 @@ def capture(audio_path: str, audio_url: str) -> dict:
         "audio_url": audio_url,
         "transcript_raw": recipe_data.transcript_raw,
         "transcript_english": recipe_data.transcript_english,
-        "dish_name": recipe_data.dish_name,
+        "title": recipe_data.title,
         "ingredients": recipe_data.ingredients,
         "steps": recipe_data.steps,
         "cook_notes": recipe_data.cook_notes,

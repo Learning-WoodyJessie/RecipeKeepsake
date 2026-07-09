@@ -5,7 +5,7 @@ from pipeline.models import TranscriptResult, RecipeData
 _TRANSCRIPT = TranscriptResult(raw="raw telugu", english="english translation")
 
 _RECIPE_DATA = RecipeData(
-    dish_name="Pesarattu",
+    title="Pesarattu",
     ingredients=[{"item": "moong dal", "quantity": "1 cup"}],
     steps=["Soak moong dal.", "Grind to batter."],
     cook_notes="Add oil until it smells right.",
@@ -18,7 +18,7 @@ _STORED = {
     "id": "uuid-123",
     "token": "tok-abc",
     "audio_url": "https://storage/audio.m4a",
-    "dish_name": "Pesarattu",
+    "title": "Pesarattu",
     "ingredients": [{"item": "moong dal", "quantity": "1 cup"}],
     "steps": ["Soak moong dal.", "Grind to batter."],
     "cook_notes": "Add oil until it smells right.",
@@ -37,7 +37,7 @@ class TestCapture:
             result = capture("audio.m4a", "https://storage/audio.m4a")
 
         assert result["id"] == "uuid-123"
-        assert result["dish_name"] == "Pesarattu"
+        assert result["title"] == "Pesarattu"
 
     def test_pipeline_order(self):
         """capture() calls run_transcribe → run_transform → insert_recipe in order."""
@@ -63,7 +63,7 @@ class TestProcessRecipe:
             result = process_recipe("audio.m4a")
 
         mock_insert.assert_not_called()
-        assert result["dish_name"] == "Pesarattu"
+        assert result["title"] == "Pesarattu"
         assert result["transcript_raw"] == "raw telugu"
         assert result["transcript_english"] == "english translation"
         assert "id" not in result
@@ -91,7 +91,7 @@ class TestRunPersist:
         from pipeline.models import SavedRecipe
 
         recipe = RecipeData(
-            dish_name="Pesarattu",
+            title="Pesarattu",
             ingredients=[],
             steps=[],
             cook_notes="",
@@ -117,7 +117,7 @@ class TestRunPersist:
         from pipeline.persist import run_persist
 
         recipe = RecipeData(
-            dish_name="Test", ingredients=[], steps=[], cook_notes="",
+            title="Test", ingredients=[], steps=[], cook_notes="",
             review_flags=[], transcript_raw="", transcript_english="",
         )
         audio_file = tmp_path / "test.webm"

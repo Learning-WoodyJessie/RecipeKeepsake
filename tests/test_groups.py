@@ -145,8 +145,8 @@ class TestListGroupRecipes:
         ]
         recipes_select = MagicMock()
         recipes_select.in_.return_value.order.return_value.execute.return_value.data = [
-            {"id": "r1", "dish_name": "Pesarattu", "user_id": "u1"},
-            {"id": "r2", "dish_name": "Biryani", "user_id": "u2"},
+            {"id": "r1", "title": "Pesarattu", "user_id": "u1"},
+            {"id": "r2", "title": "Biryani", "user_id": "u2"},
         ]
         mock.table.return_value.select.side_effect = [members_select, recipes_select]
         monkeypatch.setattr(_groups_mod, "_supabase", mock)
@@ -185,13 +185,13 @@ class TestListPortalRecipes:
         ]
         recipes_select = MagicMock()
         recipes_select.in_.return_value.eq.return_value.order.return_value.execute.return_value.data = [
-            {"id": "r1", "dish_name": "Pesarattu", "portal_visible": True},
+            {"id": "r1", "title": "Pesarattu", "portal_visible": True},
         ]
         mock.table.return_value.select.side_effect = [members_select, recipes_select]
         monkeypatch.setattr(_groups_mod, "_supabase", mock)
         result = list_portal_recipes("g1")
         assert len(result) == 1
-        assert result[0]["dish_name"] == "Pesarattu"
+        assert result[0]["title"] == "Pesarattu"
 
     def test_returns_empty_when_no_members(self, monkeypatch):
         """list_portal_recipes() returns [] when the group has no members."""

@@ -50,7 +50,7 @@ def run_persist(
 
     row = {
         "type": "recipe",
-        "dish_name": recipe.dish_name,
+        "title": recipe.title,
         "ingredients": recipe.ingredients,
         "steps": recipe.steps,
         "cook_notes": recipe.cook_notes,
