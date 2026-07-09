@@ -9,6 +9,7 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import NarratorChip from '@/components/NarratorChip'
 import ReviewWizard from '@/components/ReviewWizard'
+import SingleScreenReview from '@/components/SingleScreenReview'
 import { api } from '@/lib/api'
 
 type Stage = 'idle' | 'recording' | 'processing' | 'review' | 'direct-review' | 'error'
@@ -252,6 +253,19 @@ function CapturePageInner() {
       })
       setStage('direct-review')
     } catch (e: unknown) { setError((e as Error).message); setStage('error') }
+  }
+
+  if (stage === 'direct-review' && directReview) {
+    return (
+      <SingleScreenReview
+        token={directReview.token}
+        initialTitle={title}
+        transcriptRaw={directReview.transcriptRaw}
+        transcriptEnglish={directReview.transcriptEnglish}
+        memoryType={memoryType}
+        onReRecord={() => { setStage('idle'); setDirectReview(null) }}
+      />
+    )
   }
 
   if (stage === 'review' && draft && audioFile) {
