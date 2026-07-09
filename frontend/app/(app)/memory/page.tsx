@@ -35,6 +35,10 @@ function isAudioMemory(m: Memory) {
   return (m.tags ?? []).includes('audio')
 }
 
+function isNonRecipe(m: Memory) {
+  return m.type != null && m.type !== 'recipe'
+}
+
 const CATEGORIES = ['Breakfast', 'Lunch', 'Sweets', 'Pickles', 'Snacks', 'Drinks', 'Other'] as const
 
 function SavedBadge({ show }: { show: boolean }) {
@@ -735,8 +739,8 @@ function MemoryDetail() {
       )}
 
       {(memory.transcript_raw || memory.transcript_english) && (
-        <details style={{ marginBottom: '1.25rem' }}>
-          <summary style={{ cursor: 'pointer', fontSize: '0.82rem', color: 'var(--muted)', marginBottom: '0.5rem' }}>Full transcript</summary>
+        <details open={isNonRecipe(memory)} style={{ marginBottom: '1.25rem' }}>
+          <summary style={{ cursor: 'pointer', fontSize: '0.82rem', color: 'var(--muted)', marginBottom: '0.5rem' }}>{isNonRecipe(memory) ? 'Transcript' : 'Full transcript'}</summary>
           {memory.transcript_raw && (
             <>
               <p style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--muted)', marginTop: '0.75rem', marginBottom: '0.35rem' }}>Original</p>
