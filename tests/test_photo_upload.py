@@ -19,6 +19,30 @@ async def _auth_u2():
     return {"sub": "u2"}
 
 
+# ── Chunk 1.2 — upload_memory_photo ──────────────────────────────────────────
+
+class TestUploadMemoryPhoto:
+    def test_uploads_to_memory_photos_bucket(self, monkeypatch):
+        mock_sb = MagicMock()
+        mock_sb.storage.from_("memory-photos").get_public_url.return_value = "https://sb.io/photo.jpg"
+        monkeypatch.setattr("tools.storage._client", lambda: mock_sb)
+
+        from tools.storage import upload_memory_photo
+        url = upload_memory_photo(b"\xff\xd8\xff", "image/jpeg")
+
+        mock_sb.storage.from_("memory-photos").upload.assert_called_once()
+        assert url == "https://sb.io/photo.jpg"
+
+    def test_raises_on_storage_error(self, monkeypatch):
+        mock_sb = MagicMock()
+        mock_sb.storage.from_("memory-photos").upload.side_effect = Exception("Storage down")
+        monkeypatch.setattr("tools.storage._client", lambda: mock_sb)
+
+        from tools.storage import upload_memory_photo
+        with pytest.raises(Exception, match="Storage down"):
+            upload_memory_photo(b"\xff\xd8\xff", "image/jpeg")
+
+
 # ── Chunk 1.1 — _validate_image_upload ────────────────────────────────────────
 
 class TestValidateImageUpload:
