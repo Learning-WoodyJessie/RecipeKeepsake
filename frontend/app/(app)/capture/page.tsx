@@ -196,7 +196,6 @@ function CapturePageInner() {
 
   async function startRecording() {
     try {
-      if (mode === 'direct' && !title.trim()) { setError('Please enter a title before recording.'); return }
       setError('')
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true }).catch(() => null)
       if (!stream) { setError('Microphone access denied. Please allow microphone access and try again.'); setStage('error'); return }
