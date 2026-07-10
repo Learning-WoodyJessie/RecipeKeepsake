@@ -998,7 +998,7 @@ async def create_family_group_endpoint(request: Request, user: dict = Depends(re
     if not name:
         raise HTTPException(status_code=400, detail="Group name is required.")
     group = create_group(owner_id=user_id, name=name)
-    base = os.environ.get("NEXT_PUBLIC_APP_URL", "")
+    base = os.environ.get("NEXT_PUBLIC_APP_URL", "https://www.theechoesofhome.com")
     return JSONResponse(content={
         "group": group,
         "portal_url": f"{base}/family?p={group['portal_token']}",
@@ -1013,7 +1013,7 @@ async def get_my_family_group_endpoint(user: dict = Depends(require_auth)):
     group = get_group_for_user(_user_id(user))
     if not group:
         raise HTTPException(status_code=404, detail="Not in a family group.")
-    base = os.environ.get("NEXT_PUBLIC_APP_URL", "")
+    base = os.environ.get("NEXT_PUBLIC_APP_URL", "https://www.theechoesofhome.com")
     return JSONResponse(content={
         "group": group,
         "portal_url": f"{base}/family?p={group['portal_token']}",
