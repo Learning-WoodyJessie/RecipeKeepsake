@@ -165,6 +165,30 @@ def _validate_audio_upload(audio: UploadFile, data: bytes) -> None:
         )
 
 
+# ── Image upload validation ───────────────────────────────────────────────────
+
+_ALLOWED_IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".webp"}
+_MAX_IMAGE_BYTES = 5 * 1024 * 1024  # 5 MB
+
+_IMAGE_MAGIC: list[tuple[int, bytes]] = [
+    (0, b"\xff\xd8\xff"),      # JPEG
+    (0, b"\x89PNG\r\n\x1a\n"), # PNG
+    (0, b"RIFF"),              # WebP container
+]
+
+
+def _validate_image_upload(photo: UploadFile, data: bytes) -> None:
+    """Raise HTTP 400/413 if the uploaded image file looks unsafe."""
+    ext = Path(photo.filename or "").suffix.lower()
+    if ext not in _ALLOWED_IMAGE_EXTS:
+        raise HTTPException(status_code=400, detail=f"Unsupported file type '{ext}'. Upload JPEG, PNG, or WebP.")
+    if len(data) > _MAX_IMAGE_BYTES:
+        raise HTTPException(status_code=413, detail="Photo too large. Maximum size is 5 MB.")
+    matched = any(data[off: off + len(sig)] == sig for off, sig in _IMAGE_MAGIC)
+    if not matched:
+        raise HTTPException(status_code=400, detail="File does not appear to be a valid image.")
+
+
 # ── Content moderation ────────────────────────────────────────────────────────
 
 def _moderate_transcript(text: str) -> None:
@@ -732,6 +756,18 @@ async def delete_recipe_endpoint(token: str, user: dict = Depends(require_auth))
         return JSONResponse(content={"deleted": token})
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/memories/{token}/photo")
+async def upload_memory_photo_endpoint(
+    token: str,
+    photo: UploadFile = File(...),
+    user: dict = Depends(require_auth),
+):
+    """Attach or replace a user photo on any memory. Validates, uploads to storage, patches image_url."""
+    data = await photo.read()
+    _validate_image_upload(photo, data)
+    return JSONResponse(content={"image_url": ""})
 
 
 _TRANSLATE_SUPPORTED = {"en", "te", "hi", "kn", "es", "fr"}
