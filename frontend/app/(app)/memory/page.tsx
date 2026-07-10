@@ -387,7 +387,7 @@ function MemoryDetail() {
             {/* Narrator pill */}
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(201,148,31,0.25)', borderRadius: 20, padding: '0.3rem 0.85rem', width: 'fit-content' }}>
               <span style={{ color: 'var(--muted)', fontSize: '0.82rem' }}>♡</span>
-              <span style={{ fontSize: '0.8rem', color: 'var(--text2)' }}>Narrated by someone you love</span>
+              <span style={{ fontSize: '0.8rem', color: 'var(--text2)' }}>From someone you love</span>
             </div>
           </div>
 
