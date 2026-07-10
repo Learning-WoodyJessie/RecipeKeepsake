@@ -44,6 +44,9 @@ from pipeline.transform import run_transform, VALID_CATEGORIES
 from pipeline.persist import run_persist
 from pipeline.models import RecipeData
 from tools.storage import check_rate_limit_db
+from prompts.translate_audio import translate_to_english
+from prompts.llm import OpenAIProvider
+from tools.config import load_config
 
 _FRONTEND_OUT = Path(__file__).parent.parent / "frontend" / "out"
 _WWW = Path(__file__).parent.parent / "www"
@@ -112,7 +115,7 @@ def _check_rate_limit_db_or_raise(user_id: str, endpoint: str, limit: int) -> No
 # Maximum audio file size accepted (bytes). 25 MB covers ~2 h of compressed audio.
 _MAX_AUDIO_BYTES = int(os.environ.get("MAX_AUDIO_BYTES", str(25 * 1024 * 1024)))
 
-_VALID_MEMORY_TYPES = {"recipe", "song", "story", "fable", "moral"}
+_VALID_MEMORY_TYPES = {"recipe", "song", "story", "fable", "wisdom", "poem"}
 
 # Allowed file extensions.
 _ALLOWED_AUDIO_EXTS = {
@@ -767,6 +770,54 @@ async def save_audio_endpoint(
                 os.unlink(tmp_path)
             except Exception:
                 pass
+
+
+# ── Text-only memory endpoint ─────────────────────────────────────────────────
+
+class SaveTextRequest(BaseModel):
+    title: str
+    text: str
+    memory_type: str = "poem"
+    narrator: str = ""
+
+
+@app.post("/save-text")
+async def save_text_endpoint(body: SaveTextRequest, user: dict = Depends(require_auth)):
+    user_id = _user_id(user)
+    if not body.title.strip():
+        raise HTTPException(status_code=400, detail="title is required")
+    if not body.text.strip():
+        raise HTTPException(status_code=400, detail="text is required")
+    if body.memory_type not in _VALID_MEMORY_TYPES:
+        raise HTTPException(status_code=400, detail=f"invalid memory_type: {body.memory_type}")
+
+    _check_rate_limit_db_or_raise(user_id, "capture", _LIMITS["capture"])
+
+    from tools.storage import insert_recipe
+
+    english = ""
+    try:
+        config = load_config()
+        model = config["llm"].get("translate_model", config["llm"]["model"])
+        provider = OpenAIProvider(model=model)
+        english = translate_to_english(body.text.strip(), provider)
+    except Exception:
+        pass
+
+    row = insert_recipe({
+        "title": body.title.strip(),
+        "narrator": body.narrator.strip() or None,
+        "transcript_raw": body.text.strip(),
+        "transcript_english": english,
+        "type": body.memory_type,
+        "user_id": user_id,
+    })
+
+    return JSONResponse(content={
+        "token": row["token"],
+        "transcript_raw": body.text.strip(),
+        "transcript_english": english,
+    })
 
 
 # ── People endpoints ─────────────────────────────────────────────────────────
