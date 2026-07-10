@@ -531,7 +531,7 @@ export default function MemoriesPage() {
                         <polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/>
                         <path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/>
                       </svg>
-                      Upload Audio
+                      Upload a Memory
                     </Link>
                   </div>
                 </div>

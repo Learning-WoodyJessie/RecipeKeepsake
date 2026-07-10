@@ -104,7 +104,7 @@ function HeroCard({ userName }: { userName: string }) {
             <ActionTile
               href="/upload"
               icon={<UploadIcon />}
-              label="Upload audio"
+              label="Upload a Memory"
               desc="Use an existing recording"
               iconBg="rgba(201, 148, 31, 0.13)"
             />
