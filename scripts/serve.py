@@ -702,7 +702,7 @@ async def capture_save_endpoint(
 @app.post("/save-audio")
 async def save_audio_endpoint(
     audio: UploadFile | None = File(default=None),
-    title: str = File(...),
+    title: str = File(default=""),
     narrator: str = File(default=""),
     description: str = File(default=""),
     original_text: str = File(default=""),
