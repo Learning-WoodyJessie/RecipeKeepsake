@@ -767,7 +767,23 @@ async def upload_memory_photo_endpoint(
     """Attach or replace a user photo on any memory. Validates, uploads to storage, patches image_url."""
     data = await photo.read()
     _validate_image_upload(photo, data)
-    return JSONResponse(content={"image_url": ""})
+
+    check_rate_limit_db(_user_id(user), "image")
+
+    from tools.storage import get_recipe_by_token, patch_recipe, upload_memory_photo
+    try:
+        recipe = get_recipe_by_token(token)
+    except Exception:
+        raise HTTPException(status_code=404, detail="Memory not found")
+
+    if recipe.get("user_id") != _user_id(user):
+        raise HTTPException(status_code=403, detail="Not your memory")
+
+    content_type = photo.content_type or "image/jpeg"
+    image_url = upload_memory_photo(data, content_type)
+    patch_recipe(token, {"image_url": image_url})
+
+    return JSONResponse(content={"image_url": image_url})
 
 
 _TRANSLATE_SUPPORTED = {"en", "te", "hi", "kn", "es", "fr"}

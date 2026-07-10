@@ -19,6 +19,80 @@ async def _auth_u2():
     return {"sub": "u2"}
 
 
+# ── Chunk 1.3 — POST /memories/{token}/photo endpoint ────────────────────────
+
+class TestUploadMemoryPhotoEndpoint:
+    def _client(self, recipe_data, user_fn=_auth_u1):
+        mock_sb = MagicMock()
+        mock_sb.table("recipes").select("*").eq("token", recipe_data["token"]).single().execute.return_value = \
+            MagicMock(data=recipe_data)
+        mock_sb.table("recipes").update(MagicMock()).eq("token", recipe_data["token"]).execute.return_value = \
+            MagicMock(data=[recipe_data])
+        mock_sb.storage.from_("memory-photos").upload.return_value = None
+        mock_sb.storage.from_("memory-photos").get_public_url.return_value = "https://sb.io/photo.jpg"
+        app.dependency_overrides[require_auth] = user_fn
+        client = TestClient(app)
+        return client, mock_sb
+
+    def teardown_method(self):
+        app.dependency_overrides.pop(require_auth, None)
+
+    def test_happy_path_returns_image_url(self):
+        recipe = {"token": "tok1", "user_id": "u1", "image_url": None, "audio_url": None}
+        with patch("tools.storage._client", return_value=MagicMock()) as mock_client_fn, \
+             patch("scripts.serve.check_rate_limit_db"):
+            mock_sb = MagicMock()
+            mock_sb.table("recipes").select("*").eq("token", "tok1").single().execute.return_value = \
+                MagicMock(data=recipe)
+            mock_sb.table("recipes").update({"image_url": "https://sb.io/photo.jpg"}).eq("token", "tok1").execute.return_value = \
+                MagicMock(data=[recipe])
+            mock_sb.storage.from_("memory-photos").upload.return_value = None
+            mock_sb.storage.from_("memory-photos").get_public_url.return_value = "https://sb.io/photo.jpg"
+            mock_client_fn.return_value = mock_sb
+            app.dependency_overrides[require_auth] = _auth_u1
+            client = TestClient(app)
+            res = client.post(
+                "/memories/tok1/photo",
+                files={"photo": ("dish.jpg", JPEG, "image/jpeg")},
+                headers={"Authorization": "Bearer fake"},
+            )
+        assert res.status_code == 200
+        assert res.json()["image_url"] == "https://sb.io/photo.jpg"
+
+    def test_returns_403_for_wrong_user(self):
+        recipe = {"token": "tok1", "user_id": "other_user", "image_url": None, "audio_url": None}
+        with patch("tools.storage._client") as mock_client_fn, \
+             patch("scripts.serve.check_rate_limit_db"):
+            mock_sb = MagicMock()
+            mock_sb.table("recipes").select("*").eq("token", "tok1").single().execute.return_value = \
+                MagicMock(data=recipe)
+            mock_client_fn.return_value = mock_sb
+            app.dependency_overrides[require_auth] = _auth_u1
+            client = TestClient(app)
+            res = client.post(
+                "/memories/tok1/photo",
+                files={"photo": ("dish.jpg", JPEG, "image/jpeg")},
+                headers={"Authorization": "Bearer fake"},
+            )
+        assert res.status_code == 403
+
+    def test_returns_404_when_token_not_found(self):
+        with patch("tools.storage._client") as mock_client_fn, \
+             patch("scripts.serve.check_rate_limit_db"):
+            mock_sb = MagicMock()
+            mock_sb.table("recipes").select("*").eq("token", "bad").single().execute.side_effect = \
+                Exception("not found")
+            mock_client_fn.return_value = mock_sb
+            app.dependency_overrides[require_auth] = _auth_u1
+            client = TestClient(app)
+            res = client.post(
+                "/memories/bad/photo",
+                files={"photo": ("dish.jpg", JPEG, "image/jpeg")},
+                headers={"Authorization": "Bearer fake"},
+            )
+        assert res.status_code == 404
+
+
 # ── Chunk 1.2 — upload_memory_photo ──────────────────────────────────────────
 
 class TestUploadMemoryPhoto:
