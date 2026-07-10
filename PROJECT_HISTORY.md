@@ -4,6 +4,29 @@ One-paragraph summary per session. Most recent first.
 
 ---
 
+## 2026-07-09 — Photo Upload for All Memory Types
+
+### Accomplished
+- **Backend**: `POST /memories/{token}/photo` endpoint — multipart upload, JPEG/PNG/WebP validation (extension + size + magic bytes), ownership check (403), 404 on bad token, rate-limited via `MAX_IMAGE_PER_DAY` bucket, stores in new `memory-photos` Supabase Storage bucket, patches `image_url` on the memory row
+- **Storage**: `upload_memory_photo()` in `tools/storage.py` — uploads to `memory-photos` bucket (public), returns public URL
+- **Review wizard**: Optional "Photo" section added to Step 3 — shows AI-generated image preview with "Replace" overlay for recipes; dashed "Add a photo" zone for songs/stories/wisdom/poems. Photo uploads after save using the returned token; failure is non-blocking (memory saved regardless)
+- **Memory detail page**: "Change photo" button under existing image; "Add a photo" dashed card when no image. Immediate local preview via `URL.createObjectURL`, replaced by permanent URL on success. Inline error on failure, previous image restored
+- **api.ts**: `api.memories.uploadPhoto(token, file)` method added
+- **Test count**: 136 → 144 (+8 new tests: 3 validation, 2 storage, 3 endpoint)
+- **Supabase setup**: Run `INSERT INTO storage.buckets ...` SQL to create `memory-photos` bucket (public, 5 MB limit, JPEG/PNG/WebP)
+
+### Learned
+- FastAPI `Depends()` captures the function reference at decoration time — `patch()` on the module attribute has no effect. Must use `app.dependency_overrides[dep_fn] = mock_fn` for test isolation (logged to gotchas)
+- The `client.post()` call must be inside the `with patch(...)` block, not after it exits — patches expire synchronously when the context manager exits, before the HTTP request executes
+
+### Deferred
+- Apple Sign In `invalid_client` fix still pending — `theechoesofhome.com` needs to be added to Domains and Subdomains in Apple Developer Console under `com.echoesofhome.web` Service ID configuration
+
+### Next
+- Phase 4 Memories Expansion — brainstorm which memory types to build next (Remedies, Stories, Songs, Wisdom all scaffolded in roadmap)
+
+---
+
 ## 2026-05-06 — Structured Logging, Cache Correctness, and Observability Gaps
 
 ### Accomplished

@@ -117,4 +117,36 @@ markers =
 
 ---
 
+## FastAPI dependency injection — `patch()` doesn't intercept `Depends()`
+
+**Pattern**: FastAPI captures the dependency function reference at route decoration time. `unittest.mock.patch("scripts.serve.require_auth", return_value={"sub": "u1"})` replaces the module attribute, but the route still holds the original reference — the real function runs and the patch has no effect.
+
+**Tell**: Tests get `{"detail":"Auth not configured"}` (500) even though `require_auth` appears to be patched.
+
+**Wrong**:
+```python
+with patch("scripts.serve.require_auth", return_value={"sub": "u1"}):
+    client = TestClient(app)
+    client.post("/protected")  # real require_auth still runs → 500
+```
+
+**Right**:
+```python
+from scripts.serve import app, require_auth
+
+async def _mock_auth():
+    return {"sub": "u1"}
+
+app.dependency_overrides[require_auth] = _mock_auth
+try:
+    client = TestClient(app)
+    client.post("/protected")
+finally:
+    app.dependency_overrides.pop(require_auth, None)
+```
+
+**Rule**: Override FastAPI dependencies with `app.dependency_overrides[dep_fn] = mock_fn` — never `patch()`. Always clean up with `.pop()` in a `finally` block or `teardown_method`.
+
+---
+
 *(Add new patterns here as they're discovered during build)*

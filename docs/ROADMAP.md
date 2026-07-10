@@ -57,6 +57,21 @@ The Keeper's editorial moment — review everything before committing.
 
 ---
 
+### Epic 2.5 — Photo Upload ✅
+
+*Completed 2026-07-09.*
+
+| Story | Status |
+|---|---|
+| `POST /memories/{token}/photo` — multipart upload, validation, ownership check, rate-limited | ✅ |
+| `upload_memory_photo()` in `tools/storage.py` — uploads to `memory-photos` Supabase bucket | ✅ |
+| Review wizard Step 3 — optional photo section (replace AI image or add new) | ✅ |
+| Memory detail page — "Change photo" / "Add a photo" button for all memory types | ✅ |
+| `api.memories.uploadPhoto()` in `frontend/lib/api.ts` | ✅ |
+| Supabase `memory-photos` bucket — public, 5 MB cap, JPEG/PNG/WebP | 🚧 manual SQL step |
+
+---
+
 ### Epic 3 — Browse & Recall ✅
 
 Finding and reliving captured memories.
