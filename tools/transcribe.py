@@ -99,10 +99,12 @@ def _strip_hallucination_loops(text: str) -> str:
 
 def _mime_type(audio_path: str) -> str:
     mime, _ = mimetypes.guess_type(audio_path)
-    # m4a files report as None or video/mp4 — force correct audio MIME
-    if not mime or mime == "video/mp4":
+    # Python's mimetypes registers .webm as video/webm and .m4a as None or
+    # video/mp4. Gemini File API rejects audio sent as a video MIME type.
+    # Force the correct audio MIME for all formats we record from browsers.
+    if not mime or mime in ("video/mp4", "video/webm"):
         ext = os.path.splitext(audio_path)[1].lower()
-        return {"m4a": "audio/mp4", ".m4a": "audio/mp4", ".mp3": "audio/mpeg",
+        return {".m4a": "audio/mp4", ".mp3": "audio/mpeg",
                 ".wav": "audio/wav", ".webm": "audio/webm", ".ogg": "audio/ogg"}.get(ext, "audio/mp4")
     return mime
 
