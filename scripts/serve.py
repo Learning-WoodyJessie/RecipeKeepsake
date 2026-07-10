@@ -748,9 +748,13 @@ async def save_audio_endpoint(
         transcript_raw = original_text.strip()
         transcript_english = description.strip()
         if tmp_path and not transcript_raw and memory_type != "recipe":
-            result = run_transcribe(tmp_path)
-            transcript_raw = result.raw
-            transcript_english = result.english
+            try:
+                result = run_transcribe(tmp_path)
+                transcript_raw = result.raw
+                transcript_english = result.english
+            except Exception as _te:
+                _logger.warning(f"event=save_audio_transcribe_failed error={type(_te).__name__} msg={_te}")
+                # Non-fatal — audio is saved regardless; user can see it on the memory page
 
         row = insert_recipe({
             "type": memory_type if memory_type in _VALID_MEMORY_TYPES else "song",
