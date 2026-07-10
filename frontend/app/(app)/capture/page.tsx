@@ -307,7 +307,7 @@ function CapturePageInner() {
                 : <>What is {narratorLabel} making today? <span style={{ color: 'var(--muted)' }}>♡</span></>}
             </h1>
             <p style={{ fontSize: '0.88rem', color: 'var(--muted)', marginBottom: '1rem' }}>
-              {mode === 'direct' ? 'Just press record. We’ll keep it safe forever.' : 'Just let them talk. We’ll take care of the rest.'}
+              {mode === 'direct' ? "Just press record. We'll keep it safe forever." : "Just let them talk. We'll take care of the rest."}
             </p>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.65rem' }}>
               <div style={{ height: 1, width: 80, background: 'var(--border)' }} />
