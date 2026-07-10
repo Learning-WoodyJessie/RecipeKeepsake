@@ -15,7 +15,6 @@ type Viewer = { id: string; email: string | null; phone: string | null; created_
 function ShareWithFamily() {
   const [viewers, setViewers] = useState<Viewer[]>([])
   const [value, setValue] = useState('')
-  const [channel, setChannel] = useState<'email' | 'phone'>('email')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
@@ -30,7 +29,7 @@ function ShareWithFamily() {
     setBusy(true)
     setError('')
     try {
-      await api.viewers.add(channel === 'email' ? { email: value.trim() } : { phone: value.trim() })
+      await api.viewers.add({ email: value.trim() })
       setValue('')
       refresh()
     } catch (e: unknown) { setError((e as Error).message) } finally { setBusy(false) }
@@ -46,19 +45,15 @@ function ShareWithFamily() {
     <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '1.5rem', marginBottom: '1.5rem' }}>
       <h2 style={{ color: 'var(--text)', fontWeight: 600, marginBottom: '0.5rem', fontSize: '1rem' }}>Share with family</h2>
       <p style={{ color: 'var(--text2)', fontSize: '0.85rem', marginBottom: '1.25rem', lineHeight: 1.6 }}>
-        Approve an email or phone for read-only viewing, no account creation needed on their end. They'll get a one-time code to sign in. Revoke access here anytime.
+        Approve a family member's email for read-only viewing. They'll get a sign-in link, no account needed. Revoke access here anytime.
       </p>
 
       <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem' }}>
-        <select value={channel} onChange={(e) => setChannel(e.target.value as 'email' | 'phone')} style={{ border: '1px solid var(--border)', borderRadius: 10, padding: '0.6rem', fontSize: '0.85rem', background: 'var(--surface)', color: 'var(--text)' }}>
-          <option value="email">Email</option>
-          <option value="phone">Phone</option>
-        </select>
         <input
-          type={channel === 'email' ? 'email' : 'tel'}
+          type="email"
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          placeholder={channel === 'email' ? 'family@example.com' : '+1 555 123 4567'}
+          placeholder="family@example.com"
           style={{ flex: 1, border: '1px solid var(--border)', borderRadius: 10, padding: '0.6rem 0.85rem', fontSize: '0.85rem', background: 'var(--surface)', color: 'var(--text)' }}
         />
         <button onClick={addViewer} disabled={busy || !value.trim()} style={{ background: 'var(--accent)', color: 'white', border: 'none', borderRadius: 10, padding: '0.6rem 1.1rem', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer' }}>
