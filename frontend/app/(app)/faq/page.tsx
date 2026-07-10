@@ -34,11 +34,11 @@ const FAQS = [
     items: [
       {
         q: 'How do I share a memory with my family?',
-        a: 'Open any memory and tap the Share button. This creates a link you can send via WhatsApp, SMS, or email. Anyone with the link can view the memory, they don\'t need an account.',
+        a: 'Open any memory and tap the Share button. This creates a link you can send via WhatsApp, SMS, or email.',
       },
       {
         q: 'Does my family need to sign up to view a shared memory?',
-        a: 'No. Shared links are viewable by anyone you send them to, no account needed. Only creating and saving new memories requires signing in.',
+        a: 'Yes — we ask family members to create a free account before viewing. We do this so that all the memories you\'ve already saved stay private and protected. Without it, anyone who forwarded the link could access your entire archive.',
       },
       {
         q: 'Can multiple family members add memories to the same collection?',
