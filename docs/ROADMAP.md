@@ -323,8 +323,8 @@ Multi-phase feature: content type system, family groups, public portal, and What
 
 | Story | Status |
 |---|---|
-| `type` field on `/save-audio` endpoint — `recipe\|song\|story\|fable\|moral` | ✅ |
-| Type picker UI on upload page (5 types with emoji) | ✅ |
+| `type` field on `/save-audio` endpoint — `recipe\|song\|story\|fable\|wisdom\|poem` | ✅ |
+| Type picker UI on upload page (6 types with emoji) | ✅ |
 | Type badge on memory detail page | ✅ |
 | `pipeline/persist.py` writes `type: "recipe"` by default | ✅ |
 
@@ -364,7 +364,7 @@ Multi-phase feature: content type system, family groups, public portal, and What
 
 ## Phase 4 — Memories Expansion 🚧
 
-*Started 2026-07-08. Schema migration + song/story light pipeline complete. Per-type Call B prompts and review wizard next.*
+*Started 2026-07-08. Schema migration + song/story/fable/wisdom/poem light pipelines complete. Text capture ("Their words") shipped 2026-07-09. Per-type Call B prompts (Remedies, Wisdom) next.*
 
 Recipe proved the pipeline. Every new memory type follows the same pattern — voice → transcribe → translate → structure — with a different Call B schema and display config.
 
@@ -380,9 +380,11 @@ Recipe proved the pipeline. Every new memory type follows the same pattern — v
 | Song/story detail view — transcript open by default, recipe fields suppressed | ✅ 2026-07-08 |
 | Unified capture flow — type picker (Song/Story/Fable/Moral) before record in direct mode | ✅ 2026-07-08 |
 | Memories browse — type grid landing, "All Memories" replaces "All Recipes" | ✅ 2026-07-08 |
-| Audio memories browse — type filter tabs (Song/Story/Fable/Moral/Favorites) | ✅ 2026-07-08 |
+| Audio memories browse — type filter tabs (Song/Story/Fable/Wisdom/Poem/Favorites) | ✅ 2026-07-09 |
 | Upload flow SingleScreenReview — post-save review screen in direct mode | ✅ 2026-07-08 |
-| Fable/Moral pipeline — light pipeline confirmed, no Call B needed | ✅ 2026-07-08 |
+| Fable/Wisdom/Poem pipeline — light pipeline confirmed, no Call B needed | ✅ 2026-07-08 |
+| Rename Moral→Wisdom, add Poem — type sweep across all frontend + backend | ✅ 2026-07-09 |
+| "Their words" tab — paste text, translate via Call A, save as memory | ✅ 2026-07-09 |
 
 ### Epic 10 — Remedies Memory Type
 

@@ -210,4 +210,59 @@ export default function JoinPage() {
 
 ---
 
+## Module-level import required for try/except + mock to work together
+
+**Pattern**: An endpoint function does `load_config()` inside a `try/except Exception: pass` block. `load_config` is NOT imported at module level. In the test environment the name is undefined, so `NameError` fires, the except silently swallows it, and the function that IS mocked (e.g. `translate_to_english`) is never reached. `transcript_english` stays `""`.
+
+**Tell**: Test mocks `scripts.serve.translate_to_english` but the mock is never called. `transcript_english == ""` even though the mock returns a string.
+
+**Wrong**:
+```python
+# in serve.py — no module-level import of load_config
+async def save_text_endpoint(...):
+    english = ""
+    try:
+        config = load_config()          # NameError here
+        provider = OpenAIProvider(...)
+        english = translate_to_english(text, provider)  # never reached
+    except Exception:
+        pass
+```
+
+**Right**:
+```python
+from tools.config import load_config    # module-level — patchable, findable
+
+async def save_text_endpoint(...):
+    english = ""
+    try:
+        english = translate_to_english(text, provider)  # only the risky call
+    except Exception:
+        pass
+```
+
+**Rule**: Every name called inside a broad `try/except` must be imported at module level. A `NameError` inside `except Exception: pass` is indistinguishable from a legitimate failure — the mock never fires and the test asserts against `""`.
+
+---
+
+## Smart quotes (curly quotes) in TSX/JS — silent turbopack cache mask
+
+**Pattern**: A `.tsx` file uses Unicode curly quotes (`'` U+2018, `'` U+2019) as JavaScript string delimiters inside style objects (e.g. `fontFamily: 'var(--serif)'`). These are invalid in TypeScript/JavaScript. The build passes only because turbopack has a cached artefact from a previous build. Any subsequent edit that forces a cache miss exposes the underlying TS1127 error.
+
+**Tell**: `next build` fails with `TS1127: Invalid character` on a line you didn't touch, after editing the same file for unrelated changes.
+
+**Wrong**:
+```tsx
+<h1 style={{ fontFamily: 'var(--serif)' }}>  {/* curly quotes — invalid JS */}
+```
+
+**Right**:
+```tsx
+<h1 style={{ fontFamily: 'var(--serif)' }}>  {/* straight quotes — valid JS */}
+```
+
+**Rule**: Never use smart/curly quotes in `.ts`/`.tsx` files. If you discover them in an existing file, fix all instances in one commit so the cache miss only happens once.
+
+---
+
 *(Add new patterns here as they're discovered during build)*

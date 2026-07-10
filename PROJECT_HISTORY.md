@@ -4,6 +4,24 @@ One-paragraph summary per session. Most recent first.
 
 ---
 
+## 2026-07-09 — Phase 4: Text Capture ("Their Words") + Type Sweep
+
+### Accomplished
+- **P.1 — `POST /save-text` backend**: Paste text → Call A translate → save as memory. Root cause of 2 failing tests: `load_config` wasn't imported at module level in `serve.py`, so `NameError` inside `try/except Exception: pass` silently swallowed the error before `translate_to_english` (mocked) was ever called. Fix: added `from tools.config import load_config` at module level. 197 → 203 tests.
+- **U.1 — Moral→Wisdom rename + Poem type**: Swept 7 frontend files (`capture/page.tsx`, `SingleScreenReview.tsx`, `share.ts`, `memories/page.tsx`, `upload/page.tsx`, `memory/page.tsx`, `family/page.tsx`). No `moral` references remain; Poem added with 🖊️ emoji.
+- **U.2 — "Their words" third tab on upload page**: Textarea for paste, type picker, narrator picker, save button. Calls `POST /save-text` → `SingleScreenReview`. Added `api.text.save()` to `api.ts`. Also fixed pre-existing smart-quote TypeScript errors in `upload/page.tsx` that were masked by turbopack cache.
+
+### Learned
+- A `NameError` inside `try/except Exception: pass` is completely silent — the mocked function downstream is never reached. Always check that every name called inside a broad except is imported at module level.
+- Smart/curly quotes (`'` U+2018) in `.tsx` files are invalid TypeScript. They survive turbopack cache but fail when the file is touched and recompiled. Fix all instances in a single sweep, not incrementally.
+- `{mode !== 'text' && (<label>...<FormatsDropdown />...</div>)}` — JSX conditional with multiple siblings needs a `<>...</>` fragment inside the `(...)`, not bare siblings.
+
+### Deferred
+- Epics 10 (Remedies) and 13 (Wisdom/Proverbs) — both get Call B; separate sessions
+- Phase 2: Android app identity rename
+
+---
+
 ## 2026-07-08 — Phase 4 continued: Upload review screen + Memories browse by type + C decision
 
 ### Accomplished
