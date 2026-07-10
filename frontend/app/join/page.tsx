@@ -55,13 +55,15 @@ function JoinContent() {
 
   if (status === 'needsAuth') return (
     <div style={wrap}>
-      <p style={{ fontSize: '2rem', marginBottom: '1rem' }}>🎙️</p>
-      <p style={{ fontFamily: 'var(--serif)', fontSize: '1.4rem', marginBottom: '1rem', lineHeight: 1.4 }}>
+      <p style={{ fontSize: '2rem', marginBottom: '1rem' }}>🔒</p>
+      <p style={{ fontFamily: 'var(--serif)', fontSize: '1.4rem', marginBottom: '0.75rem', lineHeight: 1.4 }}>
         You've been invited to a family memory group
       </p>
-      <p style={{ color: 'var(--muted)', marginBottom: '2rem', lineHeight: 1.6, fontSize: '0.9rem' }}>
-        Sign in or create an account to join, then you'll be able to record
-        and browse memories with your whole family.
+      <p style={{ color: 'var(--text2)', marginBottom: '0.5rem', lineHeight: 1.6, fontSize: '0.9rem' }}>
+        We ask you to sign in to protect the memories already saved here.
+      </p>
+      <p style={{ color: 'var(--muted)', marginBottom: '2rem', lineHeight: 1.6, fontSize: '0.85rem' }}>
+        Without it, anyone who gets forwarded this link could access the entire family archive. A free account makes sure only the people you trust can see it.
       </p>
       <a
         href={`/?next=/join?invite=${invite}`}

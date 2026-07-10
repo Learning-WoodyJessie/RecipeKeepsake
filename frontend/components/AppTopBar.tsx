@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 
@@ -19,6 +19,23 @@ export default function AppTopBar({ onMenuClick }: { onMenuClick?: () => void })
   const [name, setName] = useState('friend')
   const [initial, setInitial] = useState('?')
   const [q, setQ] = useState('')
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!menuOpen) return
+    function onOutsideClick(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false)
+    }
+    document.addEventListener('mousedown', onOutsideClick)
+    return () => document.removeEventListener('mousedown', onOutsideClick)
+  }, [menuOpen])
+
+  async function signOut() {
+    setMenuOpen(false)
+    await supabase.auth.signOut()
+    router.replace('/')
+  }
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -110,29 +127,73 @@ export default function AppTopBar({ onMenuClick }: { onMenuClick?: () => void })
         @media (min-width: 700px) { .rk-greeting { display: block !important; } }
       `}</style>
 
-      {/* Avatar — filled accent circle, white initial */}
-      <div
-        style={{
-          width: 36,
-          height: 36,
-          borderRadius: '50%',
-          background: 'var(--accent)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontFamily: 'var(--serif)',
-          fontWeight: 700,
-          color: 'white',
-          fontSize: '1rem',
-          flexShrink: 0,
-          boxShadow: '0 2px 8px rgba(24,107,94,0.3)',
-          cursor: 'pointer',
-        }}
-        title={name}
-        onClick={() => router.push('/account')}
-      >
-        {initial}
+      {/* Avatar with dropdown */}
+      <div ref={menuRef} style={{ position: 'relative', flexShrink: 0 }}>
+        <button
+          type="button"
+          aria-label="Account menu"
+          title={name}
+          onClick={() => setMenuOpen(o => !o)}
+          style={{
+            width: 36,
+            height: 36,
+            borderRadius: '50%',
+            background: 'var(--accent)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontFamily: 'var(--serif)',
+            fontWeight: 700,
+            color: 'white',
+            fontSize: '1rem',
+            border: 'none',
+            boxShadow: '0 2px 8px rgba(24,107,94,0.3)',
+            cursor: 'pointer',
+          }}
+        >
+          {initial}
+        </button>
+
+        {menuOpen && (
+          <div style={{
+            position: 'absolute', top: 'calc(100% + 8px)', right: 0,
+            background: 'var(--surface)', border: '1px solid var(--border)',
+            borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+            minWidth: 170, zIndex: 200, overflow: 'hidden',
+          }}>
+            <div style={{ padding: '0.65rem 1rem 0.5rem', borderBottom: '1px solid var(--border)' }}>
+              <p style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text)', margin: 0 }}>{name}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => { setMenuOpen(false); router.push('/account') }}
+              style={menuItemStyle}
+            >
+              Account settings
+            </button>
+            <button
+              type="button"
+              onClick={signOut}
+              style={{ ...menuItemStyle, color: 'var(--accent)', borderTop: '1px solid var(--border)' }}
+            >
+              Sign out
+            </button>
+          </div>
+        )}
       </div>
     </header>
   )
+}
+
+const menuItemStyle: React.CSSProperties = {
+  display: 'block',
+  width: '100%',
+  textAlign: 'left',
+  background: 'none',
+  border: 'none',
+  padding: '0.7rem 1rem',
+  fontSize: '0.85rem',
+  color: 'var(--text)',
+  cursor: 'pointer',
+  fontFamily: 'var(--sans)',
 }

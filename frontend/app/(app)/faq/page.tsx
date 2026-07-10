@@ -38,7 +38,7 @@ const FAQS = [
       },
       {
         q: 'Does my family need to sign up to view a shared memory?',
-        a: 'Yes, we ask family members to create a free account before viewing. We do this so that all the memories you\'ve already saved stay private and protected. Without it, anyone who forwarded the link could access your entire archive.',
+        a: 'Yes. Without an account, anyone who gets forwarded the link could access your entire archive. A free sign-in makes sure only the people you trust can see it.',
       },
       {
         q: 'Can multiple family members add memories to the same collection?',
