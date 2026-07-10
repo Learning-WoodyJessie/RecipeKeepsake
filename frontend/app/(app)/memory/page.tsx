@@ -12,7 +12,7 @@ import { readFavorites, toggleFavorite as toggleFav } from '@/lib/favorites'
 import { buildMemoryShareMessage, toWhatsAppUrl } from '@/lib/share'
 
 type Ingredient = { item: string; quantity: string }
-type MemoryType = 'recipe' | 'song' | 'story' | 'fable' | 'moral'
+type MemoryType = 'recipe' | 'song' | 'story' | 'fable' | 'wisdom' | 'poem'
 type Memory = {
   token: string
   title: string | null

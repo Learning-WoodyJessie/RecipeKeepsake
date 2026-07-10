@@ -4,10 +4,11 @@ import { useRouter } from 'next/navigation'
 import { api } from '@/lib/api'
 
 const TYPE_LABELS: Record<string, string> = {
-  song:  '🎵 Song',
-  story: '📖 Story',
-  fable: '✨ Fable',
-  moral: '🙏 Moral',
+  song:   '🎵 Song',
+  story:  '📖 Story',
+  fable:  '✨ Fable',
+  wisdom: '🙏 Wisdom',
+  poem:   '🖊️ Poem',
 }
 
 type Props = {

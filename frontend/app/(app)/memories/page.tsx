@@ -29,7 +29,8 @@ const AUDIO_TYPE_FILTERS = [
   { value: 'song',      label: '🎵 Songs' },
   { value: 'story',     label: '📖 Stories' },
   { value: 'fable',     label: '✨ Fables' },
-  { value: 'moral',     label: '🙏 Morals' },
+  { value: 'wisdom',    label: '🙏 Wisdom' },
+  { value: 'poem',      label: '🖊️ Poems' },
   { value: 'Favorites', label: '♥ Favorites' },
 ] as const
 
@@ -457,7 +458,7 @@ export default function MemoriesPage() {
     // Filter
     if (filter === 'Favorites') list = list.filter(m => favTokens.includes(m.token))
     else if (filter === 'Recently added') list = list.slice().sort((a, b) => new Date(b.recorded_at).getTime() - new Date(a.recorded_at).getTime())
-    else if (['song', 'story', 'fable', 'moral'].includes(filter)) list = list.filter(m => m.type === filter)
+    else if (['song', 'story', 'fable', 'wisdom', 'poem'].includes(filter)) list = list.filter(m => m.type === filter)
     else if (filter !== 'All') list = list.filter(m => (m.tags ?? []).includes(filter))
     // Sort
     if (sort === 'Recently added') list = list.slice().sort((a, b) => new Date(b.recorded_at).getTime() - new Date(a.recorded_at).getTime())

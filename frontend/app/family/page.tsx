@@ -25,10 +25,11 @@ type PortalData = {
 
 const TYPE_LABELS: Record<string, string> = {
   recipe: '🍲 Recipes',
-  song: '🎵 Songs',
-  story: '📖 Stories',
-  fable: '✨ Fables',
-  moral: '🙏 Morals',
+  song:   '🎵 Songs',
+  story:  '📖 Stories',
+  fable:  '✨ Fables',
+  wisdom: '🙏 Wisdom',
+  poem:   '🖊️ Poems',
 }
 
 function PortalContent() {

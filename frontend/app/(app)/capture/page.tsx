@@ -51,10 +51,11 @@ const TIPS_AUDIO = [
 ]
 
 const MEMORY_TYPES = [
-  { value: 'song',  label: 'Song',  emoji: '🎵' },
-  { value: 'story', label: 'Story', emoji: '📖' },
-  { value: 'fable', label: 'Fable', emoji: '✨' },
-  { value: 'moral', label: 'Moral', emoji: '🙏' },
+  { value: 'song',    label: 'Song',    emoji: '🎵' },
+  { value: 'story',   label: 'Story',   emoji: '📖' },
+  { value: 'fable',   label: 'Fable',   emoji: '✨' },
+  { value: 'wisdom',  label: 'Wisdom',  emoji: '🙏' },
+  { value: 'poem',    label: 'Poem',    emoji: '🖊️' },
 ] as const
 
 function TipsPanel({ mode }: { mode: 'ai' | 'direct' }) {

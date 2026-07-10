@@ -139,7 +139,7 @@ function CassetteHero() {
 export default function UploadPage() {
   const router = useRouter()
   const [mode, setMode] = useState<'ai' | 'direct'>('ai')
-  const [memoryType, setMemoryType] = useState<'song' | 'story' | 'fable' | 'moral'>('song')
+  const [memoryType, setMemoryType] = useState<'song' | 'story' | 'fable' | 'wisdom' | 'poem'>('song')
   const [narrator, setNarrator] = useState('')
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
@@ -290,10 +290,11 @@ export default function UploadPage() {
                 </div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                   {([
-                    { value: 'song',  label: '🎵 Song' },
-                    { value: 'story', label: '📖 Story' },
-                    { value: 'fable', label: '✨ Fable' },
-                    { value: 'moral', label: '🙏 Moral' },
+                    { value: 'song',   label: '🎵 Song' },
+                    { value: 'story',  label: '📖 Story' },
+                    { value: 'fable',  label: '✨ Fable' },
+                    { value: 'wisdom', label: '🙏 Wisdom' },
+                    { value: 'poem',   label: '🖊️ Poem' },
                   ] as const).map(({ value, label }) => (
                     <button
                       key={value}
