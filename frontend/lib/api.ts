@@ -91,6 +91,10 @@ export const api = {
   audio: {
     save: (formData: FormData) => authFetch('/save-audio', { method: 'POST', body: formData }),
   },
+  text: {
+    save: (body: { title: string; text: string; memory_type: string; narrator?: string }) =>
+      authFetch('/save-text', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }),
+  },
   account: {
     delete: () => authFetch('/account', { method: 'DELETE' }),
   },

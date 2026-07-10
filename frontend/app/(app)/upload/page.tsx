@@ -138,7 +138,7 @@ function CassetteHero() {
 
 export default function UploadPage() {
   const router = useRouter()
-  const [mode, setMode] = useState<'ai' | 'direct'>('ai')
+  const [mode, setMode] = useState<'ai' | 'direct' | 'text'>('ai')
   const [memoryType, setMemoryType] = useState<'song' | 'story' | 'fable' | 'wisdom' | 'poem'>('song')
   const [narrator, setNarrator] = useState('')
   const [title, setTitle] = useState('')
@@ -146,6 +146,7 @@ export default function UploadPage() {
   const [draft, setDraft] = useState<any>(null)
   const [audioFile, setAudioFile] = useState<File | null>(null)
   const [directReview, setDirectReview] = useState<{ token: string; transcriptRaw: string; transcriptEnglish: string } | null>(null)
+  const [textContent, setTextContent] = useState('')
   const [processing, setProcessing] = useState(false)
   const [error, setError] = useState('')
   const [dragOver, setDragOver] = useState(false)
@@ -181,6 +182,31 @@ export default function UploadPage() {
     if (description.trim()) form.append('description', description.trim())
     try {
       const result = await api.audio.save(form) as { token: string; transcript_raw?: string; transcript_english?: string }
+      setDirectReview({
+        token: result.token,
+        transcriptRaw: result.transcript_raw ?? '',
+        transcriptEnglish: result.transcript_english ?? '',
+      })
+    } catch (e: unknown) {
+      setError((e as Error).message)
+    } finally {
+      setProcessing(false)
+    }
+  }
+
+  // Text paste mode
+  async function handleTextSave() {
+    if (!title.trim()) { setError('Please enter a title first.'); return }
+    if (!textContent.trim()) { setError('Please paste some text first.'); return }
+    setProcessing(true)
+    setError('')
+    try {
+      const result = await api.text.save({
+        title: title.trim(),
+        text: textContent.trim(),
+        memory_type: memoryType,
+        narrator: narrator || undefined,
+      }) as { token: string; transcript_raw?: string; transcript_english?: string }
       setDirectReview({
         token: result.token,
         transcriptRaw: result.transcript_raw ?? '',
@@ -246,38 +272,45 @@ export default function UploadPage() {
           <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
             <CassetteHero />
             <h1 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.5rem, 3vw, 2rem)', fontWeight: 700, color: 'var(--text)', marginBottom: '0.65rem', lineHeight: 1.2 }}>
-              {mode === 'direct' ? 'Preserve a song or poem forever' : 'Bring grandma’s voice back to life'}
+              {mode === 'direct' ? 'Preserve a song or poem forever' : mode === 'text' ? 'Save their words, forever' : "Bring grandma's voice back to life"}
             </h1>
             <p style={{ color: 'var(--muted)', fontSize: '0.9rem', lineHeight: 1.6, maxWidth: 440, margin: '0 auto' }}>
               {mode === 'direct'
                 ? <>Upload the audio and we&apos;ll keep it safe,<br />just as it was recorded.</>
+                : mode === 'text'
+                ? <>Paste a poem, proverb, blessing, or story.<br />We&apos;ll translate it and keep it forever.</>
                 : <>Upload a recording and we&apos;ll turn it into<br />a recipe memory you can keep forever.</>}
             </p>
           </div>
 
           {/* Mode tabs */}
           <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', background: 'var(--cream2)', borderRadius: 12, padding: '0.3rem' }}>
-            {(['ai', 'direct'] as const).map((m) => (
+            {([
+              { value: 'ai',     label: '🎙 Their recipe' },
+              { value: 'direct', label: '🎵 Their voice' },
+              { value: 'text',   label: '✍️ Their words' },
+            ] as const).map(({ value, label }) => (
               <button
-                key={m}
+                key={value}
                 type="button"
-                onClick={() => { setMode(m); setError('') }}
+                onClick={() => { setMode(value); setError('') }}
                 style={{
                   flex: 1,
-                  padding: '0.6rem 1rem',
+                  padding: '0.6rem 0.75rem',
                   borderRadius: 10,
                   border: 'none',
                   cursor: 'pointer',
                   fontFamily: 'var(--sans)',
                   fontWeight: 600,
-                  fontSize: '0.85rem',
-                  background: mode === m ? 'var(--accent)' : 'transparent',
-                  color: mode === m ? 'white' : 'var(--muted)',
-                  boxShadow: mode === m ? '0 2px 8px rgba(45,27,14,0.15)' : 'none',
+                  fontSize: '0.82rem',
+                  background: mode === value ? 'var(--accent)' : 'transparent',
+                  color: mode === value ? 'white' : 'var(--muted)',
+                  boxShadow: mode === value ? '0 2px 8px rgba(45,27,14,0.15)' : 'none',
                   transition: 'all 0.15s',
+                  whiteSpace: 'nowrap',
                 }}
               >
-                {m === 'ai' ? '🎙 Their recipe' : '🎵 Their voice'}
+                {label}
               </button>
             ))}
           </div>
@@ -364,15 +397,134 @@ export default function UploadPage() {
             </>
           )}
 
-          {/* Narrator / Author picker */}
+          {mode === 'text' && (
+            <>
+              <div style={{ marginBottom: '1.25rem' }}>
+                <div style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--muted)', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>
+                  Type
+                </div>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  {([
+                    { value: 'song',   label: '🎵 Song' },
+                    { value: 'story',  label: '📖 Story' },
+                    { value: 'fable',  label: '✨ Fable' },
+                    { value: 'wisdom', label: '🙏 Wisdom' },
+                    { value: 'poem',   label: '🖊️ Poem' },
+                  ] as const).map(({ value, label }) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => setMemoryType(value)}
+                      style={{
+                        padding: '6px 14px',
+                        borderRadius: 20,
+                        border: '1px solid var(--border)',
+                        background: memoryType === value ? 'var(--accent)' : 'transparent',
+                        color: memoryType === value ? 'white' : 'var(--muted)',
+                        fontSize: 13,
+                        cursor: 'pointer',
+                        fontFamily: 'var(--sans)',
+                      }}
+                    >{label}</button>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '1.25rem' }}>
+                <div style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--muted)', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>
+                  Title *
+                </div>
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="e.g. Amma's blessing, Telugu new year poem…"
+                  style={{
+                    width: '100%',
+                    border: '1px solid var(--border)',
+                    borderRadius: 10,
+                    padding: '0.65rem 0.85rem',
+                    fontSize: '0.9rem',
+                    fontFamily: 'var(--sans)',
+                    background: 'var(--surface)',
+                    color: 'var(--text)',
+                    boxSizing: 'border-box',
+                  }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '1.25rem' }}>
+                <div style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--muted)', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>
+                  Author
+                </div>
+                <NarratorChip selected={narrator} onSelect={setNarrator} />
+              </div>
+
+              <div style={{ marginBottom: '1.25rem' }}>
+                <div style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--muted)', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>
+                  Text *
+                </div>
+                <textarea
+                  value={textContent}
+                  onChange={(e) => setTextContent(e.target.value)}
+                  placeholder="Paste or type the poem, song lyrics, proverb, or story here…"
+                  rows={8}
+                  style={{
+                    width: '100%',
+                    border: '1px solid var(--border)',
+                    borderRadius: 10,
+                    padding: '0.65rem 0.85rem',
+                    fontSize: '0.9rem',
+                    fontFamily: 'var(--sans)',
+                    background: 'var(--surface)',
+                    color: 'var(--text)',
+                    resize: 'vertical',
+                    boxSizing: 'border-box',
+                    lineHeight: 1.6,
+                  }}
+                />
+              </div>
+
+              {error && (
+                <p style={{ color: 'var(--accent)', marginBottom: '0.75rem', fontSize: '0.82rem' }}>{error}</p>
+              )}
+
+              <button
+                type="button"
+                disabled={processing}
+                onClick={handleTextSave}
+                style={{
+                  width: '100%',
+                  padding: '0.8rem 1.5rem',
+                  borderRadius: 12,
+                  border: 'none',
+                  background: processing ? 'var(--muted)' : 'var(--accent)',
+                  color: 'white',
+                  fontFamily: 'var(--sans)',
+                  fontWeight: 700,
+                  fontSize: '0.95rem',
+                  cursor: processing ? 'default' : 'pointer',
+                  marginBottom: '1rem',
+                }}
+              >
+                {processing ? '✨ Translating and saving…' : '✍️ Save this memory'}
+              </button>
+            </>
+          )}
+
+          {/* Narrator / Author picker — ai and direct modes only */}
+          {mode !== 'text' && (
           <div style={{ marginBottom: '1.25rem' }}>
             <div style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--muted)', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>
               {mode === 'direct' ? 'Author' : 'Who is narrating?'}
             </div>
             <NarratorChip selected={narrator} onSelect={setNarrator} />
           </div>
+          )}
 
-          {/* Drop zone */}
+          {/* Drop zone + formats + privacy — audio modes only */}
+          {mode !== 'text' && (
+          <>
           <label
             style={{
               display: 'block',
@@ -445,13 +597,15 @@ export default function UploadPage() {
               <p style={{ fontSize: '0.8rem', color: 'var(--muted)', lineHeight: 1.5 }}>Only you and your family can access these memories.</p>
             </div>
           </div>
+          </>
+          )}
         </div>
 
         {/* ── Tips sidebar ── */}
         <aside>
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 18, padding: '1.35rem 1.25rem', boxShadow: '0 4px 16px rgba(45,27,14,0.05)' }}>
             <h3 style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '1rem', color: 'var(--text)', marginBottom: '1.15rem' }}>
-              {mode === 'direct' ? 'How it works' : 'Tips for the best results'}
+              {mode === 'text' ? 'Tips for text memories' : mode === 'direct' ? 'How it works' : 'Tips for the best results'}
             </h3>
             {(mode === 'direct' ? TIPS_AUDIO : TIPS_RECIPE).map((tip) => (
               <div key={tip.title} style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.1rem' }}>
