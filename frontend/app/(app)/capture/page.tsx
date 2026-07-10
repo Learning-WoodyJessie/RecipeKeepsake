@@ -90,17 +90,28 @@ export default function CapturePage() {
   const fmt = (s: number) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`
 
   async function startRecording() {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true }).catch(() => null)
-    if (!stream) { setError('Microphone access denied'); setStage('error'); return }
-    const mr = new MediaRecorder(stream, { mimeType: 'audio/webm' })
-    mrRef.current = mr
-    chunksRef.current = []
-    mr.ondataavailable = e => { if (e.data.size > 0) chunksRef.current.push(e.data) }
-    mr.onstop = () => { stream.getTracks().forEach(t => t.stop()); processAudio(new Blob(chunksRef.current, { type: 'audio/webm' })) }
-    mr.start()
-    setStage('recording')
-    setDuration(0)
-    timerRef.current = setInterval(() => setDuration(d => d + 1), 1000)
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true }).catch(() => null)
+      if (!stream) { setError('Microphone access denied. Please allow microphone access and try again.'); setStage('error'); return }
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm')
+        ? 'audio/webm'
+        : MediaRecorder.isTypeSupported('audio/mp4')
+        ? 'audio/mp4'
+        : ''
+      const mr = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream)
+      const blobType = mimeType || 'audio/webm'
+      mrRef.current = mr
+      chunksRef.current = []
+      mr.ondataavailable = e => { if (e.data.size > 0) chunksRef.current.push(e.data) }
+      mr.onstop = () => { stream.getTracks().forEach(t => t.stop()); processAudio(new Blob(chunksRef.current, { type: blobType })) }
+      mr.start()
+      setStage('recording')
+      setDuration(0)
+      timerRef.current = setInterval(() => setDuration(d => d + 1), 1000)
+    } catch (e: unknown) {
+      setError((e as Error).message || 'Could not start recording. Please try again.')
+      setStage('error')
+    }
   }
 
   function stopRecording() {
@@ -110,8 +121,9 @@ export default function CapturePage() {
   }
 
   async function processAudio(blob: Blob) {
+    const ext = blob.type.includes('mp4') ? 'mp4' : 'webm'
     const form = new FormData()
-    form.append('audio', blob, 'recording.webm')
+    form.append('audio', blob, `recording.${ext}`)
     if (narrator) form.append('narrator', narrator)
     try {
       const result = await api.capture.process(form)
