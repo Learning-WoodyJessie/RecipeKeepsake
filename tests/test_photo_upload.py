@@ -22,18 +22,6 @@ async def _auth_u2():
 # ── Chunk 1.3 — POST /memories/{token}/photo endpoint ────────────────────────
 
 class TestUploadMemoryPhotoEndpoint:
-    def _client(self, recipe_data, user_fn=_auth_u1):
-        mock_sb = MagicMock()
-        mock_sb.table("recipes").select("*").eq("token", recipe_data["token"]).single().execute.return_value = \
-            MagicMock(data=recipe_data)
-        mock_sb.table("recipes").update(MagicMock()).eq("token", recipe_data["token"]).execute.return_value = \
-            MagicMock(data=[recipe_data])
-        mock_sb.storage.from_("memory-photos").upload.return_value = None
-        mock_sb.storage.from_("memory-photos").get_public_url.return_value = "https://sb.io/photo.jpg"
-        app.dependency_overrides[require_auth] = user_fn
-        client = TestClient(app)
-        return client, mock_sb
-
     def teardown_method(self):
         app.dependency_overrides.pop(require_auth, None)
 
