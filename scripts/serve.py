@@ -183,6 +183,8 @@ def _validate_audio_upload(audio: UploadFile, data: bytes) -> None:
         )
 
 
+# ── Image upload validation ───────────────────────────────────────────────────
+
 # Maximum photo upload size (bytes). 8 MB comfortably covers a phone camera photo.
 _MAX_IMAGE_BYTES = int(os.environ.get("MAX_IMAGE_UPLOAD_BYTES", str(8 * 1024 * 1024)))
 
@@ -230,6 +232,20 @@ def _decode_photo_data(photo_data: str) -> tuple[bytes, str, str]:
 
     ext, content_type = _sniff_image(data)
     return data, ext, content_type
+
+
+_ALLOWED_IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".webp", ".heic"}
+
+
+def _validate_image_upload(photo: UploadFile, data: bytes) -> None:
+    """Raise HTTP 400/413 for multipart image uploads that look unsafe."""
+    ext = Path(photo.filename or "").suffix.lower()
+    if ext not in _ALLOWED_IMAGE_EXTS:
+        raise HTTPException(status_code=400, detail=f"Unsupported file type '{ext}'. Upload JPEG, PNG, WebP, or HEIC.")
+    if len(data) > _MAX_IMAGE_BYTES:
+        mb = _MAX_IMAGE_BYTES // (1024 * 1024)
+        raise HTTPException(status_code=413, detail=f"Photo too large. Maximum size is {mb} MB.")
+    _sniff_image(data)  # raises HTTP 400 if not a recognised image format
 
 
 # ── Content moderation ────────────────────────────────────────────────────────
@@ -1115,6 +1131,34 @@ async def delete_recipe_endpoint(token: str, user: dict = Depends(require_auth))
         return JSONResponse(content={"deleted": token})
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/memories/{token}/photo")
+async def upload_memory_photo_endpoint(
+    token: str,
+    photo: UploadFile = File(...),
+    user: dict = Depends(require_auth),
+):
+    """Attach or replace a user photo on any memory. Validates, uploads to storage, patches image_url."""
+    data = await photo.read()
+    _validate_image_upload(photo, data)
+
+    check_rate_limit_db(_user_id(user), "image")
+
+    from tools.storage import get_recipe_by_token, patch_recipe, upload_memory_photo
+    try:
+        recipe = get_recipe_by_token(token)
+    except Exception:
+        raise HTTPException(status_code=404, detail="Memory not found")
+
+    if recipe.get("user_id") != _user_id(user):
+        raise HTTPException(status_code=403, detail="Not your memory")
+
+    content_type = photo.content_type or "image/jpeg"
+    image_url = upload_memory_photo(data, content_type)
+    patch_recipe(token, {"image_url": image_url})
+
+    return JSONResponse(content={"image_url": image_url})
 
 
 _TRANSLATE_SUPPORTED = {"en", "te", "hi", "kn", "es", "fr"}

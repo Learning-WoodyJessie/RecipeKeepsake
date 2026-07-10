@@ -95,6 +95,13 @@ export const api = {
     save: (body: { title: string; text: string; memory_type: string; narrator?: string }) =>
       authFetch('/save-text', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }),
   },
+  memories: {
+    async uploadPhoto(token: string, file: File): Promise<{ image_url: string }> {
+      const form = new FormData()
+      form.append('photo', file)
+      return authFetch(`/memories/${token}/photo`, { method: 'POST', body: form })
+    },
+  },
   account: {
     delete: () => authFetch('/account', { method: 'DELETE' }),
   },

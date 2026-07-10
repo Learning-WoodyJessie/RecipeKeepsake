@@ -51,6 +51,8 @@ export default function ReviewWizard({ draft, audioFile, narrator: narratorProp,
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [transcriptOpen, setTranscriptOpen] = useState(false)
+  const [photoFile, setPhotoFile] = useState<File | null>(null)
+  const [photoPreview, setPhotoPreview] = useState<string | null>(draft.image_url ?? null)
 
   async function save() {
     setSaving(true)
@@ -61,6 +63,16 @@ export default function ReviewWizard({ draft, audioFile, narrator: narratorProp,
       form.append('recipe', JSON.stringify(recipe))
       form.append('narrator', narrator)
       const saved = await api.capture.save(form)
+      if (photoFile) {
+        try {
+          await api.memories.uploadPhoto(saved.token, photoFile)
+        } catch {
+          setError('Memory saved, but photo upload failed. You can try again from the memory page.')
+          setSaving(false)
+          router.push(`/memory?token=${saved.token}&justSaved=1`)
+          return
+        }
+      }
       router.push(`/memory?token=${saved.token}&justSaved=1`)
     } catch (e: unknown) { setError((e as Error).message); setSaving(false) }
   }
@@ -233,6 +245,46 @@ export default function ReviewWizard({ draft, audioFile, narrator: narratorProp,
         <button onClick={() => setSteps([...steps, ''])} style={{ fontSize: '0.8rem', color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', marginTop: '0.25rem', fontWeight: 600 }}>
           + Add step
         </button>
+      </div>
+
+      {/* Photo — optional */}
+      <div style={{ marginBottom: '1.5rem' }}>
+        <div style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--muted)', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>
+          Photo <span style={{ fontWeight: 400, opacity: 0.6 }}>optional</span>
+        </div>
+        <input
+          id="rw-photo-input"
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          style={{ display: 'none' }}
+          onChange={e => {
+            const f = e.target.files?.[0]
+            if (!f) return
+            setPhotoFile(f)
+            setPhotoPreview(URL.createObjectURL(f))
+          }}
+        />
+        {photoPreview ? (
+          <div style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', height: 140, background: 'var(--cream2)' }}>
+            <img src={photoPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <button
+              type="button"
+              onClick={() => (document.getElementById('rw-photo-input') as HTMLInputElement)?.click()}
+              style={{ position: 'absolute', bottom: 8, right: 8, background: 'rgba(0,0,0,0.55)', border: 'none', borderRadius: 8, padding: '4px 10px', color: '#fff', fontSize: '0.78rem', cursor: 'pointer' }}
+            >
+              Replace
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => (document.getElementById('rw-photo-input') as HTMLInputElement)?.click()}
+            style={{ width: '100%', padding: '1.25rem', border: '1.5px dashed var(--border2)', borderRadius: 10, background: 'none', cursor: 'pointer', color: 'var(--muted)', fontSize: '0.85rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}
+          >
+            <span>Add a photo</span>
+            <span style={{ fontSize: '0.7rem' }}>JPEG, PNG or WebP · up to 5 MB</span>
+          </button>
+        )}
       </div>
 
       {error && (

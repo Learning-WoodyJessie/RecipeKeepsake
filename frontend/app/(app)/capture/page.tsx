@@ -195,28 +195,33 @@ function CapturePageInner() {
   }, [])
 
   async function startRecording() {
-    if (mode === 'direct' && !title.trim()) { setError('Please enter a title before recording.'); return }
-    setError('')
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true }).catch(() => null)
-    if (!stream) { setError('Microphone access denied'); setStage('error'); return }
-    const { mimeType, ext } = pickMimeType()
-    extRef.current = ext
-    const mr = new MediaRecorder(stream, mimeType ? { mimeType } : {})
-    mrRef.current = mr
-    chunksRef.current = []
-    startLevelMeter(stream)
-    mr.ondataavailable = e => { if (e.data.size > 0) chunksRef.current.push(e.data) }
-    mr.onstop = () => {
-      stream.getTracks().forEach(t => t.stop())
-      stopLevelMeter()
-      const blob = new Blob(chunksRef.current, { type: mr.mimeType })
-      if (mode === 'direct') saveAudioDirect(blob)
-      else processAudio(blob)
+    try {
+      if (mode === 'direct' && !title.trim()) { setError('Please enter a title before recording.'); return }
+      setError('')
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true }).catch(() => null)
+      if (!stream) { setError('Microphone access denied. Please allow microphone access and try again.'); setStage('error'); return }
+      const { mimeType, ext } = pickMimeType()
+      extRef.current = ext
+      const mr = new MediaRecorder(stream, mimeType ? { mimeType } : {})
+      mrRef.current = mr
+      chunksRef.current = []
+      startLevelMeter(stream)
+      mr.ondataavailable = e => { if (e.data.size > 0) chunksRef.current.push(e.data) }
+      mr.onstop = () => {
+        stream.getTracks().forEach(t => t.stop())
+        stopLevelMeter()
+        const blob = new Blob(chunksRef.current, { type: mr.mimeType })
+        if (mode === 'direct') saveAudioDirect(blob)
+        else processAudio(blob)
+      }
+      mr.start()
+      setStage('recording')
+      setDuration(0)
+      timerRef.current = setInterval(() => setDuration(d => d + 1), 1000)
+    } catch (e: unknown) {
+      setError((e as Error).message || 'Could not start recording. Please try again.')
+      setStage('error')
     }
-    mr.start()
-    setStage('recording')
-    setDuration(0)
-    timerRef.current = setInterval(() => setDuration(d => d + 1), 1000)
   }
 
   function stopRecording() {
@@ -226,6 +231,7 @@ function CapturePageInner() {
   }
 
   async function processAudio(blob: Blob) {
+    const ext = blob.type.includes('mp4') ? 'mp4' : 'webm'
     const form = new FormData()
     const filename = `recording${extRef.current}`
     form.append('audio', blob, filename)
