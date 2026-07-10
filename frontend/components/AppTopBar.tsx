@@ -4,13 +4,15 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 
+function cap(s: string) { return s.charAt(0).toUpperCase() + s.slice(1) }
+
 function displayName(user: { user_metadata?: Record<string, unknown>; email?: string } | null): string {
   if (!user) return 'friend'
   const meta = user.user_metadata ?? {}
   const full = meta.full_name ?? meta.name
-  if (typeof full === 'string' && full.trim()) return full.split(' ')[0] ?? full
+  if (typeof full === 'string' && full.trim()) return cap(full.split(' ')[0] ?? full)
   const email = user.email
-  if (email) return email.split('@')[0] ?? 'friend'
+  if (email) return cap(email.split('@')[0] ?? 'friend')
   return 'friend'
 }
 
