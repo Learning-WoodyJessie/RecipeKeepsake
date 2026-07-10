@@ -155,7 +155,7 @@ function FamilyGroupSection() {
       <h2 style={{ color: 'var(--accent)', fontWeight: 600, marginBottom: '0.5rem', fontSize: '1rem' }}>Family Group</h2>
       <p style={{ color: 'var(--text2)', fontSize: '0.85rem', marginBottom: '1.25rem', lineHeight: 1.6 }}>
         Create a group so your whole family can share and browse memories together.
-        Share the invite link in your WhatsApp group — anyone who clicks it can join.
+        Share the invite link in your WhatsApp group. Anyone who clicks it can join.
       </p>
       {error && <p style={{ color: 'var(--accent)', fontSize: '0.82rem', marginBottom: '0.75rem' }}>{error}</p>}
       <div style={{ display: 'flex', gap: '0.5rem' }}>

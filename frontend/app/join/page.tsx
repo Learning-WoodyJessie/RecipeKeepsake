@@ -60,7 +60,7 @@ function JoinContent() {
         You've been invited to a family memory group
       </p>
       <p style={{ color: 'var(--muted)', marginBottom: '2rem', lineHeight: 1.6, fontSize: '0.9rem' }}>
-        Sign in or create an account to join — then you'll be able to record
+        Sign in or create an account to join, then you'll be able to record
         and browse memories with your whole family.
       </p>
       <a

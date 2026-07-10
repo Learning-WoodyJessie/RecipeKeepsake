@@ -87,7 +87,7 @@ function PortalContent() {
           {data.group.name}
         </h1>
         <p style={{ color: 'var(--muted)', marginTop: 8, fontSize: 15 }}>
-          Family memories — shared with love
+          Family memories, shared with love
         </p>
       </div>
 
