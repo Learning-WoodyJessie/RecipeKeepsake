@@ -44,6 +44,9 @@ function MemoryDetail() {
   const [deleting, setDeleting] = useState(false)
   const [category, setCategory] = useState('')
   const [savingCategory, setSavingCategory] = useState(false)
+  const [photoUploading, setPhotoUploading] = useState(false)
+  const [photoError, setPhotoError] = useState('')
+  const [localImageUrl, setLocalImageUrl] = useState<string | null>(null)
 
   useEffect(() => {
     if (!token) { router.replace('/memories'); return }
@@ -74,6 +77,23 @@ function MemoryDetail() {
     try { await api.recipes.patch(token, { tags: newCategory ? [newCategory] : [] }) }
     catch (e: unknown) { setError((e as Error).message) }
     finally { setSavingCategory(false) }
+  }
+
+  async function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file || !token) return
+    setLocalImageUrl(URL.createObjectURL(file))
+    setPhotoUploading(true)
+    setPhotoError('')
+    try {
+      const { image_url } = await api.memories.uploadPhoto(token, file)
+      setLocalImageUrl(image_url)
+    } catch (err: unknown) {
+      setLocalImageUrl(null)
+      setPhotoError((err as Error).message)
+    } finally {
+      setPhotoUploading(false)
+    }
   }
 
   async function deleteMemory() {
@@ -140,11 +160,36 @@ function MemoryDetail() {
         <LanguageSwitcher token={token} onTranslated={setTranslated} />
       </div>
 
-      {memory.image_url && (
-        <div style={{ borderRadius: 14, overflow: 'hidden', marginBottom: '1.25rem', aspectRatio: '16/9', background: 'var(--cream2)' }}>
-          <img src={memory.image_url} alt={(display as Memory).dish_name ?? ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-        </div>
-      )}
+      {/* Photo section */}
+      <div style={{ marginBottom: '1.25rem' }}>
+        <input id="detail-photo-input" type="file" accept="image/jpeg,image/png,image/webp" style={{ display: 'none' }} onChange={handlePhotoChange} />
+        {(localImageUrl ?? memory.image_url) ? (
+          <div>
+            <div style={{ borderRadius: 14, overflow: 'hidden', aspectRatio: '16/9', background: 'var(--cream2)', opacity: photoUploading ? 0.5 : 1, transition: 'opacity 0.2s' }}>
+              <img src={localImageUrl ?? memory.image_url ?? ''} alt={(display as Memory).dish_name ?? ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            </div>
+            <button
+              type="button"
+              onClick={() => (document.getElementById('detail-photo-input') as HTMLInputElement)?.click()}
+              disabled={photoUploading}
+              style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 6, padding: '5px 12px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface)', cursor: 'pointer', fontSize: '0.78rem', color: 'var(--text2)' }}
+            >
+              {photoUploading ? 'Uploading…' : 'Change photo'}
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => (document.getElementById('detail-photo-input') as HTMLInputElement)?.click()}
+            disabled={photoUploading}
+            style={{ width: '100%', padding: '1.25rem', border: '1.5px dashed var(--border2)', borderRadius: 12, background: 'none', cursor: 'pointer', color: 'var(--muted)', fontSize: '0.85rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}
+          >
+            <span>Add a photo</span>
+            <span style={{ fontSize: '0.7rem' }}>JPEG, PNG or WebP · up to 5 MB</span>
+          </button>
+        )}
+        {photoError && <div style={{ marginTop: 6, fontSize: '0.78rem', color: 'var(--accent)' }}>{photoError}</div>}
+      </div>
 
       {(display as Memory).cook_notes && (
         <div style={{ background: 'var(--accent-light)', border: '1px solid var(--border2)', borderLeft: '3px solid var(--accent)', borderRadius: 10, padding: '0.85rem 1rem', marginBottom: '1.25rem', fontStyle: 'italic', color: 'var(--text2)', fontSize: '0.88rem', lineHeight: 1.6 }}>
