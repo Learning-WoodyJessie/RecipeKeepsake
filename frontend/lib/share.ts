@@ -1,7 +1,7 @@
 type MemoryType = 'recipe' | 'song' | 'story' | 'fable' | 'moral'
 
 const EN: Record<MemoryType, (narrator: string, title: string) => string> = {
-  recipe: (n, t) => `${n} recorded her ${t} recipe in her own voice 🎙️`,
+  recipe: (n, t) => `${n} recorded her ${t} recipe in her own voice 🎤`,
   song:   (n, t) => `${n} singing ${t} — listen here 🎵`,
   story:  (n, t) => `${n} shares a story: ${t} 📖`,
   fable:  (n, t) => `${n} tells a fable: ${t} ✨`,
@@ -9,7 +9,7 @@ const EN: Record<MemoryType, (narrator: string, title: string) => string> = {
 }
 
 const TE: Record<MemoryType, (narrator: string, title: string) => string> = {
-  recipe: (n, t) => `${n} ${t} రెసిపీని తన స్వంత గొంతుతో చెప్పారు 🎙️`,
+  recipe: (n, t) => `${n} ${t} రెసిపీని తన స్వంత గొంతుతో చెప్పారు 🎤`,
   song:   (n, t) => `${n} ${t} పాడారు — ఇక్కడ వినండి 🎵`,
   story:  (n, t) => `${n} ఒక కథ చెప్పారు: ${t} 📖`,
   fable:  (n, t) => `${n} ఒక నీతి కథ చెప్పారు: ${t} ✨`,
