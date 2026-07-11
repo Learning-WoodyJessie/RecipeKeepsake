@@ -1057,12 +1057,12 @@ async def list_family_recipes_endpoint(user: dict = Depends(require_auth)):
 
 @app.get("/portal/{portal_token}")
 async def get_portal_endpoint(portal_token: str):
-    """Public endpoint — no auth required. Returns group name + portal_visible recipes."""
-    from tools.groups import get_portal_group, list_portal_recipes
+    """Public endpoint — no auth required. Returns group name + all group recipes."""
+    from tools.groups import get_portal_group, list_group_recipes
     group = get_portal_group(portal_token)
     if not group:
         raise HTTPException(status_code=404, detail="Portal not found.")
-    recipes = list_portal_recipes(group["id"])
+    recipes = list_group_recipes(group["id"])
     return JSONResponse(content={
         "group_name": group["name"],
         "recipes": recipes,
