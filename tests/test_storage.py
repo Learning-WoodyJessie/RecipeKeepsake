@@ -2,6 +2,7 @@ from unittest.mock import patch, MagicMock
 import tools.storage as _storage_mod
 from tools.storage import insert_recipe, get_recipe_by_token, list_recipes, store_image
 from tools.storage import list_people, create_person, update_person, delete_person, delete_account
+from tools.storage import count_memories, is_pro_user, FREE_MEMORY_LIMIT
 
 
 class TestSupabaseSingleton:
@@ -212,3 +213,53 @@ class TestDeleteAccount:
             sb.table.return_value.select.return_value.eq.return_value.order.return_value.execute.return_value.data = []
             delete_account("u1")
         assert sb.table.call_count >= 2
+
+
+class TestCountMemories:
+    def test_returns_count_from_supabase(self):
+        """count_memories() returns the exact count Supabase reports."""
+        with patch("tools.storage._client") as mock_client:
+            sb = MagicMock()
+            mock_client.return_value = sb
+            sb.table.return_value.select.return_value.eq.return_value.execute.return_value.count = 7
+            assert count_memories("u1") == 7
+
+    def test_returns_zero_when_count_is_none(self):
+        """count_memories() returns 0 when Supabase returns count=None."""
+        with patch("tools.storage._client") as mock_client:
+            sb = MagicMock()
+            mock_client.return_value = sb
+            sb.table.return_value.select.return_value.eq.return_value.execute.return_value.count = None
+            assert count_memories("u1") == 0
+
+
+class TestIsProUser:
+    def test_returns_true_when_profile_is_pro(self):
+        """is_pro_user() returns True when profiles row has is_pro=True."""
+        with patch("tools.storage._client") as mock_client:
+            sb = MagicMock()
+            mock_client.return_value = sb
+            sb.table.return_value.select.return_value.eq.return_value.execute.return_value.data = [{"is_pro": True}]
+            assert is_pro_user("u1") is True
+
+    def test_returns_false_when_profile_is_not_pro(self):
+        """is_pro_user() returns False when profiles row has is_pro=False."""
+        with patch("tools.storage._client") as mock_client:
+            sb = MagicMock()
+            mock_client.return_value = sb
+            sb.table.return_value.select.return_value.eq.return_value.execute.return_value.data = [{"is_pro": False}]
+            assert is_pro_user("u1") is False
+
+    def test_returns_false_when_no_profile_row(self):
+        """is_pro_user() returns False when user has no profiles row."""
+        with patch("tools.storage._client") as mock_client:
+            sb = MagicMock()
+            mock_client.return_value = sb
+            sb.table.return_value.select.return_value.eq.return_value.execute.return_value.data = []
+            assert is_pro_user("u1") is False
+
+
+class TestFreeMemoryLimit:
+    def test_limit_is_ten(self):
+        """FREE_MEMORY_LIMIT is 10."""
+        assert FREE_MEMORY_LIMIT == 10

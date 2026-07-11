@@ -515,7 +515,23 @@ function CapturePageInner() {
               </div>
             )}
 
-            {stage === 'error' && (
+            {stage === 'error' && error === 'memory_cap_reached' && (
+              <div style={{ padding: '1.25rem', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, textAlign: 'center' }}>
+                <p style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>🔒</p>
+                <p style={{ fontWeight: 600, color: 'var(--text)', marginBottom: '0.35rem' }}>You've reached 10 memories</p>
+                <p style={{ fontSize: 13, color: 'var(--muted)', marginBottom: '1rem', lineHeight: 1.5 }}>
+                  Unlimited storage is coming soon. Join the waitlist and we'll let you know first.
+                </p>
+                <a
+                  href="mailto:hello@theechoesofhome.com?subject=Unlimited memories waitlist"
+                  style={{ display: 'inline-block', padding: '0.6rem 1.4rem', background: 'var(--accent)', color: 'white', borderRadius: 10, fontSize: 14, fontWeight: 600, textDecoration: 'none' }}
+                >
+                  Join the waitlist
+                </a>
+              </div>
+            )}
+
+            {stage === 'error' && error !== 'memory_cap_reached' && (
               <div style={{ padding: '1rem 0' }}>
                 <p style={{ color: 'var(--accent)', marginBottom: '1rem', fontSize: '0.9rem' }}>{error}</p>
                 <button onClick={() => { setStage('idle'); setError('') }} style={{ background: 'var(--accent)', color: 'white', border: 'none', borderRadius: 10, padding: '0.6rem 1.5rem', cursor: 'pointer', fontWeight: 600 }}>Try again</button>

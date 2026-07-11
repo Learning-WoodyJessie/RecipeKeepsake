@@ -110,6 +110,13 @@ def _check_rate_limit_db_or_raise(user_id: str, endpoint: str, limit: int) -> No
         )
 
 
+def _check_memory_cap_or_raise(user_id: str) -> None:
+    """Raise 403 if a free user has reached the FREE_MEMORY_LIMIT."""
+    from tools.storage import count_memories, is_pro_user, FREE_MEMORY_LIMIT
+    if not is_pro_user(user_id) and count_memories(user_id) >= FREE_MEMORY_LIMIT:
+        raise HTTPException(status_code=403, detail="memory_cap_reached")
+
+
 # ── Upload safety ─────────────────────────────────────────────────────────────
 
 # Maximum audio file size accepted (bytes). 25 MB covers ~2 h of compressed audio.
@@ -500,6 +507,7 @@ async def capture_endpoint(audio: UploadFile = File(...), user: dict = Depends(r
     Returns saved recipe JSON. Use /capture/process for review-before-save flow.
     """
     _check_rate_limit_db_or_raise(_user_id(user), "capture", _LIMITS["capture"])
+    _check_memory_cap_or_raise(_user_id(user))
     if not os.environ.get("OPENAI_API_KEY"):
         raise HTTPException(status_code=500, detail="OPENAI_API_KEY not set")
 
@@ -637,6 +645,7 @@ async def capture_save_endpoint(
     Stage 3 only: save a reviewed + edited recipe to Supabase.
     Receives: audio file + recipe JSON string (edited by user) + narrator name.
     """
+    _check_memory_cap_or_raise(_user_id(user))
     try:
         recipe_dict = _json.loads(recipe)
     except Exception:
@@ -718,6 +727,7 @@ async def save_audio_endpoint(
     At least one of `audio` or `original_text`/`description` must be given —
     an entry with no audio and no text would have nothing to preserve.
     """
+    _check_memory_cap_or_raise(_user_id(user))
     if not os.environ.get("SUPABASE_URL") or not os.environ.get("SUPABASE_SERVICE_KEY"):
         raise HTTPException(status_code=500, detail="Supabase not configured")
 
@@ -804,6 +814,7 @@ class SaveTextRequest(BaseModel):
 @app.post("/save-text")
 async def save_text_endpoint(body: SaveTextRequest, user: dict = Depends(require_auth)):
     user_id = _user_id(user)
+    _check_memory_cap_or_raise(user_id)
     if not body.title.strip():
         raise HTTPException(status_code=400, detail="title is required")
     if not body.text.strip():

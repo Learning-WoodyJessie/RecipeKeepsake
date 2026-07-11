@@ -119,6 +119,21 @@ def upload_audio(local_path: str, filename: str) -> str:
     return filename
 
 
+FREE_MEMORY_LIMIT = 10
+
+
+def count_memories(user_id: str) -> int:
+    """Return the number of memories saved by this user."""
+    result = _client().table("memories").select("id", count="exact").eq("user_id", user_id).execute()
+    return result.count or 0
+
+
+def is_pro_user(user_id: str) -> bool:
+    """Return True if the user has an active pro profile row."""
+    rows = _client().table("profiles").select("is_pro").eq("user_id", user_id).execute().data
+    return bool(rows and rows[0].get("is_pro"))
+
+
 def insert_recipe(recipe: dict) -> dict:
     """Insert a recipe row into Supabase. Returns the saved row with id + token."""
     result = _client().table("memories").insert(recipe).execute()
