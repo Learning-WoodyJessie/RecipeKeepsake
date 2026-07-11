@@ -17,9 +17,9 @@ type PortalMemory = {
   tags?: string[]
   type?: string
   recorded_by_name?: string
-  content?: { ingredients?: Ingredient[]; steps?: string[] }
-  notes?: string
-  details?: string[]
+  ingredients?: Ingredient[]
+  steps?: string[]
+  cook_notes?: string
 }
 
 type PortalData = {
@@ -111,10 +111,10 @@ function PortalContent() {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
             {filtered.map(m => {
-              const ingredients = m.content?.ingredients ?? []
-              const steps = m.content?.steps ?? []
+              const ingredients = m.ingredients ?? []
+              const steps = m.steps ?? []
               const isExpanded = expandedId === m.id
-              const hasContent = ingredients.length > 0 || steps.length > 0 || m.notes
+              const hasContent = ingredients.length > 0 || steps.length > 0 || m.cook_notes
 
               return (
                 <div key={m.id} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden' }}>
@@ -206,12 +206,12 @@ function PortalContent() {
                               </div>
                             )}
 
-                            {m.notes && (
+                            {m.cook_notes && (
                               <div style={{ marginTop: steps.length > 0 ? '1rem' : 0, background: 'var(--cream)', borderRadius: 8, padding: '0.65rem 0.85rem' }}>
                                 <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--muted)', marginBottom: '0.3rem' }}>
                                   Cook's notes
                                 </p>
-                                <p style={{ fontSize: 13, color: 'var(--text2)', margin: 0, lineHeight: 1.6, fontStyle: 'italic' }}>{m.notes}</p>
+                                <p style={{ fontSize: 13, color: 'var(--text2)', margin: 0, lineHeight: 1.6, fontStyle: 'italic' }}>{m.cook_notes}</p>
                               </div>
                             )}
                           </div>
