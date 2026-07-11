@@ -194,7 +194,7 @@ function PortalContent() {
                             )}
 
                             {steps.length > 0 && (
-                              <div style={{ marginBottom: m.notes ? '1rem' : 0 }}>
+                              <div style={{ marginBottom: m.cook_notes ? '1rem' : 0 }}>
                                 <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--muted)', marginBottom: '0.4rem' }}>
                                   Steps
                                 </p>
