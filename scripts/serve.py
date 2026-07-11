@@ -1063,7 +1063,7 @@ async def get_portal_endpoint(portal_token: str):
     if not group:
         raise HTTPException(status_code=404, detail="Portal not found.")
     try:
-        recipes = list_group_recipes(group["id"])
+        recipes = list_group_recipes(group["id"], group.get("owner_id"))
     except Exception as e:
         _logger.error(f"event=portal_recipes_error error={e}")
         recipes = []

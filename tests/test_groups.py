@@ -129,12 +129,27 @@ class TestListGroupMembers:
 
 
 class TestListGroupRecipes:
-    def test_returns_empty_when_no_members(self, monkeypatch):
-        """list_group_recipes() returns [] when the group has no members."""
+    def test_returns_empty_when_no_members_and_no_fallback(self, monkeypatch):
+        """list_group_recipes() returns [] when no members and no fallback owner."""
         mock = _mock_sb()
         mock.table.return_value.select.return_value.eq.return_value.execute.return_value.data = []
         monkeypatch.setattr(_groups_mod, "_supabase", mock)
         assert list_group_recipes("g1") == []
+
+    def test_uses_fallback_owner_when_no_members(self, monkeypatch):
+        """list_group_recipes() falls back to owner_id if family_group_members is empty."""
+        mock = _mock_sb()
+        members_select = MagicMock()
+        members_select.eq.return_value.execute.return_value.data = []
+        recipes_select = MagicMock()
+        recipes_select.in_.return_value.order.return_value.execute.return_value.data = [
+            {"id": "r1", "title": "Pesarattu"}
+        ]
+        mock.table.return_value.select.side_effect = [members_select, recipes_select]
+        monkeypatch.setattr(_groups_mod, "_supabase", mock)
+        result = list_group_recipes("g1", fallback_owner_id="owner-u1")
+        assert len(result) == 1
+        assert recipes_select.in_.call_args.args[1] == ["owner-u1"]
 
     def test_returns_recipes_for_all_members(self, monkeypatch):
         """list_group_recipes() fetches recipes for all member user_ids."""

@@ -140,8 +140,12 @@ def list_portal_recipes(group_id: str) -> list:
     )
 
 
-def list_group_recipes(group_id: str) -> list:
-    """Return all recipes from all members of the group, newest first."""
+def list_group_recipes(group_id: str, fallback_owner_id: str | None = None) -> list:
+    """Return all recipes from all members of the group, newest first.
+
+    Falls back to fallback_owner_id if family_group_members has no rows yet
+    (e.g. group created before membership backfill).
+    """
     sb = _client()
     member_rows = (
         sb.table("family_group_members")
@@ -150,9 +154,11 @@ def list_group_recipes(group_id: str) -> list:
         .execute()
         .data
     )
-    if not member_rows:
-        return []
     user_ids = [r["user_id"] for r in member_rows]
+    if not user_ids and fallback_owner_id:
+        user_ids = [fallback_owner_id]
+    if not user_ids:
+        return []
     return (
         sb.table("memories")
         .select("id, token, title, narrator, recorded_at, image_url, audio_url, tags, type, recorded_by_name, content, notes, details")
