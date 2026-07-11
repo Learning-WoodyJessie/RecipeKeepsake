@@ -1,9 +1,13 @@
 import { supabase } from './supabase'
 
+const AUTH_CALLBACK = process.env.NEXT_PUBLIC_APP_URL
+  ? `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`
+  : 'https://www.theechoesofhome.com/auth/callback'
+
 export async function signInWithGoogle(): Promise<void> {
   await supabase.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: `${window.location.origin}/auth/callback` },
+    options: { redirectTo: AUTH_CALLBACK },
   })
 }
 
@@ -12,7 +16,7 @@ export async function signInWithApple(): Promise<void> {
   // Note: @capacitor-community/apple-sign-in does not yet support Capacitor 8
   await supabase.auth.signInWithOAuth({
     provider: 'apple',
-    options: { redirectTo: `${window.location.origin}/auth/callback` },
+    options: { redirectTo: AUTH_CALLBACK },
   })
 }
 
@@ -20,7 +24,7 @@ export async function signInWithApple(): Promise<void> {
 export async function sendViewerEmailOtp(email: string): Promise<void> {
   const { error } = await supabase.auth.signInWithOtp({
     email,
-    options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+    options: { emailRedirectTo: AUTH_CALLBACK },
   })
   if (error) throw error
 }
