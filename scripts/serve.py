@@ -1062,8 +1062,17 @@ async def get_portal_endpoint(portal_token: str):
     group = get_portal_group(portal_token)
     if not group:
         raise HTTPException(status_code=404, detail="Portal not found.")
+    _logger.info(f"event=portal_debug step=group_found group_id={group.get('id')} owner_id={group.get('owner_id')} keys={list(group.keys())}")
+    try:
+        from tools.groups import _client as _groups_client
+        sb_g = _groups_client()
+        member_rows = sb_g.table("family_group_members").select("user_id").eq("group_id", group["id"]).execute().data
+        _logger.info(f"event=portal_debug step=members_found count={len(member_rows)} rows={member_rows}")
+    except Exception as e:
+        _logger.error(f"event=portal_debug step=members_error error={e}")
     try:
         recipes = list_group_recipes(group["id"], group.get("owner_id"))
+        _logger.info(f"event=portal_debug step=recipes_found count={len(recipes)}")
     except Exception as e:
         _logger.error(f"event=portal_recipes_error error={e}")
         recipes = []
