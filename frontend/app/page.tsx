@@ -375,7 +375,7 @@ export default function LandingPage() {
           </p>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.78rem', color: 'var(--muted)' }}>
             <span aria-hidden style={{ fontSize: '0.95rem' }}>❀</span>
-            <span>Share a memory. Keep the echoes alive.</span>
+            <span>Share a voice. Keep the echoes alive.</span>
           </div>
         </div>
 

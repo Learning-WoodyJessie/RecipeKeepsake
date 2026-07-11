@@ -344,11 +344,11 @@ function QuotePanel() {
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 20, padding: '1.5rem 1.25rem', marginBottom: '1rem', boxShadow: '0 4px 16px rgba(45,27,14,0.05)' }}>
         <p style={{ fontFamily: 'var(--serif)', fontSize: '2rem', color: 'var(--accent)', lineHeight: 1, marginBottom: '0.65rem' }}>&ldquo;</p>
         <p style={{ fontFamily: 'var(--serif)', fontSize: '1.05rem', fontStyle: 'italic', color: 'var(--text2)', lineHeight: 1.6, marginBottom: '1rem' }}>
-          The stories told today are the recipes you&apos;ll cherish forever.
+          The moments shared today are the memories you&apos;ll cherish forever.
         </p>
         <p style={{ fontSize: '0.75rem', color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
           <span aria-hidden style={{ color: 'var(--muted)' }}>♥</span>
-          Share a memory. Keep the echoes alive.
+          Share a voice. Keep the echoes alive.
         </p>
       </div>
 
