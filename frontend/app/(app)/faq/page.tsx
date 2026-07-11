@@ -9,19 +9,19 @@ const FAQS = [
     items: [
       {
         q: 'What languages can I record in?',
-        a: 'Any language. We support Telugu, Hindi, Tamil, Kannada, Malayalam, Marathi, Bengali, Urdu, and more, as well as English and mixed-language recordings. If your grandmother switches between Telugu and English mid-sentence, that\'s fine.',
+        a: 'Telugu and English, including mixed recordings. If your grandmother switches between Telugu and English mid-sentence, that\'s fine. Support for Hindi, Tamil, Kannada, and other languages is coming soon.',
       },
       {
         q: 'What audio formats can I upload?',
-        a: 'MP3, M4A, AAC, WAV, FLAC, OGG, Opus, WebM, AIFF, and MP4. This covers iPhone voice memos (M4A), WhatsApp voice notes (Opus), and exports from most recording apps. Max file size is 50 MB.',
+        a: 'MP3, M4A, AAC, WAV, FLAC, OGG, Opus, WebM, AIFF, and MP4. This covers iPhone voice memos (M4A), WhatsApp voice notes (Opus), and exports from most recording apps. Max file size is 25 MB.',
       },
       {
         q: 'How long can the recording be?',
-        a: 'Between 30 seconds and about 15 minutes works best. Very short clips may not have enough detail. Very long recordings (30+ minutes) can be split into parts, one per dish or section.',
+        a: 'Between 30 seconds and about 15 minutes works best. Very short clips may not have enough detail. Very long recordings (30+ minutes) can be split into parts, one per memory.',
       },
       {
         q: 'What if the recording quality is poor or there\'s background noise?',
-        a: 'We do our best, but quality matters. A quiet room with the phone close to the narrator gives the best results. If the AI misses something, you can always edit ingredients and steps before saving.',
+        a: 'We do our best, but quality matters. A quiet room with the phone close to the narrator gives the best results. If the transcription misses something, you can always edit the content before saving.',
       },
       {
         q: 'Do I need to be present when recording?',
@@ -34,15 +34,15 @@ const FAQS = [
     items: [
       {
         q: 'How do I share a memory with my family?',
-        a: 'Open any memory and tap the Share button. This creates a link you can send via WhatsApp, SMS, or email.',
+        a: 'Open any memory and tap the Share button. This opens WhatsApp with a pre-written message and link. You can copy the link from there to send via any other app.',
       },
       {
         q: 'Does my family need to sign up to view a shared memory?',
         a: 'Yes. Without an account, anyone who gets forwarded the link could access your entire archive. A free sign-in makes sure only the people you trust can see it.',
       },
       {
-        q: 'Can multiple family members add memories to the same collection?',
-        a: 'Each account has its own collection right now. The best way to share a family collection is to use one shared family account, or share individual memory links as you add them.',
+        q: 'Can I share my whole collection with family?',
+        a: 'Yes. Go to Account and create a Family Group. This gives you a private portal page you can share with family so they can browse all your memories in one place.',
       },
     ],
   },
@@ -51,15 +51,15 @@ const FAQS = [
     items: [
       {
         q: 'Who can see my memories?',
-        a: 'Only you, unless you share a link. Your recordings, transcripts, and recipes are private to your account. We don\'t share your data with anyone.',
+        a: 'Only you, unless you share a link. Your recordings, transcripts, and memories are private to your account. We don\'t share your data with anyone.',
       },
       {
         q: 'Where is my audio stored?',
-        a: 'Audio is stored securely in encrypted cloud storage (Supabase). It is never used to train AI models or shared with third parties.',
+        a: 'Audio is stored securely in encrypted cloud storage. It is never used to train AI models or shared with third parties.',
       },
       {
         q: 'Can I delete my data?',
-        a: 'Yes. You can delete individual memories from the memory page. To delete your entire account and all associated data, go to Account → Delete account.',
+        a: 'Yes. You can delete individual memories from the memory page. To delete your entire account and all associated data, go to Account and tap Delete account.',
       },
     ],
   },
@@ -67,20 +67,20 @@ const FAQS = [
     section: 'Editing & Managing Memories',
     items: [
       {
-        q: 'What if the AI got the recipe wrong?',
-        a: 'You can edit the title, ingredients, and steps before saving, and again afterwards from the memory page. The original audio is always preserved, so nothing is ever lost.',
+        q: 'What if the transcription or content isn\'t right?',
+        a: 'For recipes, you can edit the title, ingredients, and steps before saving, and again afterwards from the memory page. The original audio is always preserved, so nothing is ever lost.',
       },
       {
         q: 'Can I edit a memory after saving?',
-        a: 'Yes. Open any memory and tap the edit icon next to the title. Ingredients and steps can also be updated from the memory page.',
+        a: 'Yes. Open any memory and tap the edit icon next to the title. Recipe ingredients and steps can also be updated from the memory page.',
       },
       {
         q: 'Can I delete a memory?',
-        a: 'Yes, open the memory and scroll to the bottom. The delete option is available there. Deletion is permanent.',
+        a: 'Yes. Open the memory and scroll to the bottom. The delete option is available there. Deletion is permanent.',
       },
       {
         q: 'Can I favourite a memory to find it quickly?',
-        a: 'Yes. Tap the ♡ on any memory card to add it to your favourites. On the home page, tap the ♥ filter to see only your favourited memories.',
+        a: 'Yes. Tap the ♡ on any memory card to add it to your favourites. On the home page, tap the Favorites filter to see only your favourited memories.',
       },
     ],
   },
@@ -93,11 +93,11 @@ const FAQS = [
       },
       {
         q: 'How do I sign in?',
-        a: 'You can sign in with Google or Apple. We don\'t offer password login, this keeps your account secure without having to remember another password.',
+        a: 'You can sign in with Google or Apple. We don\'t offer password login — this keeps your account secure without having to remember another password.',
       },
       {
         q: 'Is there a limit on how many memories I can save?',
-        a: 'There\'s no hard limit on saved memories. New recordings are limited to 10 per day and translations to 50 per day to keep the service running well for everyone.',
+        a: 'Free accounts can save up to 10 memories. Unlimited storage is coming soon — join the waitlist from the app if you reach the limit.',
       },
     ],
   },
