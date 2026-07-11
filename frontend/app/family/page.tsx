@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { api } from '../../lib/api'
 
-type Ingredient = { name: string; amount?: string; unit?: string }
+type Ingredient = { item: string; quantity?: string }
 
 type PortalMemory = {
   id: string
@@ -184,8 +184,8 @@ function PortalContent() {
                                     <li key={i} style={{ fontSize: 14, color: 'var(--text)', display: 'flex', gap: 8 }}>
                                       <span style={{ color: 'var(--accent)', flexShrink: 0 }}>·</span>
                                       <span>
-                                        {ing.amount && <span style={{ fontWeight: 600 }}>{ing.amount}{ing.unit ? ` ${ing.unit}` : ''} </span>}
-                                        {ing.name}
+                                        {ing.quantity && <span style={{ fontWeight: 600 }}>{ing.quantity} </span>}
+                                        {ing.item}
                                       </span>
                                     </li>
                                   ))}
