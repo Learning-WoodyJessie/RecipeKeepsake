@@ -237,8 +237,8 @@ function PortalContent() {
         boxShadow: '0 -4px 20px rgba(0,0,0,0.07)',
       }}>
         <p style={{ margin: 0, fontSize: 14, color: 'var(--text2)', lineHeight: 1.4 }}>
-          Love these memories?<br />
-          <span style={{ color: 'var(--muted)', fontSize: 12 }}>Preserve yours for your family too.</span>
+          Want to preserve your family's memories?<br />
+          <span style={{ color: 'var(--muted)', fontSize: 12 }}>Start your own free archive.</span>
         </p>
         <a
           href={data.invite_url ?? '/'}
@@ -256,7 +256,7 @@ function PortalContent() {
             whiteSpace: 'nowrap',
           }}
         >
-          Join free →
+          Start yours free →
         </a>
       </div>
     </div>
