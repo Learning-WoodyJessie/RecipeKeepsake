@@ -1062,19 +1062,29 @@ async def get_portal_endpoint(portal_token: str):
     group = get_portal_group(portal_token)
     if not group:
         raise HTTPException(status_code=404, detail="Portal not found.")
-    _logger.info(f"event=portal_debug step=group_found group_id={group.get('id')} owner_id={group.get('owner_id')} keys={list(group.keys())}")
+    debug: dict = {
+        "group_id": group.get("id"),
+        "group_keys": list(group.keys()),
+        "owner_id": group.get("owner_id"),
+        "members_error": None,
+        "members_count": None,
+        "member_user_ids": None,
+        "recipes_count": None,
+        "recipes_error": None,
+    }
     try:
         from tools.groups import _client as _groups_client
         sb_g = _groups_client()
         member_rows = sb_g.table("family_group_members").select("user_id").eq("group_id", group["id"]).execute().data
-        _logger.info(f"event=portal_debug step=members_found count={len(member_rows)} rows={member_rows}")
+        debug["members_count"] = len(member_rows)
+        debug["member_user_ids"] = [r["user_id"] for r in member_rows]
     except Exception as e:
-        _logger.error(f"event=portal_debug step=members_error error={e}")
+        debug["members_error"] = str(e)
     try:
         recipes = list_group_recipes(group["id"], group.get("owner_id"))
-        _logger.info(f"event=portal_debug step=recipes_found count={len(recipes)}")
+        debug["recipes_count"] = len(recipes)
     except Exception as e:
-        _logger.error(f"event=portal_recipes_error error={e}")
+        debug["recipes_error"] = str(e)
         recipes = []
     try:
         from tools.storage import _client as _storage_client, _sign_audio
@@ -1083,13 +1093,14 @@ async def get_portal_endpoint(portal_token: str):
             if r.get("audio_url"):
                 r["audio_url"] = _sign_audio(r["audio_url"], sb)
     except Exception as e:
-        _logger.warning(f"event=portal_sign_audio_error error={e}")
+        debug["sign_audio_error"] = str(e)
     base = os.environ.get("NEXT_PUBLIC_APP_URL", "https://www.theechoesofhome.com")
     invite_token = group.get("invite_token")
     return JSONResponse(content={
         "group_name": group.get("name", ""),
         "recipes": recipes,
         "invite_url": f"{base}/join?invite={invite_token}" if invite_token else None,
+        "_debug": debug,
     })
 
 
