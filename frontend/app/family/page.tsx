@@ -18,8 +18,8 @@ type PortalMemory = {
 }
 
 type PortalData = {
-  group: { name: string }
-  memories: PortalMemory[]
+  group_name: string
+  recipes: PortalMemory[]
   join_url?: string
 }
 
@@ -75,7 +75,7 @@ function PortalContent() {
     )
   }
 
-  const memories = data.memories ?? []
+  const memories = data.recipes ?? []
   const types = Array.from(new Set(memories.map(m => m.type ?? 'recipe').filter(Boolean)))
   const filtered = activeType === 'all' ? memories : memories.filter(m => (m.type ?? 'recipe') === activeType)
 
@@ -84,7 +84,7 @@ function PortalContent() {
       {/* Header */}
       <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
         <h1 style={{ fontSize: 28, fontWeight: 700, color: 'var(--foreground)', margin: 0 }}>
-          {data.group.name}
+          {data.group_name}
         </h1>
         <p style={{ color: 'var(--muted)', marginTop: 8, fontSize: 15 }}>
           Family memories, shared with love
