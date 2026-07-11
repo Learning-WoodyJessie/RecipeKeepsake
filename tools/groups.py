@@ -155,7 +155,7 @@ def list_group_recipes(group_id: str) -> list:
     user_ids = [r["user_id"] for r in member_rows]
     return (
         sb.table("memories")
-        .select("id, token, title, narrator, recorded_at, image_url, audio_url, tags, type, recorded_by_name")
+        .select("id, token, title, narrator, recorded_at, image_url, audio_url, tags, type, recorded_by_name, content, notes, details")
         .in_("user_id", user_ids)
         .order("recorded_at", desc=True)
         .execute()

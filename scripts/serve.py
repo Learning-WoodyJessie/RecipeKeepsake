@@ -1068,9 +1068,11 @@ async def get_portal_endpoint(portal_token: str):
     for r in recipes:
         if r.get("audio_url"):
             r["audio_url"] = _sign_audio(r["audio_url"], sb)
+    base = os.environ.get("NEXT_PUBLIC_APP_URL", "https://www.theechoesofhome.com")
     return JSONResponse(content={
         "group_name": group["name"],
         "recipes": recipes,
+        "invite_url": f"{base}/join?invite={group['invite_token']}",
     })
 
 
