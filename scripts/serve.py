@@ -1059,20 +1059,28 @@ async def list_family_recipes_endpoint(user: dict = Depends(require_auth)):
 async def get_portal_endpoint(portal_token: str):
     """Public endpoint — no auth required. Returns group name + all group recipes."""
     from tools.groups import get_portal_group, list_group_recipes
-    from tools.storage import _client as _storage_client, _sign_audio
     group = get_portal_group(portal_token)
     if not group:
         raise HTTPException(status_code=404, detail="Portal not found.")
-    recipes = list_group_recipes(group["id"])
-    sb = _storage_client()
-    for r in recipes:
-        if r.get("audio_url"):
-            r["audio_url"] = _sign_audio(r["audio_url"], sb)
+    try:
+        recipes = list_group_recipes(group["id"])
+    except Exception as e:
+        _logger.error(f"event=portal_recipes_error error={e}")
+        recipes = []
+    try:
+        from tools.storage import _client as _storage_client, _sign_audio
+        sb = _storage_client()
+        for r in recipes:
+            if r.get("audio_url"):
+                r["audio_url"] = _sign_audio(r["audio_url"], sb)
+    except Exception as e:
+        _logger.warning(f"event=portal_sign_audio_error error={e}")
     base = os.environ.get("NEXT_PUBLIC_APP_URL", "https://www.theechoesofhome.com")
+    invite_token = group.get("invite_token")
     return JSONResponse(content={
-        "group_name": group["name"],
+        "group_name": group.get("name", ""),
         "recipes": recipes,
-        "invite_url": f"{base}/join?invite={group['invite_token']}",
+        "invite_url": f"{base}/join?invite={invite_token}" if invite_token else None,
     })
 
 
