@@ -56,7 +56,7 @@ export default function AppTopBar({ onMenuClick }: { onMenuClick?: () => void })
   // Live search — debounced 300ms, no submit needed
   const navigate = useCallback((val: string) => {
     const s = val.trim()
-    if (s) router.replace(`/recipes?q=${encodeURIComponent(s)}`)
+    if (s) router.replace(`/search?q=${encodeURIComponent(s)}`)
     else router.replace('/recipes')
   }, [router])
 
