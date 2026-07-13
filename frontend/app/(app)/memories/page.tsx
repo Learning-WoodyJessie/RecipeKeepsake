@@ -177,15 +177,39 @@ function RightPanel({
 }
 
 // ─── Audio card ──────────────────────────────────────────────────────────
+function BookmarkToggle({ inCollection, onToggle }: { inCollection: boolean; onToggle: (e: React.MouseEvent) => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      title={inCollection ? 'Remove from Family Collection' : 'Add to Family Collection'}
+      style={{
+        position: 'absolute', top: 8, left: 8, width: 26, height: 26, borderRadius: '50%',
+        background: inCollection ? 'var(--accent)' : 'rgba(255,255,255,0.9)',
+        border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        boxShadow: '0 1px 4px rgba(0,0,0,0.15)', zIndex: 2, transition: 'background 0.15s',
+      }}
+    >
+      <svg width="13" height="13" viewBox="0 0 24 24" fill={inCollection ? 'white' : 'none'} stroke={inCollection ? 'white' : 'var(--accent)'} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+      </svg>
+    </button>
+  )
+}
+
 function AudioCard({
   memory,
   isFav,
   onToggleFav,
+  inCollection,
+  onToggleCollection,
   narratorPhoto,
 }: {
   memory: Memory
   isFav: boolean
   onToggleFav: () => void
+  inCollection: boolean
+  onToggleCollection: () => void
   narratorPhoto: string
 }) {
   return (
@@ -204,6 +228,7 @@ function AudioCard({
             <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
           </svg>
         </div>
+        <BookmarkToggle inCollection={inCollection} onToggle={e => { e.preventDefault(); onToggleCollection() }} />
         <FavoriteHeart
           favorite={isFav}
           onToggle={onToggleFav}
@@ -263,12 +288,16 @@ function RecipeCard({
   memory,
   isFav,
   onToggleFav,
+  inCollection,
+  onToggleCollection,
   narratorPhoto,
   narratorRelationship,
 }: {
   memory: Memory
   isFav: boolean
   onToggleFav: () => void
+  inCollection: boolean
+  onToggleCollection: () => void
   narratorPhoto: string
   narratorRelationship: string
 }) {
@@ -282,6 +311,7 @@ function RecipeCard({
             : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '3rem' }}>🍽️</div>
           }
         </Link>
+        <BookmarkToggle inCollection={inCollection} onToggle={e => { e.preventDefault(); onToggleCollection() }} />
         {/* Heart toggle */}
         <FavoriteHeart
           favorite={isFav}
@@ -402,18 +432,20 @@ export default function MemoriesPage() {
   const [people, setPeople] = useState<Person[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [quickFilter, setQuickFilter] = useState<'All' | 'Favorites' | 'Family'>('All')
+  const [quickFilter, setQuickFilter] = useState<'All' | 'Favorites' | 'Family Collection'>('All')
   const [categoryFilter, setCategoryFilter] = useState('')
   const [sort, setSort] = useState('Recently added')
   const [favTick, setFavTick] = useState(0)
-  const [selectMode, setSelectMode] = useState(false)
-  const [selected, setSelected] = useState<Set<string>>(new Set())
-  const [addingToCollection, setAddingToCollection] = useState(false)
-  const [collectionDone, setCollectionDone] = useState(false)
+  const [collectionSet, setCollectionSet] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     Promise.all([api.recipes.list(), api.people.list().catch(() => [])])
-      .then(([m, p]) => { setMemories(m as Memory[]); setPeople(p as Person[]) })
+      .then(([m, p]) => {
+        const mems = m as Memory[]
+        setMemories(mems)
+        setPeople(p as Person[])
+        setCollectionSet(new Set(mems.filter(x => x.portal_visible).map(x => x.token)))
+      })
       .catch((e: Error) => setError(e.message))
       .finally(() => setLoading(false))
   }, [])
@@ -425,34 +457,14 @@ export default function MemoriesPage() {
     setFavTick(x => x + 1)
   }, [])
 
-  const toggleSelect = useCallback((token: string) => {
-    setSelected(prev => {
-      const next = new Set(prev)
-      if (next.has(token)) next.delete(token)
-      else next.add(token)
-      return next
-    })
-  }, [])
-
-  const exitSelectMode = useCallback(() => {
-    setSelectMode(false)
-    setSelected(new Set())
-    setCollectionDone(false)
-  }, [])
-
-  async function addToCollection() {
-    if (selected.size === 0 || addingToCollection) return
-    setAddingToCollection(true)
-    try {
-      await Promise.all([...selected].map(token => api.recipes.patch(token, { portal_visible: true })))
-      setCollectionDone(true)
-      setTimeout(() => exitSelectMode(), 1800)
-    } catch {
-      // silent — leave mode open so user can retry
-    } finally {
-      setAddingToCollection(false)
-    }
-  }
+  const toggleCollection = useCallback(async (token: string) => {
+    const next = new Set(collectionSet)
+    const adding = !next.has(token)
+    if (adding) next.add(token); else next.delete(token)
+    setCollectionSet(next)
+    try { await api.recipes.patch(token, { portal_visible: adding }) }
+    catch { setCollectionSet(collectionSet) }
+  }, [collectionSet])
 
   const peopleMap = useMemo(() => {
     const map: Record<string, { photo: string; relationship: string }> = {}
@@ -478,7 +490,7 @@ export default function MemoriesPage() {
     }
     // Quick filter pill
     if (quickFilter === 'Favorites') list = list.filter(m => favTokens.includes(m.token))
-    else if (quickFilter === 'Family') list = list.filter(m => m.portal_visible)
+    else if (quickFilter === 'Family Collection') list = list.filter(m => collectionSet.has(m.token))
     // Category dropdown
     if (categoryFilter) {
       if (categoryFilter === 'Other') {
@@ -632,71 +644,36 @@ export default function MemoriesPage() {
             )}
 
             {/* Count + sort bar */}
-            <div style={{ marginBottom: '0.9rem' }}>
-              {/* Row 1: count (left) + sort (right) */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: selectMode ? '0' : '0.5rem' }}>
-                <span style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                  {isAudioMode && (
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                      <line x1="2" y1="12" x2="4" y2="12"/><line x1="5" y1="8" x2="5" y2="16"/><line x1="8" y1="5" x2="8" y2="19"/><line x1="11" y1="9" x2="11" y2="15"/><line x1="14" y1="6" x2="14" y2="18"/><line x1="17" y1="10" x2="17" y2="14"/><line x1="20" y1="8" x2="20" y2="16"/><line x1="22" y1="12" x2="24" y2="12"/>
-                    </svg>
-                  )}
-                  {selectMode
-                    ? `${selected.size} selected`
-                    : `${displayed.length} ${(q || narratorParam) ? `Memor${displayed.length !== 1 ? 'ies' : 'y'}` : isAudioMode ? `Memor${displayed.length !== 1 ? 'ies' : 'y'}` : `Recipe${displayed.length !== 1 ? 's' : ''}`}`}
-                </span>
-                {selectMode ? (
-                  <button
-                    type="button"
-                    onClick={exitSelectMode}
-                    style={{ background: 'none', border: 'none', fontSize: '0.82rem', color: 'var(--muted)', cursor: 'pointer', fontFamily: 'var(--sans)', padding: '0.2rem 0' }}
-                  >
-                    Cancel
-                  </button>
-                ) : (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: 'var(--muted)' }}>
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M3 6h18M7 12h10M11 18h2"/>
-                    </svg>
-                    <select
-                      value={sort}
-                      onChange={e => setSort(e.target.value)}
-                      style={{ border: 'none', background: 'transparent', fontSize: '0.8rem', color: 'var(--text2)', cursor: 'pointer', fontFamily: 'var(--sans)', padding: 0, appearance: 'none', WebkitAppearance: 'none' }}
-                    >
-                      {SORT_OPTIONS.map(o => <option key={o}>{o}</option>)}
-                    </select>
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ pointerEvents: 'none', flexShrink: 0 }}>
-                      <path d="M6 9l6 6 6-6"/>
-                    </svg>
-                  </div>
-                )}
-              </div>
-              {/* Row 2: add to collection — only when not in select mode */}
-              {!selectMode && (
-                <button
-                  type="button"
-                  onClick={() => setSelectMode(true)}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: '0.4rem',
-                    background: 'var(--accent-light)', border: 'none',
-                    borderRadius: 10, padding: '0.45rem 0.9rem',
-                    fontSize: '0.8rem', fontWeight: 600,
-                    color: 'var(--accent)', cursor: 'pointer',
-                    fontFamily: 'var(--sans)',
-                  }}
-                >
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.9rem' }}>
+              <span style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                {isAudioMode && (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="2" y1="12" x2="4" y2="12"/><line x1="5" y1="8" x2="5" y2="16"/><line x1="8" y1="5" x2="8" y2="19"/><line x1="11" y1="9" x2="11" y2="15"/><line x1="14" y1="6" x2="14" y2="18"/><line x1="17" y1="10" x2="17" y2="14"/><line x1="20" y1="8" x2="20" y2="16"/><line x1="22" y1="12" x2="24" y2="12"/>
                   </svg>
-                  Add to collection
-                </button>
-              )}
+                )}
+                {`${displayed.length} ${(q || narratorParam) ? `Memor${displayed.length !== 1 ? 'ies' : 'y'}` : isAudioMode ? `Memor${displayed.length !== 1 ? 'ies' : 'y'}` : `Recipe${displayed.length !== 1 ? 's' : ''}`}`}
+              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: 'var(--muted)' }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 6h18M7 12h10M11 18h2"/>
+                </svg>
+                <select
+                  value={sort}
+                  onChange={e => setSort(e.target.value)}
+                  style={{ border: 'none', background: 'transparent', fontSize: '0.8rem', color: 'var(--text2)', cursor: 'pointer', fontFamily: 'var(--sans)', padding: 0, appearance: 'none', WebkitAppearance: 'none' }}
+                >
+                  {SORT_OPTIONS.map(o => <option key={o}>{o}</option>)}
+                </select>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ pointerEvents: 'none', flexShrink: 0 }}>
+                  <path d="M6 9l6 6 6-6"/>
+                </svg>
+              </div>
             </div>
 
             {/* Compact filter row — hidden during search / narrator view */}
-            {!q && !narratorParam && !selectMode && (
+            {!q && !narratorParam && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.85rem', flexWrap: 'wrap' }}>
-                {(['All', 'Favorites', 'Family'] as const).map(f => (
+                {(['All', 'Favorites', 'Family Collection'] as const).map(f => (
                   <button
                     key={f}
                     type="button"
@@ -709,7 +686,7 @@ export default function MemoriesPage() {
                       color: quickFilter === f ? (f === 'Favorites' ? 'var(--amber)' : 'var(--accent)') : 'var(--text2)',
                     }}
                   >
-                    {f === 'Favorites' ? '♥ Favorites' : f === 'Family' ? '👥 Family' : 'All'}
+                    {f === 'Favorites' ? '♥ Favorites' : f === 'Family Collection' ? '🔖 Family Collection' : 'All'}
                   </button>
                 ))}
                 <select
@@ -738,8 +715,8 @@ export default function MemoriesPage() {
                   ? `No memories matching "${q}"`
                   : quickFilter === 'Favorites'
                   ? 'No favorites yet. Heart one to add it here.'
-                  : quickFilter === 'Family'
-                  ? 'No recipes in your family collection yet. Add one from any recipe page.'
+                  : quickFilter === 'Family Collection'
+                  ? 'No memories in your Family Collection yet. Bookmark one from any memory card.'
                   : narratorParam
                   ? `No memories saved for ${narratorParam} yet.`
                   : isAudioMode ? 'No recordings yet.' : 'No recipes yet.'}
@@ -754,44 +731,15 @@ export default function MemoriesPage() {
               <div className="rk-recipe-grid">
                 {displayed.map(m => {
                   const info = peopleMap[m.narrator?.toLowerCase() ?? ''] ?? { photo: '', relationship: '' }
-                  const isSelected = selected.has(m.token)
                   return (
-                    <div
-                      key={m.token}
-                      style={{ position: 'relative', cursor: selectMode ? 'pointer' : undefined }}
-                      onClick={selectMode ? () => toggleSelect(m.token) : undefined}
-                    >
-                      {/* Selection overlay */}
-                      {selectMode && (
-                        <div style={{
-                          position: 'absolute', inset: 0, zIndex: 10, borderRadius: 16,
-                          border: isSelected ? '2.5px solid var(--accent)' : '2.5px solid transparent',
-                          background: isSelected ? 'rgba(24,107,94,0.08)' : 'transparent',
-                          transition: 'border-color 0.15s, background 0.15s',
-                        }} />
-                      )}
-                      {selectMode && (
-                        <div style={{
-                          position: 'absolute', top: 10, left: 10, zIndex: 20,
-                          width: 22, height: 22, borderRadius: 6,
-                          background: isSelected ? 'var(--accent)' : 'rgba(255,255,255,0.92)',
-                          border: isSelected ? '2px solid var(--accent)' : '2px solid var(--border)',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          boxShadow: '0 1px 4px rgba(0,0,0,0.15)',
-                          transition: 'background 0.15s, border-color 0.15s',
-                        }}>
-                          {isSelected && (
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                              <polyline points="20 6 9 17 4 12"/>
-                            </svg>
-                          )}
-                        </div>
-                      )}
+                    <div key={m.token} style={{ position: 'relative' }}>
                       {isAudio(m) ? (
                         <AudioCard
                           memory={m}
                           isFav={favTokens.includes(m.token)}
                           onToggleFav={() => toggleFav(m.token)}
+                          inCollection={collectionSet.has(m.token)}
+                          onToggleCollection={() => toggleCollection(m.token)}
                           narratorPhoto={info.photo}
                         />
                       ) : (
@@ -799,6 +747,8 @@ export default function MemoriesPage() {
                           memory={m}
                           isFav={favTokens.includes(m.token)}
                           onToggleFav={() => toggleFav(m.token)}
+                          inCollection={collectionSet.has(m.token)}
+                          onToggleCollection={() => toggleCollection(m.token)}
                           narratorPhoto={info.photo}
                           narratorRelationship={info.relationship}
                         />
@@ -815,7 +765,7 @@ export default function MemoriesPage() {
         </div>
 
         {/* ── Full-width bottom CTA ── */}
-        {!selectMode && <div style={{
+        <div style={{
           display: 'flex',
           alignItems: 'center',
           gap: '1.5rem',
@@ -865,51 +815,8 @@ export default function MemoriesPage() {
               <circle cx="22" cy="22" r="4" fill="var(--accent)"/>
             </svg>
           )}
-        </div>}
-      </div>
-
-      {/* Sticky action bar — shown when items are selected */}
-      {selectMode && selected.size > 0 && (
-        <div style={{
-          position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)',
-          zIndex: 100, display: 'flex', alignItems: 'center', gap: '0.75rem',
-          background: 'var(--text)', color: 'white',
-          borderRadius: 999, padding: '0.75rem 1.25rem',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.28)',
-          fontSize: '0.88rem', fontWeight: 600,
-          whiteSpace: 'nowrap',
-          animation: 'rk-slideup 0.2s ease',
-        }}>
-          <style>{`@keyframes rk-slideup { from { opacity:0; transform: translateX(-50%) translateY(12px); } to { opacity:1; transform: translateX(-50%) translateY(0); } }`}</style>
-          <span style={{ color: 'rgba(255,255,255,0.7)', fontWeight: 400 }}>{selected.size} selected</span>
-          <button
-            type="button"
-            onClick={addToCollection}
-            disabled={addingToCollection}
-            style={{
-              background: collectionDone ? '#25D366' : 'var(--accent)',
-              color: 'white', border: 'none', borderRadius: 999,
-              padding: '0.5rem 1.1rem', fontSize: '0.88rem', fontWeight: 700,
-              cursor: addingToCollection ? 'default' : 'pointer',
-              display: 'flex', alignItems: 'center', gap: '0.4rem',
-              transition: 'background 0.2s',
-            }}
-          >
-            {collectionDone
-              ? <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Added!</>
-              : addingToCollection ? 'Adding…'
-              : '+ Add to family collection'
-            }
-          </button>
-          <button
-            type="button"
-            onClick={exitSelectMode}
-            style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.6)', fontSize: '0.82rem', cursor: 'pointer', padding: '0.25rem' }}
-          >
-            ✕
-          </button>
         </div>
-      )}
+      </div>
     </div>
   )
 }
