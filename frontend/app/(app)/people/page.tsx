@@ -486,7 +486,7 @@ export default function PeoplePage() {
                   Our People <span style={{ color: 'var(--muted)' }}>♡</span>
                 </h1>
                 <p style={{ fontSize: '0.9rem', color: 'var(--muted)', lineHeight: 1.6, maxWidth: 400 }}>
-                  The beautiful people who fill our kitchen with love, stories and unforgettable recipes.
+                  Precious voices that echo through every recipe, every song, every story. Treasured here, forever.
                 </p>
               </div>
               <HeroIllustration />
