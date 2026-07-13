@@ -163,7 +163,7 @@ def list_recipes(user_id: str) -> list:
     sb = _client()
     result = (
         sb.table("memories")
-        .select("id, token, title, narrator, recorded_at, image_url, audio_url, tags")
+        .select("id, token, title, narrator, recorded_at, image_url, audio_url, tags, type, language")
         .eq("user_id", user_id)
         .order("recorded_at", desc=True)
         .execute()
@@ -382,7 +382,7 @@ def list_recipes_for_owners(owner_user_ids: list[str]) -> list:
     sb = _client()
     result = (
         sb.table("memories")
-        .select("id, token, title, narrator, recorded_at, image_url, audio_url, tags")
+        .select("id, token, title, narrator, recorded_at, image_url, audio_url, tags, type, language")
         .in_("user_id", owner_user_ids)
         .order("recorded_at", desc=True)
         .execute()
