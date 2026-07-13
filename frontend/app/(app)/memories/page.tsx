@@ -220,8 +220,9 @@ function BookmarkToggle({ inCollection, onToggle }: { inCollection: boolean; onT
         boxShadow: '0 1px 4px rgba(0,0,0,0.15)', zIndex: 2, transition: 'background 0.15s',
       }}
     >
-      <svg width="13" height="13" viewBox="0 0 24 24" fill={inCollection ? 'white' : 'none'} stroke={inCollection ? 'white' : 'var(--accent)'} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={inCollection ? 'white' : 'var(--accent)'} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
       </svg>
     </button>
   )
@@ -672,7 +673,15 @@ export default function MemoriesPage() {
                       color: quickFilter === f ? (f === 'Favorites' ? 'var(--amber)' : 'var(--accent)') : 'var(--text2)',
                     }}
                   >
-                    {f === 'Favorites' ? '♥ Favorites' : f === 'Family Collection' ? '🔖 Family Collection' : 'All'}
+                    {f === 'Favorites' ? '♥ Favorites' : f === 'Family Collection' ? (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                          <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                          <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+                        </svg>
+                        Family Collection
+                      </span>
+                    ) : 'All'}
                   </button>
                 ))}
                 <select
