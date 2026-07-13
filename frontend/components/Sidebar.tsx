@@ -91,7 +91,7 @@ export default function Sidebar({ isOpen = false, onClose }: { isOpen?: boolean;
   }, [])
 
   function navLinkAudio(href: string, label: string, icon: React.ReactNode) {
-    const active = pathMatches(path, '/memories') && searchParams.get('type') === 'audio'
+    const active = pathMatches(path, '/recipes') && searchParams.get('type') === 'audio'
     return (
       <Link
         key={href}
@@ -118,7 +118,7 @@ export default function Sidebar({ isOpen = false, onClose }: { isOpen?: boolean;
   }
 
   function navLink(href: string, label: string, icon: React.ReactNode, danger = false) {
-    const active = pathMatches(path, href) && !(href === '/memories' && searchParams.get('type') === 'audio')
+    const active = pathMatches(path, href) && !(href === '/recipes' && searchParams.get('type') === 'audio')
     return (
       <Link
         key={href}
@@ -232,8 +232,8 @@ export default function Sidebar({ isOpen = false, onClose }: { isOpen?: boolean;
         {navLink('/people', 'Our People', Icon.people)}
 
         <div style={GROUP_LABEL}>Memories</div>
-        {navLink('/memories', 'All Recipes', Icon.bowl)}
-        {navLinkAudio('/memories?type=audio', 'Moments', Icon.sparkle)}
+        {navLink('/recipes', 'All Recipes', Icon.bowl)}
+        {navLinkAudio('/moments', 'Moments', Icon.sparkle)}
 
         <div style={GROUP_LABEL}>Record</div>
         {navLink('/capture', 'Capture a Memory', Icon.mic)}

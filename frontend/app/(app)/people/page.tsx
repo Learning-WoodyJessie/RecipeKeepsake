@@ -533,7 +533,7 @@ export default function PeoplePage() {
                 person={p}
                 breakdown={resolveBreakdown(memoryCounts, p.name)}
                 onEdit={() => openEdit(p)}
-                onNavigate={() => router.push(`/memories?narrator=${encodeURIComponent(p.name)}`)}
+                onNavigate={() => router.push(`/recipes?narrator=${encodeURIComponent(p.name)}`)}
               />
             ))}
           </div>

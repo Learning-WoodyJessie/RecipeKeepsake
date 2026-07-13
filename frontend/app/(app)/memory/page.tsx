@@ -124,7 +124,7 @@ function MemoryDetail() {
   }
 
   useEffect(() => {
-    if (!token) { router.replace('/memories'); return }
+    if (!token) { router.replace('/recipes'); return }
     api.recipes.get(token).then((m: Memory) => {
       setMemory(m)
       setTitleValue(m.title ?? '')
@@ -230,7 +230,7 @@ function MemoryDetail() {
   async function deleteMemory() {
     if (!confirm(`Delete "${memory?.title}"? This cannot be undone.`)) return
     setDeleting(true)
-    try { await api.recipes.delete(token); router.replace('/memories') }
+    try { await api.recipes.delete(token); router.replace('/recipes') }
     catch (e: unknown) { setError((e as Error).message); setDeleting(false) }
   }
 

@@ -219,7 +219,7 @@ function MemoriesSection({
           </button>
           {/* Family Collection link pill */}
           <Link
-            href="/memories?collection=1"
+            href="/recipes?collection=1"
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -241,7 +241,7 @@ function MemoriesSection({
             </svg>
             Family Collection
           </Link>
-          <Link href="/memories" style={{ fontSize: '0.78rem', color: 'var(--accent)', textDecoration: 'none', fontWeight: 500, whiteSpace: 'nowrap' }}>
+          <Link href="/recipes" style={{ fontSize: '0.78rem', color: 'var(--accent)', textDecoration: 'none', fontWeight: 500, whiteSpace: 'nowrap' }}>
             View all ›
           </Link>
         </div>

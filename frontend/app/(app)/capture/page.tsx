@@ -559,7 +559,7 @@ function CapturePageInner() {
                   support@theechoesofhome.com
                 </a>
                 <br />
-                <Link href="/memories" style={{ fontSize: 13, color: 'var(--muted)', textDecoration: 'underline' }}>
+                <Link href="/recipes" style={{ fontSize: 13, color: 'var(--muted)', textDecoration: 'underline' }}>
                   Manage your memories
                 </Link>
               </div>

@@ -582,7 +582,7 @@ export default function UploadPage() {
                     support@theechoesofhome.com
                   </a>
                   <br />
-                  <Link href="/memories" style={{ fontSize: '0.78rem', color: 'var(--muted)', textDecoration: 'underline' }}>Manage your memories</Link>
+                  <Link href="/recipes" style={{ fontSize: '0.78rem', color: 'var(--muted)', textDecoration: 'underline' }}>Manage your memories</Link>
                 </div>
               ) : (
                 <p style={{ color: 'var(--accent)', marginBottom: '0.75rem', fontSize: '0.82rem' }}>{error}</p>
@@ -713,7 +713,7 @@ export default function UploadPage() {
                 support@theechoesofhome.com
               </a>
               <br />
-              <Link href="/memories" style={{ fontSize: '0.78rem', color: 'var(--muted)', textDecoration: 'underline' }}>Manage your memories</Link>
+              <Link href="/recipes" style={{ fontSize: '0.78rem', color: 'var(--muted)', textDecoration: 'underline' }}>Manage your memories</Link>
             </div>
           ) : (
             <p style={{ color: 'var(--accent)', marginBottom: '0.75rem', fontSize: '0.82rem' }}>{error}</p>
