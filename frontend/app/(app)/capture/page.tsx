@@ -56,6 +56,7 @@ const MEMORY_TYPES = [
   { value: 'fable',   label: 'Fable',   emoji: '✨' },
   { value: 'wisdom',  label: 'Wisdom',  emoji: '🙏' },
   { value: 'poem',    label: 'Poem',    emoji: '🖊️' },
+  { value: 'other',   label: 'Other',   emoji: '•' },
 ] as const
 
 function TipsPanel({ mode }: { mode: 'ai' | 'direct' }) {

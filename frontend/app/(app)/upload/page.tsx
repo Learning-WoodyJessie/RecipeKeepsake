@@ -94,19 +94,23 @@ const TYPE_OPTIONS = [
 ] as const
 
 const LANGUAGES = [
-  { value: 'te', label: 'Telugu' },
-  { value: 'hi', label: 'Hindi' },
-  { value: 'ta', label: 'Tamil' },
-  { value: 'kn', label: 'Kannada' },
-  { value: 'en', label: 'English' },
-  { value: 'es', label: 'Spanish' },
-  { value: 'fr', label: 'French' },
+  { value: 'te', label: '🇮🇳 Telugu' },
+  { value: 'en', label: '🇬🇧 English' },
 ]
 
-function TypeCards({ value, onChange }: { value: string; onChange: (v: 'song' | 'story' | 'fable' | 'wisdom' | 'poem') => void }) {
+const TYPE_PILLS = [
+  { value: 'song',    label: '🎵 Song' },
+  { value: 'story',   label: '📖 Story' },
+  { value: 'fable',   label: '✨ Fable' },
+  { value: 'wisdom',  label: '🙏 Wisdom' },
+  { value: 'poem',    label: '🖊️ Poem' },
+  { value: 'other',   label: '• Other' },
+] as const
+
+function TypePills({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-      {TYPE_OPTIONS.map(t => {
+    <div style={{ display: 'flex', gap: '0.45rem', flexWrap: 'wrap' }}>
+      {TYPE_PILLS.map(t => {
         const sel = value === t.value
         return (
           <button
@@ -114,20 +118,14 @@ function TypeCards({ value, onChange }: { value: string; onChange: (v: 'song' | 
             type="button"
             onClick={() => onChange(t.value)}
             style={{
-              textAlign: 'left',
-              padding: '0.65rem 0.8rem',
-              borderRadius: 10,
+              padding: '5px 14px', borderRadius: 20, fontSize: 13,
               border: sel ? '1.5px solid var(--accent)' : '1px solid var(--border)',
-              background: sel ? 'var(--accent-light)' : 'var(--surface)',
-              cursor: 'pointer',
-              fontFamily: 'var(--sans)',
-              ...(t.value === 'poem' ? { gridColumn: '1 / -1' as const } : {}),
+              background: sel ? 'var(--accent-light)' : 'transparent',
+              color: sel ? 'var(--accent)' : 'var(--muted)',
+              fontWeight: sel ? 600 : 400,
+              cursor: 'pointer', fontFamily: 'var(--sans)',
             }}
-          >
-            <div style={{ color: sel ? 'var(--accent)' : 'var(--muted)', marginBottom: 4 }}>{t.icon}</div>
-            <div style={{ fontSize: '0.85rem', fontWeight: 600, color: sel ? 'var(--accent)' : 'var(--text)', marginBottom: 2 }}>{t.label}</div>
-            <div style={{ fontSize: '0.72rem', color: 'var(--muted)', lineHeight: 1.3 }}>{t.desc}</div>
-          </button>
+          >{t.label}</button>
         )
       })}
     </div>
@@ -234,7 +232,7 @@ export default function UploadPage() {
   useEffect(() => {
     if (searchParams.get('mode') === 'text') setMode('text')
   }, [searchParams])
-  const [memoryType, setMemoryType] = useState<'song' | 'story' | 'fable' | 'wisdom' | 'poem'>('song')
+  const [memoryType, setMemoryType] = useState<string>('song')
   const [language, setLanguage] = useState('te')
   const [narrator, setNarrator] = useState('')
   const [title, setTitle] = useState('')
@@ -435,7 +433,7 @@ export default function UploadPage() {
                 <div style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--muted)', letterSpacing: '0.08em', marginBottom: '0.6rem' }}>
                   What kind of memory is this?
                 </div>
-                <TypeCards value={memoryType} onChange={setMemoryType} />
+                <TypePills value={memoryType} onChange={setMemoryType} />
               </div>
 
               <div style={{ marginBottom: '1.25rem' }}>
@@ -493,7 +491,7 @@ export default function UploadPage() {
                 <div style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--muted)', letterSpacing: '0.08em', marginBottom: '0.6rem' }}>
                   What kind of memory is this?
                 </div>
-                <TypeCards value={memoryType} onChange={setMemoryType} />
+                <TypePills value={memoryType} onChange={setMemoryType} />
               </div>
 
               <div style={{ marginBottom: '1.25rem' }}>
