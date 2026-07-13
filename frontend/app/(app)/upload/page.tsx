@@ -3,9 +3,9 @@
 
 'use client'
 
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import NarratorChip from '@/components/NarratorChip'
 import ReviewWizard from '@/components/ReviewWizard'
 import SingleScreenReview from '@/components/SingleScreenReview'
@@ -138,7 +138,14 @@ function CassetteHero() {
 
 export default function UploadPage() {
   const router = useRouter()
-  const [mode, setMode] = useState<'ai' | 'direct' | 'text'>('ai')
+  const searchParams = useSearchParams()
+  const [mode, setMode] = useState<'ai' | 'direct' | 'text'>(() => {
+    return 'ai'
+  })
+
+  useEffect(() => {
+    if (searchParams.get('mode') === 'text') setMode('text')
+  }, [searchParams])
   const [memoryType, setMemoryType] = useState<'song' | 'story' | 'fable' | 'wisdom' | 'poem'>('song')
   const [narrator, setNarrator] = useState('')
   const [title, setTitle] = useState('')

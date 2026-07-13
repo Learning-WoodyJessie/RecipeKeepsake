@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 
 function cap(s: string) { return s.charAt(0).toUpperCase() + s.slice(1) }
@@ -18,10 +18,15 @@ function displayName(user: { user_metadata?: Record<string, unknown>; email?: st
 
 export default function AppTopBar({ onMenuClick }: { onMenuClick?: () => void }) {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [name, setName] = useState('friend')
   const [initial, setInitial] = useState('?')
-  const [q, setQ] = useState('')
+  const [q, setQ] = useState(searchParams.get('q') ?? '')
   const [menuOpen, setMenuOpen] = useState(false)
+
+  useEffect(() => {
+    setQ(searchParams.get('q') ?? '')
+  }, [searchParams])
   const menuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {

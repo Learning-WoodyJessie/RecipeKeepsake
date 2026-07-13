@@ -44,12 +44,16 @@ function RightPanel({
   filter,
   setFilter,
   isAudioMode,
+  searchActive,
+  narratorParam,
 }: {
   filter: string
   setFilter: (f: string) => void
   sort: string
   setSort: (s: string) => void
   isAudioMode: boolean
+  searchActive: boolean
+  narratorParam: string
 }) {
   const WHY_AUDIO = [
     {
@@ -120,8 +124,8 @@ function RightPanel({
 
   return (
     <aside style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      {/* Filter box — recipes only */}
-      {!isAudioMode && (
+      {/* Filter box — recipes only, hidden during search or narrator view */}
+      {!isAudioMode && !searchActive && !narratorParam && (
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 18, padding: '1.25rem', boxShadow: '0 4px 16px rgba(45,27,14,0.05)' }}>
           <h3 style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '0.95rem', color: 'var(--text)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
@@ -152,8 +156,8 @@ function RightPanel({
         </div>
       )}
 
-      {/* Audio filter — type tabs */}
-      {isAudioMode && (
+      {/* Audio filter — type tabs, hidden during search or narrator view */}
+      {isAudioMode && !searchActive && !narratorParam && (
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 18, padding: '1.25rem', boxShadow: '0 4px 16px rgba(45,27,14,0.05)' }}>
           <h3 style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '0.95rem', color: 'var(--text)', marginBottom: '1rem' }}>
             Filter memories
@@ -496,7 +500,37 @@ export default function MemoriesPage() {
           {/* ── Main ── */}
           <div>
             {/* Hero */}
-            {isAudioMode ? (
+            {narratorParam ? (
+              /* ── Narrator hero — shows all their memories regardless of tab ── */
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap', marginBottom: '0.5rem' }}>
+                    <h1 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.6rem, 3vw, 2rem)', fontWeight: 700, color: 'var(--text)', margin: 0 }}>
+                      {narratorParam}&rsquo;s memories <span style={{ color: 'var(--muted)' }}>♡</span>
+                    </h1>
+                  </div>
+                  <p style={{ fontSize: '0.9rem', color: 'var(--muted)', lineHeight: 1.6, maxWidth: 380 }}>
+                    Recipes, songs, stories — everything saved from {narratorParam}.
+                  </p>
+                </div>
+                <HeroIllustration />
+              </div>
+            ) : q ? (
+              /* ── Search hero ── */
+              <div style={{ marginBottom: '1.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                  </svg>
+                  <h1 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.4rem, 3vw, 1.8rem)', fontWeight: 700, color: 'var(--text)', margin: 0 }}>
+                    Results for <span style={{ color: 'var(--accent)' }}>&ldquo;{q}&rdquo;</span>
+                  </h1>
+                </div>
+                <p style={{ fontSize: '0.88rem', color: 'var(--muted)', lineHeight: 1.6 }}>
+                  Showing recipes and moments across all narrators.
+                </p>
+              </div>
+            ) : isAudioMode ? (
               /* ── Audio hero ── */
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1.5rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
                 <div style={{ flex: 1, minWidth: 220 }}>
@@ -520,10 +554,10 @@ export default function MemoriesPage() {
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/>
                       </svg>
-                      Record Audio
+                      Record a voice
                     </Link>
                     <Link
-                      href="/upload"
+                      href={narratorParam ? `/upload?narrator=${encodeURIComponent(narratorParam)}` : '/upload'}
                       style={{
                         display: 'inline-flex', alignItems: 'center', gap: '0.45rem',
                         background: 'transparent', color: 'var(--accent)', textDecoration: 'none',
@@ -535,7 +569,21 @@ export default function MemoriesPage() {
                         <polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/>
                         <path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/>
                       </svg>
-                      Upload a Memory
+                      Upload audio
+                    </Link>
+                    <Link
+                      href={narratorParam ? `/upload?narrator=${encodeURIComponent(narratorParam)}&mode=text` : '/upload?mode=text'}
+                      style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '0.45rem',
+                        background: 'transparent', color: 'var(--accent)', textDecoration: 'none',
+                        padding: '0.6rem 1.2rem', borderRadius: 12, fontSize: '0.88rem', fontWeight: 700,
+                        border: '1.5px solid var(--accent)',
+                      }}
+                    >
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                      </svg>
+                      Add in words
                     </Link>
                   </div>
                 </div>
@@ -569,7 +617,7 @@ export default function MemoriesPage() {
                     <line x1="2" y1="12" x2="4" y2="12"/><line x1="5" y1="8" x2="5" y2="16"/><line x1="8" y1="5" x2="8" y2="19"/><line x1="11" y1="9" x2="11" y2="15"/><line x1="14" y1="6" x2="14" y2="18"/><line x1="17" y1="10" x2="17" y2="14"/><line x1="20" y1="8" x2="20" y2="16"/><line x1="22" y1="12" x2="24" y2="12"/>
                   </svg>
                 )}
-                {displayed.length} {narratorParam ? `Memor${displayed.length !== 1 ? 'ies' : 'y'}` : isAudioMode ? `Memor${displayed.length !== 1 ? 'ies' : 'y'}` : `Recipe${displayed.length !== 1 ? 's' : ''}`}
+                {displayed.length} {(q || narratorParam) ? `Memor${displayed.length !== 1 ? 'ies' : 'y'}` : isAudioMode ? `Memor${displayed.length !== 1 ? 'ies' : 'y'}` : `Recipe${displayed.length !== 1 ? 's' : ''}`}
               </span>
               <label style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.8rem', color: 'var(--muted)' }}>
                 Sort by:
@@ -628,7 +676,7 @@ export default function MemoriesPage() {
           </div>
 
           {/* ── Right panel ── */}
-          <RightPanel filter={filter} setFilter={setFilter} sort={sort} setSort={setSort} isAudioMode={isAudioMode} />
+          <RightPanel filter={filter} setFilter={setFilter} sort={sort} setSort={setSort} isAudioMode={isAudioMode} searchActive={!!q} narratorParam={narratorParam} />
         </div>
 
         {/* ── Full-width bottom CTA ── */}
