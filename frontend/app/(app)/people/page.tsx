@@ -29,6 +29,15 @@ function isAudioMemory(m: { tags?: string[] | null }): boolean {
   return (m.tags ?? []).some(t => t === 'tale' || t === 'audio')
 }
 
+function resolveBreakdown(counts: Record<string, MemoryBreakdown>, personName: string): MemoryBreakdown {
+  const pKey = personName.toLowerCase().trim()
+  // Exact match first
+  if (counts[pKey]) return counts[pKey]
+  // Fall back to partial match — mirrors the .includes() logic in the memories grid narrator filter
+  const partial = Object.keys(counts).find(k => k.includes(pKey) || pKey.includes(k))
+  return partial ? counts[partial] : EMPTY_BREAKDOWN
+}
+
 // ─── SVG Icons ────────────────────────────────────────────────────────────
 const ChevronRight = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -521,7 +530,7 @@ export default function PeoplePage() {
               <PersonCard
                 key={p.id}
                 person={p}
-                breakdown={memoryCounts[p.name.toLowerCase().trim()] ?? EMPTY_BREAKDOWN}
+                breakdown={resolveBreakdown(memoryCounts, p.name)}
                 onEdit={() => openEdit(p)}
                 onNavigate={() => router.push(`/memories?narrator=${encodeURIComponent(p.name)}`)}
               />
