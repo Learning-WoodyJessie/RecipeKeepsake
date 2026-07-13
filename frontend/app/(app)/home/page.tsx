@@ -90,8 +90,8 @@ function HeroCard({ userName }: { userName: string }) {
             Welcome home, {userName}!{' '}
             <span aria-hidden style={{ color: 'var(--muted)' }}>♡</span>
           </h1>
-          <p style={{ fontSize: '0.88rem', color: 'var(--muted)', lineHeight: 1.55, marginBottom: '1.2rem' }}>
-            Every recipe has a story.<br />Every memory keeps them close.
+          <p style={{ fontSize: '0.88rem', color: 'var(--muted)', lineHeight: 1.65, marginBottom: '1.2rem' }}>
+            Some things are priceless — the way they said it, the voice behind every memory. A recipe. A lullaby. A story told just once. Keep it alive, across generations.
           </p>
           <div className="rk-action-tiles">
             <ActionTile
