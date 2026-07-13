@@ -359,8 +359,8 @@ export default function PeoplePage() {
       <div className="rk-people-cols">
         {/* ── Main ── */}
         <div>
-          {/* Hero */}
-          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem', marginBottom: '1.75rem', flexWrap: 'wrap' }}>
+          {/* Hero — sticky so "+ Add Person" stays visible as list grows */}
+          <div style={{ position: 'sticky', top: 0, zIndex: 10, background: 'var(--bg)', paddingBottom: '1rem', marginBottom: '0.75rem', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1.5rem', flex: 1 }}>
               <div style={{ flex: 1 }}>
                 <h1 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.6rem, 3vw, 2rem)', fontWeight: 700, color: 'var(--text)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
@@ -409,24 +409,6 @@ export default function PeoplePage() {
             ))}
           </div>
 
-          {/* Add someone card */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: 'var(--cream)', border: '1px solid var(--border)', borderRadius: 16, padding: '1.1rem 1.35rem' }}>
-            <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'var(--accent-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent)', flexShrink: 0 }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/>
-              </svg>
-            </div>
-            <div style={{ flex: 1 }}>
-              <p style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text)', marginBottom: 3 }}>Add someone special</p>
-              <p style={{ fontSize: '0.8rem', color: 'var(--muted)' }}>Invite a family member or friend to share their stories and recipes.</p>
-            </div>
-            <button
-              onClick={openAdd}
-              style={{ padding: '0.55rem 1.1rem', borderRadius: 20, border: '1.5px solid var(--accent)', background: 'transparent', color: 'var(--accent)', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}
-            >
-              Add Person
-            </button>
-          </div>
         </div>
 
         {/* ── Right panel ── */}
