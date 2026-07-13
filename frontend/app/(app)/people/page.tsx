@@ -360,7 +360,7 @@ export default function PeoplePage() {
         {/* ── Main ── */}
         <div>
           {/* Hero — sticky so "+ Add Person" stays visible as list grows */}
-          <div style={{ position: 'sticky', top: 0, zIndex: 10, background: 'var(--bg)', paddingBottom: '1rem', marginBottom: '0.75rem', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
+          <div style={{ position: 'sticky', top: 0, zIndex: 10, background: 'var(--cream, #FAF6F1)', paddingTop: '0.5rem', paddingBottom: '1rem', marginBottom: '0.75rem', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1.5rem', flex: 1 }}>
               <div style={{ flex: 1 }}>
                 <h1 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.6rem, 3vw, 2rem)', fontWeight: 700, color: 'var(--text)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
