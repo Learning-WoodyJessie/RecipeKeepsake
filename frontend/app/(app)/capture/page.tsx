@@ -382,7 +382,7 @@ function CapturePageInner() {
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="e.g. Appa's evening ghazal, Nani's lullaby…"
+                  placeholder="Appa's evening ghazal"
                   style={{
                     width: '100%',
                     border: '1px solid var(--border)',
@@ -403,7 +403,7 @@ function CapturePageInner() {
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="What is this: a poem, a song, a prayer? Why does it matter?"
+                  placeholder="A lullaby Nani sang every night before bed."
                   rows={2}
                   style={{
                     width: '100%',

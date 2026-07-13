@@ -558,7 +558,7 @@ function MemoryDetail() {
                 scheduleAutoSave({ transcript_english: e.target.value, user_notes: e.target.value })
               }}
               onBlur={() => patchField({ transcript_english: about, user_notes: about })}
-              placeholder="What is this: a song, a poem, a prayer? Why does it matter to your family?"
+              placeholder="A lullaby Nani sang every night before bed."
               rows={5}
               style={{
                 width: '100%', border: '1px solid var(--border)', borderRadius: 10,

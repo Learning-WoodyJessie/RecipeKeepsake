@@ -98,7 +98,7 @@ export default function ReviewWizard({ draft, audioFile, narrator: narratorProp,
         autoFocus
         value={title}
         onChange={e => setTitle(e.target.value)}
-        placeholder="e.g. Gongura Pachadi, Pesarattu…"
+        placeholder="Gongura Pachadi"
         style={{ width: '100%', border: `1.5px solid ${title ? 'var(--border)' : 'var(--accent)'}`, borderRadius: 10, padding: '0.75rem 0.9rem', fontSize: '1.05rem', fontFamily: 'var(--serif)', color: 'var(--text)', background: 'var(--surface)', boxSizing: 'border-box', marginBottom: '1.25rem' }}
       />
 
@@ -111,7 +111,7 @@ export default function ReviewWizard({ draft, audioFile, narrator: narratorProp,
       <input
         value={narrator}
         onChange={e => setNarrator(e.target.value)}
-        placeholder="e.g. Grandma, Dad, Lakshmi…"
+        placeholder="Ammamma"
         style={{ width: '100%', border: `1.5px solid ${narrator.trim() ? 'var(--border)' : 'var(--accent)'}`, borderRadius: 10, padding: '0.75rem 0.9rem', fontSize: '1rem', fontFamily: 'var(--sans)', color: 'var(--text)', background: 'var(--surface)', boxSizing: 'border-box' }}
       />
       {/* What we heard — collapsible transcript */}

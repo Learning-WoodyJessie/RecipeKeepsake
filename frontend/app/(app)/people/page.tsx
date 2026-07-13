@@ -251,10 +251,10 @@ function PersonModal({
         </div>
 
         {[
-          { field: 'name' as keyof FormData, label: 'Name', placeholder: 'e.g. Grandma' },
-          { field: 'relationship' as keyof FormData, label: 'Relationship', placeholder: 'e.g. Grandmother, Mom, Aunt' },
-          { field: 'bio' as keyof FormData, label: 'About them', placeholder: 'A short description…' },
-          { field: 'notes' as keyof FormData, label: 'Notes', placeholder: 'Anything else to remember…' },
+          { field: 'name' as keyof FormData, label: 'Name', placeholder: 'Ammamma' },
+          { field: 'relationship' as keyof FormData, label: 'Relationship', placeholder: 'Grandmother' },
+          { field: 'bio' as keyof FormData, label: 'About them', placeholder: 'The heart of our kitchen — known for her biryani and her stories.' },
+          { field: 'notes' as keyof FormData, label: 'Notes', placeholder: 'Speaks mostly Telugu, loves evenings on the porch.' },
         ].map(({ field, label, placeholder }) => (
           <div key={field} style={{ marginBottom: '0.85rem' }}>
             <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--muted)', marginBottom: '0.3rem' }}>{label}</label>

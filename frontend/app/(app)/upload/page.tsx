@@ -356,7 +356,7 @@ export default function UploadPage() {
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="e.g. Ammamma's lullaby, Eid poem…"
+                  placeholder="Ammamma's lullaby"
                   style={{
                     width: '100%',
                     border: '1px solid var(--border)',
@@ -378,7 +378,7 @@ export default function UploadPage() {
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="A short note about this audio: what it is, why it matters…"
+                  placeholder="A blessing she sang every morning before the day began."
                   rows={2}
                   style={{
                     width: '100%',
@@ -438,7 +438,7 @@ export default function UploadPage() {
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="e.g. Amma's blessing, Telugu new year poem…"
+                  placeholder="Amma's Ugadi blessing"
                   style={{
                     width: '100%',
                     border: '1px solid var(--border)',
@@ -467,7 +467,7 @@ export default function UploadPage() {
                 <textarea
                   value={textContent}
                   onChange={(e) => setTextContent(e.target.value)}
-                  placeholder="Paste or type the poem, song lyrics, proverb, or story here…"
+                  placeholder="చందమామ రావో జాబిల్లి రావో…"
                   rows={8}
                   style={{
                     width: '100%',
