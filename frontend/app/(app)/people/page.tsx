@@ -163,7 +163,7 @@ function WhyItMatters() {
         {/* Quote */}
         <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem', marginTop: '0.25rem' }}>
           <p style={{ fontFamily: 'var(--serif)', fontStyle: 'italic', fontSize: '0.88rem', color: 'var(--text2)', lineHeight: 1.65, textAlign: 'center', marginBottom: '0.65rem' }}>
-            &ldquo;The stories we collect today become the memories our children will treasure tomorrow.&rdquo;
+            &ldquo;The stories we collect today become the memories generations will treasure tomorrow.&rdquo;
           </p>
           <div style={{ textAlign: 'center', color: 'var(--muted)', fontSize: '1rem' }}>♡</div>
         </div>
