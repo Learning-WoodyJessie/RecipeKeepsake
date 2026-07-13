@@ -105,7 +105,7 @@ export default function AppTopBar({ onMenuClick }: { onMenuClick?: () => void })
       <div style={{ flex: 1, maxWidth: 520, position: 'relative', display: 'flex', alignItems: 'center' }}>
         <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', opacity: 0.45, fontSize: '0.95rem', pointerEvents: 'none' }} aria-hidden>🔍</span>
         <input
-          type="search"
+          type="text"
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="Search moments, recipes, people…"

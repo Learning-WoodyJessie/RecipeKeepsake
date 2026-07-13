@@ -783,10 +783,7 @@ export default function MemoriesPage() {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             flexShrink: 0, boxShadow: '0 4px 12px rgba(45,27,14,0.1)',
           }}>
-            {isAudioMode
-              ? <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-              : <span style={{ fontSize: '1.75rem' }}>🥘</span>
-            }
+            <span style={{ fontSize: '1.6rem', color: 'var(--accent)', lineHeight: 1 }}>✦</span>
           </div>
           <div style={{ flex: 1, minWidth: 200 }}>
             <p style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '1.05rem', color: 'var(--text)', marginBottom: '0.3rem' }}>
