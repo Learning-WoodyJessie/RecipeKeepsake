@@ -6,7 +6,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import NarratorChip from '@/components/NarratorChip'
+import NarratorCarousel from '@/components/NarratorCarousel'
 import ReviewWizard from '@/components/ReviewWizard'
 import SingleScreenReview from '@/components/SingleScreenReview'
 import { api } from '@/lib/api'
@@ -59,6 +59,94 @@ const FORMATS = [
   { ext: 'AIFF', note: 'Mac / GarageBand' },
   { ext: 'MP4', note: 'Video with audio track' },
 ]
+
+const TYPE_OPTIONS = [
+  {
+    value: 'song' as const,
+    label: 'Song',
+    desc: 'A melody or lullaby',
+    icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>,
+  },
+  {
+    value: 'story' as const,
+    label: 'Story',
+    desc: 'A tale from their life',
+    icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>,
+  },
+  {
+    value: 'fable' as const,
+    label: 'Fable',
+    desc: 'A lesson handed down',
+    icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>,
+  },
+  {
+    value: 'wisdom' as const,
+    label: 'Wisdom',
+    desc: 'Words to live by',
+    icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20M2 12h20"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2z"/><path d="M12 7v5l3 3"/></svg>,
+  },
+  {
+    value: 'poem' as const,
+    label: 'Poem',
+    desc: 'A verse in their voice',
+    icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>,
+  },
+] as const
+
+const LANGUAGES = [
+  { value: 'te', label: 'Telugu' },
+  { value: 'hi', label: 'Hindi' },
+  { value: 'ta', label: 'Tamil' },
+  { value: 'kn', label: 'Kannada' },
+  { value: 'en', label: 'English' },
+  { value: 'es', label: 'Spanish' },
+  { value: 'fr', label: 'French' },
+]
+
+function TypeCards({ value, onChange }: { value: string; onChange: (v: 'song' | 'story' | 'fable' | 'wisdom' | 'poem') => void }) {
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+      {TYPE_OPTIONS.map(t => {
+        const sel = value === t.value
+        return (
+          <button
+            key={t.value}
+            type="button"
+            onClick={() => onChange(t.value)}
+            style={{
+              textAlign: 'left',
+              padding: '0.65rem 0.8rem',
+              borderRadius: 10,
+              border: sel ? '1.5px solid var(--accent)' : '1px solid var(--border)',
+              background: sel ? 'var(--accent-light)' : 'var(--surface)',
+              cursor: 'pointer',
+              fontFamily: 'var(--sans)',
+              ...(t.value === 'poem' ? { gridColumn: '1 / -1' as const } : {}),
+            }}
+          >
+            <div style={{ color: sel ? 'var(--accent)' : 'var(--muted)', marginBottom: 4 }}>{t.icon}</div>
+            <div style={{ fontSize: '0.85rem', fontWeight: 600, color: sel ? 'var(--accent)' : 'var(--text)', marginBottom: 2 }}>{t.label}</div>
+            <div style={{ fontSize: '0.72rem', color: 'var(--muted)', lineHeight: 1.3 }}>{t.desc}</div>
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+function performerLabel(memoryType: string, mode: string): string {
+  if (mode === 'ai') return 'Who is narrating?'
+  if (mode === 'text') {
+    if (memoryType === 'wisdom') return 'Whose words?'
+    if (memoryType === 'poem') return 'Who wrote this?'
+    return 'Who is the author?'
+  }
+  if (memoryType === 'song') return 'Who is singing?'
+  if (memoryType === 'story' || memoryType === 'fable') return 'Who is telling this?'
+  if (memoryType === 'wisdom') return 'Whose words?'
+  if (memoryType === 'poem') return 'Who recited this?'
+  return 'Who is performing?'
+}
 
 function FormatsDropdown() {
   const [open, setOpen] = useState(false)
@@ -147,7 +235,7 @@ export default function UploadPage() {
     if (searchParams.get('mode') === 'text') setMode('text')
   }, [searchParams])
   const [memoryType, setMemoryType] = useState<'song' | 'story' | 'fable' | 'wisdom' | 'poem'>('song')
-  const [language, setLanguage] = useState<'te' | 'en'>('te')
+  const [language, setLanguage] = useState('te')
   const [narrator, setNarrator] = useState('')
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
@@ -344,34 +432,10 @@ export default function UploadPage() {
           {mode === 'direct' && (
             <>
               <div style={{ marginBottom: '1.25rem' }}>
-                <div style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--muted)', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>
-                  Type
+                <div style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--muted)', letterSpacing: '0.08em', marginBottom: '0.6rem' }}>
+                  What kind of memory is this?
                 </div>
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  {([
-                    { value: 'song',   label: '🎵 Song' },
-                    { value: 'story',  label: '📖 Story' },
-                    { value: 'fable',  label: '✨ Fable' },
-                    { value: 'wisdom', label: '🙏 Wisdom' },
-                    { value: 'poem',   label: '🖊️ Poem' },
-                  ] as const).map(({ value, label }) => (
-                    <button
-                      key={value}
-                      type="button"
-                      onClick={() => setMemoryType(value)}
-                      style={{
-                        padding: '6px 14px',
-                        borderRadius: 20,
-                        border: '1px solid var(--border)',
-                        background: memoryType === value ? 'var(--accent)' : 'transparent',
-                        color: memoryType === value ? 'white' : 'var(--muted)',
-                        fontSize: 13,
-                        cursor: 'pointer',
-                        fontFamily: 'var(--sans)',
-                      }}
-                    >{label}</button>
-                  ))}
-                </div>
+                <TypeCards value={memoryType} onChange={setMemoryType} />
               </div>
 
               <div style={{ marginBottom: '1.25rem' }}>
@@ -426,34 +490,10 @@ export default function UploadPage() {
           {mode === 'text' && (
             <>
               <div style={{ marginBottom: '1.25rem' }}>
-                <div style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--muted)', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>
-                  Type
+                <div style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--muted)', letterSpacing: '0.08em', marginBottom: '0.6rem' }}>
+                  What kind of memory is this?
                 </div>
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  {([
-                    { value: 'song',   label: '🎵 Song' },
-                    { value: 'story',  label: '📖 Story' },
-                    { value: 'fable',  label: '✨ Fable' },
-                    { value: 'wisdom', label: '🙏 Wisdom' },
-                    { value: 'poem',   label: '🖊️ Poem' },
-                  ] as const).map(({ value, label }) => (
-                    <button
-                      key={value}
-                      type="button"
-                      onClick={() => setMemoryType(value)}
-                      style={{
-                        padding: '6px 14px',
-                        borderRadius: 20,
-                        border: '1px solid var(--border)',
-                        background: memoryType === value ? 'var(--accent)' : 'transparent',
-                        color: memoryType === value ? 'white' : 'var(--muted)',
-                        fontSize: 13,
-                        cursor: 'pointer',
-                        fontFamily: 'var(--sans)',
-                      }}
-                    >{label}</button>
-                  ))}
-                </div>
+                <TypeCards value={memoryType} onChange={setMemoryType} />
               </div>
 
               <div style={{ marginBottom: '1.25rem' }}>
@@ -480,10 +520,10 @@ export default function UploadPage() {
               </div>
 
               <div style={{ marginBottom: '1.25rem' }}>
-                <div style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--muted)', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>
-                  Author
+                <div style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--muted)', letterSpacing: '0.08em', marginBottom: '0.6rem' }}>
+                  {performerLabel(memoryType, 'text')}
                 </div>
-                <NarratorChip selected={narrator} onSelect={setNarrator} />
+                <NarratorCarousel selected={narrator} onSelect={setNarrator} />
               </div>
 
               {/* Photo preview — shown when a photo was selected */}
@@ -576,33 +616,35 @@ export default function UploadPage() {
           {/* Narrator / Author picker — ai and direct modes only */}
           {mode !== 'text' && (
           <div style={{ marginBottom: '1.25rem' }}>
-            <div style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--muted)', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>
-              {mode === 'direct' ? 'Author' : 'Who is narrating?'}
+            <div style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--muted)', letterSpacing: '0.08em', marginBottom: '0.6rem' }}>
+              {performerLabel(memoryType, mode)}
             </div>
-            <NarratorChip selected={narrator} onSelect={setNarrator} />
+            <NarratorCarousel selected={narrator} onSelect={setNarrator} />
           </div>
           )}
 
-          {/* Language toggle — audio modes only */}
+          {/* Language dropdown — audio modes only */}
           {mode !== 'text' && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.1rem' }}>
-              <span style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--muted)' }}>Recording in</span>
-              {(['te', 'en'] as const).map(lang => (
-                <button
-                  key={lang}
-                  type="button"
-                  onClick={() => setLanguage(lang)}
-                  style={{
-                    padding: '0.3rem 0.8rem', borderRadius: 20, fontSize: '0.78rem', fontWeight: 600,
-                    border: '1.5px solid', cursor: 'pointer', fontFamily: 'var(--sans)',
-                    borderColor: language === lang ? 'var(--accent)' : 'var(--border)',
-                    background: language === lang ? 'var(--accent-light)' : 'transparent',
-                    color: language === lang ? 'var(--accent)' : 'var(--muted)',
-                  }}
-                >
-                  {lang === 'te' ? '🇮🇳 Telugu' : '🇬🇧 English'}
-                </button>
-              ))}
+            <div style={{ marginBottom: '1.1rem' }}>
+              <div style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--muted)', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>
+                Recorded in
+              </div>
+              <select
+                value={language}
+                onChange={e => setLanguage(e.target.value)}
+                style={{
+                  border: '1px solid var(--border)', borderRadius: 10,
+                  padding: '0.55rem 2.2rem 0.55rem 0.85rem',
+                  fontSize: '0.88rem', fontFamily: 'var(--sans)',
+                  background: 'var(--surface)', color: 'var(--text)',
+                  cursor: 'pointer', appearance: 'none',
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
+                  backgroundRepeat: 'no-repeat',
+                  backgroundPosition: 'right 0.7rem center',
+                }}
+              >
+                {LANGUAGES.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
+              </select>
             </div>
           )}
 
