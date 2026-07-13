@@ -311,9 +311,9 @@ function RecipeCard({
   narratorRelationship: string
 }) {
   return (
-    <div className="rk-card-hoverable" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, overflow: 'hidden', boxShadow: '0 2px 10px rgba(45,27,14,0.06), 0 0 22px rgba(24,107,94,0.14)' }}>
+    <div className="rk-card-hoverable" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, overflow: 'hidden', boxShadow: '0 2px 10px rgba(45,27,14,0.06), 0 0 22px rgba(24,107,94,0.14)', display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* Food photo */}
-      <div style={{ position: 'relative', aspectRatio: '4/3', background: 'var(--cream2)', overflow: 'hidden' }}>
+      <div style={{ position: 'relative', aspectRatio: '4/3', background: 'var(--cream2)', overflow: 'hidden', flexShrink: 0 }}>
         <Link href={`/memory?token=${memory.token}`} style={{ display: 'block', height: '100%' }}>
           {memory.image_url
             ? <img src={memory.image_url} alt={memory.title ?? ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -331,7 +331,7 @@ function RecipeCard({
         />
       </div>
 
-      <div style={{ padding: '0.85rem', minHeight: 108 }}>
+      <div style={{ padding: '0.85rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
         {/* Name */}
         <p style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '0.98rem', color: 'var(--text)', marginBottom: '0.55rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {memory.title ?? 'Untitled'}
@@ -353,8 +353,8 @@ function RecipeCard({
           )}
         </div>
 
-        {/* View memory link */}
-        <div style={{ marginTop: '0.5rem' }}>
+        {/* View memory link — pinned to bottom */}
+        <div style={{ marginTop: 'auto', paddingTop: '0.5rem' }}>
           <Link
             href={`/memory?token=${memory.token}`}
             style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none', color: 'var(--accent)', fontSize: '0.8rem', fontWeight: 600 }}
