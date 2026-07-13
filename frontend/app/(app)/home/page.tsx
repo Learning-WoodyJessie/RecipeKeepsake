@@ -301,6 +301,7 @@ function MemoryRow({
         alignItems: 'center',
         gap: '0.75rem',
         padding: '0.7rem 0.85rem',
+        minHeight: 76,
         background: 'var(--surface)',
         border: '1px solid var(--border)',
         borderRadius: 14,
@@ -328,7 +329,7 @@ function MemoryRow({
           {isAudio(memory) && <span style={{ fontSize: '0.72rem', color: 'var(--accent)', flexShrink: 0 }}>✦</span>}
           {title}
         </p>
-        <p style={{ fontSize: '0.7rem', color: 'var(--muted)', marginBottom: 5 }}>
+        <p style={{ fontSize: '0.7rem', color: 'var(--muted)', marginBottom: 5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {narr} · {fmtDate(memory.recorded_at)}
           {memory.type && memory.type !== 'recipe' && (
             <span style={{ marginLeft: 6, padding: '1px 7px', borderRadius: 8, background: 'var(--surface)', border: '1px solid var(--border)', fontSize: 10, textTransform: 'capitalize', verticalAlign: 'middle' }}>{memory.type}</span>
