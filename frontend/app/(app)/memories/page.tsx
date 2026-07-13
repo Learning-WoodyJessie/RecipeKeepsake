@@ -419,7 +419,10 @@ export default function MemoriesPage() {
   const [people, setPeople] = useState<Person[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [quickFilter, setQuickFilter] = useState<'All' | 'Favorites' | 'Family Collection'>('All')
+  const collectionParam = searchParams.get('collection')
+  const [quickFilter, setQuickFilter] = useState<'All' | 'Favorites' | 'Family Collection'>(
+    collectionParam === '1' ? 'Family Collection' : 'All'
+  )
   const [categoryFilter, setCategoryFilter] = useState('')
   const [sort, setSort] = useState('Recently added')
   const [favTick, setFavTick] = useState(0)

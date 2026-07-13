@@ -194,7 +194,7 @@ function MemoriesSection({
           {showFavsOnly ? 'Your favorites' : isFamily ? 'Family Memories' : 'Recent memories'}
         </h2>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-          {/* ♥ filter pill */}
+          {/* ♥ Favorites toggle pill */}
           <button
             type="button"
             onClick={() => setShowFavsOnly(v => !v)}
@@ -216,6 +216,30 @@ function MemoriesSection({
           >
             {showFavsOnly ? '♥' : '♡'} Favorites
           </button>
+          {/* Family Collection link pill */}
+          <Link
+            href="/memories?collection=1"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.3rem',
+              padding: '0.28rem 0.7rem',
+              borderRadius: 20,
+              border: '1.5px solid var(--border)',
+              background: 'transparent',
+              color: 'var(--muted)',
+              fontSize: '0.78rem',
+              fontWeight: 600,
+              textDecoration: 'none',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+            </svg>
+            Family Collection
+          </Link>
           <Link href="/memories" style={{ fontSize: '0.78rem', color: 'var(--accent)', textDecoration: 'none', fontWeight: 500, whiteSpace: 'nowrap' }}>
             View all ›
           </Link>
@@ -301,7 +325,7 @@ function MemoryRow({
       {/* Title + meta + waveform */}
       <div style={{ flex: 1, minWidth: 0, zIndex: 1 }}>
         <p style={{ fontFamily: 'var(--serif)', fontWeight: 600, color: 'var(--text)', fontSize: '0.9rem', marginBottom: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-          {isAudio(memory) && <span style={{ fontSize: '0.72rem', color: 'var(--accent)', flexShrink: 0 }}>♪</span>}
+          {isAudio(memory) && <span style={{ fontSize: '0.72rem', color: 'var(--accent)', flexShrink: 0 }}>✦</span>}
           {title}
         </p>
         <p style={{ fontSize: '0.7rem', color: 'var(--muted)', marginBottom: 5 }}>
