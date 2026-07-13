@@ -754,7 +754,6 @@ export default function MemoriesPage() {
                           border: isSelected ? '2.5px solid var(--accent)' : '2.5px solid transparent',
                           background: isSelected ? 'rgba(24,107,94,0.08)' : 'transparent',
                           transition: 'border-color 0.15s, background 0.15s',
-                          pointerEvents: 'none',
                         }} />
                       )}
                       {selectMode && (
