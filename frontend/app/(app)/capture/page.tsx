@@ -141,7 +141,7 @@ function CapturePageInner() {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [memoryType, setMemoryType] = useState<string>('song')
-  const [language, setLanguage] = useState<'te' | 'en'>('te')
+  const [language, setLanguage] = useState('te')
   const [duration, setDuration] = useState(0)
   const [draft, setDraft] = useState<any>(null)
   const [audioFile, setAudioFile] = useState<File | null>(null)
@@ -375,26 +375,29 @@ function CapturePageInner() {
             </div>
           )}
 
-          {/* Language toggle — shown before recording starts */}
+          {/* Language dropdown — shown before recording starts */}
           {stage === 'idle' && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-              <span style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--muted)' }}>Recording in</span>
-              {(['te', 'en'] as const).map(lang => (
-                <button
-                  key={lang}
-                  type="button"
-                  onClick={() => setLanguage(lang)}
-                  style={{
-                    padding: '0.3rem 0.8rem', borderRadius: 20, fontSize: '0.78rem', fontWeight: 600,
-                    border: '1.5px solid', cursor: 'pointer', fontFamily: 'var(--sans)',
-                    borderColor: language === lang ? 'var(--accent)' : 'var(--border)',
-                    background: language === lang ? 'var(--accent-light)' : 'transparent',
-                    color: language === lang ? 'var(--accent)' : 'var(--muted)',
-                  }}
-                >
-                  {lang === 'te' ? '🇮🇳 Telugu' : '🇬🇧 English'}
-                </button>
-              ))}
+            <div style={{ marginBottom: '1rem' }}>
+              <div style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--muted)', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>
+                Recorded in
+              </div>
+              <select
+                value={language}
+                onChange={e => setLanguage(e.target.value)}
+                style={{
+                  border: '1px solid var(--border)', borderRadius: 10,
+                  padding: '0.55rem 2.2rem 0.55rem 0.85rem',
+                  fontSize: '0.88rem', fontFamily: 'var(--sans)',
+                  background: 'var(--surface)', color: 'var(--text)',
+                  cursor: 'pointer', appearance: 'none', WebkitAppearance: 'none',
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
+                  backgroundRepeat: 'no-repeat',
+                  backgroundPosition: 'right 0.7rem center',
+                }}
+              >
+                <option value="te">🇮🇳 Telugu</option>
+                <option value="en">🇬🇧 English</option>
+              </select>
             </div>
           )}
 
