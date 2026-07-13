@@ -316,14 +316,14 @@ function RecipeCard({
         {/* Memory count */}
         <p style={{ fontSize: '0.72rem', color: 'var(--muted)', marginBottom: '0.65rem' }}>1 memory</p>
 
-        {/* View recipe + share row */}
+        {/* View memory + share row */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Link
             href={`/memory?token=${memory.token}`}
             style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none', color: 'var(--accent)', fontSize: '0.8rem', fontWeight: 600 }}
           >
             <div style={{ width: 22, height: 22, borderRadius: '50%', border: '1.5px solid var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.55rem' }}>▶</div>
-            View recipe
+            View memory
           </Link>
           <button
             type="button"
@@ -617,14 +617,14 @@ export default function MemoriesPage() {
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap', marginBottom: '0.5rem' }}>
                     <h1 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.6rem, 3vw, 2rem)', fontWeight: 700, color: 'var(--text)', margin: 0, display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-                      All Recipes <span style={{ color: 'var(--muted)' }}>♡</span>
+                      All Memories <span style={{ color: 'var(--muted)' }}>♡</span>
                     </h1>
                     <Link href={narratorParam ? `/capture?narrator=${encodeURIComponent(narratorParam)}` : '/capture'} style={{ background: 'var(--accent)', color: 'white', textDecoration: 'none', padding: '0.45rem 1rem', borderRadius: 10, fontSize: '0.82rem', fontWeight: 700, whiteSpace: 'nowrap', flexShrink: 0, boxShadow: '0 2px 8px rgba(24,107,94,0.22)', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
-                      + Add Recipe
+                      + Add Memory
                     </Link>
                   </div>
                   <p style={{ fontSize: '0.9rem', color: 'var(--muted)', lineHeight: 1.6, maxWidth: 360 }}>
-                    Timeless recipes, lovingly shared by the people who made our moments special.
+                    Recipes, songs, stories — every memory lovingly shared by the people who made your world.
                   </p>
                 </div>
                 <HeroIllustration />
@@ -823,12 +823,12 @@ export default function MemoriesPage() {
           </div>
           <div style={{ flex: 1, minWidth: 200 }}>
             <p style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '1.05rem', color: 'var(--text)', marginBottom: '0.3rem' }}>
-              {isAudioMode ? 'Have a moment worth keeping?' : 'Have a family recipe to add?'}
+              {isAudioMode ? 'Have a moment worth keeping?' : 'Have a memory to preserve?'}
             </p>
             <p style={{ fontSize: '0.83rem', color: 'var(--muted)', lineHeight: 1.55 }}>
               {isAudioMode
                 ? 'Record it now or upload an audio file. Every voice deserves to be heard again.'
-                : 'Record it, write it or upload it. Keep your family\'s stories and flavors alive for generations to come.'}
+                : 'Record it, write it or upload it. Keep every recipe, song and story alive for generations to come.'}
             </p>
           </div>
           {/* Decorative floral — audio mode only */}
