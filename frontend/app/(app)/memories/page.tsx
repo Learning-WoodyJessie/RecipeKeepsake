@@ -626,7 +626,7 @@ export default function MemoriesPage() {
                     </Link>
                   </div>
                   <p style={{ fontSize: '0.9rem', color: 'var(--muted)', lineHeight: 1.6, maxWidth: 360 }}>
-                    Recipes, songs, stories — every memory lovingly shared by the people who made your world.
+                    Every recipe lovingly shared by the people who made your world.
                   </p>
                 </div>
                 <HeroIllustration />
