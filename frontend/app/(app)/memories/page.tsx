@@ -514,9 +514,9 @@ export default function MemoriesPage() {
         .rk-mem-wrap { max-width: 1200px; margin: 0 auto; }
         .rk-mem-cols { display: grid; grid-template-columns: 1fr; gap: 1.25rem; }
         @media (min-width: 860px) { .rk-mem-cols { grid-template-columns: 1fr 272px; align-items: start; } }
-        .rk-recipe-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
-        @media (min-width: 640px) { .rk-recipe-grid { grid-template-columns: repeat(3, 1fr); } }
-        @media (min-width: 900px) { .rk-recipe-grid { grid-template-columns: repeat(4, 1fr); } }
+        .rk-recipe-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+        @media (min-width: 640px) { .rk-recipe-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+        @media (min-width: 900px) { .rk-recipe-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
       `}</style>
 
       <div className="rk-mem-wrap">
@@ -730,7 +730,7 @@ export default function MemoriesPage() {
                 {displayed.map(m => {
                   const info = peopleMap[m.narrator?.toLowerCase() ?? ''] ?? { photo: '', relationship: '' }
                   return (
-                    <div key={m.token} style={{ position: 'relative' }}>
+                    <div key={m.token} style={{ position: 'relative', minWidth: 0 }}>
                       {isAudio(m) ? (
                         <AudioCard
                           memory={m}
