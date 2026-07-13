@@ -3,7 +3,7 @@
 
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import NarratorChip from '@/components/NarratorChip'
@@ -157,6 +157,17 @@ export default function UploadPage() {
   const [processing, setProcessing] = useState(false)
   const [error, setError] = useState('')
   const [dragOver, setDragOver] = useState(false)
+  const [photoFile, setPhotoFile] = useState<File | null>(null)
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null)
+  const photoInputRef = useRef<HTMLInputElement | null>(null)
+
+  function handlePhotoSelected(file: File) {
+    setPhotoFile(file)
+    const url = URL.createObjectURL(file)
+    setPhotoPreview(url)
+    setMode('text')
+    setError('')
+  }
 
   // AI pipeline mode
   async function handleFileAI(file: File) {
@@ -201,19 +212,23 @@ export default function UploadPage() {
     }
   }
 
-  // Text paste mode
+  // Text / photo save mode
   async function handleTextSave() {
     if (!title.trim()) { setError('Please enter a title first.'); return }
-    if (!textContent.trim()) { setError('Please paste some text first.'); return }
+    if (!textContent.trim() && !photoFile) { setError('Please add some text or a photo first.'); return }
     setProcessing(true)
     setError('')
     try {
       const result = await api.text.save({
         title: title.trim(),
-        text: textContent.trim(),
+        text: textContent.trim() || `[Photo memory: ${title.trim()}]`,
         memory_type: memoryType,
         narrator: narrator || undefined,
       }) as { token: string; transcript_raw?: string; transcript_english?: string }
+      // Upload photo if one was selected
+      if (photoFile && result.token) {
+        await api.memories.uploadPhoto(result.token, photoFile).catch(() => {})
+      }
       setDirectReview({
         token: result.token,
         transcriptRaw: result.transcript_raw ?? '',
@@ -468,15 +483,37 @@ export default function UploadPage() {
                 <NarratorChip selected={narrator} onSelect={setNarrator} />
               </div>
 
+              {/* Photo preview — shown when a photo was selected */}
+              {photoPreview && (
+                <div style={{ marginBottom: '1.25rem' }}>
+                  <div style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--muted)', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>
+                    Photo
+                  </div>
+                  <div style={{ position: 'relative', display: 'inline-block' }}>
+                    <img
+                      src={photoPreview}
+                      alt="Selected photo"
+                      style={{ maxWidth: '100%', maxHeight: 220, borderRadius: 10, border: '1px solid var(--border)', display: 'block', objectFit: 'contain' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => { setPhotoFile(null); setPhotoPreview(null) }}
+                      style={{ position: 'absolute', top: 6, right: 6, background: 'rgba(0,0,0,0.55)', border: 'none', borderRadius: '50%', width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'white', fontSize: '0.75rem' }}
+                      aria-label="Remove photo"
+                    >✕</button>
+                  </div>
+                </div>
+              )}
+
               <div style={{ marginBottom: '1.25rem' }}>
                 <div style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--muted)', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>
-                  Text *
+                  {photoFile ? 'Notes (optional)' : 'Text *'}
                 </div>
                 <textarea
                   value={textContent}
                   onChange={(e) => setTextContent(e.target.value)}
-                  placeholder="చందమామ రావో జాబిల్లి రావో…"
-                  rows={8}
+                  placeholder={photoFile ? 'Add a note about this photo (optional)…' : 'చందమామ రావో జాబిల్లి రావో…'}
+                  rows={photoFile ? 4 : 8}
                   style={{
                     width: '100%',
                     border: '1px solid var(--border)',
@@ -493,9 +530,22 @@ export default function UploadPage() {
                 />
               </div>
 
-              {error && (
+              {error && (error.includes('memory_cap_reached') ? (
+                <div style={{ padding: '1rem 1.1rem', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, marginBottom: '0.75rem', textAlign: 'center' }}>
+                  <p style={{ fontSize: '1.25rem', marginBottom: '0.35rem' }}>🔒</p>
+                  <p style={{ fontWeight: 600, color: 'var(--text)', fontSize: '0.9rem', marginBottom: '0.3rem' }}>You've saved 10 memories</p>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--muted)', marginBottom: '0.85rem', lineHeight: 1.5 }}>
+                    Unlimited storage is coming soon. Email us and we'll let you know when it's ready.
+                  </p>
+                  <a href="mailto:pavanimbr@gmail.com?subject=Unlimited memories waitlist" style={{ display: 'inline-block', padding: '0.5rem 1.2rem', background: 'var(--accent)', color: 'white', borderRadius: 10, fontSize: '0.82rem', fontWeight: 600, textDecoration: 'none', marginBottom: '0.5rem' }}>
+                    support@theechoesofhome.com
+                  </a>
+                  <br />
+                  <Link href="/memories" style={{ fontSize: '0.78rem', color: 'var(--muted)', textDecoration: 'underline' }}>Manage your memories</Link>
+                </div>
+              ) : (
                 <p style={{ color: 'var(--accent)', marginBottom: '0.75rem', fontSize: '0.82rem' }}>{error}</p>
-              )}
+              ))}
 
               <button
                 type="button"
@@ -515,7 +565,7 @@ export default function UploadPage() {
                   marginBottom: '1rem',
                 }}
               >
-                {processing ? '✨ Translating and saving…' : '✍️ Save this memory'}
+                {processing ? '✨ Saving…' : photoFile ? '📷 Save this memory' : '✍️ Save this memory'}
               </button>
             </>
           )}
@@ -605,28 +655,33 @@ export default function UploadPage() {
               <p style={{ fontSize: '0.8rem', color: 'var(--muted)', lineHeight: 1.5 }}>Only you and your family can access these memories.</p>
             </div>
           </div>
-          {/* "No recording?" — quiet secondary path to text mode */}
+          {/* "No recording?" — two distinct secondary paths */}
           <div style={{ marginTop: '1.5rem', padding: '1rem 1.25rem', background: 'var(--cream2)', borderRadius: 14, border: '1px solid var(--border)' }}>
             <p style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text2)', marginBottom: '0.65rem' }}>
               No recording? Preserve it another way.
             </p>
             <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-              <button type="button" onClick={() => { setMode('text'); setError('') }}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.4rem 0.85rem', borderRadius: 20, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text2)', fontSize: '0.8rem', fontWeight: 500, cursor: 'pointer', fontFamily: 'var(--sans)' }}>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-                Type it
-              </button>
+              {/* Option 1: type or paste text */}
               <button type="button" onClick={() => { setMode('text'); setError(''); setTimeout(() => { const el = document.querySelector('textarea'); el?.focus() }, 100) }}
                 style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.4rem 0.85rem', borderRadius: 20, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text2)', fontSize: '0.8rem', fontWeight: 500, cursor: 'pointer', fontFamily: 'var(--sans)' }}>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-                Paste from WhatsApp
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                Type or paste
               </button>
-              <button type="button" onClick={() => { setMode('text'); setError('') }}
+              {/* Option 2: upload a photo or screenshot */}
+              <button type="button" onClick={() => photoInputRef.current?.click()}
                 style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.4rem 0.85rem', borderRadius: 20, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text2)', fontSize: '0.8rem', fontWeight: 500, cursor: 'pointer', fontFamily: 'var(--sans)' }}>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
                 Upload a photo
               </button>
             </div>
+            {/* Hidden file input — triggers native camera/files picker on mobile */}
+            <input
+              ref={photoInputRef}
+              type="file"
+              accept="image/*,image/heic,image/heif"
+              style={{ display: 'none' }}
+              onChange={e => { const f = e.target.files?.[0]; if (f) handlePhotoSelected(f) }}
+            />
           </div>
           </>
           )}
