@@ -430,11 +430,12 @@ export default function PeoplePage() {
         const b = counts[key]
         if (isAudioMemory(m)) {
           const t = m.type ?? ''
-          if (t === 'song' || t === '') b.songs++
+          if (t === 'song' || t === '' || t === 'recipe') b.songs++
           else if (t === 'story') b.stories++
           else if (t === 'fable') b.fables++
           else if (t === 'wisdom') b.wisdom++
           else if (t === 'poem') b.poems++
+          else b.songs++
         } else {
           b.recipes++
         }
