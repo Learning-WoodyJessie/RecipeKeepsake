@@ -199,11 +199,10 @@ function RightPanel({
           </div>
         ))}
         <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem', marginTop: '0.25rem', textAlign: 'center' }}>
-          <p style={{ fontSize: '1.5rem', color: 'var(--accent)', lineHeight: 1, marginBottom: '0.5rem' }}>&ldquo;</p>
           <p style={{ fontFamily: 'var(--serif)', fontStyle: 'italic', fontSize: '0.88rem', color: 'var(--text2)', lineHeight: 1.65, marginBottom: '0.65rem' }}>
             {isAudioMode
-              ? 'Some memories are meant to be heard.'
-              : 'A recipe is more than ingredients. It\'s a story we live and share.'}
+              ? '“Some memories are meant to be heard.”'
+              : '“A recipe is more than ingredients. It’s a story we live and share.”'}
           </p>
           <span style={{ color: 'var(--muted)', fontSize: '1rem' }}>♡</span>
         </div>
