@@ -5,6 +5,7 @@
 'use client'
 import { useEffect, useState, useRef, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { api } from '@/lib/api'
 import AudioPlayer from '@/components/AudioPlayer'
 import LanguageSwitcher from '@/components/LanguageSwitcher'
@@ -690,8 +691,8 @@ function MemoryDetail() {
         </div>
       )}
 
-      {isInGroup && (
-        <div style={{ marginBottom: '1rem' }}>
+      <div style={{ marginBottom: '1rem' }}>
+        {isInGroup ? (
           <button
             onClick={togglePortal}
             disabled={portalBusy}
@@ -705,10 +706,28 @@ function MemoryDetail() {
               fontFamily: 'var(--sans)',
             }}
           >
-            {inPortal ? '✓ In family portal' : '+ Add to family portal'}
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+            </svg>
+            {inPortal ? '✓ In family collection' : '+ Add to family collection'}
           </button>
-        </div>
-      )}
+        ) : (
+          <Link href="/account#family" style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            padding: '5px 14px', borderRadius: 20, fontSize: 13,
+            border: '1px solid var(--border)', textDecoration: 'none',
+            background: 'transparent', color: 'var(--muted)',
+            fontFamily: 'var(--sans)',
+          }}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+            </svg>
+            Set up family collection
+          </Link>
+        )}
+      </div>
 
       {/* Photo section */}
       <div style={{ marginBottom: '1.25rem' }}>

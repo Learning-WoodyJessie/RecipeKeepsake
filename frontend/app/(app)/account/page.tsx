@@ -147,10 +147,10 @@ function FamilyGroupSection() {
 
   if (!data) return (
     <div style={card}>
-      <h2 style={{ color: 'var(--accent)', fontWeight: 600, marginBottom: '0.5rem', fontSize: '1rem' }}>Family Group</h2>
+      <h2 style={{ color: 'var(--accent)', fontWeight: 600, marginBottom: '0.5rem', fontSize: '1rem' }}>Family collection</h2>
       <p style={{ color: 'var(--text2)', fontSize: '0.85rem', marginBottom: '1.25rem', lineHeight: 1.6 }}>
-        Create a group so your whole family can share and browse memories together.
-        Share the invite link in your WhatsApp group. Anyone who clicks it can join.
+        Create a family collection so everyone can browse your memories together — no account needed.
+        Share the invite link in your WhatsApp group so family members can add their own memories too.
       </p>
       {error && <p style={{ color: 'var(--accent)', fontSize: '0.82rem', marginBottom: '0.75rem' }}>{error}</p>}
       <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -172,11 +172,11 @@ function FamilyGroupSection() {
   return (
     <div style={card}>
       <h2 style={{ color: 'var(--accent)', fontWeight: 600, marginBottom: '1rem', fontSize: '1rem' }}>
-        Family Group · {data.group.name}
+        Family collection · {data.group.name}
       </h2>
 
       <div style={{ marginBottom: '0.85rem' }}>
-        <p style={label}>Portal URL</p>
+        <p style={label}>Collection link</p>
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
           <span style={{ flex: 1, fontSize: '0.8rem', color: 'var(--text2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{data.portal_url}</span>
           <button onClick={() => copy(data.portal_url, 'portal')} style={{ flexShrink: 0, background: 'transparent', border: '1px solid var(--border)', borderRadius: 8, padding: '0.3rem 0.75rem', fontSize: '0.78rem', cursor: 'pointer', color: copied === 'portal' ? 'var(--accent)' : 'var(--muted)' }}>
@@ -199,7 +199,7 @@ function FamilyGroupSection() {
       </div>
 
       <p style={{ color: 'var(--muted)', fontSize: '0.8rem', lineHeight: 1.5 }}>
-        Share the invite link in your WhatsApp group. Pin the portal URL so everyone can browse memories anytime.
+        Share the collection link in your WhatsApp group so everyone can browse memories anytime — no account needed.
       </p>
     </div>
   )

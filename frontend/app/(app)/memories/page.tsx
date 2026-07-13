@@ -237,10 +237,10 @@ function RightPanel({
         <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem', marginTop: '0.25rem', textAlign: 'center' }}>
           <p style={{ fontFamily: 'var(--serif)', fontStyle: 'italic', fontSize: '0.88rem', color: 'var(--text2)', lineHeight: 1.65, marginBottom: '0.65rem' }}>
             {(searchActive || narratorParam)
-              ? ‘“Every family carries a world. Don’t let it fade.”’
+              ? `”Every family carries a world. Don’t let it fade.”`
               : isAudioMode
-              ? ‘“Some memories are meant to be heard.”’
-              : ‘“A recipe is more than ingredients. It’s a story we live and share.”’}
+              ? `”Some memories are meant to be heard.”`
+              : `”A recipe is more than ingredients. It’s a story we live and share.”`}
           </p>
           <span style={{ color: 'var(--muted)', fontSize: '1rem' }}>♡</span>
         </div>
@@ -456,6 +456,10 @@ export default function MemoriesPage() {
   const [filter, setFilter] = useState(typeParam === 'audio' ? 'audio' : 'All')
   const [sort, setSort] = useState('Recently added')
   const [favTick, setFavTick] = useState(0)
+  const [selectMode, setSelectMode] = useState(false)
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [addingToCollection, setAddingToCollection] = useState(false)
+  const [collectionDone, setCollectionDone] = useState(false)
 
   useEffect(() => {
     Promise.all([api.recipes.list(), api.people.list().catch(() => [])])
@@ -470,6 +474,35 @@ export default function MemoriesPage() {
     toggleFavorite(token)
     setFavTick(x => x + 1)
   }, [])
+
+  const toggleSelect = useCallback((token: string) => {
+    setSelected(prev => {
+      const next = new Set(prev)
+      if (next.has(token)) next.delete(token)
+      else next.add(token)
+      return next
+    })
+  }, [])
+
+  const exitSelectMode = useCallback(() => {
+    setSelectMode(false)
+    setSelected(new Set())
+    setCollectionDone(false)
+  }, [])
+
+  async function addToCollection() {
+    if (selected.size === 0 || addingToCollection) return
+    setAddingToCollection(true)
+    try {
+      await Promise.all([...selected].map(token => api.recipes.patch(token, { portal_visible: true })))
+      setCollectionDone(true)
+      setTimeout(() => exitSelectMode(), 1800)
+    } catch {
+      // silent — leave mode open so user can retry
+    } finally {
+      setAddingToCollection(false)
+    }
+  }
 
   const peopleMap = useMemo(() => {
     const map: Record<string, { photo: string; relationship: string }> = {}
@@ -651,18 +684,39 @@ export default function MemoriesPage() {
                     <line x1="2" y1="12" x2="4" y2="12"/><line x1="5" y1="8" x2="5" y2="16"/><line x1="8" y1="5" x2="8" y2="19"/><line x1="11" y1="9" x2="11" y2="15"/><line x1="14" y1="6" x2="14" y2="18"/><line x1="17" y1="10" x2="17" y2="14"/><line x1="20" y1="8" x2="20" y2="16"/><line x1="22" y1="12" x2="24" y2="12"/>
                   </svg>
                 )}
-                {displayed.length} {(q || narratorParam) ? `Memor${displayed.length !== 1 ? 'ies' : 'y'}` : isAudioMode ? `Memor${displayed.length !== 1 ? 'ies' : 'y'}` : `Recipe${displayed.length !== 1 ? 's' : ''}`}
+                {selectMode ? `${selected.size} selected` : `${displayed.length} ${(q || narratorParam) ? `Memor${displayed.length !== 1 ? 'ies' : 'y'}` : isAudioMode ? `Memor${displayed.length !== 1 ? 'ies' : 'y'}` : `Recipe${displayed.length !== 1 ? 's' : ''}`}`}
               </span>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.8rem', color: 'var(--muted)' }}>
-                Sort by:
-                <select
-                  value={sort}
-                  onChange={e => setSort(e.target.value)}
-                  style={{ border: '1px solid var(--border)', borderRadius: 8, padding: '0.25rem 0.55rem', fontSize: '0.78rem', background: 'var(--surface)', color: 'var(--text2)', cursor: 'pointer' }}
-                >
-                  {SORT_OPTIONS.map(o => <option key={o}>{o}</option>)}
-                </select>
-              </label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                {!selectMode ? (
+                  <button
+                    type="button"
+                    onClick={() => setSelectMode(true)}
+                    style={{ background: 'transparent', border: '1px solid var(--border)', borderRadius: 8, padding: '0.25rem 0.7rem', fontSize: '0.78rem', color: 'var(--text2)', cursor: 'pointer', fontFamily: 'var(--sans)' }}
+                  >
+                    Select
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={exitSelectMode}
+                    style={{ background: 'transparent', border: '1px solid var(--border)', borderRadius: 8, padding: '0.25rem 0.7rem', fontSize: '0.78rem', color: 'var(--text2)', cursor: 'pointer', fontFamily: 'var(--sans)' }}
+                  >
+                    Cancel
+                  </button>
+                )}
+                {!selectMode && (
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.8rem', color: 'var(--muted)' }}>
+                    Sort by:
+                    <select
+                      value={sort}
+                      onChange={e => setSort(e.target.value)}
+                      style={{ border: '1px solid var(--border)', borderRadius: 8, padding: '0.25rem 0.55rem', fontSize: '0.78rem', background: 'var(--surface)', color: 'var(--text2)', cursor: 'pointer' }}
+                    >
+                      {SORT_OPTIONS.map(o => <option key={o}>{o}</option>)}
+                    </select>
+                  </label>
+                )}
+              </div>
             </div>
 
             {/* Grid */}
@@ -686,23 +740,57 @@ export default function MemoriesPage() {
               <div className="rk-recipe-grid">
                 {displayed.map(m => {
                   const info = peopleMap[m.narrator?.toLowerCase() ?? ''] ?? { photo: '', relationship: '' }
-                  return isAudio(m) ? (
-                    <AudioCard
+                  const isSelected = selected.has(m.token)
+                  return (
+                    <div
                       key={m.token}
-                      memory={m}
-                      isFav={favTokens.includes(m.token)}
-                      onToggleFav={() => toggleFav(m.token)}
-                      narratorPhoto={info.photo}
-                    />
-                  ) : (
-                    <RecipeCard
-                      key={m.token}
-                      memory={m}
-                      isFav={favTokens.includes(m.token)}
-                      onToggleFav={() => toggleFav(m.token)}
-                      narratorPhoto={info.photo}
-                      narratorRelationship={info.relationship}
-                    />
+                      style={{ position: 'relative', cursor: selectMode ? 'pointer' : undefined }}
+                      onClick={selectMode ? () => toggleSelect(m.token) : undefined}
+                    >
+                      {/* Selection overlay */}
+                      {selectMode && (
+                        <div style={{
+                          position: 'absolute', inset: 0, zIndex: 10, borderRadius: 16,
+                          border: isSelected ? '2.5px solid var(--accent)' : '2.5px solid transparent',
+                          background: isSelected ? 'rgba(24,107,94,0.08)' : 'transparent',
+                          transition: 'border-color 0.15s, background 0.15s',
+                          pointerEvents: 'none',
+                        }} />
+                      )}
+                      {selectMode && (
+                        <div style={{
+                          position: 'absolute', top: 10, left: 10, zIndex: 20,
+                          width: 22, height: 22, borderRadius: 6,
+                          background: isSelected ? 'var(--accent)' : 'rgba(255,255,255,0.92)',
+                          border: isSelected ? '2px solid var(--accent)' : '2px solid var(--border)',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          boxShadow: '0 1px 4px rgba(0,0,0,0.15)',
+                          transition: 'background 0.15s, border-color 0.15s',
+                        }}>
+                          {isSelected && (
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                          )}
+                        </div>
+                      )}
+                      {isAudio(m) ? (
+                        <AudioCard
+                          memory={m}
+                          isFav={favTokens.includes(m.token)}
+                          onToggleFav={() => toggleFav(m.token)}
+                          narratorPhoto={info.photo}
+                        />
+                      ) : (
+                        <RecipeCard
+                          memory={m}
+                          isFav={favTokens.includes(m.token)}
+                          onToggleFav={() => toggleFav(m.token)}
+                          narratorPhoto={info.photo}
+                          narratorRelationship={info.relationship}
+                        />
+                      )}
+                    </div>
                   )
                 })}
               </div>
@@ -714,7 +802,7 @@ export default function MemoriesPage() {
         </div>
 
         {/* ── Full-width bottom CTA ── */}
-        <div style={{
+        {!selectMode && <div style={{
           display: 'flex',
           alignItems: 'center',
           gap: '1.5rem',
@@ -764,8 +852,51 @@ export default function MemoriesPage() {
               <circle cx="22" cy="22" r="4" fill="var(--accent)"/>
             </svg>
           )}
-        </div>
+        </div>}
       </div>
+
+      {/* Sticky action bar — shown when items are selected */}
+      {selectMode && selected.size > 0 && (
+        <div style={{
+          position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)',
+          zIndex: 100, display: 'flex', alignItems: 'center', gap: '0.75rem',
+          background: 'var(--text)', color: 'white',
+          borderRadius: 999, padding: '0.75rem 1.25rem',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.28)',
+          fontSize: '0.88rem', fontWeight: 600,
+          whiteSpace: 'nowrap',
+          animation: 'rk-slideup 0.2s ease',
+        }}>
+          <style>{`@keyframes rk-slideup { from { opacity:0; transform: translateX(-50%) translateY(12px); } to { opacity:1; transform: translateX(-50%) translateY(0); } }`}</style>
+          <span style={{ color: 'rgba(255,255,255,0.7)', fontWeight: 400 }}>{selected.size} selected</span>
+          <button
+            type="button"
+            onClick={addToCollection}
+            disabled={addingToCollection}
+            style={{
+              background: collectionDone ? '#25D366' : 'var(--accent)',
+              color: 'white', border: 'none', borderRadius: 999,
+              padding: '0.5rem 1.1rem', fontSize: '0.88rem', fontWeight: 700,
+              cursor: addingToCollection ? 'default' : 'pointer',
+              display: 'flex', alignItems: 'center', gap: '0.4rem',
+              transition: 'background 0.2s',
+            }}
+          >
+            {collectionDone
+              ? <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Added!</>
+              : addingToCollection ? 'Adding…'
+              : '+ Add to family collection'
+            }
+          </button>
+          <button
+            type="button"
+            onClick={exitSelectMode}
+            style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.6)', fontSize: '0.82rem', cursor: 'pointer', padding: '0.25rem' }}
+          >
+            ✕
+          </button>
+        </div>
+      )}
     </div>
   )
 }

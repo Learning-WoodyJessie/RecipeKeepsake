@@ -29,6 +29,77 @@ const BookIcon = () => (
 )
 
 // ─── Right panel ─────────────────────────────────────────────────────────
+function FamilyCollectionCard({ groupData, groupChecked }: { groupData: { portal_url?: string; invite_url?: string } | null; groupChecked: boolean }) {
+  const [copied, setCopied] = useState<'collection' | 'invite' | null>(null)
+  function copy(url: string, type: 'collection' | 'invite') {
+    navigator.clipboard.writeText(url).then(() => { setCopied(type); setTimeout(() => setCopied(null), 2000) })
+  }
+  function shareWhatsApp(url: string, label: string) {
+    window.open(`https://wa.me/?text=${encodeURIComponent(`${label}\n${url}`)}`)
+  }
+
+  if (!groupChecked) return null
+
+  return (
+    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 18, padding: '1.25rem', boxShadow: '0 4px 16px rgba(45,27,14,0.05)' }}>
+      <h3 style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '0.95rem', color: 'var(--text)', marginBottom: '0.55rem', display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+        </svg>
+        Family collection
+      </h3>
+
+      {groupData ? (
+        <>
+          <p style={{ fontSize: '0.78rem', color: 'var(--muted)', lineHeight: 1.55, marginBottom: '0.85rem' }}>
+            Share these links with family. Anyone can browse your collection — no account needed.
+          </p>
+          {/* Collection link */}
+          <div style={{ marginBottom: '0.65rem' }}>
+            <div style={{ fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--muted)', marginBottom: '0.3rem' }}>Collection link</div>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <button onClick={() => shareWhatsApp(groupData.portal_url ?? '', 'Browse our family collection:')}
+                style={{ background: '#25D366', border: 'none', borderRadius: 8, padding: '0.35rem 0.7rem', color: 'white', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 4 }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.117 1.527 5.845L.057 24l6.345-1.462A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/></svg>
+                Share
+              </button>
+              <button onClick={() => copy(groupData.portal_url ?? '', 'collection')}
+                style={{ flex: 1, background: 'var(--cream2)', border: '1px solid var(--border)', borderRadius: 8, padding: '0.35rem 0.6rem', fontSize: '0.72rem', color: copied === 'collection' ? 'var(--accent)' : 'var(--text2)', cursor: 'pointer', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'left' }}>
+                {copied === 'collection' ? '✓ Copied!' : (groupData.portal_url ?? '').replace('https://', '')}
+              </button>
+            </div>
+          </div>
+          {/* Invite link */}
+          <div>
+            <div style={{ fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--muted)', marginBottom: '0.3rem' }}>Invite to add memories</div>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <button onClick={() => shareWhatsApp(groupData.invite_url ?? '', 'Join our family collection on Echoes of Home:')}
+                style={{ background: '#25D366', border: 'none', borderRadius: 8, padding: '0.35rem 0.7rem', color: 'white', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 4 }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.117 1.527 5.845L.057 24l6.345-1.462A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/></svg>
+                Invite
+              </button>
+              <button onClick={() => copy(groupData.invite_url ?? '', 'invite')}
+                style={{ flex: 1, background: 'var(--cream2)', border: '1px solid var(--border)', borderRadius: 8, padding: '0.35rem 0.6rem', fontSize: '0.72rem', color: copied === 'invite' ? 'var(--accent)' : 'var(--text2)', cursor: 'pointer', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'left' }}>
+                {copied === 'invite' ? '✓ Copied!' : (groupData.invite_url ?? '').replace('https://', '')}
+              </button>
+            </div>
+          </div>
+        </>
+      ) : (
+        <>
+          <p style={{ fontSize: '0.78rem', color: 'var(--muted)', lineHeight: 1.55, marginBottom: '0.85rem' }}>
+            Choose which memories to share with family. They browse on their phone — no account needed.
+          </p>
+          <Link href="/account#family" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--accent)', color: 'white', textDecoration: 'none', padding: '0.5rem 1rem', borderRadius: 20, fontSize: '0.82rem', fontWeight: 700 }}>
+            Set up family collection
+          </Link>
+        </>
+      )}
+    </div>
+  )
+}
+
 function WhyItMatters() {
   const items = [
     {
@@ -306,6 +377,8 @@ export default function PeoplePage() {
   const [form, setForm] = useState<FormData>(EMPTY)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [groupData, setGroupData] = useState<{ portal_url?: string; invite_url?: string } | null>(null)
+  const [groupChecked, setGroupChecked] = useState(false)
 
   useEffect(() => {
     api.people.list().then(setPeople).catch((e: Error) => setError(e.message))
@@ -317,6 +390,9 @@ export default function PeoplePage() {
       }
       setRecipeCounts(counts)
     }).catch(() => {})
+    api.family.getMyGroup().then((d: { portal_url?: string; invite_url?: string }) => {
+      setGroupData(d)
+    }).catch(() => {}).finally(() => setGroupChecked(true))
   }, [])
 
   function openAdd() { setForm(EMPTY); setModal({ open: true, editing: null }) }
@@ -412,6 +488,7 @@ export default function PeoplePage() {
         </div>
 
         {/* ── Right panel ── */}
+        <FamilyCollectionCard groupData={groupData} groupChecked={groupChecked} />
         <WhyItMatters />
       </div>
 
