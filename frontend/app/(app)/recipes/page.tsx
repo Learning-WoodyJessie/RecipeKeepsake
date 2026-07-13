@@ -228,29 +228,29 @@ function BookmarkToggle({ inCollection, onToggle }: { inCollection: boolean; onT
   )
 }
 
-// ─── Vinyl placeholder ───────────────────────────────────────────────────
-function VinylPlaceholder() {
+// ─── Equalizer placeholder ────────────────────────────────────────────────
+const EQ_BARS = [13, 19, 25, 29, 31, 29, 25, 19, 13]
+
+function EqualizerPlaceholder() {
   return (
-    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #F5E8C0 0%, #EAD9AE 55%, #DFC890 100%)', position: 'relative' }}>
-      <svg className="rk-vinyl" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style={{ width: '68%', maxWidth: 155 }}>
-        <circle cx="50" cy="50" r="47" fill="#2A1F14"/>
-        <circle cx="50" cy="50" r="43" fill="none" stroke="#3A2D1E" strokeWidth="0.8"/>
-        <circle cx="50" cy="50" r="39" fill="none" stroke="#3A2D1E" strokeWidth="0.8"/>
-        <circle cx="50" cy="50" r="35" fill="none" stroke="#3A2D1E" strokeWidth="0.8"/>
-        <circle cx="50" cy="50" r="31" fill="none" stroke="#3A2D1E" strokeWidth="0.6"/>
-        <circle cx="50" cy="50" r="27" fill="none" stroke="#3A2D1E" strokeWidth="0.6"/>
-        <circle cx="50" cy="50" r="23" fill="none" stroke="#3A2D1E" strokeWidth="0.5"/>
-        <circle cx="50" cy="50" r="19" fill="#D4A060"/>
-        <circle cx="50" cy="50" r="17" fill="#C8924A"/>
-        <circle cx="50" cy="50" r="13" fill="none" stroke="#E0B070" strokeWidth="0.8"/>
-        <line x1="36" y1="47" x2="64" y2="47" stroke="rgba(255,220,150,0.5)" strokeWidth="0.7"/>
-        <line x1="38" y1="50" x2="62" y2="50" stroke="rgba(255,220,150,0.35)" strokeWidth="0.6"/>
-        <line x1="40" y1="53" x2="60" y2="53" stroke="rgba(255,220,150,0.3)" strokeWidth="0.5"/>
-        <circle cx="50" cy="50" r="2.5" fill="#1A1008"/>
-        <ellipse cx="38" cy="32" rx="8" ry="4" fill="rgba(255,255,255,0.06)" transform="rotate(-25 38 32)"/>
+    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(160deg, #120F07 0%, #1C1810 60%, #110E06 100%)' }}>
+      <svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg" style={{ width: '88%', maxWidth: 220 }}>
+        <line x1="4" y1="40" x2="96" y2="40" stroke="rgba(200,146,74,0.18)" strokeWidth="0.6"/>
+        {EQ_BARS.map((halfH, i) => (
+          <rect
+            key={i}
+            className="rk-eq-bar"
+            x={7 + i * 10}
+            y={40 - halfH}
+            width={5}
+            height={halfH * 2}
+            rx={2}
+            fill={i === 4 ? '#E0B070' : '#C8924A'}
+            opacity={0.88}
+            style={{ animationDelay: `${i * 0.13}s` }}
+          />
+        ))}
       </svg>
-      {/* Tonearm */}
-      <div style={{ position: 'absolute', right: '15%', top: '11%', width: 3, height: '33%', background: 'linear-gradient(to bottom, rgba(180,140,80,0.8), rgba(180,140,80,0.15))', borderRadius: 2, transform: 'rotate(28deg)', transformOrigin: 'top center' }}/>
     </div>
   )
 }
@@ -276,9 +276,9 @@ function AudioCard({
       className="rk-card-hoverable"
       style={{ textDecoration: 'none', display: 'block', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, overflow: 'hidden', boxShadow: '0 2px 10px rgba(45,27,14,0.06)' }}
     >
-      {/* Vinyl thumbnail */}
+      {/* Equalizer thumbnail */}
       <div style={{ position: 'relative', aspectRatio: '4/3', overflow: 'hidden', flexShrink: 0 }}>
-        <VinylPlaceholder />
+        <EqualizerPlaceholder />
         <CardShareButton token={memory.token} title={memory.title} type={memory.type} top={8} right={38} />
         <BookmarkToggle inCollection={inCollection} onToggle={e => { e.preventDefault(); onToggleCollection() }} />
         <FavoriteHeart
@@ -604,11 +604,15 @@ export default function MemoriesPage() {
           transform-box: fill-box;
           transform-origin: bottom center;
         }
-        @keyframes rk-vinyl-spin {
-          from { transform: rotate(0deg); }
-          to   { transform: rotate(360deg); }
+        @keyframes rk-eq-bounce {
+          0%, 100% { transform: scaleY(0.18); }
+          50%       { transform: scaleY(1); }
         }
-        .rk-vinyl { animation: rk-vinyl-spin 3.2s linear infinite; transform-origin: 50% 50%; }
+        .rk-eq-bar {
+          animation: rk-eq-bounce 1.3s ease-in-out infinite;
+          transform-box: fill-box;
+          transform-origin: center;
+        }
       `}</style>
 
       <div className="rk-mem-wrap">

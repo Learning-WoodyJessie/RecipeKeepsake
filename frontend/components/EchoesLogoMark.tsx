@@ -1,8 +1,9 @@
 'use client'
 
 /**
- * Brand mark: waveform + heart in rings (same artwork as sidebar).
- * SVG avoids Unicode 〰/♥ which render inconsistently across WebKit vs desktop fonts.
+ * Brand mark: spinning vinyl record with radiating echo rings.
+ * Echo rings use var(--accent) to blend with sidebar/nav palette.
+ * Amber label ties into the warm memory card palette.
  */
 export function EchoesLogoMark({ size = 48 }: { size?: number }) {
   return (
@@ -14,26 +15,55 @@ export function EchoesLogoMark({ size = 48 }: { size?: number }) {
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden
     >
-      <circle cx="40" cy="40" r="37" stroke="var(--accent)" strokeWidth="3.5" />
-      <circle cx="40" cy="40" r="31" stroke="var(--accent2)" strokeWidth="1" />
-      <rect x="10" y="37" width="2.5" height="6" rx="1.25" fill="var(--accent)" />
-      <rect x="14" y="34" width="2.5" height="12" rx="1.25" fill="var(--accent)" />
-      <rect x="18" y="30" width="2.5" height="20" rx="1.25" fill="var(--accent)" />
-      <rect x="22" y="33" width="2.5" height="14" rx="1.25" fill="var(--accent)" />
-      <rect x="26" y="27" width="2.5" height="26" rx="1.25" fill="var(--accent)" />
-      <rect x="30" y="31" width="2.5" height="18" rx="1.25" fill="var(--accent)" />
-      <rect x="34" y="35" width="2.5" height="10" rx="1.25" fill="var(--accent)" />
-      <path
-        d="M40 45 C40 45 33 39 33 35 C33 32.2 35.7 30 38 31.5 C39 32.1 40 33.2 40 33.2 C40 33.2 41 32.1 42 31.5 C44.3 30 47 32.2 47 35 C47 39 40 45 40 45Z"
-        fill="var(--accent)"
-      />
-      <rect x="43.5" y="35" width="2.5" height="10" rx="1.25" fill="var(--accent)" />
-      <rect x="47.5" y="31" width="2.5" height="18" rx="1.25" fill="var(--accent)" />
-      <rect x="51.5" y="27" width="2.5" height="26" rx="1.25" fill="var(--accent)" />
-      <rect x="55.5" y="33" width="2.5" height="14" rx="1.25" fill="var(--accent)" />
-      <rect x="59.5" y="30" width="2.5" height="20" rx="1.25" fill="var(--accent)" />
-      <rect x="63.5" y="34" width="2.5" height="12" rx="1.25" fill="var(--accent)" />
-      <rect x="67.5" y="37" width="2.5" height="6" rx="1.25" fill="var(--accent)" />
+      <defs>
+        <style>{`
+          @keyframes rkl-spin {
+            from { transform: rotate(0deg); }
+            to   { transform: rotate(360deg); }
+          }
+          @keyframes rkl-echo {
+            0%   { transform: scale(1);   opacity: 0.55; }
+            100% { transform: scale(2.1); opacity: 0; }
+          }
+          .rkl-disc {
+            animation: rkl-spin 5s linear infinite;
+            transform-origin: 40px 40px;
+          }
+          .rkl-echo-ring {
+            transform-box: fill-box;
+            transform-origin: center;
+          }
+          .rkl-e1 { animation: rkl-echo 3s ease-out infinite; }
+          .rkl-e2 { animation: rkl-echo 3s ease-out 1s infinite; }
+          .rkl-e3 { animation: rkl-echo 3s ease-out 2s infinite; }
+        `}</style>
+      </defs>
+
+      {/* Faint outer boundary ring */}
+      <circle cx="40" cy="40" r="37" stroke="var(--accent)" strokeWidth="1.5" opacity="0.2" />
+
+      {/* Echo rings — expand from vinyl edge, fade out */}
+      <circle className="rkl-echo-ring rkl-e1" cx="40" cy="40" r="19" fill="none" stroke="var(--accent)" strokeWidth="1.3" />
+      <circle className="rkl-echo-ring rkl-e2" cx="40" cy="40" r="19" fill="none" stroke="var(--accent)" strokeWidth="1.3" />
+      <circle className="rkl-echo-ring rkl-e3" cx="40" cy="40" r="19" fill="none" stroke="var(--accent)" strokeWidth="1.3" />
+
+      {/* Vinyl disc — spinning */}
+      <g className="rkl-disc">
+        <circle cx="40" cy="40" r="19" fill="#1C1208" />
+        <circle cx="40" cy="40" r="17" fill="none" stroke="#2C2010" strokeWidth="0.7" />
+        <circle cx="40" cy="40" r="15" fill="none" stroke="#2C2010" strokeWidth="0.7" />
+        <circle cx="40" cy="40" r="13" fill="none" stroke="#2C2010" strokeWidth="0.6" />
+        <circle cx="40" cy="40" r="11" fill="none" stroke="#2C2010" strokeWidth="0.5" />
+        {/* Amber label — matches memory card palette */}
+        <circle cx="40" cy="40" r="9"   fill="#C8924A" />
+        <circle cx="40" cy="40" r="7.5" fill="#B8801E" />
+        <circle cx="40" cy="40" r="5"   fill="none" stroke="#E0B070" strokeWidth="0.6" />
+        <circle cx="40" cy="40" r="1.5" fill="#080400" />
+        <ellipse cx="33" cy="31" rx="4" ry="2" fill="rgba(255,255,255,0.05)" transform="rotate(-25 33 31)" />
+      </g>
+
+      {/* Outer accent ring — same weight as current logo border */}
+      <circle cx="40" cy="40" r="37" fill="none" stroke="var(--accent)" strokeWidth="2.5" />
     </svg>
   )
 }
