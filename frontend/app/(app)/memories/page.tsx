@@ -19,20 +19,13 @@ type Memory = {
   image_url: string | null
   tags: string[] | null
   type?: string | null
+  portal_visible?: boolean
 }
 
-
-const FILTER_TAGS = ['All', 'Favorites', 'Breakfast', 'Lunch', 'Sweets', 'Pickles', 'Snacks', 'Drinks', 'Recently added']
 const SORT_OPTIONS = ['Recently added', 'Oldest first', 'A–Z']
-const AUDIO_TYPE_FILTERS = [
-  { value: 'All',       label: 'All' },
-  { value: 'song',      label: '🎵 Songs' },
-  { value: 'story',     label: '📖 Stories' },
-  { value: 'fable',     label: '✨ Fables' },
-  { value: 'wisdom',    label: '🙏 Wisdom' },
-  { value: 'poem',      label: '🖊️ Poems' },
-  { value: 'Favorites', label: '♥ Favorites' },
-] as const
+const RECIPE_CATEGORIES = ['Breakfast', 'Lunch', 'Sweets', 'Pickles', 'Snacks', 'Drinks', 'Other']
+const MOMENT_CATEGORIES = ['Song', 'Story', 'Fable', 'Wisdom', 'Poem', 'Other']
+const KNOWN_MOMENT_TYPES = ['song', 'story', 'fable', 'wisdom', 'poem']
 
 // "tale" covers Tales & Songs entries with or without audio (e.g. a typed
 // poem with no recording). "audio" alone is kept for back-compat with rows
@@ -41,16 +34,10 @@ function isAudio(m: Memory) { return (m.tags ?? []).some(t => t === 'tale' || t 
 
 // ─── Right panel ────────────────────────────────────────────────────────
 function RightPanel({
-  filter,
-  setFilter,
   isAudioMode,
   searchActive,
   narratorParam,
 }: {
-  filter: string
-  setFilter: (f: string) => void
-  sort: string
-  setSort: (s: string) => void
   isAudioMode: boolean
   searchActive: boolean
   narratorParam: string
@@ -156,66 +143,6 @@ function RightPanel({
 
   return (
     <aside style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      {/* Filter box — recipes only, hidden during search or narrator view */}
-      {!isAudioMode && !searchActive && !narratorParam && (
-        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 18, padding: '1.25rem', boxShadow: '0 4px 16px rgba(45,27,14,0.05)' }}>
-          <h3 style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '0.95rem', color: 'var(--text)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-            Filter recipes
-          </h3>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem' }}>
-            {FILTER_TAGS.map((tag) => {
-              const isFavTag = tag === 'Favorites'
-              const active = filter === tag
-              return (
-                <button
-                  key={tag}
-                  onClick={() => setFilter(tag)}
-                  style={{
-                    padding: '0.3rem 0.75rem', borderRadius: 20, fontSize: '0.78rem', fontWeight: 500,
-                    border: '1.5px solid', cursor: 'pointer',
-                    borderColor: active ? (isFavTag ? 'var(--amber)' : 'var(--accent)') : 'var(--border)',
-                    background: active ? (isFavTag ? 'var(--gold-light)' : 'var(--accent-light)') : 'transparent',
-                    color: active ? (isFavTag ? 'var(--amber)' : 'var(--accent)') : 'var(--text2)',
-                    display: 'flex', alignItems: 'center', gap: '0.25rem',
-                  }}
-                >
-                  {isFavTag && (active ? '♥ ' : '♡ ')}{tag}
-                </button>
-              )
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Audio filter — type tabs, hidden during search or narrator view */}
-      {isAudioMode && !searchActive && !narratorParam && (
-        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 18, padding: '1.25rem', boxShadow: '0 4px 16px rgba(45,27,14,0.05)' }}>
-          <h3 style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '0.95rem', color: 'var(--text)', marginBottom: '1rem' }}>
-            Filter memories
-          </h3>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem' }}>
-            {AUDIO_TYPE_FILTERS.map(({ value, label }) => {
-              const isFav = value === 'Favorites'
-              const active = filter === value
-              return (
-                <button key={value} onClick={() => setFilter(value)}
-                  style={{
-                    padding: '0.3rem 0.75rem', borderRadius: 20, fontSize: '0.78rem', fontWeight: 500,
-                    border: '1.5px solid', cursor: 'pointer',
-                    borderColor: active ? (isFav ? 'var(--amber)' : 'var(--accent)') : 'var(--border)',
-                    background: active ? (isFav ? 'var(--gold-light)' : 'var(--accent-light)') : 'transparent',
-                    color: active ? (isFav ? 'var(--amber)' : 'var(--accent)') : 'var(--text2)',
-                  }}
-                >
-                  {label}
-                </button>
-              )
-            })}
-          </div>
-        </div>
-      )}
-
       {/* Why panel */}
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 18, padding: '1.25rem', boxShadow: '0 4px 16px rgba(45,27,14,0.05)' }}>
         <h3 style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '0.95rem', color: 'var(--text)', marginBottom: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
@@ -475,7 +402,8 @@ export default function MemoriesPage() {
   const [people, setPeople] = useState<Person[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [filter, setFilter] = useState(typeParam === 'audio' ? 'audio' : 'All')
+  const [quickFilter, setQuickFilter] = useState<'All' | 'Favorites' | 'Family'>('All')
+  const [categoryFilter, setCategoryFilter] = useState('')
   const [sort, setSort] = useState('Recently added')
   const [favTick, setFavTick] = useState(0)
   const [selectMode, setSelectMode] = useState(false)
@@ -537,32 +465,37 @@ export default function MemoriesPage() {
   const displayed = useMemo(() => {
     let list = [...memories]
     const ql = q.toLowerCase()
-    // Narrator filter from ?narrator= param (coming from Our People page)
-    // When viewing a specific person, show ALL their memories (recipes + audio combined)
     if (narratorParam) {
       list = list.filter(m => (m.narrator ?? '').toLowerCase() === narratorParam.toLowerCase())
     } else if (ql) {
-      // Search mode: skip type split, search across all memories by title or narrator
       list = list.filter(m =>
         (m.title ?? '').toLowerCase().includes(ql) ||
         (m.narrator ?? '').toLowerCase().includes(ql)
       )
     } else {
-      // Global view: keep recipe and audio tabs separate
       if (isAudioMode) list = list.filter(isAudio)
       else list = list.filter(m => !isAudio(m))
     }
-    // Filter
-    if (filter === 'Favorites') list = list.filter(m => favTokens.includes(m.token))
-    else if (filter === 'Recently added') list = list.slice().sort((a, b) => new Date(b.recorded_at).getTime() - new Date(a.recorded_at).getTime())
-    else if (['song', 'story', 'fable', 'wisdom', 'poem'].includes(filter)) list = list.filter(m => m.type === filter)
-    else if (filter !== 'All') list = list.filter(m => (m.tags ?? []).includes(filter))
+    // Quick filter pill
+    if (quickFilter === 'Favorites') list = list.filter(m => favTokens.includes(m.token))
+    else if (quickFilter === 'Family') list = list.filter(m => m.portal_visible)
+    // Category dropdown
+    if (categoryFilter) {
+      if (categoryFilter === 'Other') {
+        if (isAudioMode) list = list.filter(m => !KNOWN_MOMENT_TYPES.includes(m.type ?? ''))
+        else list = list.filter(m => !RECIPE_CATEGORIES.slice(0, -1).some(c => (m.tags ?? []).includes(c)))
+      } else if (isAudioMode) {
+        list = list.filter(m => m.type === categoryFilter.toLowerCase())
+      } else {
+        list = list.filter(m => (m.tags ?? []).includes(categoryFilter))
+      }
+    }
     // Sort
     if (sort === 'Recently added') list = list.slice().sort((a, b) => new Date(b.recorded_at).getTime() - new Date(a.recorded_at).getTime())
     else if (sort === 'Oldest first') list = list.slice().sort((a, b) => new Date(a.recorded_at).getTime() - new Date(b.recorded_at).getTime())
     else if (sort === 'A–Z') list = list.slice().sort((a, b) => (a.title ?? '').localeCompare(b.title ?? ''))
     return list
-  }, [memories, filter, sort, q, narratorParam, favTick, isAudioMode])
+  }, [memories, quickFilter, categoryFilter, sort, q, narratorParam, favTick, isAudioMode])
 
   if (loading) return (
     <div style={{ padding: '1.5rem 1.75rem 2.5rem', maxWidth: 1200, margin: '0 auto' }}>
@@ -715,7 +648,7 @@ export default function MemoriesPage() {
                     onClick={() => setSelectMode(true)}
                     style={{ background: 'transparent', border: '1px solid var(--border)', borderRadius: 8, padding: '0.25rem 0.7rem', fontSize: '0.78rem', color: 'var(--text2)', cursor: 'pointer', fontFamily: 'var(--sans)' }}
                   >
-                    Select
+                    + Add to collection
                   </button>
                 ) : (
                   <button
@@ -741,13 +674,53 @@ export default function MemoriesPage() {
               </div>
             </div>
 
+            {/* Compact filter row — hidden during search / narrator view */}
+            {!q && !narratorParam && !selectMode && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.85rem', flexWrap: 'wrap' }}>
+                {(['All', 'Favorites', 'Family'] as const).map(f => (
+                  <button
+                    key={f}
+                    type="button"
+                    onClick={() => setQuickFilter(f)}
+                    style={{
+                      padding: '0.28rem 0.75rem', borderRadius: 20, fontSize: '0.78rem', fontWeight: 600,
+                      border: '1.5px solid', cursor: 'pointer', transition: 'all 0.15s',
+                      borderColor: quickFilter === f ? (f === 'Favorites' ? 'var(--amber)' : 'var(--accent)') : 'var(--border)',
+                      background: quickFilter === f ? (f === 'Favorites' ? 'var(--gold-light)' : 'var(--accent-light)') : 'transparent',
+                      color: quickFilter === f ? (f === 'Favorites' ? 'var(--amber)' : 'var(--accent)') : 'var(--text2)',
+                    }}
+                  >
+                    {f === 'Favorites' ? '♥ Favorites' : f === 'Family' ? '👥 Family' : 'All'}
+                  </button>
+                ))}
+                <select
+                  value={categoryFilter}
+                  onChange={e => setCategoryFilter(e.target.value)}
+                  style={{
+                    border: `1.5px solid ${categoryFilter ? 'var(--accent)' : 'var(--border)'}`,
+                    borderRadius: 20, padding: '0.28rem 0.75rem', fontSize: '0.78rem', fontWeight: 600,
+                    background: categoryFilter ? 'var(--accent-light)' : 'transparent',
+                    color: categoryFilter ? 'var(--accent)' : 'var(--text2)',
+                    cursor: 'pointer', fontFamily: 'var(--sans)',
+                  }}
+                >
+                  <option value="">{isAudioMode ? 'All types' : 'All categories'}</option>
+                  {(isAudioMode ? MOMENT_CATEGORIES : RECIPE_CATEGORIES).map(cat => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             {/* Grid */}
             {displayed.length === 0 ? (
               <div style={{ padding: '2.5rem', textAlign: 'center', color: 'var(--muted)', background: 'var(--surface)', borderRadius: 14, border: '1px dashed var(--border)', fontSize: '0.88rem' }}>
                 {q
                   ? `No memories matching "${q}"`
-                  : filter === 'Favorites'
+                  : quickFilter === 'Favorites'
                   ? 'No favorites yet. Heart one to add it here.'
+                  : quickFilter === 'Family'
+                  ? 'No recipes in your family collection yet. Add one from any recipe page.'
                   : narratorParam
                   ? `No memories saved for ${narratorParam} yet.`
                   : isAudioMode ? 'No recordings yet.' : 'No recipes yet.'}
@@ -819,7 +792,7 @@ export default function MemoriesPage() {
           </div>
 
           {/* ── Right panel ── */}
-          <RightPanel filter={filter} setFilter={setFilter} sort={sort} setSort={setSort} isAudioMode={isAudioMode} searchActive={!!q} narratorParam={narratorParam} />
+          <RightPanel isAudioMode={isAudioMode} searchActive={!!q} narratorParam={narratorParam} />
         </div>
 
         {/* ── Full-width bottom CTA ── */}
