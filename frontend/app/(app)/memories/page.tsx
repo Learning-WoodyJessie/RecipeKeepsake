@@ -331,23 +331,23 @@ function RecipeCard({
         />
       </div>
 
-      <div style={{ padding: '0.85rem' }}>
+      <div style={{ padding: '0.85rem', minHeight: 108 }}>
         {/* Name */}
         <p style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '0.98rem', color: 'var(--text)', marginBottom: '0.55rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {memory.title ?? 'Untitled'}
         </p>
 
-        {/* Narrator row */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.4rem', flexWrap: 'wrap' }}>
+        {/* Narrator row — no wrap; name truncates if too long */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.4rem', overflow: 'hidden' }}>
           <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'var(--accent-light)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: '1.5px solid var(--border)' }}>
             {narratorPhoto
               ? <img src={narratorPhoto} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               : <span style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--accent)' }}>{(memory.narrator ?? '?')[0]?.toUpperCase()}</span>
             }
           </div>
-          <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text2)' }}>{memory.narrator ?? 'Narrator'}</span>
+          <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: '1 1 auto', minWidth: 0 }}>{memory.narrator ?? 'Narrator'}</span>
           {narratorRelationship && (
-            <span style={{ fontSize: '0.68rem', fontWeight: 600, color: 'var(--accent)', background: 'var(--accent-light)', borderRadius: 20, padding: '0.15rem 0.5rem', border: '1px solid rgba(24,107,94,0.15)' }}>
+            <span style={{ fontSize: '0.68rem', fontWeight: 600, color: 'var(--accent)', background: 'var(--accent-light)', borderRadius: 20, padding: '0.15rem 0.5rem', border: '1px solid rgba(24,107,94,0.15)', flexShrink: 0, whiteSpace: 'nowrap' }}>
               {narratorRelationship}
             </span>
           )}
