@@ -11,6 +11,7 @@ import FavoriteHeart from '@/components/FavoriteHeart'
 import { SkeletonRow } from '@/components/Skeleton'
 import { supabase } from '@/lib/supabase'
 import { readFavorites, toggleFavorite as toggleFav } from '@/lib/favorites'
+import HomeParticles from '@/components/HomeParticles'
 
 type Memory = {
   token: string
@@ -478,7 +479,8 @@ export default function HomePage() {
   }
 
   return (
-    <div style={{ padding: 'clamp(0.85rem, 3vw, 1.75rem) clamp(0.75rem, 3vw, 1.75rem) 2.5rem', overflowX: 'hidden' }}>
+    <div style={{ padding: 'clamp(0.85rem, 3vw, 1.75rem) clamp(0.75rem, 3vw, 1.75rem) 2.5rem', overflowX: 'hidden', position: 'relative', zIndex: 1 }}>
+      <HomeParticles />
       <style>{`
         .rk-home-cols {
           display: grid;
