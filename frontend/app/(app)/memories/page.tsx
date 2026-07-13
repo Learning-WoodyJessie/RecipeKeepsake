@@ -120,7 +120,39 @@ function RightPanel({
     },
   ]
 
-  const WHY = isAudioMode ? WHY_AUDIO : WHY_RECIPE
+  const WHY_MIXED = [
+    {
+      icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/>
+        </svg>
+      ),
+      title: 'Their voice, forever',
+      desc: 'A recording carries warmth and love that words on a page never can.',
+    },
+    {
+      icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
+          <path d="M12 6c0 0-4 3.5-4 7a4 4 0 008 0c0-1.5-.5-3-2-4.5 0 2-1 3-2 3s-2-1-2-2.5c0-1 .5-2 2-3.5z"/>
+        </svg>
+      ),
+      title: 'Recipes & moments',
+      desc: 'Every dish has a story. Every song holds a memory. Keep them together.',
+    },
+    {
+      icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+        </svg>
+      ),
+      title: 'Pass it forward',
+      desc: 'Give the next generation a living keepsake they can return to.',
+    },
+  ]
+
+  const WHY = (searchActive || narratorParam) ? WHY_MIXED : isAudioMode ? WHY_AUDIO : WHY_RECIPE
 
   return (
     <aside style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -188,7 +220,7 @@ function RightPanel({
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 18, padding: '1.25rem', boxShadow: '0 4px 16px rgba(45,27,14,0.05)' }}>
         <h3 style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '0.95rem', color: 'var(--text)', marginBottom: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
-          {isAudioMode ? 'Why voices matter' : 'Why recipes matter'}
+          {(searchActive || narratorParam) ? 'Why every memory matters' : isAudioMode ? 'Why voices matter' : 'Why recipes matter'}
         </h3>
         {WHY.map((item) => (
           <div key={item.title} style={{ display: 'flex', gap: '0.7rem', marginBottom: '0.95rem' }}>
@@ -204,9 +236,11 @@ function RightPanel({
         ))}
         <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem', marginTop: '0.25rem', textAlign: 'center' }}>
           <p style={{ fontFamily: 'var(--serif)', fontStyle: 'italic', fontSize: '0.88rem', color: 'var(--text2)', lineHeight: 1.65, marginBottom: '0.65rem' }}>
-            {isAudioMode
-              ? '“Some memories are meant to be heard.”'
-              : '“A recipe is more than ingredients. It’s a story we live and share.”'}
+            {(searchActive || narratorParam)
+              ? ‘“Every family carries a world. Don’t let it fade.”’
+              : isAudioMode
+              ? ‘“Some memories are meant to be heard.”’
+              : ‘“A recipe is more than ingredients. It’s a story we live and share.”’}
           </p>
           <span style={{ color: 'var(--muted)', fontSize: '1rem' }}>♡</span>
         </div>
