@@ -653,17 +653,20 @@ function MemoryDetail() {
         </div>
       </div>
 
-      {/* Category pills */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
+      {/* Category dropdown */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '1.25rem' }}>
         <span style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--muted)', flexShrink: 0 }}>Category</span>
-        <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+        <select
+          value={category}
+          onChange={e => changeCategory(e.target.value)}
+          disabled={savingCategory}
+          style={{ border: '1px solid var(--border)', borderRadius: 20, padding: '0.3rem 0.85rem', fontSize: '0.82rem', fontWeight: 600, background: category ? 'var(--accent)' : 'var(--surface)', color: category ? 'white' : 'var(--muted)', cursor: savingCategory ? 'default' : 'pointer', opacity: savingCategory ? 0.6 : 1, fontFamily: 'var(--sans)', appearance: 'none', WebkitAppearance: 'none', paddingRight: '1.6rem', backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='${category ? 'white' : '%23999'}' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.55rem center' }}
+        >
+          <option value="">Uncategorised</option>
           {CATEGORIES.map(cat => (
-            <button key={cat} onClick={() => changeCategory(cat)} disabled={savingCategory}
-              style={{ padding: '0.25rem 0.7rem', borderRadius: 999, border: '1px solid', borderColor: category === cat ? 'var(--accent)' : 'var(--border)', background: category === cat ? 'var(--accent)' : 'transparent', color: category === cat ? 'white' : 'var(--muted)', fontSize: '0.75rem', fontWeight: 600, cursor: savingCategory ? 'default' : 'pointer', opacity: savingCategory ? 0.6 : 1, transition: 'all 0.15s' }}>
-              {cat}
-            </button>
+            <option key={cat} value={cat}>{cat}</option>
           ))}
-        </div>
+        </select>
       </div>
 
       <div style={{ marginBottom: '1.25rem' }}>
