@@ -636,9 +636,22 @@ export default function UploadPage() {
             )}
           </label>
 
-          {error && (
+          {error && (error.includes('memory_cap_reached') ? (
+            <div style={{ padding: '1rem 1.1rem', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, marginBottom: '0.75rem', textAlign: 'center' }}>
+              <p style={{ fontSize: '1.25rem', marginBottom: '0.35rem' }}>🔒</p>
+              <p style={{ fontWeight: 600, color: 'var(--text)', fontSize: '0.9rem', marginBottom: '0.3rem' }}>You've saved 10 memories</p>
+              <p style={{ fontSize: '0.8rem', color: 'var(--muted)', marginBottom: '0.85rem', lineHeight: 1.5 }}>
+                Unlimited storage is coming soon. Email us and we'll let you know when it's ready.
+              </p>
+              <a href="mailto:pavanimbr@gmail.com?subject=Unlimited memories waitlist" style={{ display: 'inline-block', padding: '0.5rem 1.2rem', background: 'var(--accent)', color: 'white', borderRadius: 10, fontSize: '0.82rem', fontWeight: 600, textDecoration: 'none', marginBottom: '0.5rem' }}>
+                support@theechoesofhome.com
+              </a>
+              <br />
+              <Link href="/memories" style={{ fontSize: '0.78rem', color: 'var(--muted)', textDecoration: 'underline' }}>Manage your memories</Link>
+            </div>
+          ) : (
             <p style={{ color: 'var(--accent)', marginBottom: '0.75rem', fontSize: '0.82rem' }}>{error}</p>
-          )}
+          ))}
 
           {/* Formats dropdown */}
           <FormatsDropdown />
