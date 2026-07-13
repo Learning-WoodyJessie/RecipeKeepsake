@@ -619,117 +619,131 @@ function MemoryDetail() {
     <div style={{ maxWidth: 720, margin: '0 auto', padding: '1.5rem 2rem' }}>
       {justSavedBanner}
 
-      {/* ── Header ── */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '1rem', gap: '1rem' }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <h1 style={{ fontFamily: 'var(--serif)', fontSize: '1.8rem', color: 'var(--text)', margin: 0, flex: 1 }}>
-              {titleValue || 'Untitled'}
-            </h1>
-            <button
-              onClick={toggleFavorite}
-              aria-label={favorite ? 'Remove from favorites' : 'Add to favorites'}
-              className={heartPopping ? 'rk-heart-pop' : undefined}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', flexShrink: 0, fontSize: '1.4rem', lineHeight: 1, padding: '4px', color: favorite ? 'var(--amber)' : 'var(--muted)' }}
-            >
-              {favorite ? '♥' : '♡'}
-            </button>
-          </div>
-          <p style={{ color: 'var(--muted)', fontSize: '0.82rem', marginTop: '0.3rem' }}>
-            {memory.narrator} · {new Date(memory.recorded_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
-            <SavedBadge show={savedFlash} />
-          </p>
-        </div>
-
-        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.35rem', flexShrink: 0 }}>
-          <button
-            onClick={openWhatsApp}
-            style={{ background: '#25D366', border: 'none', borderRadius: 8, padding: '0.4rem 0.85rem', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600, color: 'white', display: 'flex', alignItems: 'center', gap: '0.35rem' }}
-          >
-            <WaIcon /> Share
-          </button>
-          <button onClick={deleteMemory} disabled={deleting} style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 8, padding: '0.4rem 0.7rem', cursor: 'pointer', fontSize: '0.85rem', color: 'var(--muted)' }}>
-            {deleting ? '…' : '🗑'}
-          </button>
-        </div>
-      </div>
-
-      {/* Category dropdown */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '1.25rem' }}>
-        <span style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--muted)', flexShrink: 0 }}>Category</span>
-        <select
-          value={category}
-          onChange={e => changeCategory(e.target.value)}
-          disabled={savingCategory}
-          style={{ border: '1px solid var(--border)', borderRadius: 20, padding: '0.3rem 0.85rem', fontSize: '0.82rem', fontWeight: 600, background: category ? 'var(--accent)' : 'var(--surface)', color: category ? 'white' : 'var(--muted)', cursor: savingCategory ? 'default' : 'pointer', opacity: savingCategory ? 0.6 : 1, fontFamily: 'var(--sans)', appearance: 'none', WebkitAppearance: 'none', paddingRight: '1.6rem', backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='${category ? 'white' : '%23999'}' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.55rem center' }}
-        >
-          <option value="">Uncategorised</option>
-          {CATEGORIES.map(cat => (
-            <option key={cat} value={cat}>{cat}</option>
-          ))}
-        </select>
-      </div>
-
+      {/* ── Identity block ── */}
       <div style={{ marginBottom: '1.25rem' }}>
-        <LanguageSwitcher token={token} onTranslated={setTranslated} />
-      </div>
-
-      {memory.type && memory.type !== 'recipe' && (
-        <div style={{ marginBottom: '1rem' }}>
-          <span style={{
-            display: 'inline-block',
-            padding: '3px 12px',
-            borderRadius: 12,
-            background: 'var(--surface)',
-            border: '1px solid var(--border)',
-            fontSize: 12,
-            color: 'var(--muted)',
-            textTransform: 'capitalize',
-          }}>
-            {memory.type}
-          </span>
-        </div>
-      )}
-
-      <div style={{ marginBottom: '1rem' }}>
-        {isInGroup ? (
-          <button
-            onClick={togglePortal}
-            disabled={portalBusy}
+        {/* Compact meta row: category pill · language switcher · type badge · saved */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.7rem', flexWrap: 'wrap' }}>
+          <select
+            value={category}
+            onChange={e => changeCategory(e.target.value)}
+            disabled={savingCategory}
             style={{
-              display: 'inline-flex', alignItems: 'center', gap: 6,
-              padding: '5px 14px', borderRadius: 20, fontSize: 13,
-              border: '1px solid var(--border)',
-              background: inPortal ? 'var(--accent)' : 'transparent',
-              color: inPortal ? 'white' : 'var(--muted)',
-              cursor: portalBusy ? 'default' : 'pointer',
-              fontFamily: 'var(--sans)',
+              border: '1px solid var(--border)', borderRadius: 20,
+              padding: '0.28rem 1.6rem 0.28rem 0.85rem', fontSize: '0.78rem', fontWeight: 600,
+              background: category ? 'var(--accent)' : 'var(--surface)',
+              color: category ? 'white' : 'var(--muted)',
+              cursor: savingCategory ? 'default' : 'pointer', opacity: savingCategory ? 0.6 : 1,
+              fontFamily: 'var(--sans)', appearance: 'none', WebkitAppearance: 'none',
+              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='${category ? 'white' : '%23999'}' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`,
+              backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.55rem center',
             }}
           >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
-              <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
-            </svg>
-            {inPortal ? '✓ In family collection' : '+ Add to family collection'}
+            <option value="">Uncategorised</option>
+            {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+          </select>
+          <LanguageSwitcher token={token} onTranslated={setTranslated} />
+          {memory.type && memory.type !== 'recipe' && (
+            <span style={{
+              display: 'inline-block', padding: '3px 12px', borderRadius: 12,
+              background: 'var(--surface)', border: '1px solid var(--border)',
+              fontSize: 12, color: 'var(--muted)', textTransform: 'capitalize',
+            }}>
+              {memory.type}
+            </span>
+          )}
+          <SavedBadge show={savedFlash} />
+        </div>
+
+        {/* Title + edit pencil + heart */}
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', marginBottom: '0.35rem' }}>
+          {editingTitle ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1, flexWrap: 'wrap' }}>
+              <input
+                autoFocus
+                value={titleValue}
+                onChange={e => setTitleValue(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') handleTitleSave(); if (e.key === 'Escape') handleTitleCancel() }}
+                style={{
+                  fontFamily: 'var(--serif)', fontSize: '1.75rem', fontWeight: 700,
+                  color: 'var(--text)', border: '1px solid var(--accent)', borderRadius: 8,
+                  background: 'rgba(255,255,255,0.7)', outline: 'none',
+                  flex: 1, padding: '0.2rem 0.5rem', minWidth: 0,
+                }}
+              />
+              <button onClick={handleTitleSave} style={{ background: 'var(--accent)', color: 'white', border: 'none', borderRadius: 8, padding: '0.3rem 0.8rem', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Save
+              </button>
+              <button onClick={handleTitleCancel} style={{ background: 'transparent', color: 'var(--muted)', border: '1px solid var(--border)', borderRadius: 8, padding: '0.3rem 0.6rem', cursor: 'pointer', fontSize: '0.82rem' }}>Cancel</button>
+            </div>
+          ) : (
+            <>
+              <h1 style={{ fontFamily: 'var(--serif)', fontSize: '1.8rem', color: 'var(--text)', margin: 0, flex: 1, lineHeight: 1.2 }}>
+                {titleValue || 'Untitled'}
+              </h1>
+              <button
+                onClick={() => setEditingTitle(true)}
+                aria-label="Edit title"
+                style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 7, padding: '4px 7px', cursor: 'pointer', display: 'flex', alignItems: 'center', color: 'var(--muted)', flexShrink: 0, marginTop: 6 }}
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                  <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+              </button>
+            </>
+          )}
+          <button
+            onClick={toggleFavorite}
+            aria-label={favorite ? 'Remove from favorites' : 'Add to favorites'}
+            className={heartPopping ? 'rk-heart-pop' : undefined}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', flexShrink: 0, fontSize: '1.4rem', lineHeight: 1, padding: '4px', color: favorite ? 'var(--amber)' : 'var(--muted)', marginTop: 4 }}
+          >
+            {favorite ? '♥' : '♡'}
           </button>
-        ) : (
-          <Link href="/account#family" style={{
-            display: 'inline-flex', alignItems: 'center', gap: 6,
-            padding: '5px 14px', borderRadius: 20, fontSize: 13,
-            border: '1px solid var(--border)', textDecoration: 'none',
-            background: 'transparent', color: 'var(--muted)',
-            fontFamily: 'var(--sans)',
-          }}>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
-              <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
-            </svg>
-            Set up family collection
-          </Link>
-        )}
+        </div>
+
+        {/* Narrator + date */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+          {editingNarrator ? (
+            <input
+              autoFocus
+              value={narratorValue}
+              onChange={e => setNarratorValue(e.target.value)}
+              onBlur={() => {
+                setEditingNarrator(false)
+                if (narratorValue !== memory.narrator) {
+                  patchField({ narrator: narratorValue })
+                  setMemory(m => m ? { ...m, narrator: narratorValue } : m)
+                }
+              }}
+              onKeyDown={e => { if (e.key === 'Enter' || e.key === 'Escape') (e.target as HTMLInputElement).blur() }}
+              placeholder="Narrator name"
+              style={{ fontSize: '0.82rem', border: '1px solid var(--border)', borderRadius: 7, padding: '0.2rem 0.5rem', background: 'var(--surface)', color: 'var(--text)', fontFamily: 'var(--sans)', width: 140 }}
+            />
+          ) : (
+            <button
+              type="button"
+              onClick={() => setEditingNarrator(true)}
+              title="Edit narrator"
+              style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+            >
+              <span style={{ fontSize: '0.82rem', color: 'var(--muted)' }}>
+                Narrated by <strong style={{ color: 'var(--text2)' }}>{memory.narrator || 'Unknown'}</strong>
+              </span>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--muted)', opacity: 0.5 }} aria-hidden>
+                <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+            </button>
+          )}
+          <span style={{ fontSize: '0.82rem', color: 'var(--muted)' }}>
+            · {new Date(memory.recorded_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
+          </span>
+        </div>
       </div>
 
-      {/* Photo section */}
+      {/* ── Hero photo ── */}
       <div style={{ marginBottom: '1.25rem' }}>
         <input id="detail-photo-input" type="file" accept="image/jpeg,image/png,image/webp" style={{ display: 'none' }} onChange={handlePhotoChange} />
         {(localImageUrl ?? memory.image_url) ? (
@@ -760,22 +774,28 @@ function MemoryDetail() {
         {photoError && <div style={{ marginTop: 6, fontSize: '0.78rem', color: 'var(--accent)' }}>{photoError}</div>}
       </div>
 
+      {/* ── Recipe content: cook notes → ingredients → method ── */}
       {(!memory.type || memory.type === 'recipe') && (
         <>
           {(display as Memory).cook_notes && (
-            <div style={{ background: 'var(--accent-light)', border: '1px solid var(--border2)', borderLeft: '3px solid var(--accent)', borderRadius: 10, padding: '0.85rem 1rem', marginBottom: '1.25rem', fontStyle: 'italic', color: 'var(--text2)', fontSize: '0.88rem', lineHeight: 1.6 }}>
-              {(display as Memory).cook_notes}
+            <div style={{ background: 'var(--accent-light)', borderLeft: '3px solid var(--accent)', borderRadius: '0 10px 10px 0', padding: '0.85rem 1rem', marginBottom: '1.25rem', lineHeight: 1.6 }}>
+              <p style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--accent)', marginBottom: '0.35rem' }}>
+                {memory.narrator ? `${memory.narrator}'s notes` : `Cook's notes`}
+              </p>
+              <p style={{ fontFamily: 'var(--serif)', fontStyle: 'italic', color: 'var(--text2)', fontSize: '0.9rem', margin: 0 }}>
+                {(display as Memory).cook_notes}
+              </p>
             </div>
           )}
 
           {((display as Memory).ingredients?.length ?? 0) > 0 && (
             <section style={{ marginBottom: '1.25rem' }}>
-              <h2 style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--muted)', marginBottom: '0.6rem' }}>Ingredients</h2>
+              <h2 style={{ fontSize: '0.78rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--muted)', marginBottom: '0.65rem' }}>Ingredients</h2>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                 {(display as Memory).ingredients.map((ing, i) => (
-                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, padding: '0.45rem 0.85rem', fontSize: '0.85rem' }}>
-                    <span style={{ color: 'var(--text)' }}>{ing.item}</span>
-                    <span style={{ color: 'var(--muted)' }}>{ing.quantity}</span>
+                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, padding: '0.5rem 0.9rem', fontSize: '0.88rem' }}>
+                    <span style={{ color: 'var(--text)', fontWeight: 500 }}>{ing.item}</span>
+                    <span style={{ color: 'var(--muted)', fontSize: '0.84rem' }}>{ing.quantity}</span>
                   </div>
                 ))}
               </div>
@@ -783,12 +803,12 @@ function MemoryDetail() {
           )}
 
           {((display as Memory).steps?.length ?? 0) > 0 && (
-            <section style={{ marginBottom: '1.25rem' }}>
-              <h2 style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--muted)', marginBottom: '0.6rem' }}>Method</h2>
+            <section style={{ marginBottom: '1.5rem' }}>
+              <h2 style={{ fontSize: '0.78rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--muted)', marginBottom: '0.65rem' }}>Method</h2>
               <ol style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingLeft: 0, listStyle: 'none' }}>
                 {(display as Memory).steps.map((step, i) => (
-                  <li key={i} style={{ display: 'flex', gap: '0.7rem', alignItems: 'flex-start', fontSize: '0.88rem', color: 'var(--text2)', lineHeight: 1.6 }}>
-                    <span style={{ background: 'var(--accent)', color: 'white', borderRadius: '50%', width: 20, height: 20, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 700, marginTop: 2 }}>{i + 1}</span>
+                  <li key={i} style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start', fontSize: '0.88rem', color: 'var(--text2)', lineHeight: 1.65 }}>
+                    <span style={{ background: 'var(--accent)', color: 'white', borderRadius: '50%', width: 22, height: 22, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.72rem', fontWeight: 700, marginTop: 2 }}>{i + 1}</span>
                     {step}
                   </li>
                 ))}
@@ -798,19 +818,84 @@ function MemoryDetail() {
         </>
       )}
 
+      {/* ── Actions strip: family collection · share · delete ── */}
+      <div style={{ display: 'flex', gap: '0.65rem', marginBottom: '1.75rem' }}>
+        {isInGroup ? (
+          <button
+            onClick={togglePortal}
+            disabled={portalBusy}
+            style={{
+              flex: '1 1 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
+              padding: '0.6rem 0.75rem', borderRadius: 12, fontSize: '0.82rem', fontWeight: 600,
+              border: `1.5px solid ${inPortal ? 'var(--accent)' : 'var(--border)'}`,
+              background: inPortal ? 'var(--accent-light)' : 'var(--surface)',
+              color: inPortal ? 'var(--accent)' : 'var(--text2)',
+              cursor: portalBusy ? 'default' : 'pointer',
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+            </svg>
+            {inPortal ? 'In collection' : 'Add to collection'}
+          </button>
+        ) : (
+          <Link href="/account#family" style={{
+            flex: '1 1 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
+            padding: '0.6rem 0.75rem', borderRadius: 12, fontSize: '0.82rem', fontWeight: 600,
+            border: '1.5px solid var(--border)', textDecoration: 'none',
+            background: 'var(--surface)', color: 'var(--text2)',
+          }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+            </svg>
+            Family collection
+          </Link>
+        )}
+        <button
+          onClick={openWhatsApp}
+          style={{
+            flex: '1 1 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
+            background: 'var(--surface)', border: '1.5px solid #25D366',
+            borderRadius: 12, padding: '0.6rem 0.75rem', cursor: 'pointer',
+            fontSize: '0.82rem', fontWeight: 600, color: '#25D366',
+          }}
+        >
+          <WaIcon /> Share
+        </button>
+        <button
+          onClick={deleteMemory}
+          disabled={deleting}
+          style={{
+            flex: '0 1 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
+            background: 'var(--surface)', border: '1.5px solid var(--border)',
+            borderRadius: 12, padding: '0.6rem 0.85rem', cursor: 'pointer',
+            fontSize: '0.82rem', fontWeight: 600, color: 'var(--muted)',
+          }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/>
+          </svg>
+          {deleting ? 'Deleting…' : 'Delete'}
+        </button>
+      </div>
+
+      {/* ── Original recording ── */}
       {memory.audio_url && (
         <section style={{ marginBottom: '1.25rem' }}>
-          <h2 style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--muted)', marginBottom: '0.6rem' }}>Original Recording</h2>
+          <h2 style={{ fontSize: '0.78rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--muted)', marginBottom: '0.65rem' }}>Original recording</h2>
           <AudioPlayer src={memory.audio_url} onExpired={refreshAudioUrl} />
         </section>
       )}
 
+      {/* ── Transcript ── */}
       {(memory.transcript_raw || memory.transcript_english) && (
         <details open={isNonRecipe(memory)} style={{ marginBottom: '1.25rem' }}>
           <summary style={{ cursor: 'pointer', fontSize: '0.82rem', color: 'var(--muted)', marginBottom: '0.5rem' }}>{isNonRecipe(memory) ? 'Transcript' : 'Full transcript'}</summary>
           {memory.transcript_raw && (
             <>
-              <p style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--muted)', marginTop: '0.75rem', marginBottom: '0.35rem' }}>Original</p>
+              <p style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--muted)', marginTop: '0.75rem', marginBottom: '0.35rem' }}>Original</p>
               <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: '0.85rem', fontSize: '0.85rem', color: 'var(--text2)', lineHeight: 1.85 }}>
                 {memory.transcript_raw.split(/(?<=[.!?])\s+/).map((s, i) => (
                   <p key={i} style={{ margin: '0 0 0.35rem' }}>{s}</p>
@@ -820,7 +905,7 @@ function MemoryDetail() {
           )}
           {memory.transcript_english && (
             <>
-              <p style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--muted)', marginTop: '0.75rem', marginBottom: '0.35rem' }}>English translation</p>
+              <p style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--muted)', marginTop: '0.75rem', marginBottom: '0.35rem' }}>English translation</p>
               <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: '0.85rem', fontSize: '0.85rem', color: 'var(--text2)', lineHeight: 1.85 }}>
                 {memory.transcript_english.split(/(?<=[.!?])\s+/).map((s, i) => (
                   <p key={i} style={{ margin: '0 0 0.35rem' }}>{s}</p>
@@ -831,17 +916,16 @@ function MemoryDetail() {
         </details>
       )}
 
+      {/* ── Your notes ── */}
       <section style={{ marginBottom: '1.5rem' }}>
-        <div style={{ marginBottom: '0.6rem' }}>
-          <h2 style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--muted)', margin: 0 }}>Your Notes</h2>
-        </div>
+        <h2 style={{ fontSize: '0.78rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--muted)', marginBottom: '0.65rem' }}>Your notes</h2>
         <textarea
           value={notes}
           onChange={e => { setNotes(e.target.value); scheduleAutoSave({ user_notes: e.target.value }) }}
           onBlur={() => patchField({ user_notes: notes })}
           placeholder="Add your personal notes…"
           rows={3}
-          style={{ width: '100%', border: '1px solid var(--border)', borderRadius: 10, padding: '0.7rem', fontSize: '0.85rem', fontFamily: 'var(--sans)', color: 'var(--text)', background: 'var(--surface)', resize: 'vertical', boxSizing: 'border-box' }}
+          style={{ width: '100%', border: '1px solid var(--border)', borderRadius: 10, padding: '0.7rem', fontSize: '0.85rem', fontFamily: 'var(--sans)', color: 'var(--text)', background: 'var(--gold-light)', resize: 'vertical', boxSizing: 'border-box' }}
         />
         <p style={{ fontSize: '0.72rem', color: 'var(--muted)', marginTop: '0.35rem' }}>Saves automatically when you stop typing.</p>
       </section>
