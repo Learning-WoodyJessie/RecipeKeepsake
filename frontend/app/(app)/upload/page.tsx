@@ -147,6 +147,7 @@ export default function UploadPage() {
     if (searchParams.get('mode') === 'text') setMode('text')
   }, [searchParams])
   const [memoryType, setMemoryType] = useState<'song' | 'story' | 'fable' | 'wisdom' | 'poem'>('song')
+  const [language, setLanguage] = useState<'te' | 'en'>('te')
   const [narrator, setNarrator] = useState('')
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
@@ -175,6 +176,7 @@ export default function UploadPage() {
     setError('')
     const form = new FormData()
     form.append('audio', file)
+    form.append('language', language)
     if (narrator) form.append('narrator', narrator)
     try {
       const result = await api.capture.process(form)
@@ -196,6 +198,7 @@ export default function UploadPage() {
     form.append('audio', file)
     form.append('title', title.trim())
     form.append('memory_type', memoryType)
+    form.append('language', language)
     if (narrator) form.append('narrator', narrator)
     if (description.trim()) form.append('description', description.trim())
     try {
@@ -578,6 +581,29 @@ export default function UploadPage() {
             </div>
             <NarratorChip selected={narrator} onSelect={setNarrator} />
           </div>
+          )}
+
+          {/* Language toggle — audio modes only */}
+          {mode !== 'text' && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.1rem' }}>
+              <span style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--muted)' }}>Recording in</span>
+              {(['te', 'en'] as const).map(lang => (
+                <button
+                  key={lang}
+                  type="button"
+                  onClick={() => setLanguage(lang)}
+                  style={{
+                    padding: '0.3rem 0.8rem', borderRadius: 20, fontSize: '0.78rem', fontWeight: 600,
+                    border: '1.5px solid', cursor: 'pointer', fontFamily: 'var(--sans)',
+                    borderColor: language === lang ? 'var(--accent)' : 'var(--border)',
+                    background: language === lang ? 'var(--accent-light)' : 'transparent',
+                    color: language === lang ? 'var(--accent)' : 'var(--muted)',
+                  }}
+                >
+                  {lang === 'te' ? '🇮🇳 Telugu' : '🇬🇧 English'}
+                </button>
+              ))}
+            </div>
           )}
 
           {/* Drop zone + formats + privacy — audio modes only */}

@@ -21,7 +21,7 @@ from tools.glossary import build_glossary_terms_list
 
 _MODEL = "gemini-2.5-flash"
 
-_TRANSCRIPTION_PROMPT = """\
+_PROMPT_TELUGU = """\
 Transcribe the following Telugu audio recording accurately.
 
 Rules:
@@ -36,6 +36,29 @@ translation, no commentary.
 - If the speaker code-switches into English mid-sentence, transcribe those words \
 in English as spoken.
 - Telugu cooking vocabulary that may appear: {glossary}
+"""
+
+_PROMPT_ENGLISH = """\
+Transcribe the following audio recording accurately in English.
+
+Rules:
+- Return only the transcription. No explanations, no commentary.
+- Preserve the speaker's exact words including hesitations and pauses if meaningful.
+- If the speaker uses any Telugu or Indian language words, transcribe them phonetically.
+"""
+
+_PROMPT_AUTO = """\
+Transcribe the following audio recording accurately.
+
+Rules:
+- Detect the spoken language automatically and transcribe in that language.
+- If the speaker is speaking Telugu (Telangana, Andhra, Rayalaseema, or Hyderabadi \
+dialect), transcribe in Telugu script and preserve dialectal forms exactly. \
+Telugu cooking vocabulary that may appear: {glossary}
+- If the speaker is speaking English, transcribe in English.
+- If the speaker code-switches between languages mid-sentence, reflect that in the \
+transcription (Telugu words in Telugu script, English words in English).
+- Return only the transcription. No explanations, no translation, no commentary.
 """
 
 # If any word/phrase appears more than this many times consecutively it's a
@@ -109,7 +132,7 @@ def _mime_type(audio_path: str) -> str:
     return mime
 
 
-def transcribe_audio(audio_path: str) -> str:
+def transcribe_audio(audio_path: str, language: str = "auto") -> str:
     """Transcribe audio using Gemini 2.5 Flash with a dialect-aware Telugu prompt.
 
     Gemini handles Telugu regional dialects (Telangana, Andhra, Rayalaseema,
@@ -123,7 +146,13 @@ def transcribe_audio(audio_path: str) -> str:
     """
     client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 
-    prompt = _TRANSCRIPTION_PROMPT.format(glossary=build_glossary_terms_list())
+    glossary = build_glossary_terms_list()
+    if language == "en":
+        prompt = _PROMPT_ENGLISH
+    elif language == "te":
+        prompt = _PROMPT_TELUGU.format(glossary=glossary)
+    else:
+        prompt = _PROMPT_AUTO.format(glossary=glossary)
 
     audio_file = client.files.upload(
         file=audio_path,

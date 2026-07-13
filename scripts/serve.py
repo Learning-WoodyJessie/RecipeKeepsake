@@ -30,7 +30,7 @@ from dotenv import load_dotenv
 # Load .env from project root — no-op in production (Railway sets env vars directly)
 load_dotenv(Path(__file__).parent.parent / ".env")
 
-from fastapi import FastAPI, UploadFile, File, HTTPException, Depends, Request
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
@@ -501,7 +501,7 @@ async def list_recipes_endpoint(user: dict = Depends(require_auth)):
 
 
 @app.post("/capture")
-async def capture_endpoint(audio: UploadFile = File(...), user: dict = Depends(require_auth)):
+async def capture_endpoint(audio: UploadFile = File(...), language: str = Form("auto"), user: dict = Depends(require_auth)):
     """
     Full pipeline: transcribe → translate → structure → image → save.
     Returns saved recipe JSON. Use /capture/process for review-before-save flow.
@@ -522,7 +522,7 @@ async def capture_endpoint(audio: UploadFile = File(...), user: dict = Depends(r
     try:
         _logger.info(f"event=capture_start file={audio.filename}")
 
-        transcript = run_transcribe(tmp_path)
+        transcript = run_transcribe(tmp_path, language=language)
         _moderate_transcript(transcript.english)
         recipe_data = run_transform(transcript)
         recipe_data.image_url = _generate_image(
@@ -578,6 +578,7 @@ async def capture_endpoint(audio: UploadFile = File(...), user: dict = Depends(r
 @app.post("/capture/process")
 async def capture_process_endpoint(
     audio: UploadFile = File(...),
+    language: str = Form("auto"),
     user: dict = Depends(require_auth),
 ):
     """
@@ -600,7 +601,7 @@ async def capture_process_endpoint(
     try:
         _logger.info(f"event=process_start file={audio.filename}")
 
-        transcript = run_transcribe(tmp_path)
+        transcript = run_transcribe(tmp_path, language=language)
         _moderate_transcript(transcript.english)
         recipe_data = run_transform(transcript)
         recipe_data.image_url = _generate_image(
@@ -716,6 +717,7 @@ async def save_audio_endpoint(
     description: str = File(default=""),
     original_text: str = File(default=""),
     memory_type: str = File(default="song"),
+    language: str = Form("auto"),
     user: dict = Depends(require_auth),
 ):
     """
@@ -759,7 +761,7 @@ async def save_audio_endpoint(
         transcript_english = description.strip()
         if tmp_path and not transcript_raw and memory_type != "recipe":
             try:
-                result = run_transcribe(tmp_path)
+                result = run_transcribe(tmp_path, language=language)
                 transcript_raw = result.raw
                 transcript_english = result.english
             except Exception as _te:
