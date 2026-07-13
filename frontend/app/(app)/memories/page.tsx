@@ -632,46 +632,65 @@ export default function MemoriesPage() {
             )}
 
             {/* Count + sort bar */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '0.65rem 1rem' }}>
-              <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text2)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                {isAudioMode && (
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="2" y1="12" x2="4" y2="12"/><line x1="5" y1="8" x2="5" y2="16"/><line x1="8" y1="5" x2="8" y2="19"/><line x1="11" y1="9" x2="11" y2="15"/><line x1="14" y1="6" x2="14" y2="18"/><line x1="17" y1="10" x2="17" y2="14"/><line x1="20" y1="8" x2="20" y2="16"/><line x1="22" y1="12" x2="24" y2="12"/>
-                  </svg>
-                )}
-                {selectMode ? `${selected.size} selected` : `${displayed.length} ${(q || narratorParam) ? `Memor${displayed.length !== 1 ? 'ies' : 'y'}` : isAudioMode ? `Memor${displayed.length !== 1 ? 'ies' : 'y'}` : `Recipe${displayed.length !== 1 ? 's' : ''}`}`}
-              </span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                {!selectMode ? (
-                  <button
-                    type="button"
-                    onClick={() => setSelectMode(true)}
-                    style={{ background: 'transparent', border: '1px solid var(--border)', borderRadius: 8, padding: '0.25rem 0.7rem', fontSize: '0.78rem', color: 'var(--text2)', cursor: 'pointer', fontFamily: 'var(--sans)' }}
-                  >
-                    + Add to collection
-                  </button>
-                ) : (
+            <div style={{ marginBottom: '0.9rem' }}>
+              {/* Row 1: count (left) + sort (right) */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: selectMode ? '0' : '0.5rem' }}>
+                <span style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  {isAudioMode && (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="2" y1="12" x2="4" y2="12"/><line x1="5" y1="8" x2="5" y2="16"/><line x1="8" y1="5" x2="8" y2="19"/><line x1="11" y1="9" x2="11" y2="15"/><line x1="14" y1="6" x2="14" y2="18"/><line x1="17" y1="10" x2="17" y2="14"/><line x1="20" y1="8" x2="20" y2="16"/><line x1="22" y1="12" x2="24" y2="12"/>
+                    </svg>
+                  )}
+                  {selectMode
+                    ? `${selected.size} selected`
+                    : `${displayed.length} ${(q || narratorParam) ? `Memor${displayed.length !== 1 ? 'ies' : 'y'}` : isAudioMode ? `Memor${displayed.length !== 1 ? 'ies' : 'y'}` : `Recipe${displayed.length !== 1 ? 's' : ''}`}`}
+                </span>
+                {selectMode ? (
                   <button
                     type="button"
                     onClick={exitSelectMode}
-                    style={{ background: 'transparent', border: '1px solid var(--border)', borderRadius: 8, padding: '0.25rem 0.7rem', fontSize: '0.78rem', color: 'var(--text2)', cursor: 'pointer', fontFamily: 'var(--sans)' }}
+                    style={{ background: 'none', border: 'none', fontSize: '0.82rem', color: 'var(--muted)', cursor: 'pointer', fontFamily: 'var(--sans)', padding: '0.2rem 0' }}
                   >
                     Cancel
                   </button>
-                )}
-                {!selectMode && (
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.8rem', color: 'var(--muted)' }}>
-                    Sort by:
+                ) : (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: 'var(--muted)' }}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M3 6h18M7 12h10M11 18h2"/>
+                    </svg>
                     <select
                       value={sort}
                       onChange={e => setSort(e.target.value)}
-                      style={{ border: '1px solid var(--border)', borderRadius: 8, padding: '0.25rem 0.55rem', fontSize: '0.78rem', background: 'var(--surface)', color: 'var(--text2)', cursor: 'pointer' }}
+                      style={{ border: 'none', background: 'transparent', fontSize: '0.8rem', color: 'var(--text2)', cursor: 'pointer', fontFamily: 'var(--sans)', padding: 0, appearance: 'none', WebkitAppearance: 'none' }}
                     >
                       {SORT_OPTIONS.map(o => <option key={o}>{o}</option>)}
                     </select>
-                  </label>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ pointerEvents: 'none', flexShrink: 0 }}>
+                      <path d="M6 9l6 6 6-6"/>
+                    </svg>
+                  </div>
                 )}
               </div>
+              {/* Row 2: add to collection — only when not in select mode */}
+              {!selectMode && (
+                <button
+                  type="button"
+                  onClick={() => setSelectMode(true)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '0.4rem',
+                    background: 'var(--accent-light)', border: 'none',
+                    borderRadius: 10, padding: '0.45rem 0.9rem',
+                    fontSize: '0.8rem', fontWeight: 600,
+                    color: 'var(--accent)', cursor: 'pointer',
+                    fontFamily: 'var(--sans)',
+                  }}
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                  </svg>
+                  Add to collection
+                </button>
+              )}
             </div>
 
             {/* Compact filter row — hidden during search / narrator view */}
