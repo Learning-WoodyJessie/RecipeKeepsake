@@ -281,7 +281,13 @@ function MemoryDetail() {
   //  AUDIO MEMORY LAYOUT
   // ══════════════════════════════════════════════════════
   if (audio) {
-    const displayTags = (memory.tags ?? []).filter(t => t !== 'audio')
+    const displayTags = (memory.tags ?? []).filter(t => t !== 'audio' && t !== 'tale')
+    const typeLabel: Record<string, string> = { song: 'Song', story: 'Story', fable: 'Fable', wisdom: 'Words of wisdom', poem: 'Poem' }
+    const typeBg: Record<string, string> = { song: 'rgba(139,92,246,0.1)', story: 'rgba(245,158,11,0.1)', fable: 'rgba(236,72,153,0.1)', wisdom: 'rgba(59,130,246,0.1)', poem: 'rgba(16,185,129,0.1)' }
+    const typeFg: Record<string, string> = { song: '#7C3AED', story: '#B45309', fable: '#BE185D', wisdom: '#1D4ED8', poem: '#065F46' }
+    const memType = memory.type ?? 'song'
+    const transcript = memory.transcript_english || memory.transcript_raw
+
     return (
       <div style={{ maxWidth: 900, margin: '0 auto', padding: '1.25rem 1.5rem 3rem' }}>
         {justSavedBanner}
@@ -290,117 +296,103 @@ function MemoryDetail() {
         <div style={{
           background: 'linear-gradient(135deg, var(--gold-light) 0%, #EFDFB8 60%, #EAD9AE 100%)',
           borderRadius: 20, overflow: 'hidden', marginBottom: '1.25rem',
-          position: 'relative', minHeight: 220,
-          display: 'flex', alignItems: 'stretch',
+          position: 'relative',
           border: '1px solid rgba(201,148,31,0.18)',
           boxShadow: '0 8px 32px rgba(45,27,14,0.09)',
+          padding: 'clamp(1.5rem,4vw,2.25rem)',
         }}>
-          {/* Left: text content */}
-          <div style={{ flex: 1, padding: 'clamp(1.5rem,4vw,2.5rem)', display: 'flex', flexDirection: 'column', justifyContent: 'center', zIndex: 1 }}>
-            {/* Decorative waveform */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 3, marginBottom: '1rem', opacity: 0.55 }}>
-              {[3,5,8,6,10,7,4,9,6,11,5,8,4,7,9,5,6,8,4,6].map((h, i) => (
-                <div key={i} style={{ width: 3, height: h * 3, borderRadius: 2, background: 'var(--accent)' }} />
-              ))}
-            </div>
-
-            {/* Title — editable */}
-            {editingTitle ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.6rem' }}>
-                <input
-                  autoFocus
-                  value={titleValue}
-                  onChange={e => setTitleValue(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter') handleTitleSave(); if (e.key === 'Escape') handleTitleCancel() }}
-                  style={{
-                    fontFamily: 'var(--serif)', fontSize: 'clamp(1.4rem,3vw,2rem)', fontWeight: 700,
-                    color: 'var(--text)', border: '1px solid var(--accent)', borderRadius: 8,
-                    background: 'rgba(255,255,255,0.7)', outline: 'none',
-                    flex: 1, padding: '0.25rem 0.6rem', minWidth: 0,
-                  }}
-                />
-                <button onClick={handleTitleSave} style={{ background: 'var(--accent)', color: 'white', border: 'none', borderRadius: 8, padding: '0.35rem 0.85rem', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.3rem', flexShrink: 0 }}>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                  Save
-                </button>
-                <button onClick={handleTitleCancel} style={{ background: 'rgba(255,255,255,0.6)', color: 'var(--muted)', border: '1px solid var(--border)', borderRadius: 8, padding: '0.35rem 0.7rem', cursor: 'pointer', fontSize: '0.82rem', flexShrink: 0 }}>Cancel</button>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
-                <h1 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.6rem,3.5vw,2.4rem)', fontWeight: 700, color: 'var(--text)', margin: 0, lineHeight: 1.15 }}>
-                  {titleValue || 'Untitled'}
-                </h1>
-                <button
-                  onClick={() => setEditingTitle(true)}
-                  aria-label="Edit title"
-                  style={{ background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(201,148,31,0.3)', borderRadius: 7, padding: '4px 7px', cursor: 'pointer', display: 'flex', alignItems: 'center', color: 'var(--muted)', flexShrink: 0 }}
-                >
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                    <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
-                    <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                  </svg>
-                </button>
-              </div>
-            )}
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
-              {editingNarrator ? (
-                <input
-                  autoFocus
-                  value={narratorValue}
-                  onChange={e => setNarratorValue(e.target.value)}
-                  onBlur={() => {
-                    setEditingNarrator(false)
-                    if (narratorValue !== memory.narrator) {
-                      patchField({ narrator: narratorValue })
-                      setMemory(m => m ? { ...m, narrator: narratorValue } : m)
-                    }
-                  }}
-                  onKeyDown={e => { if (e.key === 'Enter' || e.key === 'Escape') (e.target as HTMLInputElement).blur() }}
-                  placeholder="Narrator name"
-                  style={{ fontSize: '0.88rem', border: '1px solid var(--border)', borderRadius: 7, padding: '0.25rem 0.55rem', background: 'var(--surface)', color: 'var(--text)', fontFamily: 'var(--sans)', width: 160 }}
-                />
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setEditingNarrator(true)}
-                  title="Edit narrator"
-                  style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
-                >
-                  <span style={{ fontSize: '0.88rem', color: 'var(--text2)' }}>
-                    Narrated by <strong>{memory.narrator || 'Unknown'}</strong>
-                  </span>
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--muted)', opacity: 0.6 }}>
-                    <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
-                    <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                  </svg>
-                </button>
-              )}
-              <span style={{ fontSize: '0.88rem', color: 'var(--text2)' }}>
-                · {new Date(memory.recorded_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
+          {/* Type badge */}
+          {memory.type && memory.type !== 'recipe' && (
+            <div style={{
+              display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
+              background: typeBg[memType] ?? 'rgba(255,255,255,0.45)',
+              border: `1px solid ${typeFg[memType] ?? 'var(--border)'}33`,
+              borderRadius: 20, padding: '0.25rem 0.75rem',
+              marginBottom: '0.85rem',
+            }}>
+              <span style={{ fontSize: '0.75rem', fontWeight: 700, color: typeFg[memType] ?? 'var(--text2)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                {typeLabel[memType] ?? memType}
               </span>
-              <SavedBadge show={savedFlash} />
             </div>
-            <p style={{ fontFamily: 'var(--serif)', fontStyle: 'italic', fontSize: '0.92rem', color: 'var(--text2)', marginBottom: '1rem', lineHeight: 1.5 }}>
-              A song. A story. A moment that stays.
-            </p>
+          )}
 
-            {/* Narrator pill */}
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(201,148,31,0.25)', borderRadius: 20, padding: '0.3rem 0.85rem', width: 'fit-content' }}>
-              <span style={{ color: 'var(--muted)', fontSize: '0.82rem' }}>♡</span>
-              <span style={{ fontSize: '0.8rem', color: 'var(--text2)' }}>From someone you love</span>
+          {/* Title — editable */}
+          {editingTitle ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.6rem' }}>
+              <input
+                autoFocus
+                value={titleValue}
+                onChange={e => setTitleValue(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') handleTitleSave(); if (e.key === 'Escape') handleTitleCancel() }}
+                style={{
+                  fontFamily: 'var(--serif)', fontSize: 'clamp(1.4rem,3vw,2rem)', fontWeight: 700,
+                  color: 'var(--text)', border: '1px solid var(--accent)', borderRadius: 8,
+                  background: 'rgba(255,255,255,0.7)', outline: 'none',
+                  flex: 1, padding: '0.25rem 0.6rem', minWidth: 0,
+                }}
+              />
+              <button onClick={handleTitleSave} style={{ background: 'var(--accent)', color: 'white', border: 'none', borderRadius: 8, padding: '0.35rem 0.85rem', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.3rem', flexShrink: 0 }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Save
+              </button>
+              <button onClick={handleTitleCancel} style={{ background: 'rgba(255,255,255,0.6)', color: 'var(--muted)', border: '1px solid var(--border)', borderRadius: 8, padding: '0.35rem 0.7rem', cursor: 'pointer', fontSize: '0.82rem', flexShrink: 0 }}>Cancel</button>
             </div>
-          </div>
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
+              <h1 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.6rem,3.5vw,2.4rem)', fontWeight: 700, color: 'var(--text)', margin: 0, lineHeight: 1.15 }}>
+                {titleValue || 'Untitled'}
+              </h1>
+              <button
+                onClick={() => setEditingTitle(true)}
+                aria-label="Edit title"
+                style={{ background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(201,148,31,0.3)', borderRadius: 7, padding: '4px 7px', cursor: 'pointer', display: 'flex', alignItems: 'center', color: 'var(--muted)', flexShrink: 0 }}
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                  <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+              </button>
+            </div>
+          )}
 
-          {/* Right: illustration */}
-          <div style={{ width: 'clamp(180px,30%,280px)', flexShrink: 0, position: 'relative', overflow: 'hidden' }}>
-            <img
-              src="/hero-memories.png"
-              alt=""
-              aria-hidden
-              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: '60% center', opacity: 0.88 }}
-              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
-            />
+          {/* Narrator + date */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+            {editingNarrator ? (
+              <input
+                autoFocus
+                value={narratorValue}
+                onChange={e => setNarratorValue(e.target.value)}
+                onBlur={() => {
+                  setEditingNarrator(false)
+                  if (narratorValue !== memory.narrator) {
+                    patchField({ narrator: narratorValue })
+                    setMemory(m => m ? { ...m, narrator: narratorValue } : m)
+                  }
+                }}
+                onKeyDown={e => { if (e.key === 'Enter' || e.key === 'Escape') (e.target as HTMLInputElement).blur() }}
+                placeholder="Narrator name"
+                style={{ fontSize: '0.88rem', border: '1px solid var(--border)', borderRadius: 7, padding: '0.25rem 0.55rem', background: 'var(--surface)', color: 'var(--text)', fontFamily: 'var(--sans)', width: 160 }}
+              />
+            ) : (
+              <button
+                type="button"
+                onClick={() => setEditingNarrator(true)}
+                title="Edit narrator"
+                style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
+              >
+                <span style={{ fontSize: '0.88rem', color: 'var(--text2)' }}>
+                  Narrated by <strong>{memory.narrator || 'Unknown'}</strong>
+                </span>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--muted)', opacity: 0.6 }}>
+                  <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                  <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+              </button>
+            )}
+            <span style={{ fontSize: '0.88rem', color: 'var(--text2)' }}>
+              · {new Date(memory.recorded_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
+            </span>
+            <SavedBadge show={savedFlash} />
           </div>
         </div>
 
@@ -499,98 +491,105 @@ function MemoryDetail() {
           </div>
         )}
 
-        {/* ── Action row: Favorites | Share | Delete ── */}
-        <div style={{ display: 'flex', gap: '0.65rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+        {/* ── Primary action: Share ── */}
+        <button
+          onClick={openWhatsApp}
+          style={{
+            width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.55rem',
+            background: '#25D366', border: 'none',
+            borderRadius: 14, padding: '0.85rem 1.5rem', cursor: 'pointer',
+            fontSize: '0.95rem', fontWeight: 700, color: 'white',
+            marginBottom: '0.65rem',
+            boxShadow: '0 4px 14px rgba(37,211,102,0.28)',
+          }}
+        >
+          <WaIcon /> Share this memory
+        </button>
+
+        {/* ── Secondary actions: Favorites + Delete ── */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.75rem' }}>
           <button
             onClick={toggleFavorite}
             style={{
-              flex: '1 1 140px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.45rem',
-              background: favorite ? 'var(--gold-light)' : 'var(--surface)',
+              display: 'flex', alignItems: 'center', gap: '0.4rem',
+              background: favorite ? 'var(--gold-light)' : 'transparent',
               border: `1.5px solid ${favorite ? 'var(--amber)' : 'var(--border)'}`,
-              borderRadius: 12, padding: '0.6rem 1rem', cursor: 'pointer',
-              fontSize: '0.85rem', fontWeight: 600,
+              borderRadius: 10, padding: '0.45rem 1rem', cursor: 'pointer',
+              fontSize: '0.82rem', fontWeight: 600,
               color: favorite ? 'var(--amber)' : 'var(--text2)',
             }}
           >
-            <span className={heartPopping ? 'rk-heart-pop' : undefined} style={{ fontSize: '1rem', display: 'inline-block' }}>{favorite ? '♥' : '♡'}</span>
-            {favorite ? 'Saved to favorites' : 'Add to favorites'}
-          </button>
-
-          <button
-            onClick={openWhatsApp}
-            style={{
-              flex: '1 1 120px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.45rem',
-              background: 'var(--surface)', border: '1.5px solid #25D366',
-              borderRadius: 12, padding: '0.6rem 1rem', cursor: 'pointer',
-              fontSize: '0.85rem', fontWeight: 600, color: '#25D366',
-            }}
-          >
-            <WaIcon /> Share
+            <span className={heartPopping ? 'rk-heart-pop' : undefined} style={{ fontSize: '0.95rem', display: 'inline-block' }}>{favorite ? '♥' : '♡'}</span>
+            {favorite ? 'Saved' : 'Add to favorites'}
           </button>
 
           <button
             onClick={deleteMemory}
             disabled={deleting}
             style={{
-              flex: '1 1 100px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.45rem',
-              background: 'var(--surface)', border: '1.5px solid var(--border)',
-              borderRadius: 12, padding: '0.6rem 1rem', cursor: 'pointer',
-              fontSize: '0.85rem', fontWeight: 600, color: 'var(--accent)',
+              display: 'flex', alignItems: 'center', gap: '0.35rem',
+              background: 'none', border: 'none', cursor: deleting ? 'default' : 'pointer',
+              fontSize: '0.8rem', color: '#B91C1C', opacity: deleting ? 0.5 : 0.75,
+              padding: '0.45rem 0.5rem',
             }}
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
               <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/>
             </svg>
             {deleting ? 'Deleting…' : 'Delete'}
           </button>
         </div>
 
-        {/* ── Two-column: About | Tags ── */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.75rem' }}>
-          {/* About */}
-          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, padding: '1.25rem' }}>
-            <h2 style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '1.05rem', color: 'var(--text)', marginBottom: '0.85rem' }}>
-              About this recording
+        {/* ── Transcript block (read-only) ── */}
+        {transcript && (
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, padding: '1.25rem', marginBottom: '1rem' }}>
+            <h2 style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '1.05rem', color: 'var(--text)', marginBottom: '0.75rem' }}>
+              Transcript
             </h2>
-            <textarea
-              value={about}
-              onChange={e => {
-                setAbout(e.target.value)
-                scheduleAutoSave({ transcript_english: e.target.value, user_notes: e.target.value })
-              }}
-              onBlur={() => patchField({ transcript_english: about, user_notes: about })}
-              placeholder="A lullaby Nani sang every night before bed."
-              rows={5}
-              style={{
-                width: '100%', border: '1px solid var(--border)', borderRadius: 10,
-                padding: '0.7rem', fontSize: '0.88rem', fontFamily: 'var(--sans)',
-                color: 'var(--text)', background: 'var(--cream)', resize: 'vertical',
-                lineHeight: 1.65, boxSizing: 'border-box',
-              }}
-            />
-            <p style={{ fontSize: '0.7rem', color: 'var(--muted)', marginTop: '0.4rem' }}>
-              Saves automatically when you stop typing.
+            <p style={{
+              fontSize: '0.9rem', color: 'var(--text2)', lineHeight: 1.75,
+              fontFamily: 'var(--serif)', fontStyle: 'italic',
+              margin: 0, whiteSpace: 'pre-wrap',
+            }}>
+              {transcript}
             </p>
           </div>
+        )}
 
-          {/* Tags */}
-          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, padding: '1.25rem' }}>
-            <h2 style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '1.05rem', color: 'var(--text)', marginBottom: '0.85rem' }}>
-              Tags
-            </h2>
+        {/* ── Notes ── */}
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, padding: '1.25rem', marginBottom: '1.75rem' }}>
+          <h2 style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '1.05rem', color: 'var(--text)', marginBottom: '0.85rem' }}>
+            Your notes
+          </h2>
+          <textarea
+            value={notes}
+            onChange={e => {
+              setNotes(e.target.value)
+              scheduleAutoSave({ user_notes: e.target.value })
+            }}
+            onBlur={() => patchField({ user_notes: notes })}
+            placeholder={`A memory about this ${typeLabel[memType]?.toLowerCase() ?? 'recording'}…`}
+            rows={4}
+            style={{
+              width: '100%', border: '1px solid var(--border)', borderRadius: 10,
+              padding: '0.7rem', fontSize: '0.88rem', fontFamily: 'var(--sans)',
+              color: 'var(--text)', background: 'var(--cream)', resize: 'vertical',
+              lineHeight: 1.65, boxSizing: 'border-box',
+            }}
+          />
+          <p style={{ fontSize: '0.7rem', color: 'var(--muted)', marginTop: '0.4rem' }}>
+            Saves automatically when you stop typing.
+          </p>
+        </div>
+
+        {/* ── Tags ── */}
+        {displayTags.length > 0 && (
+          <div style={{ marginBottom: '1.75rem' }}>
+            <p style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.5rem' }}>Tags</p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-              {['Story', 'Song', 'Memory', 'Family keepsake'].map(tag => (
-                <span key={tag} style={{
-                  padding: '0.35rem 0.9rem', borderRadius: 20,
-                  background: 'var(--cream)', border: '1px solid var(--border)',
-                  fontSize: '0.8rem', color: 'var(--text2)', fontWeight: 500,
-                }}>
-                  {tag}
-                </span>
-              ))}
               {displayTags.map(tag => (
                 <span key={tag} style={{
-                  padding: '0.35rem 0.9rem', borderRadius: 20,
+                  padding: '0.3rem 0.85rem', borderRadius: 20,
                   background: 'var(--accent-light)', border: '1px solid rgba(24,107,94,0.2)',
                   fontSize: '0.8rem', color: 'var(--accent)', fontWeight: 600,
                 }}>
@@ -599,15 +598,7 @@ function MemoryDetail() {
               ))}
             </div>
           </div>
-        </div>
-
-        {/* ── Bottom quote ── */}
-        <div style={{ textAlign: 'center', padding: '1rem 0 0.5rem' }}>
-          <p style={{ fontFamily: 'var(--serif)', fontSize: '1rem', fontStyle: 'italic', color: 'var(--muted)', lineHeight: 1.6 }}>
-            <span style={{ color: 'var(--accent)', fontSize: '1.4rem', lineHeight: 1, display: 'block', marginBottom: '0.25rem' }}>&ldquo;</span>
-            Some memories are meant to be heard.
-          </p>
-        </div>
+        )}
       </div>
     )
   }
