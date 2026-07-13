@@ -31,4 +31,4 @@ class OpenAIProvider(LLMProvider):
         if json_mode:
             kwargs["response_format"] = {"type": "json_object"}
         response = self.client.chat.completions.create(**kwargs)
-        return response.choices[0].message.content
+        return response.choices[0].message.content or ""

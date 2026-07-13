@@ -444,17 +444,22 @@ export default function MemoriesPage() {
 
   const displayed = useMemo(() => {
     let list = [...memories]
+    const ql = q.toLowerCase()
     // Narrator filter from ?narrator= param (coming from Our People page)
     // When viewing a specific person, show ALL their memories (recipes + audio combined)
     if (narratorParam) {
       list = list.filter(m => (m.narrator ?? '').toLowerCase() === narratorParam.toLowerCase())
+    } else if (ql) {
+      // Search mode: skip type split, search across all memories by title or narrator
+      list = list.filter(m =>
+        (m.title ?? '').toLowerCase().includes(ql) ||
+        (m.narrator ?? '').toLowerCase().includes(ql)
+      )
     } else {
       // Global view: keep recipe and audio tabs separate
       if (isAudioMode) list = list.filter(isAudio)
       else list = list.filter(m => !isAudio(m))
     }
-    // Search
-    if (q) list = list.filter(m => (m.title ?? '').toLowerCase().includes(q.toLowerCase()) || (m.narrator ?? '').toLowerCase().includes(q.toLowerCase()))
     // Filter
     if (filter === 'Favorites') list = list.filter(m => favTokens.includes(m.token))
     else if (filter === 'Recently added') list = list.slice().sort((a, b) => new Date(b.recorded_at).getTime() - new Date(a.recorded_at).getTime())
