@@ -251,7 +251,7 @@ function PersonModal({
         </div>
 
         {[
-          { field: 'name' as keyof FormData, label: 'Name', placeholder: 'Ammamma' },
+          { field: 'name' as keyof FormData, label: 'Name', placeholder: 'Lakshmi' },
           { field: 'relationship' as keyof FormData, label: 'Relationship', placeholder: 'Grandmother' },
           { field: 'bio' as keyof FormData, label: 'About them', placeholder: 'The heart of our kitchen — known for her biryani and her stories.' },
           { field: 'notes' as keyof FormData, label: 'Notes', placeholder: 'Speaks mostly Telugu, loves evenings on the porch.' },
