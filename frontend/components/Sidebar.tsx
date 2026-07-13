@@ -232,7 +232,7 @@ export default function Sidebar({ isOpen = false, onClose }: { isOpen?: boolean;
         {navLink('/people', 'Our People', Icon.people)}
 
         <div style={GROUP_LABEL}>Memories</div>
-        {navLink('/memories', 'All Memories', Icon.bowl)}
+        {navLink('/memories', 'All Recipes', Icon.bowl)}
         {navLinkAudio('/memories?type=audio', 'Moments', Icon.sparkle)}
 
         <div style={GROUP_LABEL}>Record</div>
