@@ -24,9 +24,9 @@ const Icon = {
       <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
     </svg>
   ),
-  book: (
+  bowl: (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M4 19.5A2.5 2.5 0 016.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" />
+      <path d="M12 2c-1 2-1 3 0 4s1 2 0 4"/><path d="M8 2c-1 2-1 3 0 4s1 2 0 4"/><path d="M16 2c-1 2-1 3 0 4s1 2 0 4"/><path d="M4 14h16"/><path d="M4 14c0 4 3.6 7 8 7s8-3 8-7"/>
     </svg>
   ),
   mic: (
@@ -232,8 +232,8 @@ export default function Sidebar({ isOpen = false, onClose }: { isOpen?: boolean;
         {navLink('/people', 'Our People', Icon.people)}
 
         <div style={GROUP_LABEL}>Memories</div>
-        {navLink('/memories', 'All Recipes', Icon.book)}
-        {navLinkAudio('/memories?type=audio', 'Tales & Songs', Icon.music)}
+        {navLink('/memories', 'All Recipes', Icon.bowl)}
+        {navLinkAudio('/memories?type=audio', 'Moments', Icon.music)}
 
         <div style={GROUP_LABEL}>Record</div>
         {navLink('/capture', 'Capture a Memory', Icon.mic)}

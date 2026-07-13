@@ -502,11 +502,11 @@ export default function MemoriesPage() {
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1.5rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
                 <div style={{ flex: 1, minWidth: 220 }}>
                   <h1 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.8rem, 3.5vw, 2.4rem)', fontWeight: 700, color: 'var(--text)', margin: '0 0 0.55rem', lineHeight: 1.15, display: 'flex', alignItems: 'center', gap: '0.45rem', flexWrap: 'wrap' }}>
-                    Tales &amp; Songs <span style={{ color: 'var(--accent)' }}>♪</span>
+                    Moments <span style={{ color: 'var(--accent)' }}>♪</span>
                   </h1>
-                  <p style={{ fontSize: '0.92rem', color: 'var(--muted)', lineHeight: 1.65, maxWidth: 380, marginBottom: '1.2rem' }}>
-                    A song. A story. A moment worth keeping.<br />
-                    Saved forever, for the people who love it.
+                  <p style={{ fontSize: '0.92rem', color: 'var(--muted)', lineHeight: 1.65, maxWidth: 420, marginBottom: '1.2rem' }}>
+                    A song an aunt sang at a gathering. A lullaby at bedtime. A story told on a rainy afternoon.<br />
+                    Songs, tales, fables, wisdom — every kind of moment, kept.
                   </p>
                   <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap' }}>
                     <Link
