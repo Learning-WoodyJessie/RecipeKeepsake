@@ -177,6 +177,36 @@ function RightPanel({
 }
 
 // ─── Audio card ──────────────────────────────────────────────────────────
+const WA_ICON = (
+  <svg width="11" height="11" viewBox="0 0 24 24" fill="white" aria-hidden="true">
+    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+  </svg>
+)
+
+function CardShareButton({ token, title, type, top = 8, right = 38 }: { token: string; title: string | null; type?: string | null; top?: number; right?: number }) {
+  const emoji = type === 'song' ? '🎵' : type === 'story' ? '📖' : type === 'poem' ? '🖊️' : type === 'wisdom' ? '🙏' : type === 'fable' ? '✨' : '🍽️'
+  return (
+    <button
+      type="button"
+      onClick={e => {
+        e.preventDefault()
+        const shareUrl = `${typeof window !== 'undefined' ? window.location.origin : 'https://www.theechoesofhome.com'}/memory?token=${token}`
+        window.open(`https://wa.me/?text=${encodeURIComponent(`${emoji} "${title ?? 'this memory'}" on Echoes of Home:\n${shareUrl}`)}`, '_blank')
+      }}
+      title="Share on WhatsApp"
+      style={{
+        position: 'absolute', top, right,
+        width: 26, height: 26, borderRadius: '50%',
+        background: '#25D366', border: 'none', cursor: 'pointer',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        boxShadow: '0 1px 4px rgba(0,0,0,0.18)', zIndex: 2,
+      }}
+    >
+      {WA_ICON}
+    </button>
+  )
+}
+
 function BookmarkToggle({ inCollection, onToggle }: { inCollection: boolean; onToggle: (e: React.MouseEvent) => void }) {
   return (
     <button
@@ -228,6 +258,7 @@ function AudioCard({
             <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
           </svg>
         </div>
+        <CardShareButton token={memory.token} title={memory.title} type={memory.type} top={8} right={38} />
         <BookmarkToggle inCollection={inCollection} onToggle={e => { e.preventDefault(); onToggleCollection() }} />
         <FavoriteHeart
           favorite={isFav}
@@ -252,32 +283,9 @@ function AudioCard({
             <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text2)' }}>{memory.narrator}</span>
           </div>
         )}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.5rem' }}>
-          <p style={{ fontSize: '0.7rem', color: 'var(--muted)', margin: 0 }}>
-            {new Date(memory.recorded_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-          </p>
-          {/* WhatsApp share — pre-generate URL before open to satisfy iOS Safari */}
-          <button
-            type="button"
-            onClick={e => {
-              e.preventDefault()
-              const shareUrl = `${typeof window !== 'undefined' ? window.location.origin : 'https://www.theechoesofhome.com'}/memory?token=${memory.token}`
-              const waUrl = `https://wa.me/?text=${encodeURIComponent(`🎵 "${memory.title ?? 'this memory'}" on Echoes of Home:\n${shareUrl}`)}`
-              window.open(waUrl, '_blank')
-            }}
-            style={{
-              display: 'flex', alignItems: 'center', gap: '0.25rem',
-              background: '#25D366', border: 'none', borderRadius: 6,
-              padding: '0.25rem 0.55rem', cursor: 'pointer',
-              fontSize: '0.7rem', fontWeight: 600, color: 'white',
-            }}
-          >
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="white" aria-hidden="true">
-              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-            </svg>
-            Share
-          </button>
-        </div>
+        <p style={{ fontSize: '0.7rem', color: 'var(--muted)', margin: '0.5rem 0 0' }}>
+          {new Date(memory.recorded_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+        </p>
       </div>
     </Link>
   )
@@ -311,6 +319,7 @@ function RecipeCard({
             : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '3rem' }}>🍽️</div>
           }
         </Link>
+        <CardShareButton token={memory.token} title={memory.title} type={memory.type} top={8} right={38} />
         <BookmarkToggle inCollection={inCollection} onToggle={e => { e.preventDefault(); onToggleCollection() }} />
         {/* Heart toggle */}
         <FavoriteHeart
@@ -343,38 +352,15 @@ function RecipeCard({
           )}
         </div>
 
-        {/* Memory count */}
-        <p style={{ fontSize: '0.72rem', color: 'var(--muted)', marginBottom: '0.65rem' }}>1 memory</p>
-
-        {/* View memory + share row */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        {/* View memory link */}
+        <div style={{ marginTop: '0.5rem' }}>
           <Link
             href={`/memory?token=${memory.token}`}
-            style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none', color: 'var(--accent)', fontSize: '0.8rem', fontWeight: 600 }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none', color: 'var(--accent)', fontSize: '0.8rem', fontWeight: 600 }}
           >
             <div style={{ width: 22, height: 22, borderRadius: '50%', border: '1.5px solid var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.55rem' }}>▶</div>
             View memory
           </Link>
-          <button
-            type="button"
-            onClick={e => {
-              e.preventDefault()
-              const shareUrl = `${typeof window !== 'undefined' ? window.location.origin : 'https://www.theechoesofhome.com'}/memory?token=${memory.token}`
-              const waUrl = `https://wa.me/?text=${encodeURIComponent(`🍽️ "${memory.title ?? 'this recipe'}" on Echoes of Home:\n${shareUrl}`)}`
-              window.open(waUrl, '_blank')
-            }}
-            style={{
-              display: 'flex', alignItems: 'center', gap: '0.25rem',
-              background: '#25D366', border: 'none', borderRadius: 6,
-              padding: '0.25rem 0.55rem', cursor: 'pointer',
-              fontSize: '0.7rem', fontWeight: 600, color: 'white',
-            }}
-          >
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="white" aria-hidden="true">
-              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-            </svg>
-            Share
-          </button>
         </div>
       </div>
     </div>
