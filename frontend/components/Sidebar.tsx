@@ -118,7 +118,11 @@ export default function Sidebar({ isOpen = false, onClose }: { isOpen?: boolean;
   }
 
   function navLink(href: string, label: string, icon: React.ReactNode, danger = false) {
-    const active = pathMatches(path, href) && !(href === '/recipes' && searchParams.get('type') === 'audio')
+    const isAudioMode = searchParams.get('type') === 'audio'
+    const isSearchActive = !!searchParams.get('q')
+    const active = pathMatches(path, href)
+      && !(href === '/recipes' && isAudioMode)
+      && !(href === '/recipes' && isSearchActive)
     return (
       <Link
         key={href}

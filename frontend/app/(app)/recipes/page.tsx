@@ -292,6 +292,52 @@ function AudioCard({
   )
 }
 
+// ─── Animated bowl placeholder ───────────────────────────────────────────
+function BowlPlaceholder({ token }: { token: string }) {
+  // Stable per-card stagger so lids don't all lift simultaneously
+  let h = 0
+  for (let i = 0; i < token.length; i++) h = (h * 31 + token.charCodeAt(i)) & 0xffffff
+  const base = (h % 36) / 10
+  const d1 = `${base}s`, d2 = `${base + 0.32}s`, d3 = `${base + 0.64}s`
+
+  return (
+    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(140deg, #F2E5CE 0%, #E4C898 55%, #D4AD72 100%)' }}>
+      <svg viewBox="0 0 100 88" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: '62%', maxWidth: 150, overflow: 'visible' }}>
+        {/* Steam — synced with lid open phase */}
+        <path className="rk-bowl-steam" style={{ animationDelay: d1 }} d="M 36 36 C 32 27 40 20 36 11 C 33 4 39 -1 36 -7" stroke="rgba(255,255,255,0.82)" strokeWidth="2.3" strokeLinecap="round"/>
+        <path className="rk-bowl-steam" style={{ animationDelay: d2 }} d="M 50 33 C 46 24 54 17 50 8 C 47 1 53 -4 50 -10" stroke="rgba(255,255,255,0.82)" strokeWidth="2.3" strokeLinecap="round"/>
+        <path className="rk-bowl-steam" style={{ animationDelay: d3 }} d="M 64 36 C 60 27 68 20 64 11 C 61 4 67 -1 64 -7" stroke="rgba(255,255,255,0.82)" strokeWidth="2.3" strokeLinecap="round"/>
+        {/* Shadow */}
+        <ellipse cx="50" cy="83" rx="24" ry="5" fill="rgba(100,60,10,0.12)"/>
+        {/* Bowl body */}
+        <path d="M 14 40 Q 12 70 30 78 Q 50 85 70 78 Q 88 70 86 40" fill="#C8924A"/>
+        <path d="M 14 40 Q 12 64 26 74 Q 20 58 18 40 Z" fill="rgba(255,220,150,0.15)"/>
+        {/* Rim */}
+        <ellipse cx="50" cy="40" rx="36" ry="9.5" fill="#D4A060"/>
+        <ellipse cx="50" cy="40" rx="29" ry="7.5" fill="#A86B22"/>
+        {/* Food surface */}
+        <ellipse cx="50" cy="40" rx="24" ry="5.8" fill="#D4960E" opacity="0.85"/>
+        <ellipse cx="44" cy="38.5" rx="8" ry="2.5" fill="rgba(255,230,120,0.3)"/>
+        {/* Base */}
+        <path d="M 32 78 Q 32 84 50 84 Q 68 84 68 78" fill="#A86222"/>
+        <ellipse cx="50" cy="84" rx="18" ry="4" fill="#B87030"/>
+        {/* Lid (animated) */}
+        <g className="rk-bowl-lid" style={{ animationDelay: d1 }}>
+          <path d="M 16 40 Q 16 10 50 6 Q 84 10 84 40" fill="#D4A060"/>
+          <path d="M 16 40 Q 20 14 50 10 Q 24 12 18 40 Z" fill="rgba(255,220,150,0.15)"/>
+          <path d="M 84 40 Q 80 14 50 10 Q 76 12 82 40 Z" fill="rgba(100,60,10,0.08)"/>
+          <ellipse cx="50" cy="40" rx="36" ry="9.5" fill="#C8924A"/>
+          <ellipse cx="50" cy="40" rx="36" ry="9.5" fill="none" stroke="#E0B070" strokeWidth="1"/>
+          <ellipse cx="50" cy="40" rx="30" ry="7.8" fill="#B8801E"/>
+          <ellipse cx="50" cy="7" rx="7" ry="3.5" fill="#B87030"/>
+          <ellipse cx="50" cy="5.5" rx="5.5" ry="4" fill="#D4A060"/>
+          <ellipse cx="50" cy="5.5" rx="3.5" ry="2.5" fill="#E0B878"/>
+        </g>
+      </svg>
+    </div>
+  )
+}
+
 // ─── Recipe card ─────────────────────────────────────────────────────────
 function RecipeCard({
   memory,
@@ -313,11 +359,11 @@ function RecipeCard({
   return (
     <div className="rk-card-hoverable" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, overflow: 'hidden', boxShadow: '0 2px 10px rgba(45,27,14,0.06), 0 0 22px rgba(24,107,94,0.14)', display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* Food photo */}
-      <div style={{ position: 'relative', aspectRatio: '4/3', background: 'var(--cream2)', overflow: 'hidden', flexShrink: 0 }}>
+      <div style={{ position: 'relative', aspectRatio: '4/3', overflow: 'hidden', flexShrink: 0 }}>
         <Link href={`/memory?token=${memory.token}`} style={{ display: 'block', height: '100%' }}>
           {memory.image_url
             ? <img src={memory.image_url} alt={memory.title ?? ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '3rem' }}>🍽️</div>
+            : <BowlPlaceholder token={memory.token} />
           }
         </Link>
         <CardShareButton token={memory.token} title={memory.title} type={memory.type} top={8} right={38} />
@@ -517,6 +563,27 @@ export default function MemoriesPage() {
         .rk-recipe-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
         @media (min-width: 640px) { .rk-recipe-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
         @media (min-width: 900px) { .rk-recipe-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+        @keyframes rk-lid-up {
+          0%, 15%   { transform: translateY(0px); }
+          28%, 62%  { transform: translateY(-16px); }
+          75%, 100% { transform: translateY(0px); }
+        }
+        @keyframes rk-steam-appear {
+          0%, 20%  { opacity: 0; transform: translateY(4px) scaleX(1); }
+          30%      { opacity: 0.85; }
+          65%      { opacity: 0.3; }
+          75%, 100%{ opacity: 0; transform: translateY(-24px) scaleX(0.4); }
+        }
+        .rk-bowl-lid {
+          animation: rk-lid-up 3.6s cubic-bezier(0.45,0,0.55,1) infinite;
+          transform-box: fill-box;
+          transform-origin: center bottom;
+        }
+        .rk-bowl-steam {
+          animation: rk-steam-appear 3.6s ease-out infinite;
+          transform-box: fill-box;
+          transform-origin: bottom center;
+        }
       `}</style>
 
       <div className="rk-mem-wrap">
