@@ -279,23 +279,23 @@ export default function UploadPage() {
           <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
             <CassetteHero />
             <h1 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.5rem, 3vw, 2rem)', fontWeight: 700, color: 'var(--text)', marginBottom: '0.65rem', lineHeight: 1.2 }}>
-              {mode === 'direct' ? 'Preserve a song or poem forever' : mode === 'text' ? 'Save their words, forever' : "Bring grandma's voice back to life"}
+              {mode === 'direct' ? 'Preserve a song or poem forever' : mode === 'text' ? 'Save this moment, forever' : "Bring grandma's voice back to life"}
             </h1>
             <p style={{ color: 'var(--muted)', fontSize: '0.9rem', lineHeight: 1.6, maxWidth: 440, margin: '0 auto' }}>
               {mode === 'direct'
                 ? <>Upload the audio and we&apos;ll keep it safe,<br />just as it was recorded.</>
                 : mode === 'text'
-                ? <>Paste a poem, proverb, blessing, or story.<br />We&apos;ll translate it and keep it forever.</>
+                ? <>A poem, proverb, blessing, or story — typed, pasted, or photographed.<br />We&apos;ll translate it and keep it forever.</>
                 : <>Upload a recording and we&apos;ll turn it into<br />a recipe memory you can keep forever.</>}
             </p>
           </div>
 
-          {/* Mode tabs */}
+          {/* Mode tabs — audio only; text is a secondary path */}
+          {mode !== 'text' && (
           <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', background: 'var(--cream2)', borderRadius: 12, padding: '0.3rem' }}>
             {([
               { value: 'ai',     label: '🎙 Their recipe' },
               { value: 'direct', label: '🎵 Their voice' },
-              { value: 'text',   label: '✍️ Their words' },
             ] as const).map(({ value, label }) => (
               <button
                 key={value}
@@ -321,6 +321,7 @@ export default function UploadPage() {
               </button>
             ))}
           </div>
+          )}
 
           {mode === 'direct' && (
             <>
@@ -604,7 +605,39 @@ export default function UploadPage() {
               <p style={{ fontSize: '0.8rem', color: 'var(--muted)', lineHeight: 1.5 }}>Only you and your family can access these memories.</p>
             </div>
           </div>
+          {/* "No recording?" — quiet secondary path to text mode */}
+          <div style={{ marginTop: '1.5rem', padding: '1rem 1.25rem', background: 'var(--cream2)', borderRadius: 14, border: '1px solid var(--border)' }}>
+            <p style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text2)', marginBottom: '0.65rem' }}>
+              No recording? Preserve it another way.
+            </p>
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <button type="button" onClick={() => { setMode('text'); setError('') }}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.4rem 0.85rem', borderRadius: 20, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text2)', fontSize: '0.8rem', fontWeight: 500, cursor: 'pointer', fontFamily: 'var(--sans)' }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                Type it
+              </button>
+              <button type="button" onClick={() => { setMode('text'); setError(''); setTimeout(() => { const el = document.querySelector('textarea'); el?.focus() }, 100) }}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.4rem 0.85rem', borderRadius: 20, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text2)', fontSize: '0.8rem', fontWeight: 500, cursor: 'pointer', fontFamily: 'var(--sans)' }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                Paste from WhatsApp
+              </button>
+              <button type="button" onClick={() => { setMode('text'); setError('') }}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.4rem 0.85rem', borderRadius: 20, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text2)', fontSize: '0.8rem', fontWeight: 500, cursor: 'pointer', fontFamily: 'var(--sans)' }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                Upload a photo
+              </button>
+            </div>
+          </div>
           </>
+          )}
+
+          {/* Back to audio link when in text mode */}
+          {mode === 'text' && (
+            <button type="button" onClick={() => { setMode('ai'); setError('') }}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)', fontSize: '0.82rem', fontFamily: 'var(--sans)', marginBottom: '1.25rem', padding: 0 }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+              Back to audio upload
+            </button>
           )}
         </div>
 
