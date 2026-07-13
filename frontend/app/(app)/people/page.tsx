@@ -53,7 +53,7 @@ function FamilyCollectionCard({ groupData, groupChecked }: { groupData: { portal
       {groupData ? (
         <>
           <p style={{ fontSize: '0.78rem', color: 'var(--muted)', lineHeight: 1.55, marginBottom: '0.85rem' }}>
-            Share these links with family. Anyone can browse your collection — no account needed.
+            Share these links with family. Anyone can browse your collection, no account needed.
           </p>
           {/* Collection link */}
           <div style={{ marginBottom: '0.65rem' }}>
@@ -89,7 +89,7 @@ function FamilyCollectionCard({ groupData, groupChecked }: { groupData: { portal
       ) : (
         <>
           <p style={{ fontSize: '0.78rem', color: 'var(--muted)', lineHeight: 1.55, marginBottom: '0.85rem' }}>
-            Choose which memories to share with family. They browse on their phone — no account needed.
+            Choose which memories to share with family. They browse on their phone, no account needed.
           </p>
           <Link href="/account#family" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--accent)', color: 'white', textDecoration: 'none', padding: '0.5rem 1rem', borderRadius: 20, fontSize: '0.82rem', fontWeight: 700 }}>
             Set up family collection
@@ -324,7 +324,7 @@ function PersonModal({
         {[
           { field: 'name' as keyof FormData, label: 'Name', placeholder: 'Lakshmi' },
           { field: 'relationship' as keyof FormData, label: 'Relationship', placeholder: 'Grandmother' },
-          { field: 'bio' as keyof FormData, label: 'About them', placeholder: 'The heart of our kitchen — known for her biryani and her stories.' },
+          { field: 'bio' as keyof FormData, label: 'About them', placeholder: 'The heart of our kitchen, known for her biryani and her stories.' },
           { field: 'notes' as keyof FormData, label: 'Notes', placeholder: 'Speaks mostly Telugu, loves evenings on the porch.' },
         ].map(({ field, label, placeholder }) => (
           <div key={field} style={{ marginBottom: '0.85rem' }}>

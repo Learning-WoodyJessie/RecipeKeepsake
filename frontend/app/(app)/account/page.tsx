@@ -149,7 +149,7 @@ function FamilyGroupSection() {
     <div style={card}>
       <h2 style={{ color: 'var(--accent)', fontWeight: 600, marginBottom: '0.5rem', fontSize: '1rem' }}>Family collection</h2>
       <p style={{ color: 'var(--text2)', fontSize: '0.85rem', marginBottom: '1.25rem', lineHeight: 1.6 }}>
-        Create a family collection so everyone can browse your memories together — no account needed.
+        Create a family collection so everyone can browse your memories together. No account needed.
         Share the invite link in your WhatsApp group so family members can add their own memories too.
       </p>
       {error && <p style={{ color: 'var(--accent)', fontSize: '0.82rem', marginBottom: '0.75rem' }}>{error}</p>}
@@ -199,7 +199,7 @@ function FamilyGroupSection() {
       </div>
 
       <p style={{ color: 'var(--muted)', fontSize: '0.8rem', lineHeight: 1.5 }}>
-        Share the collection link in your WhatsApp group so everyone can browse memories anytime — no account needed.
+        Share the collection link in your WhatsApp group so everyone can browse memories anytime. No account needed.
       </p>
     </div>
   )

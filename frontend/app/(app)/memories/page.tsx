@@ -577,7 +577,7 @@ export default function MemoriesPage() {
                     </h1>
                   </div>
                   <p style={{ fontSize: '0.9rem', color: 'var(--muted)', lineHeight: 1.6, maxWidth: 380 }}>
-                    Recipes, songs, stories — everything saved from {narratorParam}.
+                    Recipes, songs, stories. Everything saved from {narratorParam}.
                   </p>
                 </div>
                 <HeroIllustration />
@@ -606,7 +606,7 @@ export default function MemoriesPage() {
                   </h1>
                   <p style={{ fontSize: '0.92rem', color: 'var(--muted)', lineHeight: 1.75, maxWidth: 440, marginBottom: '1.2rem' }}>
                     A song an aunt sang at a family gathering. A lullaby at bedtime. A story told on a rainy afternoon. Wisdom shared by someone who knew. That one conversation you never want to forget.<br /><br />
-                    <span style={{ color: 'var(--text2)', fontStyle: 'italic' }}>Songs, tales, fables, wisdom — every kind of moment, kept.</span>
+                    <span style={{ color: 'var(--text2)', fontStyle: 'italic' }}>Songs, tales, fables, wisdom. Every kind of moment, kept.</span>
                   </p>
                   <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap' }}>
                     <Link

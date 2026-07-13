@@ -93,11 +93,11 @@ const FAQS = [
       },
       {
         q: 'How do I sign in?',
-        a: 'You can sign in with Google or Apple. We don\'t offer password login — this keeps your account secure without having to remember another password.',
+        a: 'You can sign in with Google or Apple. We don\'t offer password login. This keeps your account secure without having to remember another password.',
       },
       {
         q: 'Is there a limit on how many memories I can save?',
-        a: 'Free accounts can save up to 10 memories. Unlimited storage is coming soon — join the waitlist from the app if you reach the limit.',
+        a: 'Free accounts can save up to 10 memories. Unlimited storage is coming soon. Join the waitlist from the app if you reach the limit.',
       },
     ],
   },

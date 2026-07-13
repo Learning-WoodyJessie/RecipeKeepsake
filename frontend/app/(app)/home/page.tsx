@@ -91,7 +91,7 @@ function HeroCard({ userName }: { userName: string }) {
             <span aria-hidden style={{ color: 'var(--muted)' }}>♡</span>
           </h1>
           <p style={{ fontSize: '0.88rem', color: 'var(--muted)', lineHeight: 1.65, marginBottom: '1.2rem' }}>
-            Some things are priceless — the way they said it, the voice behind every memory. A recipe. A lullaby. A story told just once. Keep it alive, across generations.
+            Some things are priceless. The way they said it, the voice behind every memory. A recipe. A lullaby. A story told just once. Keep it alive, across generations.
           </p>
           <div className="rk-action-tiles">
             <ActionTile
@@ -346,7 +346,7 @@ function QuotePanel() {
           &ldquo;The moments shared today are the memories you&apos;ll cherish forever.&rdquo;
         </p>
         <p style={{ fontSize: '0.75rem', color: 'var(--muted)', letterSpacing: '0.01em' }}>
-          — Echoes of Home
+          Echoes of Home
         </p>
       </div>
 

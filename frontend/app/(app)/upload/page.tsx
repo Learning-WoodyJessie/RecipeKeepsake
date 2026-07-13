@@ -285,7 +285,7 @@ export default function UploadPage() {
               {mode === 'direct'
                 ? <>Upload the audio and we&apos;ll keep it safe,<br />just as it was recorded.</>
                 : mode === 'text'
-                ? <>A poem, proverb, blessing, or story — typed, pasted, or photographed.<br />We&apos;ll translate it and keep it forever.</>
+                ? <>A poem, proverb, blessing, or story. Typed, pasted, or photographed.<br />We&apos;ll translate it and keep it forever.</>
                 : <>Upload a recording and we&apos;ll turn it into<br />a recipe memory you can keep forever.</>}
             </p>
           </div>
