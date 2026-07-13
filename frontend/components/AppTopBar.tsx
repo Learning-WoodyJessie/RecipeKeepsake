@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 
@@ -23,11 +23,12 @@ export default function AppTopBar({ onMenuClick }: { onMenuClick?: () => void })
   const [initial, setInitial] = useState('?')
   const [q, setQ] = useState(searchParams.get('q') ?? '')
   const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
 
+  // Keep input in sync with URL (back-nav, direct links)
   useEffect(() => {
     setQ(searchParams.get('q') ?? '')
   }, [searchParams])
-  const menuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!menuOpen) return
@@ -46,18 +47,23 @@ export default function AppTopBar({ onMenuClick }: { onMenuClick?: () => void })
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
-      setName(displayName(user))
       const n = displayName(user)
+      setName(n)
       setInitial(n.slice(0, 1).toUpperCase())
     })
   }, [])
 
-  function submitSearch(e: React.FormEvent) {
-    e.preventDefault()
-    const s = q.trim()
-    if (s) router.push(`/memories?q=${encodeURIComponent(s)}`)
-    else router.push('/memories')
-  }
+  // Live search — debounced 300ms, no submit needed
+  const navigate = useCallback((val: string) => {
+    const s = val.trim()
+    if (s) router.replace(`/memories?q=${encodeURIComponent(s)}`)
+    else router.replace('/memories')
+  }, [router])
+
+  useEffect(() => {
+    const t = setTimeout(() => navigate(q), 300)
+    return () => clearTimeout(t)
+  }, [q, navigate])
 
   return (
     <header
@@ -95,26 +101,44 @@ export default function AppTopBar({ onMenuClick }: { onMenuClick?: () => void })
         @media (max-width: 699px) { .rk-hamburger { display: block !important; } }
       `}</style>
 
-      <form onSubmit={submitSearch} style={{ flex: 1, maxWidth: 520, display: 'flex' }}>
-        <label style={{ position: 'relative', flex: 1, display: 'flex' }}>
-          <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', opacity: 0.45, fontSize: '0.95rem' }} aria-hidden>🔍</span>
-          <input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Search memories, recipes, people…"
+      {/* Search — live, no submit button needed */}
+      <div style={{ flex: 1, maxWidth: 520, position: 'relative', display: 'flex', alignItems: 'center' }}>
+        <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', opacity: 0.45, fontSize: '0.95rem', pointerEvents: 'none' }} aria-hidden>🔍</span>
+        <input
+          type="search"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Search memories, recipes, people…"
+          style={{
+            width: '100%',
+            padding: q ? '0.65rem 2.4rem 0.65rem 2.5rem' : '0.65rem 0.85rem 0.65rem 2.5rem',
+            borderRadius: 999,
+            border: '1px solid var(--border)',
+            background: 'var(--cream)',
+            fontSize: '0.88rem',
+            fontFamily: 'var(--sans)',
+            outline: 'none',
+          }}
+        />
+        {q && (
+          <button
+            type="button"
+            aria-label="Clear search"
+            onClick={() => setQ('')}
             style={{
-              width: '100%',
-              padding: '0.65rem 0.85rem 0.65rem 2.5rem',
-              borderRadius: 999,
-              border: '1px solid var(--border)',
-              background: 'var(--cream)',
-              fontSize: '0.88rem',
-              fontFamily: 'var(--sans)',
-              outline: 'none',
+              position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
+              background: 'none', border: 'none', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: 'var(--muted)', padding: '2px',
             }}
-          />
-        </label>
-      </form>
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        )}
+      </div>
+
       {/* Greeting — hidden on small mobile */}
       <p
         className="rk-greeting"
