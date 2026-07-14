@@ -108,7 +108,7 @@ export default function AppTopBar({ onMenuClick }: { onMenuClick?: () => void })
           type="text"
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Search moments, recipes, people…"
+          placeholder="Search by title or narrator…"
           style={{
             width: '100%',
             padding: q ? '0.65rem 2.4rem 0.65rem 2.5rem' : '0.65rem 0.85rem 0.65rem 2.5rem',
