@@ -7,7 +7,7 @@ const AUTH_CALLBACK = process.env.NEXT_PUBLIC_APP_URL
 export async function signInWithGoogle(): Promise<void> {
   await supabase.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: AUTH_CALLBACK },
+    options: { redirectTo: AUTH_CALLBACK, queryParams: { prompt: 'select_account' } },
   })
 }
 
