@@ -93,10 +93,6 @@ const TYPE_OPTIONS = [
   },
 ] as const
 
-const LANGUAGES = [
-  { value: 'te', label: '🇮🇳 Telugu' },
-  { value: 'en', label: '🇬🇧 English' },
-]
 
 const TYPE_PILLS = [
   { value: 'song',    label: '🎵 Song' },
@@ -243,7 +239,7 @@ export default function UploadPage() {
     if (searchParams.get('mode') === 'text') setMode('text')
   }, [searchParams])
   const [memoryType, setMemoryType] = useState<string>('song')
-  const [language, setLanguage] = useState('te')
+  const language = 'te'
   const [narrator, setNarrator] = useState('')
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
@@ -631,30 +627,6 @@ export default function UploadPage() {
           </div>
           )}
 
-          {/* Language dropdown — audio modes only */}
-          {mode !== 'text' && (
-            <div style={{ marginBottom: '1.1rem' }}>
-              <div style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--muted)', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>
-                Recorded in
-              </div>
-              <select
-                value={language}
-                onChange={e => setLanguage(e.target.value)}
-                style={{
-                  border: '1px solid var(--border)', borderRadius: 10,
-                  padding: '0.55rem 2.2rem 0.55rem 0.85rem',
-                  fontSize: '0.88rem', fontFamily: 'var(--sans)',
-                  background: 'var(--surface)', color: 'var(--text)',
-                  cursor: 'pointer', appearance: 'none',
-                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
-                  backgroundRepeat: 'no-repeat',
-                  backgroundPosition: 'right 0.7rem center',
-                }}
-              >
-                {LANGUAGES.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
-              </select>
-            </div>
-          )}
 
           {/* Drop zone + formats + privacy — audio modes only */}
           {mode !== 'text' && (
