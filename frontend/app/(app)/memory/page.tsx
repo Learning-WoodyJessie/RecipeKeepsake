@@ -164,11 +164,11 @@ function MemoryDetail() {
     if (!memory || portalBusy) return
     setPortalBusy(true)
     const next = !inPortal
+    setInPortal(next) // optimistic — show feedback immediately
     try {
       await api.recipes.patch(memory.token, { portal_visible: next })
-      setInPortal(next)
     } catch {
-      // silent — state reverts on next page load
+      setInPortal(!next) // revert on failure
     } finally {
       setPortalBusy(false)
     }
