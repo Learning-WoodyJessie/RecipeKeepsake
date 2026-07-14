@@ -404,7 +404,7 @@ export default function UploadPage() {
           {mode !== 'text' && (
           <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', background: 'var(--cream2)', borderRadius: 12, padding: '0.3rem' }}>
             {([
-              { value: 'ai',     label: '🎙 Their recipe' },
+              { value: 'ai',     label: '🍲 Their recipe' },
               { value: 'direct', label: '🎵 Their voice' },
             ] as const).map(({ value, label }) => (
               <button

@@ -343,7 +343,7 @@ function CapturePageInner() {
                     transition: 'all 0.15s',
                   }}
                 >
-                  {m === 'ai' ? '🎙 Their recipe' : '🎵 Their voice'}
+                  {m === 'ai' ? '🍲 Their recipe' : '🎵 Their voice'}
                 </button>
               ))}
             </div>
