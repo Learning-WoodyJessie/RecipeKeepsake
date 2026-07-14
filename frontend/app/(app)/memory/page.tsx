@@ -66,6 +66,9 @@ function WaIcon() {
 function MemoryDetail() {
   const params = useSearchParams()
   const router = useRouter()
+  const from = params.get('from') ?? ''
+  const backHref = from === 'moments' ? '/moments' : from === 'home' ? '/home' : '/recipes'
+  const backLabel = from === 'moments' ? 'Moments' : from === 'home' ? 'Home' : 'All Recipes'
   const [token, setToken] = useState(params.get('token') ?? '')
   // tokenReady: true when token is known (either from ?token= param or resolved from slug)
   const [tokenReady, setTokenReady] = useState(!!params.get('token'))
@@ -163,8 +166,8 @@ function MemoryDetail() {
     if (params.get('justSaved') !== '1') return
     setJustSavedToast(true)
     const t = setTimeout(() => setJustSavedToast(false), 2600)
-    // Strip the param so a refresh/back-nav doesn't replay the toast
-    router.replace(`/memory?token=${token}`, { scroll: false })
+    // Strip justSaved but keep the from param so the back button still works
+    router.replace(`/memory?token=${token}${from ? `&from=${from}` : ''}`, { scroll: false })
     return () => clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -245,7 +248,7 @@ function MemoryDetail() {
   async function deleteMemory() {
     setDeleting(true)
     setShowDeleteModal(false)
-    try { await api.recipes.delete(token); router.replace('/recipes') }
+    try { await api.recipes.delete(token); router.replace(backHref) }
     catch (e: unknown) { setError((e as Error).message); setDeleting(false) }
   }
 
@@ -309,6 +312,12 @@ function MemoryDetail() {
     return (
       <div style={{ maxWidth: 900, margin: '0 auto', padding: '1.25rem 1.5rem 3rem' }}>
         {justSavedBanner}
+
+        {/* ── Back nav ── */}
+        <Link href={backHref} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text2)', textDecoration: 'none', fontSize: '0.85rem', marginBottom: '1rem', fontWeight: 500 }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><polyline points="15 18 9 12 15 6"/></svg>
+          {backLabel}
+        </Link>
 
         {/* ── Hero banner ── */}
         <div style={{
@@ -627,6 +636,12 @@ function MemoryDetail() {
   return (
     <div style={{ maxWidth: 720, margin: '0 auto', padding: '1.5rem 2rem' }}>
       {justSavedBanner}
+
+      {/* ── Back nav ── */}
+      <Link href={backHref} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text2)', textDecoration: 'none', fontSize: '0.85rem', marginBottom: '1rem', fontWeight: 500 }}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><polyline points="15 18 9 12 15 6"/></svg>
+        {backLabel}
+      </Link>
 
       {/* ── Identity block ── */}
       <div style={{ marginBottom: '1.25rem' }}>

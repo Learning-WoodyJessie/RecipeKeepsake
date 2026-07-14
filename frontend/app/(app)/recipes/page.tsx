@@ -274,7 +274,7 @@ function AudioCard({
 }) {
   return (
     <Link
-      href={`/memory?token=${memory.token}`}
+      href={`/memory?token=${memory.token}&from=recipes`}
       className="rk-card-hoverable"
       style={{ textDecoration: 'none', display: 'block', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, overflow: 'hidden', boxShadow: '0 2px 10px rgba(45,27,14,0.06)' }}
     >
@@ -382,7 +382,7 @@ function RecipeCard({
     <div className="rk-card-hoverable" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, overflow: 'hidden', boxShadow: '0 2px 10px rgba(45,27,14,0.06), 0 0 22px rgba(24,107,94,0.14)', display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* Food photo */}
       <div style={{ position: 'relative', aspectRatio: '4/3', overflow: 'hidden', flexShrink: 0 }}>
-        <Link href={`/memory?token=${memory.token}`} style={{ display: 'block', height: '100%' }}>
+        <Link href={`/memory?token=${memory.token}&from=recipes`} style={{ display: 'block', height: '100%' }}>
           {memory.image_url
             ? <img src={memory.image_url} alt={memory.title ?? ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             : <BowlPlaceholder token={memory.token} />
@@ -424,7 +424,7 @@ function RecipeCard({
         {/* View memory link — pinned to bottom */}
         <div style={{ marginTop: 'auto', paddingTop: '0.5rem' }}>
           <Link
-            href={`/memory?token=${memory.token}`}
+            href={`/memory?token=${memory.token}&from=recipes`}
             style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none', color: 'var(--accent)', fontSize: '0.8rem', fontWeight: 600 }}
           >
             <div style={{ width: 22, height: 22, borderRadius: '50%', border: '1.5px solid var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.55rem' }}>▶</div>

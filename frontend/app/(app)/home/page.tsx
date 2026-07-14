@@ -311,7 +311,7 @@ function MemoryRow({
     >
       {/* Whole-card tap target — zIndex 2 so it sits above content divs */}
       <Link
-        href={`/memory?token=${memory.token}`}
+        href={`/memory?token=${memory.token}&from=home`}
         aria-label={`Open ${title}`}
         style={{ position: 'absolute', inset: 0, borderRadius: 14, zIndex: 2 }}
       />

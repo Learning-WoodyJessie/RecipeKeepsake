@@ -124,7 +124,7 @@ function AudioCard({
     <div className="rk-card-hoverable" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, overflow: 'hidden', boxShadow: '0 2px 10px rgba(45,27,14,0.06), 0 0 22px rgba(24,107,94,0.14)', display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* Equalizer thumbnail */}
       <div style={{ position: 'relative', aspectRatio: '4/3', overflow: 'hidden', flexShrink: 0 }}>
-        <Link href={`/memory?token=${memory.token}`} style={{ display: 'block', height: '100%' }}>
+        <Link href={`/memory?token=${memory.token}&from=moments`} style={{ display: 'block', height: '100%' }}>
           <EqualizerPlaceholder />
         </Link>
         <CardShareButton token={memory.token} title={memory.title} type={memory.type} top={8} right={38} />
@@ -156,7 +156,7 @@ function AudioCard({
         {/* Listen link — pinned to bottom, mirrors "View memory" on recipe cards */}
         <div style={{ marginTop: 'auto', paddingTop: '0.5rem' }}>
           <Link
-            href={`/memory?token=${memory.token}`}
+            href={`/memory?token=${memory.token}&from=moments`}
             style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none', color: 'var(--accent)', fontSize: '0.8rem', fontWeight: 600 }}
           >
             <div style={{ width: 22, height: 22, borderRadius: '50%', border: '1.5px solid var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.55rem' }}>▶</div>

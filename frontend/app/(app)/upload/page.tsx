@@ -380,10 +380,10 @@ export default function UploadPage() {
       `}</style>
 
       {/* Back link */}
-      <Link href="/home" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text2)', textDecoration: 'none', fontSize: '0.85rem', marginBottom: '1.75rem', fontWeight: 500 }}>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      <button onClick={() => router.back()} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text2)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.85rem', marginBottom: '1.75rem', fontWeight: 500, padding: 0 }}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><polyline points="15 18 9 12 15 6"/></svg>
         Back
-      </Link>
+      </button>
 
       <div className="rk-upload-cols">
         {/* ── Main ── */}
