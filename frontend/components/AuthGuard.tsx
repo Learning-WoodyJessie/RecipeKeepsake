@@ -12,7 +12,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
       if (!session) {
         const current = window.location.pathname + window.location.search
         if (current !== '/' && !current.startsWith('/auth')) {
-          sessionStorage.setItem('returnTo', current)
+          localStorage.setItem('returnTo', current)
         }
         router.replace('/')
       } else setChecked(true)

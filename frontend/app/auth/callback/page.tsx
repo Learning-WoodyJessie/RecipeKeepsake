@@ -20,13 +20,13 @@ export default function AuthCallback() {
         api.viewers.sharedWithMe()
           .then((data: { is_viewer?: boolean }) => {
             if (data.is_viewer) { router.replace('/shared'); return }
-            const returnTo = sessionStorage.getItem('returnTo')
-            sessionStorage.removeItem('returnTo')
+            const returnTo = localStorage.getItem('returnTo')
+            localStorage.removeItem('returnTo')
             router.replace(returnTo || '/home')
           })
           .catch(() => {
-            const returnTo = sessionStorage.getItem('returnTo')
-            sessionStorage.removeItem('returnTo')
+            const returnTo = localStorage.getItem('returnTo')
+            localStorage.removeItem('returnTo')
             router.replace(returnTo || '/home')
           })
       }
