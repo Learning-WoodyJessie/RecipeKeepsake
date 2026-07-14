@@ -121,44 +121,50 @@ function AudioCard({
   narratorPhoto: string
 }) {
   return (
-    <Link
-      href={`/memory?token=${memory.token}`}
-      className="rk-card-hoverable"
-      style={{ textDecoration: 'none', display: 'block', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, overflow: 'hidden', boxShadow: '0 2px 10px rgba(45,27,14,0.06)' }}
-    >
+    <div className="rk-card-hoverable" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, overflow: 'hidden', boxShadow: '0 2px 10px rgba(45,27,14,0.06), 0 0 22px rgba(24,107,94,0.14)', display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* Equalizer thumbnail */}
       <div style={{ position: 'relative', aspectRatio: '4/3', overflow: 'hidden', flexShrink: 0 }}>
-        <EqualizerPlaceholder />
+        <Link href={`/memory?token=${memory.token}`} style={{ display: 'block', height: '100%' }}>
+          <EqualizerPlaceholder />
+        </Link>
         <CardShareButton token={memory.token} title={memory.title} type={memory.type} top={8} right={38} />
         <BookmarkToggle inCollection={inCollection} onToggle={e => { e.preventDefault(); onToggleCollection() }} />
         <FavoriteHeart
           favorite={isFav}
           onToggle={onToggleFav}
           size="0.85rem"
-          style={{ position: 'absolute', top: 8, right: 8, width: 26, height: 26, borderRadius: '50%', background: 'rgba(255,255,255,0.9)' }}
+          style={{ position: 'absolute', top: 8, right: 8, width: 26, height: 26, borderRadius: '50%', background: 'rgba(255,255,255,0.9)', boxShadow: '0 2px 6px rgba(0,0,0,0.12)' }}
         />
       </div>
 
-      <div style={{ padding: '0.85rem' }}>
-        <p style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '0.95rem', color: 'var(--text)', marginBottom: '0.45rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+      <div style={{ padding: '0.85rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <p style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '0.98rem', color: 'var(--text)', marginBottom: '0.55rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {memory.title ?? 'Untitled'}
         </p>
         {memory.narrator && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.4rem' }}>
-            <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'var(--accent-light)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.4rem', overflow: 'hidden' }}>
+            <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'var(--accent-light)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: '1.5px solid var(--border)' }}>
               {narratorPhoto
                 ? <img src={narratorPhoto} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                : <span style={{ fontSize: '0.6rem', fontWeight: 700, color: 'var(--accent)' }}>{memory.narrator[0]?.toUpperCase()}</span>
+                : <span style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--accent)' }}>{memory.narrator[0]?.toUpperCase()}</span>
               }
             </div>
-            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text2)' }}>{memory.narrator}</span>
+            <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: '1 1 auto', minWidth: 0 }}>{memory.narrator}</span>
           </div>
         )}
-        <p style={{ fontSize: '0.7rem', color: 'var(--muted)', margin: '0.5rem 0 0' }}>
-          {new Date(memory.recorded_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-        </p>
+
+        {/* Listen link — pinned to bottom, mirrors "View memory" on recipe cards */}
+        <div style={{ marginTop: 'auto', paddingTop: '0.5rem' }}>
+          <Link
+            href={`/memory?token=${memory.token}`}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none', color: 'var(--accent)', fontSize: '0.8rem', fontWeight: 600 }}
+          >
+            <div style={{ width: 22, height: 22, borderRadius: '50%', border: '1.5px solid var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.55rem' }}>▶</div>
+            Listen to memory
+          </Link>
+        </div>
       </div>
-    </Link>
+    </div>
   )
 }
 
