@@ -160,6 +160,12 @@ _MAGIC: list[tuple[int, bytes]] = [
 ]
 
 
+def _is_model_overloaded(e: Exception) -> bool:
+    """Return True if the exception is a transient AI-model capacity error."""
+    msg = str(e).lower()
+    return any(k in msg for k in ("unavailable", "high demand", "try again later", "resource_exhausted", "overloaded"))
+
+
 def _validate_audio_upload(audio: UploadFile, data: bytes) -> None:
     """
     Raise HTTP 400/413 if the uploaded file looks unsafe.
