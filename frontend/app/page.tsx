@@ -60,12 +60,12 @@ function LandingPageInner() {
 
   function handleGoogle() {
     if (next) localStorage.setItem('returnTo', next)
-    signInWithGoogle()
+    signInWithGoogle(next || undefined)
   }
 
   function handleApple() {
     if (next) localStorage.setItem('returnTo', next)
-    signInWithApple()
+    signInWithApple(next || undefined)
   }
 
   return (
