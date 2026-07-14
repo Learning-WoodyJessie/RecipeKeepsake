@@ -1,8 +1,14 @@
 import { supabase } from './supabase'
+import { clearUserData } from './favorites'
 
 const AUTH_CALLBACK = process.env.NEXT_PUBLIC_APP_URL
   ? `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`
   : 'https://www.theechoesofhome.com/auth/callback'
+
+export async function signOut(): Promise<void> {
+  clearUserData()
+  await supabase.auth.signOut()
+}
 
 export async function signInWithGoogle(): Promise<void> {
   await supabase.auth.signInWithOAuth({

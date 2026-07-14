@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation'
 import { api } from '@/lib/api'
 import { buildPortalShareMessage, toWhatsAppUrl } from '@/lib/share'
 import { supabase } from '@/lib/supabase'
+import { signOut as authSignOut } from '@/lib/auth'
 
 type Viewer = { id: string; email: string | null; phone: string | null; created_at: string; revoked_at: string | null }
 
@@ -216,7 +217,7 @@ export default function AccountPage() {
     setDeleting(true)
     try {
       await api.account.delete()
-      await supabase.auth.signOut()
+      await authSignOut()
       router.replace('/')
     } catch (e: unknown) { setError((e as Error).message); setDeleting(false) }
   }

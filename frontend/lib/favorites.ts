@@ -11,3 +11,7 @@ export function toggleFavorite(token: string): string[] {
   localStorage.setItem(KEY, JSON.stringify(next))
   return next
 }
+
+export function clearUserData(): void {
+  localStorage.removeItem(KEY)
+}

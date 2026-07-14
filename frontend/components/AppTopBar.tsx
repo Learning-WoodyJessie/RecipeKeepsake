@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { signOut as authSignOut } from '@/lib/auth'
 
 function cap(s: string) { return s.charAt(0).toUpperCase() + s.slice(1) }
 
@@ -41,7 +42,7 @@ export default function AppTopBar({ onMenuClick }: { onMenuClick?: () => void })
 
   async function signOut() {
     setMenuOpen(false)
-    await supabase.auth.signOut()
+    await authSignOut()
     router.replace('/')
   }
 
