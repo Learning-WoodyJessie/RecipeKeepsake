@@ -334,6 +334,13 @@ function MemoryDetail() {
           boxShadow: '0 8px 32px rgba(45,27,14,0.09)',
           padding: 'clamp(1.5rem,4vw,2.25rem)',
         }}>
+          {/* Waveform watermark */}
+          <svg aria-hidden style={{ position: 'absolute', right: -8, bottom: -6, opacity: 0.07, pointerEvents: 'none' }} width="160" height="90" viewBox="0 0 160 90" fill="none">
+            {[3,5,8,6,11,9,7,13,10,8,14,9,6,11,8,12,7,10,6,9,11,7,8,13,9,6,10,8,12,7,9,11,6,8,10,7,13,9,5,8].map((h, i) => (
+              <rect key={i} x={i * 4} y={(45 - h * 2.5)} width="3" height={h * 5} rx="1.5" fill="var(--amber)" />
+            ))}
+          </svg>
+
           {/* Type badge */}
           {memory.type && memory.type !== 'recipe' && (
             <div style={{
@@ -343,6 +350,13 @@ function MemoryDetail() {
               borderRadius: 20, padding: '0.25rem 0.75rem',
               marginBottom: '0.85rem',
             }}>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden style={{ color: typeFg[memType] ?? 'var(--text2)' }}>
+                {memType === 'song' && <><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></>}
+                {memType === 'story' && <><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></>}
+                {memType === 'poem' && <><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></>}
+                {memType === 'fable' && <><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></>}
+                {memType === 'wisdom' && <><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></>}
+              </svg>
               <span style={{ fontSize: '0.75rem', fontWeight: 700, color: typeFg[memType] ?? 'var(--text2)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 {typeLabel[memType] ?? memType}
               </span>
@@ -507,8 +521,8 @@ function MemoryDetail() {
                 </div>
               </div>
 
-              {/* Volume */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0 }}>
+              {/* Volume — desktop only; iOS ignores software volume */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0 }} className="rk-desktop-only">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                   <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
                   <path d="M19.07 4.93a10 10 0 010 14.14M15.54 8.46a5 5 0 010 7.07"/>
@@ -524,22 +538,56 @@ function MemoryDetail() {
           </div>
         )}
 
-        {/* ── Primary action: Share ── */}
-        <button
-          onClick={openWhatsApp}
-          style={{
-            width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.55rem',
-            background: '#25D366', border: 'none',
-            borderRadius: 14, padding: '0.85rem 1.5rem', cursor: 'pointer',
-            fontSize: '0.95rem', fontWeight: 700, color: 'white',
-            marginBottom: '0.65rem',
-            boxShadow: '0 4px 14px rgba(37,211,102,0.28)',
-          }}
-        >
-          <WaIcon /> Share this memory
-        </button>
+        {/* ── Primary actions: Share + Family Collection ── */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.65rem', marginBottom: '0.65rem' }}>
+          <button
+            onClick={openWhatsApp}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+              background: '#25D366', border: 'none',
+              borderRadius: 12, padding: '0.72rem 0.5rem', cursor: 'pointer',
+              fontSize: '0.88rem', fontWeight: 700, color: 'white',
+              boxShadow: '0 3px 10px rgba(37,211,102,0.25)',
+            }}
+          >
+            <WaIcon /> Share
+          </button>
+          {isInGroup ? (
+            <button
+              onClick={togglePortal}
+              disabled={portalBusy}
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
+                background: inPortal ? 'var(--accent-light)' : 'var(--surface)',
+                border: `1.5px solid ${inPortal ? 'var(--accent)' : 'var(--border)'}`,
+                borderRadius: 12, padding: '0.72rem 0.5rem', cursor: portalBusy ? 'default' : 'pointer',
+                fontSize: '0.82rem', fontWeight: 600,
+                color: inPortal ? 'var(--accent)' : 'var(--text2)',
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+              </svg>
+              {inPortal ? 'In Family Collection' : 'Family Collection'}
+            </button>
+          ) : (
+            <Link href="/account#family" style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
+              background: 'var(--surface)', border: '1.5px solid var(--border)',
+              borderRadius: 12, padding: '0.72rem 0.5rem', textDecoration: 'none',
+              fontSize: '0.82rem', fontWeight: 600, color: 'var(--text2)',
+            }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+              </svg>
+              Family Collection
+            </Link>
+          )}
+        </div>
 
-        {/* ── Secondary actions: Favorites + Delete ── */}
+        {/* ── Secondary actions: Favorites (left) + Delete (muted, right) ── */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.75rem' }}>
           <button
             onClick={toggleFavorite}
@@ -562,8 +610,8 @@ function MemoryDetail() {
             style={{
               display: 'flex', alignItems: 'center', gap: '0.35rem',
               background: 'none', border: 'none', cursor: deleting ? 'default' : 'pointer',
-              fontSize: '0.8rem', color: '#B91C1C', opacity: deleting ? 0.5 : 0.75,
-              padding: '0.45rem 0.5rem',
+              fontSize: '0.8rem', color: 'var(--muted)', opacity: deleting ? 0.4 : 0.65,
+              padding: '0.45rem 0.5rem', fontFamily: 'var(--sans)',
             }}
           >
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -574,11 +622,11 @@ function MemoryDetail() {
         </div>
 
         {/* ── Transcript block (read-only) ── */}
-        {transcript && (
-          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, padding: '1.25rem', marginBottom: '1rem' }}>
-            <h2 style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '1.05rem', color: 'var(--text)', marginBottom: '0.75rem' }}>
-              Transcript
-            </h2>
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, padding: '1.25rem', marginBottom: '1rem' }}>
+          <h2 style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '1.05rem', color: 'var(--text)', marginBottom: '0.75rem' }}>
+            Transcript
+          </h2>
+          {transcript ? (
             <p style={{
               fontSize: '0.9rem', color: 'var(--text2)', lineHeight: 1.75,
               fontFamily: 'var(--serif)', fontStyle: 'italic',
@@ -586,8 +634,16 @@ function MemoryDetail() {
             }}>
               {transcript}
             </p>
-          </div>
-        )}
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.4rem', padding: '0.75rem 0 0.25rem', textAlign: 'center' }}>
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--border)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+              </svg>
+              <p style={{ fontSize: '0.85rem', color: 'var(--muted)', margin: 0 }}>No transcript yet</p>
+              <p style={{ fontSize: '0.75rem', color: 'var(--muted)', margin: 0, opacity: 0.8 }}>Captured recordings generate one automatically</p>
+            </div>
+          )}
+        </div>
 
         {/* ── Notes ── */}
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, padding: '1.25rem', marginBottom: '1.75rem' }}>
@@ -601,7 +657,13 @@ function MemoryDetail() {
               scheduleAutoSave({ user_notes: e.target.value })
             }}
             onBlur={() => patchField({ user_notes: notes })}
-            placeholder={`A memory about this ${typeLabel[memType]?.toLowerCase() ?? 'recording'}…`}
+            placeholder={
+              memType === 'song' ? 'What does this song remind you of? A place, a person, a moment…'
+              : memType === 'story' ? 'What did this story mean to you? What will you pass on?'
+              : memType === 'poem' ? 'What feelings does this poem bring up for you?'
+              : memType === 'wisdom' ? 'How has this wisdom shaped you?'
+              : `A memory about this ${typeLabel[memType]?.toLowerCase() ?? 'recording'}…`
+            }
             rows={4}
             style={{
               width: '100%', border: '1px solid var(--border)', borderRadius: 10,
