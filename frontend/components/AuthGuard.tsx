@@ -13,8 +13,10 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
         const current = window.location.pathname + window.location.search
         if (current !== '/' && !current.startsWith('/auth')) {
           localStorage.setItem('returnTo', current)
+          router.replace(`/?next=${encodeURIComponent(current)}`)
+        } else {
+          router.replace('/')
         }
-        router.replace('/')
       } else setChecked(true)
     })
 
