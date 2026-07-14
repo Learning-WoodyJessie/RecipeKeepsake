@@ -462,7 +462,7 @@ export default function MomentsPage() {
                       Upload audio
                     </Link>
                     <Link
-                      href="/upload?mode=direct"
+                      href="/upload?mode=direct#no-recording"
                       style={{
                         display: 'inline-flex', alignItems: 'center', gap: '0.45rem',
                         background: 'transparent', color: 'var(--accent)', textDecoration: 'none',
@@ -647,7 +647,7 @@ export default function MomentsPage() {
               Upload audio
             </Link>
             <Link
-              href="/upload?mode=direct"
+              href="/upload?mode=direct#no-recording"
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: '0.45rem',
                 background: 'transparent', color: 'var(--accent)', textDecoration: 'none',

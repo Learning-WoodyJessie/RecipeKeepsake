@@ -730,7 +730,7 @@ export default function UploadPage() {
             </div>
           </div>
           {/* "No recording?" — secondary paths */}
-          <div style={{ marginTop: '1.5rem', padding: '1rem 1.25rem', background: 'var(--cream2)', borderRadius: 14, border: '1px solid var(--border)' }}>
+          <div id="no-recording" style={{ marginTop: '1.5rem', padding: '1rem 1.25rem', background: 'var(--cream2)', borderRadius: 14, border: '1px solid var(--border)' }}>
             <p style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text2)', marginBottom: '0.65rem' }}>
               No recording? Preserve it another way.
             </p>
