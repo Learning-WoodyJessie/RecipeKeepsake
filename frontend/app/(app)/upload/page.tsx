@@ -222,6 +222,16 @@ function CassetteHero() {
   )
 }
 
+function friendlyError(e: string): string {
+  if (e.includes('memory_cap_reached')) return e // handled separately
+  if (e.includes('UNAVAILABLE') || e.includes('high demand') || e.includes('503')) return 'AI transcription is temporarily at capacity — please try again in a moment.'
+  if (e.includes('unsupported_language') || e.includes('not supported')) return 'There was a problem processing this audio. Please try again.'
+  if (e.includes('NoneType') || e.includes('empty transcription')) return 'We couldn\'t read this recording. Please try a different file or format.'
+  if (e.includes('File too large') || e.includes('413')) return e // already user-friendly
+  if (e.includes('400') || e.includes('Error code')) return 'Something went wrong processing this file. Please try again or use a different format.'
+  return 'Something went wrong. Please try again.'
+}
+
 export default function UploadPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -585,7 +595,7 @@ export default function UploadPage() {
                   <Link href="/recipes" style={{ fontSize: '0.78rem', color: 'var(--muted)', textDecoration: 'underline' }}>Manage your memories</Link>
                 </div>
               ) : (
-                <p style={{ color: 'var(--accent)', marginBottom: '0.75rem', fontSize: '0.82rem' }}>{error}</p>
+                <p style={{ color: 'var(--accent)', marginBottom: '0.75rem', fontSize: '0.82rem' }}>{friendlyError(error)}</p>
               ))}
 
               <button
@@ -716,7 +726,7 @@ export default function UploadPage() {
               <Link href="/recipes" style={{ fontSize: '0.78rem', color: 'var(--muted)', textDecoration: 'underline' }}>Manage your memories</Link>
             </div>
           ) : (
-            <p style={{ color: 'var(--accent)', marginBottom: '0.75rem', fontSize: '0.82rem' }}>{error}</p>
+            <p style={{ color: 'var(--accent)', marginBottom: '0.75rem', fontSize: '0.82rem' }}>{friendlyError(error)}</p>
           ))}
 
           {/* Formats dropdown */}

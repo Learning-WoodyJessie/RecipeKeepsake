@@ -173,14 +173,15 @@ def _whisper_transcribe(audio_path: str, language: str) -> str:
     """Fallback: OpenAI Whisper transcription."""
     glossary = build_glossary_terms_list()
     client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
-    whisper_lang = "te" if language in ("te", "auto") else "en"
+    # Whisper's whisper-1 model does not accept "te" as a language code.
+    # Pass no language and let Whisper auto-detect; the glossary prompt hint
+    # steers it toward correct Telugu cooking vocabulary regardless.
+    is_telugu = language in ("te", "auto")
     with open(audio_path, "rb") as f:
         resp = client.audio.transcriptions.create(
             model="whisper-1",
             file=f,
-            language=whisper_lang,
-            # glossary hint improves Telugu cooking term recognition
-            prompt=f"Telugu cooking vocabulary: {glossary[:300]}" if whisper_lang == "te" else None,
+            prompt=f"Telugu cooking vocabulary: {glossary[:300]}" if is_telugu else None,
         )
     return resp.text
 
