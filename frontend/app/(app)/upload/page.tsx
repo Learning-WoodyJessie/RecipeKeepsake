@@ -371,7 +371,7 @@ export default function UploadPage() {
           grid-template-columns: 1fr;
           gap: 1.5rem;
         }
-        @media (min-width: 900px) {
+        @media (min-width: 760px) {
           .rk-upload-cols { grid-template-columns: 1fr 280px; align-items: start; }
         }
       `}</style>
@@ -400,12 +400,12 @@ export default function UploadPage() {
             </p>
           </div>
 
-          {/* Mode tabs — audio only; text is a secondary path */}
+          {/* Mode tabs — audio modes only */}
           {mode !== 'text' && (
           <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', background: 'var(--cream2)', borderRadius: 12, padding: '0.3rem' }}>
             {([
               { value: 'ai',     label: 'Their recipe' },
-              { value: 'direct', label: '🎵 Their voice' },
+              { value: 'direct', label: 'Their voice' },
             ] as const).map(({ value, label }) => (
               <button
                 key={value}
@@ -413,7 +413,8 @@ export default function UploadPage() {
                 onClick={() => { setMode(value); setError('') }}
                 style={{
                   flex: 1,
-                  padding: '0.6rem 0.75rem',
+                  minWidth: 0,
+                  padding: '0.6rem 0.5rem',
                   borderRadius: 10,
                   border: 'none',
                   cursor: 'pointer',
@@ -424,7 +425,6 @@ export default function UploadPage() {
                   color: mode === value ? 'white' : 'var(--muted)',
                   boxShadow: mode === value ? '0 2px 8px rgba(45,27,14,0.15)' : 'none',
                   transition: 'all 0.15s',
-                  whiteSpace: 'nowrap',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem',
                 }}
               >
@@ -432,7 +432,11 @@ export default function UploadPage() {
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
                     <path d="M12 2c-1 2-1 3 0 4s1 2 0 4"/><path d="M8 2c-1 2-1 3 0 4s1 2 0 4"/><path d="M16 2c-1 2-1 3 0 4s1 2 0 4"/><path d="M4 14h16"/><path d="M4 14c0 4 3.6 7 8 7s8-3 8-7"/>
                   </svg>
-                ) : null}
+                ) : (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                    <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+                  </svg>
+                )}
                 {label}
               </button>
             ))}
@@ -722,19 +726,17 @@ export default function UploadPage() {
               <p style={{ fontSize: '0.8rem', color: 'var(--muted)', lineHeight: 1.5 }}>Only you and your family can access these memories.</p>
             </div>
           </div>
-          {/* "No recording?" — two distinct secondary paths */}
+          {/* "No recording?" — secondary paths */}
           <div style={{ marginTop: '1.5rem', padding: '1rem 1.25rem', background: 'var(--cream2)', borderRadius: 14, border: '1px solid var(--border)' }}>
             <p style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text2)', marginBottom: '0.65rem' }}>
               No recording? Preserve it another way.
             </p>
             <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-              {/* Option 1: type or paste text */}
               <button type="button" onClick={() => { setMode('text'); setError(''); setTimeout(() => { const el = document.querySelector('textarea'); el?.focus() }, 100) }}
                 style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.4rem 0.85rem', borderRadius: 20, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text2)', fontSize: '0.8rem', fontWeight: 500, cursor: 'pointer', fontFamily: 'var(--sans)' }}>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-                Type or paste
+                Add in words
               </button>
-              {/* Option 2: upload a photo or screenshot */}
               <button type="button" onClick={() => photoInputRef.current?.click()}
                 style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.4rem 0.85rem', borderRadius: 20, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text2)', fontSize: '0.8rem', fontWeight: 500, cursor: 'pointer', fontFamily: 'var(--sans)' }}>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>

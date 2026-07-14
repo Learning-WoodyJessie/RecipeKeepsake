@@ -645,6 +645,20 @@ export default function MomentsPage() {
             >
               Upload audio
             </Link>
+            <Link
+              href="/upload?mode=text"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '0.45rem',
+                background: 'transparent', color: 'var(--accent)', textDecoration: 'none',
+                padding: '0.6rem 1.25rem', borderRadius: 12, fontSize: '0.88rem', fontWeight: 700,
+                border: '1.5px solid var(--accent)',
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
+              </svg>
+              Add in words
+            </Link>
           </div>
           <svg aria-hidden width="90" height="90" viewBox="0 0 100 100" fill="none" style={{ position: 'absolute', right: 16, bottom: -10, opacity: 0.18, flexShrink: 0 }}>
             <circle cx="50" cy="50" r="12" fill="var(--accent)"/>
