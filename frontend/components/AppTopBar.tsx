@@ -152,7 +152,7 @@ export default function AppTopBar({ onMenuClick }: { onMenuClick?: () => void })
           flexShrink: 0,
         }}
       >
-        Welcome home, {name} <span aria-hidden style={{ color: 'var(--muted)' }}>♡</span>
+        Welcome home, {name} <span aria-hidden style={{ color: 'var(--accent)', fontSize: '0.9em' }}>∞</span>
       </p>
       <style>{`
         .rk-greeting { display: none; }

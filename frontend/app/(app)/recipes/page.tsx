@@ -170,7 +170,7 @@ function RightPanel({
               ? `”Some memories are meant to be heard.”`
               : `”A recipe is more than ingredients. It’s a story we live and share.”`}
           </p>
-          <span style={{ color: 'var(--muted)', fontSize: '1rem' }}>♡</span>
+          <span style={{ color: 'var(--accent)', fontSize: '0.9em' }}>∞</span>
         </div>
       </div>
     </aside>
@@ -628,7 +628,7 @@ export default function MemoriesPage() {
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap', marginBottom: '0.5rem' }}>
                     <h1 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.6rem, 3vw, 2rem)', fontWeight: 700, color: 'var(--text)', margin: 0 }}>
-                      {narratorParam}&rsquo;s memories <span style={{ color: 'var(--muted)' }}>♡</span>
+                      {narratorParam}&rsquo;s memories <span style={{ color: 'var(--accent)', fontSize: '0.9em' }}>∞</span>
                     </h1>
                   </div>
                   <p style={{ fontSize: '0.9rem', color: 'var(--muted)', lineHeight: 1.6, maxWidth: 380 }}>
@@ -717,7 +717,7 @@ export default function MemoriesPage() {
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap', marginBottom: '0.5rem' }}>
                     <h1 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.6rem, 3vw, 2rem)', fontWeight: 700, color: 'var(--text)', margin: 0, display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-                      All Recipes <span style={{ color: 'var(--muted)' }}>♡</span>
+                      All Recipes <span style={{ color: 'var(--accent)', fontSize: '0.9em' }}>∞</span>
                     </h1>
                     <Link href={narratorParam ? `/capture?narrator=${encodeURIComponent(narratorParam)}` : '/capture'} style={{ background: 'var(--accent)', color: 'white', textDecoration: 'none', padding: '0.45rem 1rem', borderRadius: 10, fontSize: '0.82rem', fontWeight: 700, whiteSpace: 'nowrap', flexShrink: 0, boxShadow: '0 2px 8px rgba(24,107,94,0.22)', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
                       + Capture a memory
