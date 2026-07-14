@@ -116,11 +116,11 @@ export default function ReviewWizard({ draft, audioFile, narrator: narratorProp,
       />
       {/* What we heard — collapsible transcript */}
       {draft.transcript_raw && (
-        <div style={{ marginTop: '1.5rem', borderTop: '1px solid var(--border)', paddingTop: '1rem' }}>
+        <div style={{ marginTop: '1.5rem', borderTop: '1px solid var(--border)' }}>
           <button
             type="button"
             onClick={() => setTranscriptOpen(o => !o)}
-            style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)', fontSize: '0.8rem', fontWeight: 600, padding: '0.5rem 0', width: '100%' }}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)', fontSize: '0.8rem', fontWeight: 600, padding: '1rem 0 0.5rem', width: '100%' }}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: transcriptOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', flexShrink: 0 }}>
               <polyline points="6 9 12 15 18 9"/>
