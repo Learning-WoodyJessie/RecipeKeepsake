@@ -404,9 +404,17 @@ class _SpaMiddleware(BaseHTTPMiddleware):
         has_auth = bool(request.headers.get("authorization"))
 
         if "text/html" in accept and not has_auth:
-            path = request.url.path.lstrip("/")
+            url_path = request.url.path
+            path = url_path.lstrip("/")
+
             # Skip paths that should never be served as static pages
-            if not any(request.url.path.startswith(p) for p in self._PASSTHROUGH_PREFIXES):
+            if not any(url_path.startswith(p) for p in self._PASSTHROUGH_PREFIXES):
+                # Rewrite /memory/<slug> → serve the /memory page (client resolves slug)
+                # This is the Railway equivalent of the Vercel rewrite in vercel.json
+                parts = path.split("/")
+                if len(parts) == 2 and parts[0] == "memory":
+                    path = "memory"
+
                 candidate = _FRONTEND_OUT / path / "index.html"
                 if candidate.exists():
                     return FileResponse(str(candidate), headers=_NO_CACHE_HEADERS)
