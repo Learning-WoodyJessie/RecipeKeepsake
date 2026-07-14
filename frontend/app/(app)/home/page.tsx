@@ -309,15 +309,15 @@ function MemoryRow({
         position: 'relative',
       }}
     >
-      {/* Whole-card tap target */}
+      {/* Whole-card tap target — zIndex 2 so it sits above content divs */}
       <Link
         href={`/memory?token=${memory.token}`}
         aria-label={`Open ${title}`}
-        style={{ position: 'absolute', inset: 0, borderRadius: 14, zIndex: 0 }}
+        style={{ position: 'absolute', inset: 0, borderRadius: 14, zIndex: 2 }}
       />
 
       {/* Narrator avatar */}
-      <div style={{ width: 42, height: 42, borderRadius: '50%', background: 'var(--accent-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0, zIndex: 1 }}>
+      <div style={{ width: 42, height: 42, borderRadius: '50%', background: 'var(--accent-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0 }}>
         {photoUrl
           ? <img src={photoUrl} alt={narr} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           : <span style={{ fontFamily: 'var(--serif)', fontWeight: 700, color: 'var(--accent)', fontSize: '1.05rem' }}>{initial}</span>
@@ -325,7 +325,7 @@ function MemoryRow({
       </div>
 
       {/* Title + meta + waveform */}
-      <div style={{ flex: 1, minWidth: 0, zIndex: 1 }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
         <p style={{ fontFamily: 'var(--serif)', fontWeight: 600, color: 'var(--text)', fontSize: '0.9rem', marginBottom: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
           {isAudio(memory) && <span style={{ fontSize: '0.72rem', color: 'var(--accent)', flexShrink: 0 }}>✦</span>}
           {title}
@@ -342,10 +342,10 @@ function MemoryRow({
         <WaveformBars token={memory.token} barCount={18} />
       </div>
 
-      {/* Heart */}
-      <FavoriteHeart favorite={isFav} onToggle={onToggle} style={{ flexShrink: 0, zIndex: 1 }} />
+      {/* Heart — zIndex 3 so it stays above the Link tap target */}
+      <FavoriteHeart favorite={isFav} onToggle={onToggle} style={{ flexShrink: 0, position: 'relative', zIndex: 3 }} />
 
-      {/* Play circle (visual only — card Link handles tap) */}
+      {/* Play circle (visual only) */}
       <div
         aria-hidden
         style={{
@@ -353,7 +353,7 @@ function MemoryRow({
           border: '2px solid var(--accent)', color: 'var(--accent)',
           background: 'transparent',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: '0.7rem', flexShrink: 0, zIndex: 1, pointerEvents: 'none',
+          fontSize: '0.7rem', flexShrink: 0, pointerEvents: 'none',
         }}
       >
         ▶
