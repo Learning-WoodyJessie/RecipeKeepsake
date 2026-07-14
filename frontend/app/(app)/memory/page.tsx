@@ -69,9 +69,15 @@ function MemoryDetail() {
   const from = params.get('from') ?? ''
   const backHref = from === 'moments' ? '/moments' : from === 'home' ? '/home' : '/recipes'
   const backLabel = from === 'moments' ? 'Moments' : from === 'home' ? 'Home' : 'All Recipes'
-  const [token, setToken] = useState(params.get('token') ?? '')
+  // Read token from window.location.search directly — useSearchParams() can lag
+  // during client-side navigation, causing tokenReady to initialise false and
+  // the slug-resolution effect to fire a spurious redirect to /recipes.
+  const initialToken = (typeof window !== 'undefined'
+    ? new URLSearchParams(window.location.search).get('token')
+    : null) ?? params.get('token') ?? ''
+  const [token, setToken] = useState(initialToken)
   // tokenReady: true when token is known (either from ?token= param or resolved from slug)
-  const [tokenReady, setTokenReady] = useState(!!params.get('token'))
+  const [tokenReady, setTokenReady] = useState(!!initialToken)
 
   const [memory, setMemory] = useState<Memory | null>(null)
   const [translated, setTranslated] = useState<Partial<Memory> | null>(null)
