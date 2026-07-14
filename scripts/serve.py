@@ -1189,14 +1189,22 @@ class PatchRecipeRequest(BaseModel):
 
 @app.patch("/recipe/{token}")
 async def patch_recipe_endpoint(token: str, body: PatchRecipeRequest, user: dict = Depends(require_auth)):
-    """Update editable fields on a recipe. Only non-None fields are written."""
+    """Update editable fields on a recipe. Only non-None fields are written. Caller must own the recipe."""
     if not (os.environ.get("SUPABASE_URL") and os.environ.get("SUPABASE_SERVICE_KEY")):
         raise HTTPException(status_code=503, detail="Storage not configured")
-    from tools.storage import patch_recipe
+    from tools.storage import get_recipe_by_token, patch_recipe
     # Build patch dict from only the fields that were explicitly provided
     fields = {k: v for k, v in body.model_dump().items() if v is not None}
     if not fields:
         raise HTTPException(status_code=400, detail="No fields to update")
+    try:
+        recipe = get_recipe_by_token(token)
+    except Exception:
+        raise HTTPException(status_code=404, detail="Recipe not found")
+    # Ownership check — unauthenticated local dev (empty user dict) skips check
+    user_id = _user_id(user)
+    if user_id and recipe.get("user_id") and recipe["user_id"] != user_id:
+        raise HTTPException(status_code=403, detail="Not your recipe")
     try:
         updated = patch_recipe(token, fields)
         return JSONResponse(content=updated)
