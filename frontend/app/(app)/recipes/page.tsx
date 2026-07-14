@@ -213,7 +213,7 @@ function BookmarkToggle({ inCollection, onToggle }: { inCollection: boolean; onT
     <button
       type="button"
       onClick={onToggle}
-      title={inCollection ? 'Remove from Family Collection' : 'Add to Family Collection'}
+      title={inCollection ? 'Remove from Family Recipes' : 'Add to Family Recipes'}
       style={{
         position: 'absolute', top: 8, left: 8, width: 26, height: 26, borderRadius: '50%',
         background: inCollection ? 'var(--accent)' : 'rgba(255,255,255,0.9)',
@@ -487,8 +487,8 @@ export default function MemoriesPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const collectionParam = searchParams.get('collection')
-  const [quickFilter, setQuickFilter] = useState<'All' | 'Favorites' | 'Family Collection'>(
-    collectionParam === '1' ? 'Family Collection' : 'All'
+  const [quickFilter, setQuickFilter] = useState<'All' | 'Favorites' | 'Family Recipes'>(
+    collectionParam === '1' ? 'Family Recipes' : 'All'
   )
   const [categoryFilter, setCategoryFilter] = useState('')
   const [sort, setSort] = useState('Recently added')
@@ -547,7 +547,7 @@ export default function MemoriesPage() {
     }
     // Quick filter pill
     if (quickFilter === 'Favorites') list = list.filter(m => favTokens.includes(m.token))
-    else if (quickFilter === 'Family Collection') list = list.filter(m => collectionSet.has(m.token))
+    else if (quickFilter === 'Family Recipes') list = list.filter(m => collectionSet.has(m.token))
     // Category dropdown
     if (categoryFilter) {
       if (categoryFilter === 'Other') {
@@ -760,7 +760,7 @@ export default function MemoriesPage() {
             {/* Compact filter row — hidden during search / narrator view */}
             {!q && !narratorParam && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.85rem', flexWrap: 'wrap' }}>
-                {(['All', 'Favorites', 'Family Collection'] as const).map(f => (
+                {(['All', 'Favorites', 'Family Recipes'] as const).map(f => (
                   <button
                     key={f}
                     type="button"
@@ -773,13 +773,13 @@ export default function MemoriesPage() {
                       color: quickFilter === f ? (f === 'Favorites' ? 'var(--amber)' : 'var(--accent)') : 'var(--text2)',
                     }}
                   >
-                    {f === 'Favorites' ? '♥ Favorites' : f === 'Family Collection' ? (
+                    {f === 'Favorites' ? '♥ Favorites' : f === 'Family Recipes' ? (
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
                         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                           <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
                           <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
                         </svg>
-                        Family Collection
+                        Family Recipes
                       </span>
                     ) : 'All'}
                   </button>
@@ -810,8 +810,8 @@ export default function MemoriesPage() {
                   ? `No memories matching "${q}"`
                   : quickFilter === 'Favorites'
                   ? 'No favorites yet. Heart one to add it here.'
-                  : quickFilter === 'Family Collection'
-                  ? 'No memories in your Family Collection yet. Bookmark one from any memory card.'
+                  : quickFilter === 'Family Recipes'
+                  ? 'No memories in your Family Recipes yet. Bookmark one from any memory card.'
                   : narratorParam
                   ? `No memories saved for ${narratorParam} yet.`
                   : isAudioMode ? 'No recordings yet.' : 'No recipes yet.'}

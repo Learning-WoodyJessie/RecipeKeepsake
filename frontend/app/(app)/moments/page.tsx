@@ -59,7 +59,7 @@ function BookmarkToggle({ inCollection, onToggle }: { inCollection: boolean; onT
   return (
     <button
       onClick={onToggle}
-      title={inCollection ? 'Remove from Family Collection' : 'Add to Family Collection'}
+      title={inCollection ? 'Remove from Family Moments' : 'Add to Family Moments'}
       style={{
         position: 'absolute', top: 8, left: 8, width: 26, height: 26, borderRadius: '50%',
         background: inCollection ? 'var(--accent)' : 'rgba(255,255,255,0.9)',
@@ -270,8 +270,8 @@ export default function MomentsPage() {
   const [people, setPeople] = useState<Person[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [quickFilter, setQuickFilter] = useState<'All' | 'Favorites' | 'Family Collection'>(
-    collectionParam === '1' ? 'Family Collection' : 'All'
+  const [quickFilter, setQuickFilter] = useState<'All' | 'Favorites' | 'Family Moments'>(
+    collectionParam === '1' ? 'Family Moments' : 'All'
   )
   const [categoryFilter, setCategoryFilter] = useState('')
   const [sort, setSort] = useState('Recently added')
@@ -324,7 +324,7 @@ export default function MomentsPage() {
       )
     }
     if (quickFilter === 'Favorites') list = list.filter(m => favTokens.includes(m.token))
-    else if (quickFilter === 'Family Collection') list = list.filter(m => collectionSet.has(m.token))
+    else if (quickFilter === 'Family Moments') list = list.filter(m => collectionSet.has(m.token))
     if (categoryFilter) {
       if (categoryFilter === 'Other') {
         list = list.filter(m => !KNOWN_MOMENT_TYPES.includes(m.type ?? ''))
@@ -446,7 +446,7 @@ export default function MomentsPage() {
             {/* Filter row */}
             {!q && !narratorParam && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.85rem', flexWrap: 'wrap' }}>
-                {(['All', 'Favorites', 'Family Collection'] as const).map(f => (
+                {(['All', 'Favorites', 'Family Moments'] as const).map(f => (
                   <button
                     key={f}
                     type="button"
@@ -459,13 +459,13 @@ export default function MomentsPage() {
                       color: quickFilter === f ? (f === 'Favorites' ? 'var(--amber)' : 'var(--accent)') : 'var(--text2)',
                     }}
                   >
-                    {f === 'Favorites' ? '♥ Favorites' : f === 'Family Collection' ? (
+                    {f === 'Favorites' ? '♥ Favorites' : f === 'Family Moments' ? (
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
                         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                           <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
                           <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
                         </svg>
-                        Family Collection
+                        Family Moments
                       </span>
                     ) : 'All'}
                   </button>
@@ -496,8 +496,8 @@ export default function MomentsPage() {
                   ? `No moments matching "${q}"`
                   : quickFilter === 'Favorites'
                   ? 'No favorites yet. Heart one to add it here.'
-                  : quickFilter === 'Family Collection'
-                  ? 'No moments in your Family Collection yet.'
+                  : quickFilter === 'Family Moments'
+                  ? 'No moments in your Family Moments yet.'
                   : narratorParam
                   ? `No moments saved for ${narratorParam} yet.`
                   : (
