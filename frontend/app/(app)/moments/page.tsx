@@ -377,7 +377,7 @@ export default function MomentsPage() {
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
                 <div style={{ flex: 1 }}>
                   <h1 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.6rem, 3vw, 2rem)', fontWeight: 700, color: 'var(--text)', margin: '0 0 0.5rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                    {narratorParam}&rsquo;s moments <span style={{ color: 'var(--accent)', fontSize: '0.9em' }}>∞</span>
+                    {narratorParam}&rsquo;s moments
                   </h1>
                   <p style={{ fontSize: '0.9rem', color: 'var(--muted)', lineHeight: 1.6, maxWidth: 380 }}>
                     Songs, stories, and voices saved from {narratorParam}.

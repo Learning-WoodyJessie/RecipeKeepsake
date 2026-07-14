@@ -88,8 +88,7 @@ function HeroCard({ userName }: { userName: string }) {
         </div>
         <div className="rk-hero-text" style={{ order: 1 }}>
           <h1 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.35rem, 3vw, 2rem)', fontWeight: 700, color: 'var(--text)', lineHeight: 1.2, marginBottom: '0.5rem' }}>
-            Welcome home, {userName}!{' '}
-            <span aria-hidden style={{ color: 'var(--accent)', fontSize: '0.9em' }}>∞</span>
+            Welcome home, {userName}!
           </h1>
           <p style={{ fontSize: '0.88rem', color: 'var(--muted)', lineHeight: 1.65, marginBottom: '1.2rem' }}>
             Some things are priceless. The way they said it, the voice behind every memory. A recipe. A lullaby. A story told just once. Keep it alive, eternally.

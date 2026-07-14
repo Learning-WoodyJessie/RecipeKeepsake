@@ -61,7 +61,14 @@ export default function AppTopBar({ onMenuClick }: { onMenuClick?: () => void })
     else router.replace('/recipes')
   }, [router])
 
+  // dirtyRef is set only by real user input (typing or the clear button),
+  // never by mounting or by the URL-sync effect above. This bar is shared
+  // across every page in the app, so without it, landing on any page with no
+  // ?q= (e.g. a shared /memory?token= link) fired an unwanted redirect to
+  // /recipes 300ms after mount.
+  const dirtyRef = useRef(false)
   useEffect(() => {
+    if (!dirtyRef.current) return
     const t = setTimeout(() => navigate(q), 300)
     return () => clearTimeout(t)
   }, [q, navigate])
@@ -108,7 +115,7 @@ export default function AppTopBar({ onMenuClick }: { onMenuClick?: () => void })
         <input
           type="text"
           value={q}
-          onChange={(e) => setQ(e.target.value)}
+          onChange={(e) => { dirtyRef.current = true; setQ(e.target.value) }}
           placeholder="Search by title or narrator…"
           style={{
             width: '100%',
@@ -125,7 +132,7 @@ export default function AppTopBar({ onMenuClick }: { onMenuClick?: () => void })
           <button
             type="button"
             aria-label="Clear search"
-            onClick={() => setQ('')}
+            onClick={() => { dirtyRef.current = true; setQ('') }}
             style={{
               position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
               background: 'none', border: 'none', cursor: 'pointer',
@@ -152,7 +159,7 @@ export default function AppTopBar({ onMenuClick }: { onMenuClick?: () => void })
           flexShrink: 0,
         }}
       >
-        Welcome home, {name} <span aria-hidden style={{ color: 'var(--accent)', fontSize: '0.9em' }}>∞</span>
+        Welcome home, {name}
       </p>
       <style>{`
         .rk-greeting { display: none; }

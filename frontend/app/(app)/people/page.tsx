@@ -174,7 +174,6 @@ function WhyItMatters() {
           <p style={{ fontFamily: 'var(--serif)', fontStyle: 'italic', fontSize: '0.88rem', color: 'var(--text2)', lineHeight: 1.65, textAlign: 'center', marginBottom: '0.65rem' }}>
             &ldquo;The stories we collect today become the memories generations will treasure tomorrow.&rdquo;
           </p>
-          <div style={{ textAlign: 'center', color: 'var(--accent)', fontSize: '1rem' }}>∞</div>
         </div>
       </div>
     </aside>
@@ -493,7 +492,7 @@ export default function PeoplePage() {
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1.5rem', flex: 1 }}>
               <div style={{ flex: 1 }}>
                 <h1 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.6rem, 3vw, 2rem)', fontWeight: 700, color: 'var(--text)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-                  Our People <span style={{ color: 'var(--accent)', fontSize: '0.9em' }}>∞</span>
+                  Our People
                 </h1>
                 <p style={{ fontSize: '0.9rem', color: 'var(--muted)', lineHeight: 1.6, maxWidth: 400 }}>
                   Precious voices that echo through every recipe, every song, every story. Treasured here, forever.
