@@ -50,7 +50,7 @@ export default function ReviewWizard({ draft, audioFile, narrator: narratorProp,
   const [category, setCategory] = useState(draft.category ?? 'Other')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
-  const [transcriptOpen, setTranscriptOpen] = useState(false)
+  const [transcriptOpen, setTranscriptOpen] = useState(true)
   const [photoFile, setPhotoFile] = useState<File | null>(null)
   const [photoPreview, setPhotoPreview] = useState<string | null>(draft.image_url ?? null)
 
