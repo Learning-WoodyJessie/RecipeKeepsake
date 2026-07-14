@@ -222,25 +222,6 @@ function RightPanel() {
         </div>
       </div>
 
-      <div style={{ background: 'linear-gradient(135deg, var(--gold-light) 0%, #EAD9AE 100%)', border: '1px solid #E8C9A8', borderRadius: 16, padding: '1.25rem' }}>
-        <p style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '0.9rem', color: 'var(--text)', marginBottom: '0.5rem' }}>
-          Preserve a voice
-        </p>
-        <p style={{ fontSize: '0.78rem', color: 'var(--text2)', lineHeight: 1.55, marginBottom: '0.85rem' }}>
-          Ask a family member to share a song, story, or memory. You&rsquo;ll keep it forever.
-        </p>
-        <Link
-          href="/capture?mode=direct"
-          style={{
-            display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
-            background: 'var(--accent)', color: 'white', textDecoration: 'none',
-            padding: '0.55rem 1.1rem', borderRadius: 10, fontSize: '0.82rem', fontWeight: 700,
-            boxShadow: '0 3px 10px rgba(24,107,94,0.28)',
-          }}
-        >
-          + Capture a memory
-        </Link>
-      </div>
     </aside>
   )
 }
@@ -519,10 +500,15 @@ export default function MomentsPage() {
                   ? 'No moments in your Family Collection yet.'
                   : narratorParam
                   ? `No moments saved for ${narratorParam} yet.`
-                  : 'No moments yet.'}{' '}
+                  : (
+                    <>
+                      <p style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '0.95rem', color: 'var(--text)', marginBottom: '0.35rem' }}>Preserve a voice</p>
+                      <p style={{ marginBottom: '0.75rem', lineHeight: 1.6 }}>Ask a family member to share a song, story, or memory. You&rsquo;ll keep it forever.</p>
+                    </>
+                  )}{' '}
                 {!narratorParam && (
                   <Link href="/capture?mode=direct" style={{ color: 'var(--accent)', fontWeight: 600 }}>
-                    Add the first one
+                    Capture the first one
                   </Link>
                 )}
               </div>
