@@ -7,6 +7,7 @@ import { useEffect, useState, useRef, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { api } from '@/lib/api'
+import { supabase } from '@/lib/supabase'
 import AudioPlayer from '@/components/AudioPlayer'
 import LanguageSwitcher from '@/components/LanguageSwitcher'
 import { readFavorites, toggleFavorite as toggleFav } from '@/lib/favorites'
@@ -16,6 +17,7 @@ type Ingredient = { item: string; quantity: string }
 type MemoryType = 'recipe' | 'song' | 'story' | 'fable' | 'wisdom' | 'poem'
 type Memory = {
   token: string
+  user_id: string
   slug: string | null
   title: string | null
   narrator: string | null
@@ -121,6 +123,14 @@ function MemoryDetail() {
   const [portalBusy, setPortalBusy] = useState(false)
   const [isInGroup, setIsInGroup] = useState(false)
   const [portalUrl, setPortalUrl] = useState('')
+  const [inviteUrl, setInviteUrl] = useState('')
+  const [portalToast, setPortalToast] = useState<'added' | 'removed' | null>(null)
+  const [inviteCopied, setInviteCopied] = useState(false)
+
+  // Non-owner viewing state — see docs/plans/2026-07-14-memory-sharing-redesign-design.md
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+  const [sameGroupIds, setSameGroupIds] = useState<string[]>([])
+  const [ownMemoryCount, setOwnMemoryCount] = useState<number | null>(null)
 
   // Signed URLs expire after 1 hour. If the audio element errors, re-fetch the
   // recipe to get a fresh signed URL. Guard prevents concurrent refresh calls.
@@ -162,10 +172,25 @@ function MemoryDetail() {
   }, [token, tokenReady, router])
 
   useEffect(() => {
-    api.family.getMyGroup().then((d: { portal_url?: string }) => {
+    api.family.getMyGroup().then((d: { portal_url?: string; invite_url?: string }) => {
       setIsInGroup(true)
       setPortalUrl(d?.portal_url ?? '')
+      setInviteUrl(d?.invite_url ?? '')
     }).catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => setCurrentUserId(user?.id ?? null))
+  }, [])
+
+  useEffect(() => {
+    api.family.members().then((d: { members: { user_id: string }[] }) => {
+      setSameGroupIds((d.members ?? []).map(m => m.user_id))
+    }).catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    api.recipes.list().then((r: unknown[]) => setOwnMemoryCount(r.length)).catch(() => setOwnMemoryCount(0))
   }, [])
 
   useEffect(() => {
@@ -183,6 +208,7 @@ function MemoryDetail() {
     setTimeout(() => setSavedFlash(false), 2000)
   }
 
+  const portalToastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   async function togglePortal() {
     if (!memory || portalBusy) return
     setPortalBusy(true)
@@ -190,11 +216,21 @@ function MemoryDetail() {
     setInPortal(next) // optimistic — show feedback immediately
     try {
       await api.recipes.patch(memory.token, { portal_visible: next })
+      setPortalToast(next ? 'added' : 'removed')
+      if (portalToastTimer.current) clearTimeout(portalToastTimer.current)
+      portalToastTimer.current = setTimeout(() => setPortalToast(null), 5000)
     } catch {
       setInPortal(!next) // revert on failure
     } finally {
       setPortalBusy(false)
     }
+  }
+
+  async function copyInviteLink() {
+    if (!inviteUrl) return
+    await navigator.clipboard.writeText(inviteUrl)
+    setInviteCopied(true)
+    setTimeout(() => setInviteCopied(false), 2000)
   }
 
   async function patchField(patch: Record<string, unknown>) {
@@ -276,7 +312,11 @@ function MemoryDetail() {
     const memoryUrl = memory?.slug
       ? `${window.location.origin}/memory/${memory.slug}`
       : `${window.location.origin}/memory?token=${token}`
-    const url = portalUrl || memoryUrl
+    // Only substitute the viewer's own family portal when they own this memory —
+    // otherwise a non-owner who happens to belong to their own unrelated family
+    // group would forward a link to THEIR portal instead of this memory.
+    const isOwnerForShare = !!currentUserId && memory?.user_id === currentUserId
+    const url = (isOwnerForShare && portalUrl) || memoryUrl
     const msg = buildMemoryShareMessage(memory?.type, memory?.title, memory?.narrator, url)
     window.open(toWhatsAppUrl(msg), '_blank')
   }
@@ -286,6 +326,16 @@ function MemoryDetail() {
   if (loading) return <div style={{ padding: '2rem', color: 'var(--muted)' }}>Loading…</div>
   if (error) return <div style={{ padding: '2rem', color: 'var(--accent)' }}>{error}</div>
   if (!memory || !display) return null
+
+  // Ownership branch — until currentUserId resolves, default to the strictest
+  // state (not owner) rather than briefly flashing owner-only controls.
+  const isOwner = !!currentUserId && memory.user_id === currentUserId
+  const isSameGroup = !isOwner && sameGroupIds.includes(memory.user_id)
+  // Bare non-owner share links (no ?from=) have no real "back" destination —
+  // the default would otherwise point at the viewer's own unrelated recipes.
+  const showBackLink = isOwner || !!from
+  // Onboarding nudge — only for a true first-timer with no family-group tie to this memory.
+  const showOnboardingBanner = !isOwner && !isSameGroup && ownMemoryCount === 0
 
   const audio = isAudioMemory(memory)
 
@@ -304,6 +354,58 @@ function MemoryDetail() {
     </div>
   ) : null
 
+  const onboardingBanner = showOnboardingBanner ? (
+    <div style={{
+      background: 'var(--gold-light)', border: '1px solid var(--amber)', borderRadius: 14,
+      padding: '1rem 1.25rem', marginTop: '0.5rem', marginBottom: '1.75rem',
+      display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap',
+    }}>
+      <span style={{ fontSize: '1.1rem' }}>❤️</span>
+      <span style={{ fontSize: '0.85rem', color: 'var(--text)', flex: 1, minWidth: 200 }}>
+        Loved this? Start preserving your own family's memories.
+      </span>
+      <Link href="/" style={{
+        fontSize: '0.82rem', fontWeight: 700, color: 'var(--accent)', textDecoration: 'none',
+        whiteSpace: 'nowrap',
+      }}>
+        Get started →
+      </Link>
+    </div>
+  ) : null
+
+  // Caption explaining the Family Collection toggle before it's clicked.
+  const familyCollectionCaption = (
+    <p style={{ fontSize: '0.72rem', color: 'var(--muted)', margin: '0.4rem 0 0' }}>
+      Visible to anyone who joins your family via invite link.
+    </p>
+  )
+
+  // Confirmation + invite-link copy action shown right after toggling.
+  const familyCollectionToast = portalToast ? (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap',
+      background: 'var(--accent-light)', border: '1px solid var(--accent)', borderRadius: 10,
+      padding: '0.5rem 0.75rem', marginTop: '0.5rem', fontSize: '0.78rem',
+    }}>
+      <span style={{ color: 'var(--accent)', fontWeight: 600 }}>
+        {portalToast === 'added' ? 'Added to Family Collection ✓' : 'Removed — no longer visible to your family.'}
+      </span>
+      {portalToast === 'added' && inviteUrl && (
+        <button
+          type="button"
+          onClick={copyInviteLink}
+          style={{
+            background: 'none', border: '1px solid var(--accent)', borderRadius: 8,
+            padding: '0.2rem 0.6rem', fontSize: '0.75rem', fontWeight: 600,
+            color: 'var(--accent)', cursor: 'pointer',
+          }}
+        >
+          {inviteCopied ? 'Copied!' : 'Copy invite link'}
+        </button>
+      )}
+    </div>
+  ) : null
+
   // ══════════════════════════════════════════════════════
   //  AUDIO MEMORY LAYOUT
   // ══════════════════════════════════════════════════════
@@ -319,11 +421,13 @@ function MemoryDetail() {
       <div style={{ maxWidth: 900, margin: '0 auto', padding: '1.25rem 1.5rem 3rem' }}>
         {justSavedBanner}
 
-        {/* ── Back nav ── */}
-        <Link href={backHref} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text2)', textDecoration: 'none', fontSize: '0.85rem', marginBottom: '1rem', fontWeight: 500 }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><polyline points="15 18 9 12 15 6"/></svg>
-          {backLabel}
-        </Link>
+        {/* ── Back nav (hidden for bare non-owner share links) ── */}
+        {showBackLink && (
+          <Link href={backHref} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text2)', textDecoration: 'none', fontSize: '0.85rem', marginBottom: '1rem', fontWeight: 500 }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><polyline points="15 18 9 12 15 6"/></svg>
+            {backLabel}
+          </Link>
+        )}
 
         {/* ── Hero banner ── */}
         <div style={{
@@ -363,8 +467,8 @@ function MemoryDetail() {
             </div>
           )}
 
-          {/* Title — editable */}
-          {editingTitle ? (
+          {/* Title — editable (owner only) */}
+          {isOwner && editingTitle ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.6rem' }}>
               <input
                 autoFocus
@@ -389,22 +493,28 @@ function MemoryDetail() {
               <h1 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.6rem,3.5vw,2.4rem)', fontWeight: 700, color: 'var(--text)', margin: 0, lineHeight: 1.15 }}>
                 {titleValue || 'Untitled'}
               </h1>
-              <button
-                onClick={() => setEditingTitle(true)}
-                aria-label="Edit title"
-                style={{ background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(201,148,31,0.3)', borderRadius: 7, padding: '4px 7px', cursor: 'pointer', display: 'flex', alignItems: 'center', color: 'var(--muted)', flexShrink: 0 }}
-              >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                  <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
-                  <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                </svg>
-              </button>
+              {isOwner && (
+                <button
+                  onClick={() => setEditingTitle(true)}
+                  aria-label="Edit title"
+                  style={{ background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(201,148,31,0.3)', borderRadius: 7, padding: '4px 7px', cursor: 'pointer', display: 'flex', alignItems: 'center', color: 'var(--muted)', flexShrink: 0 }}
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                  </svg>
+                </button>
+              )}
             </div>
           )}
 
           {/* Narrator + date */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-            {editingNarrator ? (
+            {!isOwner ? (
+              <span style={{ fontSize: '0.88rem', color: 'var(--text2)' }}>
+                Narrated by <strong>{memory.narrator || 'Unknown'}</strong>
+              </span>
+            ) : editingNarrator ? (
               <input
                 autoFocus
                 value={narratorValue}
@@ -538,8 +648,8 @@ function MemoryDetail() {
           </div>
         )}
 
-        {/* ── Primary actions: Share + Family Collection ── */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.65rem', marginBottom: '0.65rem' }}>
+        {/* ── Primary actions: Share + Family Collection (owner only) ── */}
+        <div style={{ display: 'grid', gridTemplateColumns: isOwner ? '1fr 1fr' : '1fr', gap: '0.65rem', marginBottom: '0.65rem' }}>
           <button
             onClick={openWhatsApp}
             style={{
@@ -552,7 +662,7 @@ function MemoryDetail() {
           >
             <WaIcon /> Share
           </button>
-          {isInGroup ? (
+          {isOwner && isInGroup && (
             <button
               onClick={togglePortal}
               disabled={portalBusy}
@@ -571,7 +681,8 @@ function MemoryDetail() {
               </svg>
               {inPortal ? 'In Family Collection' : 'Family Collection'}
             </button>
-          ) : (
+          )}
+          {isOwner && !isInGroup && (
             <Link href="/account#family" style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
               background: 'var(--surface)', border: '1.5px solid var(--border)',
@@ -586,8 +697,11 @@ function MemoryDetail() {
             </Link>
           )}
         </div>
+        {isOwner && isInGroup && familyCollectionCaption}
+        {isOwner && isInGroup && familyCollectionToast}
 
-        {/* ── Secondary actions: Favorites (left) + Delete (muted, right) ── */}
+        {/* ── Secondary actions: Favorites (owner only) + Delete (owner only) ── */}
+        {isOwner && (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.75rem' }}>
           <button
             onClick={toggleFavorite}
@@ -620,6 +734,7 @@ function MemoryDetail() {
             {deleting ? 'Deleting…' : 'Delete'}
           </button>
         </div>
+        )}
 
         {/* ── Transcript block (read-only) ── */}
         <section style={{ marginBottom: '1.25rem' }}>
@@ -641,7 +756,8 @@ function MemoryDetail() {
           )}
         </section>
 
-        {/* ── Notes ── */}
+        {/* ── Notes (owner only — no per-viewer notes storage exists) ── */}
+        {isOwner && (
         <section style={{ marginBottom: '1.75rem' }}>
           <h2 style={{ fontSize: '0.78rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--muted)', marginBottom: '0.65rem' }}>Your notes</h2>
           <textarea
@@ -670,6 +786,7 @@ function MemoryDetail() {
             Saves automatically when you stop typing.
           </p>
         </section>
+        )}
 
         {/* ── Tags ── */}
         {displayTags.length > 0 && (
@@ -688,6 +805,8 @@ function MemoryDetail() {
             </div>
           </div>
         )}
+
+        {onboardingBanner}
 
         {/* ── Delete confirmation modal (audio layout) ── */}
         {showDeleteModal && (
@@ -752,34 +871,46 @@ function MemoryDetail() {
     <div style={{ maxWidth: 720, margin: '0 auto', padding: '1.5rem 2rem' }}>
       {justSavedBanner}
 
-      {/* ── Back nav ── */}
-      <Link href={backHref} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text2)', textDecoration: 'none', fontSize: '0.85rem', marginBottom: '1rem', fontWeight: 500 }}>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><polyline points="15 18 9 12 15 6"/></svg>
-        {backLabel}
-      </Link>
+      {/* ── Back nav (hidden for bare non-owner share links) ── */}
+      {showBackLink && (
+        <Link href={backHref} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text2)', textDecoration: 'none', fontSize: '0.85rem', marginBottom: '1rem', fontWeight: 500 }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><polyline points="15 18 9 12 15 6"/></svg>
+          {backLabel}
+        </Link>
+      )}
 
       {/* ── Identity block ── */}
       <div style={{ marginBottom: '1.25rem' }}>
         {/* Compact meta row: category pill · language switcher · type badge · saved */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.7rem', flexWrap: 'wrap' }}>
-          <select
-            value={category}
-            onChange={e => changeCategory(e.target.value)}
-            disabled={savingCategory}
-            style={{
-              border: '1px solid var(--border)', borderRadius: 20,
-              padding: '0.28rem 1.6rem 0.28rem 0.85rem', fontSize: '0.78rem', fontWeight: 600,
-              background: category ? 'var(--accent)' : 'var(--surface)',
-              color: category ? 'white' : 'var(--muted)',
-              cursor: savingCategory ? 'default' : 'pointer', opacity: savingCategory ? 0.6 : 1,
-              fontFamily: 'var(--sans)', appearance: 'none', WebkitAppearance: 'none',
-              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='${category ? 'white' : '%23999'}' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`,
-              backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.55rem center',
-            }}
-          >
-            <option value="">Uncategorised</option>
-            {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-          </select>
+          {isOwner ? (
+            <select
+              value={category}
+              onChange={e => changeCategory(e.target.value)}
+              disabled={savingCategory}
+              style={{
+                border: '1px solid var(--border)', borderRadius: 20,
+                padding: '0.28rem 1.6rem 0.28rem 0.85rem', fontSize: '0.78rem', fontWeight: 600,
+                background: category ? 'var(--accent)' : 'var(--surface)',
+                color: category ? 'white' : 'var(--muted)',
+                cursor: savingCategory ? 'default' : 'pointer', opacity: savingCategory ? 0.6 : 1,
+                fontFamily: 'var(--sans)', appearance: 'none', WebkitAppearance: 'none',
+                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='${category ? 'white' : '%23999'}' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`,
+                backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.55rem center',
+              }}
+            >
+              <option value="">Uncategorised</option>
+              {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+            </select>
+          ) : category ? (
+            <span style={{
+              display: 'inline-block', padding: '3px 12px', borderRadius: 12,
+              background: 'var(--accent)', color: 'white',
+              fontSize: 12, fontWeight: 600,
+            }}>
+              {category}
+            </span>
+          ) : null}
           {memory.type && memory.type !== 'recipe' && (
             <span style={{
               display: 'inline-block', padding: '3px 12px', borderRadius: 12,
@@ -794,7 +925,7 @@ function MemoryDetail() {
 
         {/* Title + edit pencil + heart */}
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', marginBottom: '0.35rem' }}>
-          {editingTitle ? (
+          {isOwner && editingTitle ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1, flexWrap: 'wrap' }}>
               <input
                 autoFocus
@@ -819,31 +950,39 @@ function MemoryDetail() {
               <h1 style={{ fontFamily: 'var(--serif)', fontSize: '1.8rem', color: 'var(--text)', margin: 0, flex: 1, lineHeight: 1.2 }}>
                 {titleValue || 'Untitled'}
               </h1>
-              <button
-                onClick={() => setEditingTitle(true)}
-                aria-label="Edit title"
-                style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 7, padding: '4px 7px', cursor: 'pointer', display: 'flex', alignItems: 'center', color: 'var(--muted)', flexShrink: 0, marginTop: 6 }}
-              >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                  <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
-                  <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                </svg>
-              </button>
+              {isOwner && (
+                <button
+                  onClick={() => setEditingTitle(true)}
+                  aria-label="Edit title"
+                  style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 7, padding: '4px 7px', cursor: 'pointer', display: 'flex', alignItems: 'center', color: 'var(--muted)', flexShrink: 0, marginTop: 6 }}
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                  </svg>
+                </button>
+              )}
             </>
           )}
-          <button
-            onClick={toggleFavorite}
-            aria-label={favorite ? 'Remove from favorites' : 'Add to favorites'}
-            className={heartPopping ? 'rk-heart-pop' : undefined}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', flexShrink: 0, fontSize: '1.4rem', lineHeight: 1, padding: '4px', color: favorite ? 'var(--amber)' : 'var(--muted)', marginTop: 4 }}
-          >
-            {favorite ? '♥' : '♡'}
-          </button>
+          {isOwner && (
+            <button
+              onClick={toggleFavorite}
+              aria-label={favorite ? 'Remove from favorites' : 'Add to favorites'}
+              className={heartPopping ? 'rk-heart-pop' : undefined}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', flexShrink: 0, fontSize: '1.4rem', lineHeight: 1, padding: '4px', color: favorite ? 'var(--amber)' : 'var(--muted)', marginTop: 4 }}
+            >
+              {favorite ? '♥' : '♡'}
+            </button>
+          )}
         </div>
 
         {/* Narrator + date */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
-          {editingNarrator ? (
+          {!isOwner ? (
+            <span style={{ fontSize: '0.82rem', color: 'var(--muted)' }}>
+              Narrated by <strong style={{ color: 'var(--text2)' }}>{memory.narrator || 'Unknown'}</strong>
+            </span>
+          ) : editingNarrator ? (
             <input
               autoFocus
               value={narratorValue}
@@ -881,22 +1020,25 @@ function MemoryDetail() {
         </div>
       </div>
 
-      {/* ── Hero photo ── */}
+      {/* ── Hero photo (upload/change is owner only) ── */}
+      {(isOwner || memory.image_url) && (
       <div style={{ marginBottom: '1.25rem' }}>
-        <input id="detail-photo-input" type="file" accept="image/jpeg,image/png,image/webp" style={{ display: 'none' }} onChange={handlePhotoChange} />
+        {isOwner && <input id="detail-photo-input" type="file" accept="image/jpeg,image/png,image/webp" style={{ display: 'none' }} onChange={handlePhotoChange} />}
         {(localImageUrl ?? memory.image_url) ? (
           <div>
             <div style={{ borderRadius: 14, overflow: 'hidden', aspectRatio: '16/9', background: 'var(--cream2)', opacity: photoUploading ? 0.5 : 1, transition: 'opacity 0.2s', boxShadow: '0 0 28px rgba(24,107,94,0.18)' }}>
               <img src={localImageUrl ?? memory.image_url ?? ''} alt={(display as Memory).title ?? ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             </div>
-            <button
-              type="button"
-              onClick={() => (document.getElementById('detail-photo-input') as HTMLInputElement)?.click()}
-              disabled={photoUploading}
-              style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 6, padding: '5px 12px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface)', cursor: 'pointer', fontSize: '0.78rem', color: 'var(--text2)' }}
-            >
-              {photoUploading ? 'Uploading…' : 'Change photo'}
-            </button>
+            {isOwner && (
+              <button
+                type="button"
+                onClick={() => (document.getElementById('detail-photo-input') as HTMLInputElement)?.click()}
+                disabled={photoUploading}
+                style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 6, padding: '5px 12px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface)', cursor: 'pointer', fontSize: '0.78rem', color: 'var(--text2)' }}
+              >
+                {photoUploading ? 'Uploading…' : 'Change photo'}
+              </button>
+            )}
           </div>
         ) : (
           <button
@@ -911,6 +1053,7 @@ function MemoryDetail() {
         )}
         {photoError && <div style={{ marginTop: 6, fontSize: '0.78rem', color: 'var(--accent)' }}>{photoError}</div>}
       </div>
+      )}
 
       {/* ── Recipe content: cook notes → ingredients → method ── */}
       {(!memory.type || memory.type === 'recipe') && (
@@ -956,9 +1099,9 @@ function MemoryDetail() {
         </>
       )}
 
-      {/* ── Actions strip: family collection · share · delete ── */}
+      {/* ── Actions strip: family collection (owner only) · share · delete (owner only) ── */}
       <div style={{ display: 'flex', gap: '0.65rem', marginBottom: '1.75rem' }}>
-        {isInGroup ? (
+        {isOwner && isInGroup && (
           <button
             onClick={togglePortal}
             disabled={portalBusy}
@@ -977,7 +1120,8 @@ function MemoryDetail() {
             </svg>
             {inPortal ? 'In Family Collection' : 'Add to Family Collection'}
           </button>
-        ) : (
+        )}
+        {isOwner && !isInGroup && (
           <Link href="/account#family" style={{
             flex: '1 1 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
             padding: '0.6rem 0.75rem', borderRadius: 12, fontSize: '0.82rem', fontWeight: 600,
@@ -1002,22 +1146,26 @@ function MemoryDetail() {
         >
           <WaIcon /> Share
         </button>
-        <button
-          onClick={() => setShowDeleteModal(true)}
-          disabled={deleting}
-          style={{
-            flex: '0 1 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
-            background: 'var(--surface)', border: '1.5px solid var(--border)',
-            borderRadius: 12, padding: '0.6rem 0.85rem', cursor: 'pointer',
-            fontSize: '0.82rem', fontWeight: 600, color: 'var(--muted)',
-          }}
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-            <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/>
-          </svg>
-          {deleting ? 'Deleting…' : 'Delete'}
-        </button>
+        {isOwner && (
+          <button
+            onClick={() => setShowDeleteModal(true)}
+            disabled={deleting}
+            style={{
+              flex: '0 1 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
+              background: 'var(--surface)', border: '1.5px solid var(--border)',
+              borderRadius: 12, padding: '0.6rem 0.85rem', cursor: 'pointer',
+              fontSize: '0.82rem', fontWeight: 600, color: 'var(--muted)',
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/>
+            </svg>
+            {deleting ? 'Deleting…' : 'Delete'}
+          </button>
+        )}
       </div>
+      {isOwner && isInGroup && familyCollectionCaption}
+      {isOwner && isInGroup && familyCollectionToast}
 
       {/* ── Original recording ── */}
       {memory.audio_url && (
@@ -1054,7 +1202,8 @@ function MemoryDetail() {
         </details>
       )}
 
-      {/* ── Your notes ── */}
+      {/* ── Your notes (owner only — no per-viewer notes storage exists) ── */}
+      {isOwner && (
       <section style={{ marginBottom: '1.5rem' }}>
         <h2 style={{ fontSize: '0.78rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--muted)', marginBottom: '0.65rem' }}>Your notes</h2>
         <textarea
@@ -1067,6 +1216,9 @@ function MemoryDetail() {
         />
         <p style={{ fontSize: '0.72rem', color: 'var(--muted)', marginTop: '0.35rem' }}>Saves automatically when you stop typing.</p>
       </section>
+      )}
+
+      {onboardingBanner}
 
       {/* ── Delete confirmation modal ── */}
       {showDeleteModal && (
