@@ -228,7 +228,9 @@ export default function AccountPage() {
 
       <ShareWithFamily />
 
-      <FamilyGroupSection />
+      <div id="family">
+        <FamilyGroupSection />
+      </div>
 
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '1.5rem' }}>
         <h2 style={{ color: 'var(--accent)', fontWeight: 600, marginBottom: '0.5rem', fontSize: '1rem' }}>Delete account</h2>

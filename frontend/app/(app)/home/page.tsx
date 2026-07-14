@@ -375,6 +375,27 @@ function QuotePanel() {
         </p>
       </div>
 
+      {/* Family Collection — routes to Account's family section, which already
+          shows the create form or the manage view depending on group state. */}
+      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 20, padding: '1.25rem', marginBottom: '1rem', boxShadow: '0 4px 16px rgba(45,27,14,0.05)' }}>
+        <h3 style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '0.95rem', color: 'var(--text)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+          </svg>
+          Family Collection
+        </h3>
+        <p style={{ fontSize: '0.78rem', color: 'var(--muted)', lineHeight: 1.5, marginBottom: '0.85rem' }}>
+          Create a shared collection for your family, or grab the invite and portal links to share.
+        </p>
+        <Link href="/account#family" style={{
+          display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
+          fontSize: '0.82rem', fontWeight: 600, color: 'var(--accent)', textDecoration: 'none',
+        }}>
+          Create or manage →
+        </Link>
+      </div>
+
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 20, padding: '1.25rem', boxShadow: '0 4px 16px rgba(45,27,14,0.05)' }}>
         <h3 style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '0.95rem', color: 'var(--text)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
           <span aria-hidden>💡</span> Tips for a great memory
