@@ -857,7 +857,7 @@ function MemoryDetail() {
           <WaIcon /> Share
         </button>
         <button
-          onClick={deleteMemory}
+          onClick={() => setShowDeleteModal(true)}
           disabled={deleting}
           style={{
             flex: '0 1 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
