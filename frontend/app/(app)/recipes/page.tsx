@@ -796,7 +796,7 @@ export default function MemoriesPage() {
                     cursor: 'pointer', fontFamily: 'var(--sans)',
                   }}
                 >
-                  <option value="">{isAudioMode ? 'All types' : 'All categories'}</option>
+                  <option value="">{isAudioMode ? 'All types' : 'All Categories'}</option>
                   {(isAudioMode ? MOMENT_CATEGORIES : RECIPE_CATEGORIES).map(cat => (
                     <option key={cat} value={cat}>{cat}</option>
                   ))}
