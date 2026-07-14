@@ -386,6 +386,38 @@ class _RequestIDMiddleware(BaseHTTPMiddleware):
         return response
 
 
+class _SpaMiddleware(BaseHTTPMiddleware):
+    """Serve Next.js static pages for browser navigations before API route matching.
+
+    Browser navigations (Accept: text/html, no Authorization header) to paths
+    that have a built static file are served directly here, before FastAPI's
+    router runs. This prevents API routes like GET /recipes from shadowing the
+    frontend /recipes/ page when a user navigates there in a browser.
+
+    API calls from the frontend always carry an Authorization header, so they
+    pass straight through to the API routes.
+    """
+    _PASSTHROUGH_PREFIXES = ("/_next/", "/api/", "/auth/", "/static/")
+
+    async def dispatch(self, request, call_next):
+        accept = request.headers.get("accept", "")
+        has_auth = bool(request.headers.get("authorization"))
+
+        if "text/html" in accept and not has_auth:
+            path = request.url.path.lstrip("/")
+            # Skip paths that should never be served as static pages
+            if not any(request.url.path.startswith(p) for p in self._PASSTHROUGH_PREFIXES):
+                candidate = _FRONTEND_OUT / path / "index.html"
+                if candidate.exists():
+                    return FileResponse(str(candidate), headers=_NO_CACHE_HEADERS)
+                # SPA fallback — let the React app handle routing client-side
+                root = _FRONTEND_OUT / "index.html"
+                if root.exists():
+                    return FileResponse(str(root), headers=_NO_CACHE_HEADERS)
+
+        return await call_next(request)
+
+
 class _ApexRedirectMiddleware(BaseHTTPMiddleware):
     """301-redirect the bare apex domain to www, preserving path and query.
 
@@ -415,6 +447,7 @@ app.add_middleware(
     allow_headers=["Authorization", "Content-Type", "apikey", "X-Client-Info", "X-Request-ID"],
 )
 app.add_middleware(_ApexRedirectMiddleware)
+app.add_middleware(_SpaMiddleware)
 
 
 _NO_CACHE_HEADERS = {
