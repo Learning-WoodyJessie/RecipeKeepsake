@@ -650,7 +650,6 @@ function MemoryDetail() {
             <option value="">Uncategorised</option>
             {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
           </select>
-          <LanguageSwitcher token={token} onTranslated={setTranslated} />
           {memory.type && memory.type !== 'recipe' && (
             <span style={{
               display: 'inline-block', padding: '3px 12px', borderRadius: 12,
