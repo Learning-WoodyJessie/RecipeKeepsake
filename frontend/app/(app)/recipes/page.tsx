@@ -13,6 +13,7 @@ import { SkeletonCard } from '@/components/Skeleton'
 
 type Memory = {
   token: string
+  slug?: string | null
   title: string | null
   narrator: string | null
   recorded_at: string
@@ -183,14 +184,15 @@ const WA_ICON = (
   </svg>
 )
 
-function CardShareButton({ token, title, type, top = 8, right = 38 }: { token: string; title: string | null; type?: string | null; top?: number; right?: number }) {
+function CardShareButton({ token, slug, title, type, top = 8, right = 38 }: { token: string; slug?: string | null; title: string | null; type?: string | null; top?: number; right?: number }) {
   const emoji = type === 'song' ? '🎵' : type === 'story' ? '📖' : type === 'poem' ? '🖊️' : type === 'wisdom' ? '🙏' : type === 'fable' ? '✨' : '🍽️'
   return (
     <button
       type="button"
       onClick={e => {
         e.preventDefault()
-        const shareUrl = `${typeof window !== 'undefined' ? window.location.origin : 'https://www.theechoesofhome.com'}/memory?token=${token}`
+        const origin = typeof window !== 'undefined' ? window.location.origin : 'https://www.theechoesofhome.com'
+        const shareUrl = slug ? `${origin}/memory/${slug}` : `${origin}/memory?token=${token}`
         window.open(`https://wa.me/?text=${encodeURIComponent(`${emoji} "${title ?? 'this memory'}" on Echoes of Home:\n${shareUrl}`)}`, '_blank')
       }}
       title="Share on WhatsApp"
@@ -279,7 +281,7 @@ function AudioCard({
       {/* Equalizer thumbnail */}
       <div style={{ position: 'relative', aspectRatio: '4/3', overflow: 'hidden', flexShrink: 0 }}>
         <EqualizerPlaceholder />
-        <CardShareButton token={memory.token} title={memory.title} type={memory.type} top={8} right={38} />
+        <CardShareButton token={memory.token} slug={memory.slug} title={memory.title} type={memory.type} top={8} right={38} />
         <BookmarkToggle inCollection={inCollection} onToggle={e => { e.preventDefault(); onToggleCollection() }} />
         <FavoriteHeart
           favorite={isFav}
@@ -386,7 +388,7 @@ function RecipeCard({
             : <BowlPlaceholder token={memory.token} />
           }
         </Link>
-        <CardShareButton token={memory.token} title={memory.title} type={memory.type} top={8} right={38} />
+        <CardShareButton token={memory.token} slug={memory.slug} title={memory.title} type={memory.type} top={8} right={38} />
         <BookmarkToggle inCollection={inCollection} onToggle={e => { e.preventDefault(); onToggleCollection() }} />
         {/* Heart toggle */}
         <FavoriteHeart

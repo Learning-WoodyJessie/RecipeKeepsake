@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 import mimetypes
 import uuid as _uuid
 from pathlib import Path
@@ -119,6 +120,27 @@ def upload_audio(local_path: str, filename: str) -> str:
     return filename
 
 
+def _to_slug(text: str) -> str:
+    """Convert a title to a URL-safe kebab-case slug (max 80 chars)."""
+    text = text.lower().strip()
+    text = re.sub(r'[^\w\s-]', '', text)
+    text = re.sub(r'[\s_]+', '-', text)
+    text = re.sub(r'-{2,}', '-', text)
+    return text.strip('-')[:80]
+
+
+def _unique_slug(base: str, sb) -> str:
+    """Return base slug if unclaimed in the memories table, else base-2, base-3, …"""
+    slug = base or 'memory'
+    i = 2
+    while True:
+        exists = sb.table("memories").select("id").eq("slug", slug).execute()
+        if not exists.data:
+            return slug
+        slug = f"{base}-{i}"
+        i += 1
+
+
 FREE_MEMORY_LIMIT = 10
 
 
@@ -135,8 +157,12 @@ def is_pro_user(user_id: str) -> bool:
 
 
 def insert_recipe(recipe: dict) -> dict:
-    """Insert a recipe row into Supabase. Returns the saved row with id + token."""
-    result = _client().table("memories").insert(recipe).execute()
+    """Insert a recipe row into Supabase. Generates a slug from title if not already set."""
+    sb = _client()
+    if not recipe.get("slug") and recipe.get("title"):
+        base = _to_slug(recipe["title"])
+        recipe = {**recipe, "slug": _unique_slug(base, sb)}
+    result = sb.table("memories").insert(recipe).execute()
     return result.data[0]
 
 
@@ -144,6 +170,16 @@ def get_recipe_by_token(token: str) -> dict:
     """Fetch a single recipe by its share token. audio_url is replaced with a fresh signed URL."""
     sb = _client()
     result = sb.table("memories").select("*").eq("token", token).single().execute()
+    recipe = result.data
+    if recipe.get("audio_url"):
+        recipe["audio_url"] = _sign_audio(recipe["audio_url"], sb)
+    return recipe
+
+
+def get_recipe_by_slug(slug: str) -> dict:
+    """Fetch a single recipe by its human-readable slug. audio_url replaced with a fresh signed URL."""
+    sb = _client()
+    result = sb.table("memories").select("*").eq("slug", slug).single().execute()
     recipe = result.data
     if recipe.get("audio_url"):
         recipe["audio_url"] = _sign_audio(recipe["audio_url"], sb)
@@ -163,7 +199,7 @@ def list_recipes(user_id: str) -> list:
     sb = _client()
     result = (
         sb.table("memories")
-        .select("id, token, title, narrator, recorded_at, image_url, audio_url, tags, type, language, portal_visible")
+        .select("id, token, title, narrator, recorded_at, image_url, audio_url, tags, type, language, portal_visible, slug")
         .eq("user_id", user_id)
         .order("recorded_at", desc=True)
         .execute()

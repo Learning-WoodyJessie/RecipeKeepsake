@@ -483,6 +483,19 @@ async def index():
     return JSONResponse(content={"status": "Echoes of Home API"})
 
 
+@app.get("/recipe/by-slug/{slug}")
+async def get_recipe_by_slug_endpoint(slug: str, user: dict = Depends(require_auth)):
+    """Fetch a single recipe by its human-readable slug."""
+    if not (os.environ.get("SUPABASE_URL") and os.environ.get("SUPABASE_SERVICE_KEY")):
+        raise HTTPException(status_code=503, detail="Storage not configured")
+    from tools.storage import get_recipe_by_slug
+    try:
+        recipe = get_recipe_by_slug(slug)
+        return JSONResponse(content=recipe)
+    except Exception:
+        raise HTTPException(status_code=404, detail="Memory not found")
+
+
 @app.get("/recipe/{token}")
 async def get_recipe_endpoint(token: str, user: dict = Depends(require_auth)):
     """Fetch a single recipe by share token."""

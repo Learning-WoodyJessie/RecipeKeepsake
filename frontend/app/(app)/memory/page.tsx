@@ -16,6 +16,7 @@ type Ingredient = { item: string; quantity: string }
 type MemoryType = 'recipe' | 'song' | 'story' | 'fable' | 'wisdom' | 'poem'
 type Memory = {
   token: string
+  slug: string | null
   title: string | null
   narrator: string | null
   recorded_at: string
@@ -65,7 +66,9 @@ function WaIcon() {
 function MemoryDetail() {
   const params = useSearchParams()
   const router = useRouter()
-  const token = params.get('token') ?? ''
+  const [token, setToken] = useState(params.get('token') ?? '')
+  // tokenReady: true when token is known (either from ?token= param or resolved from slug)
+  const [tokenReady, setTokenReady] = useState(!!params.get('token'))
 
   const [memory, setMemory] = useState<Memory | null>(null)
   const [translated, setTranslated] = useState<Partial<Memory> | null>(null)
@@ -124,8 +127,19 @@ function MemoryDetail() {
     }
   }
 
+  // Resolve slug → token when the URL is /memory/some-slug (no ?token= param)
   useEffect(() => {
-    if (!token) { router.replace('/recipes'); return }
+    if (tokenReady) return
+    const segs = window.location.pathname.split('/').filter(Boolean)
+    const slug = segs.length === 2 && segs[0] === 'memory' ? segs[1] : null
+    if (!slug) { router.replace('/recipes'); return }
+    api.recipes.getBySlug(slug)
+      .then((m: Memory) => { setToken(m.token); setTokenReady(true) })
+      .catch(() => router.replace('/recipes'))
+  }, [tokenReady, router])
+
+  useEffect(() => {
+    if (!tokenReady || !token) return
     api.recipes.get(token).then((m: Memory) => {
       setMemory(m)
       setTitleValue(m.title ?? '')
@@ -136,7 +150,7 @@ function MemoryDetail() {
       setNotes(m.user_notes ?? '')
       setInPortal(m.portal_visible ?? false)
     }).catch((e: Error) => setError(e.message)).finally(() => setLoading(false))
-  }, [token, router])
+  }, [token, tokenReady, router])
 
   useEffect(() => {
     api.family.getMyGroup().then((d: { portal_url?: string }) => {
@@ -250,7 +264,10 @@ function MemoryDetail() {
   }
 
   function openWhatsApp() {
-    const url = portalUrl || `${window.location.origin}/memory?token=${token}`
+    const memoryUrl = memory?.slug
+      ? `${window.location.origin}/memory/${memory.slug}`
+      : `${window.location.origin}/memory?token=${token}`
+    const url = portalUrl || memoryUrl
     const msg = buildMemoryShareMessage(memory?.type, memory?.title, memory?.narrator, url)
     window.open(toWhatsAppUrl(msg), '_blank')
   }
