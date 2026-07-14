@@ -1271,7 +1271,7 @@ function MemoryDetail() {
                 <strong>{memory?.title}</strong>?
               </p>
               <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--muted)', lineHeight: 1.6 }}>
-                This action cannot be undone. The recording, transcript, and photo will be permanently removed from your archive.
+                This memory will be permanently removed from your archive.
               </p>
 
               <button
