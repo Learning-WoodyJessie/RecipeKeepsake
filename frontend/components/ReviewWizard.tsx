@@ -116,19 +116,33 @@ export default function ReviewWizard({ draft, audioFile, narrator: narratorProp,
       />
       {/* What we heard — collapsible transcript */}
       {draft.transcript_raw && (
-        <div style={{ marginTop: '1.5rem', borderTop: '1px solid var(--border)' }}>
+        <div style={{ marginTop: '1.5rem' }}>
           <button
             type="button"
             onClick={() => setTranscriptOpen(o => !o)}
-            style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)', fontSize: '0.8rem', fontWeight: 600, padding: '1rem 0 0.5rem', width: '100%' }}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              width: '100%', padding: '0.75rem 1rem', cursor: 'pointer',
+              background: transcriptOpen ? 'var(--accent-light)' : 'var(--surface)',
+              border: '1px solid var(--border)',
+              borderRadius: transcriptOpen ? '10px 10px 0 0' : 10,
+              color: 'var(--text)', fontSize: '0.85rem', fontWeight: 600,
+              transition: 'background 0.15s',
+            }}
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: transcriptOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', flexShrink: 0 }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>
+              </svg>
+              What we heard
+            </span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+              style={{ transform: transcriptOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s', flexShrink: 0 }}>
               <polyline points="6 9 12 15 18 9"/>
             </svg>
-            What we heard
           </button>
           {transcriptOpen && (
-            <div style={{ marginTop: '0.65rem', background: 'var(--cream2)', borderRadius: 10, padding: '0.85rem 1rem', fontSize: '0.8rem', color: 'var(--text2)', lineHeight: 1.85, maxHeight: 220, overflowY: 'auto' }}>
+            <div style={{ background: 'var(--cream2)', border: '1px solid var(--border)', borderTop: 'none', borderRadius: '0 0 10px 10px', padding: '0.85rem 1rem', fontSize: '0.82rem', color: 'var(--text2)', lineHeight: 1.85, maxHeight: 220, overflowY: 'auto' }}>
               {draft.transcript_raw.split(/(?<=[.!?])\s+/).map((s, i) => (
                 <p key={i} style={{ margin: '0 0 0.35rem' }}>{s}</p>
               ))}
