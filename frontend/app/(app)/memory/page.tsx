@@ -945,54 +945,56 @@ function MemoryDetail() {
           onClick={() => setShowDeleteModal(false)}
           style={{
             position: 'fixed', inset: 0, zIndex: 1000,
-            background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(2px)',
+            background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(3px)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            padding: '1rem',
+            padding: '1.5rem',
           }}
         >
           <div
             onClick={e => e.stopPropagation()}
             style={{
-              background: 'var(--card)', borderRadius: 18,
-              padding: '2rem 1.75rem 1.5rem',
-              maxWidth: 400, width: '100%',
-              boxShadow: '0 20px 60px rgba(0,0,0,0.25)',
-              display: 'flex', flexDirection: 'column', gap: '0.75rem',
+              background: 'var(--surface)', borderRadius: 20,
+              padding: '2rem 1.75rem 1.75rem',
+              maxWidth: 380, width: '100%',
+              boxShadow: '0 24px 64px rgba(0,0,0,0.22)',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.6rem',
             }}
           >
-            {/* Icon */}
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.25rem' }}>
-              <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#FEE2E2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#B91C1C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/>
-                </svg>
-              </div>
+            <div style={{ width: 52, height: 52, borderRadius: '50%', background: '#FEE2E2', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '0.25rem' }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#B91C1C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/>
+              </svg>
             </div>
 
             <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: 'var(--text)', textAlign: 'center' }}>
               Delete this memory?
             </h2>
-            <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--muted)', textAlign: 'center', lineHeight: 1.55 }}>
-              <strong style={{ color: 'var(--text)' }}>{memory?.title}</strong> will be permanently removed — including the recording, transcript, and photo. This cannot be undone.
+            <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--muted)', textAlign: 'center', lineHeight: 1.6 }}>
+              <strong style={{ color: 'var(--text)' }}>{memory?.title}</strong>{' '}
+              will be permanently removed, including the recording, transcript, and photo. This cannot be undone.
             </p>
 
-            <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
+            <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.75rem', width: '100%' }}>
               <button
+                type="button"
                 onClick={() => setShowDeleteModal(false)}
                 style={{
-                  flex: 1, padding: '0.7rem', borderRadius: 12,
+                  flex: 1, padding: '0.75rem', borderRadius: 12,
                   border: '1.5px solid var(--border)', background: 'transparent',
                   color: 'var(--text)', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer',
+                  fontFamily: 'var(--sans)',
                 }}
               >
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={deleteMemory}
                 style={{
-                  flex: 1, padding: '0.7rem', borderRadius: 12,
+                  flex: 1, padding: '0.75rem', borderRadius: 12,
                   border: 'none', background: '#B91C1C',
                   color: 'white', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer',
+                  fontFamily: 'var(--sans)',
                 }}
               >
                 Delete memory
