@@ -720,7 +720,7 @@ export default function MemoriesPage() {
                       All Recipes <span style={{ color: 'var(--muted)' }}>♡</span>
                     </h1>
                     <Link href={narratorParam ? `/capture?narrator=${encodeURIComponent(narratorParam)}` : '/capture'} style={{ background: 'var(--accent)', color: 'white', textDecoration: 'none', padding: '0.45rem 1rem', borderRadius: 10, fontSize: '0.82rem', fontWeight: 700, whiteSpace: 'nowrap', flexShrink: 0, boxShadow: '0 2px 8px rgba(24,107,94,0.22)', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
-                      + Add Memory
+                      + Capture a memory
                     </Link>
                   </div>
                   <p style={{ fontSize: '0.9rem', color: 'var(--muted)', lineHeight: 1.6, maxWidth: 360 }}>

@@ -224,7 +224,7 @@ function RightPanel() {
 
       <div style={{ background: 'linear-gradient(135deg, var(--gold-light) 0%, #EAD9AE 100%)', border: '1px solid #E8C9A8', borderRadius: 16, padding: '1.25rem' }}>
         <p style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '0.9rem', color: 'var(--text)', marginBottom: '0.5rem' }}>
-          Record a voice
+          Preserve a voice
         </p>
         <p style={{ fontSize: '0.78rem', color: 'var(--text2)', lineHeight: 1.55, marginBottom: '0.85rem' }}>
           Ask a family member to share a song, story, or memory. You&rsquo;ll keep it forever.
@@ -238,10 +238,7 @@ function RightPanel() {
             boxShadow: '0 3px 10px rgba(24,107,94,0.28)',
           }}
         >
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/>
-          </svg>
-          Start recording
+          + Capture a memory
         </Link>
       </div>
     </aside>
@@ -424,58 +421,17 @@ export default function MomentsPage() {
             ) : (
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1.5rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
                 <div style={{ flex: 1, minWidth: 220 }}>
-                  <h1 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.8rem, 3.5vw, 2.4rem)', fontWeight: 700, color: 'var(--text)', margin: '0 0 0.55rem', lineHeight: 1.15, display: 'flex', alignItems: 'center', gap: '0.45rem', flexWrap: 'wrap' }}>
-                    Moments <span style={{ color: 'var(--accent)' }}>✦</span>
-                  </h1>
-                  <p style={{ fontSize: '0.92rem', color: 'var(--muted)', lineHeight: 1.75, maxWidth: 440, marginBottom: '1.2rem' }}>
-                    A song an aunt sang at a family gathering. A lullaby at bedtime. A story told on a rainy afternoon. Wisdom shared by someone who knew. That one conversation you never want to forget.<br /><br />
-                    <span style={{ color: 'var(--text2)', fontStyle: 'italic' }}>Songs, tales, fables, wisdom. Every kind of moment, kept.</span>
-                  </p>
-                  <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap' }}>
-                    <Link
-                      href="/capture?mode=direct"
-                      style={{
-                        display: 'inline-flex', alignItems: 'center', gap: '0.45rem',
-                        background: 'var(--accent)', color: 'white', textDecoration: 'none',
-                        padding: '0.6rem 1.2rem', borderRadius: 12, fontSize: '0.88rem', fontWeight: 700,
-                        boxShadow: '0 3px 10px rgba(24,107,94,0.28)',
-                      }}
-                    >
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/>
-                      </svg>
-                      Record a voice
-                    </Link>
-                    <Link
-                      href="/upload?mode=direct"
-                      style={{
-                        display: 'inline-flex', alignItems: 'center', gap: '0.45rem',
-                        background: 'transparent', color: 'var(--accent)', textDecoration: 'none',
-                        padding: '0.6rem 1.2rem', borderRadius: 12, fontSize: '0.88rem', fontWeight: 700,
-                        border: '1.5px solid var(--accent)',
-                      }}
-                    >
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/>
-                        <path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/>
-                      </svg>
-                      Upload audio
-                    </Link>
-                    <Link
-                      href="/upload?mode=direct#no-recording"
-                      style={{
-                        display: 'inline-flex', alignItems: 'center', gap: '0.45rem',
-                        background: 'transparent', color: 'var(--accent)', textDecoration: 'none',
-                        padding: '0.6rem 1.2rem', borderRadius: 12, fontSize: '0.88rem', fontWeight: 700,
-                        border: '1.5px solid var(--accent)',
-                      }}
-                    >
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
-                      </svg>
-                      Add in words
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap', marginBottom: '0.5rem' }}>
+                    <h1 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.6rem, 3vw, 2rem)', fontWeight: 700, color: 'var(--text)', margin: 0, display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                      Moments <span style={{ color: 'var(--accent)' }}>✦</span>
+                    </h1>
+                    <Link href="/capture?mode=direct" style={{ background: 'var(--accent)', color: 'white', textDecoration: 'none', padding: '0.45rem 1rem', borderRadius: 10, fontSize: '0.82rem', fontWeight: 700, whiteSpace: 'nowrap', flexShrink: 0, boxShadow: '0 2px 8px rgba(24,107,94,0.22)', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                      + Capture a memory
                     </Link>
                   </div>
+                  <p style={{ fontSize: '0.9rem', color: 'var(--muted)', lineHeight: 1.6, maxWidth: 360 }}>
+                    Every voice, song, and story shared by the people who made your world.
+                  </p>
                 </div>
                 <HeroIllustration />
               </div>
@@ -565,7 +521,7 @@ export default function MomentsPage() {
                   ? `No moments saved for ${narratorParam} yet.`
                   : 'No moments yet.'}{' '}
                 {!narratorParam && (
-                  <Link href="/upload?mode=direct" style={{ color: 'var(--accent)', fontWeight: 600 }}>
+                  <Link href="/capture?mode=direct" style={{ color: 'var(--accent)', fontWeight: 600 }}>
                     Add the first one
                   </Link>
                 )}
@@ -595,85 +551,6 @@ export default function MomentsPage() {
           <RightPanel />
         </div>
 
-        {/* Bottom CTA */}
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: '1.5rem',
-          marginTop: '1.75rem', background: 'var(--cream)',
-          border: '1px solid var(--border)', borderRadius: 20,
-          padding: '1.35rem 1.75rem', flexWrap: 'wrap',
-          position: 'relative', overflow: 'hidden',
-        }}>
-          <div style={{
-            width: 60, height: 60, borderRadius: '50%',
-            background: 'linear-gradient(135deg, var(--gold-light) 0%, #EAD9AE 100%)',
-            border: '2px solid #E8C9A8',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            flexShrink: 0, boxShadow: '0 4px 12px rgba(45,27,14,0.1)',
-          }}>
-            <span style={{ fontSize: '1.6rem', color: 'var(--accent)', lineHeight: 1 }}>✦</span>
-          </div>
-          <div style={{ flex: 1, minWidth: 200 }}>
-            <p style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '1.05rem', color: 'var(--text)', marginBottom: '0.3rem' }}>
-              Have a moment worth keeping?
-            </p>
-            <p style={{ fontSize: '0.83rem', color: 'var(--muted)', lineHeight: 1.55 }}>
-              Record it now or upload an audio file. Every voice deserves to be heard again.
-            </p>
-          </div>
-          <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap' }}>
-            <Link
-              href="/capture?mode=direct"
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: '0.45rem',
-                background: 'var(--accent)', color: 'white', textDecoration: 'none',
-                padding: '0.6rem 1.25rem', borderRadius: 12, fontSize: '0.88rem', fontWeight: 700,
-                boxShadow: '0 3px 10px rgba(24,107,94,0.28)',
-              }}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/>
-              </svg>
-              Record a memory
-            </Link>
-            <Link
-              href="/upload?mode=direct"
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: '0.45rem',
-                background: 'transparent', color: 'var(--accent)', textDecoration: 'none',
-                padding: '0.6rem 1.25rem', borderRadius: 12, fontSize: '0.88rem', fontWeight: 700,
-                border: '1.5px solid var(--accent)',
-              }}
-            >
-              Upload audio
-            </Link>
-            <Link
-              href="/upload?mode=direct#no-recording"
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: '0.45rem',
-                background: 'transparent', color: 'var(--accent)', textDecoration: 'none',
-                padding: '0.6rem 1.25rem', borderRadius: 12, fontSize: '0.88rem', fontWeight: 700,
-                border: '1.5px solid var(--accent)',
-              }}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
-              </svg>
-              Add in words
-            </Link>
-          </div>
-          <svg aria-hidden width="90" height="90" viewBox="0 0 100 100" fill="none" style={{ position: 'absolute', right: 16, bottom: -10, opacity: 0.18, flexShrink: 0 }}>
-            <circle cx="50" cy="50" r="12" fill="var(--accent)"/>
-            <ellipse cx="50" cy="26" rx="6" ry="16" fill="var(--accent)" transform="rotate(0 50 50)"/>
-            <ellipse cx="50" cy="26" rx="6" ry="16" fill="var(--accent)" transform="rotate(45 50 50)"/>
-            <ellipse cx="50" cy="26" rx="6" ry="16" fill="var(--accent)" transform="rotate(90 50 50)"/>
-            <ellipse cx="50" cy="26" rx="6" ry="16" fill="var(--accent)" transform="rotate(135 50 50)"/>
-            <circle cx="50" cy="8" r="4" fill="var(--accent)"/>
-            <circle cx="78" cy="22" r="4" fill="var(--accent)"/>
-            <circle cx="78" cy="78" r="4" fill="var(--accent)"/>
-            <circle cx="22" cy="78" r="4" fill="var(--accent)"/>
-            <circle cx="22" cy="22" r="4" fill="var(--accent)"/>
-          </svg>
-        </div>
       </div>
     </div>
   )
