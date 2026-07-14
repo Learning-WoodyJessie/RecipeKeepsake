@@ -374,6 +374,7 @@ export default function MomentsPage() {
       <style>{`
         .rk-moments-wrap { max-width: 1200px; margin: 0 auto; }
         .rk-moments-cols { display: grid; grid-template-columns: 1fr; gap: 1.25rem; }
+        .rk-moments-cols > * { min-width: 0; }
         @media (min-width: 860px) { .rk-moments-cols { grid-template-columns: 1fr 272px; align-items: start; } }
         .rk-moments-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
         @media (min-width: 640px) { .rk-moments-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }

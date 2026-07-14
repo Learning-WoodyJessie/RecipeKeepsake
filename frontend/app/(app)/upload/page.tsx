@@ -373,6 +373,7 @@ export default function UploadPage() {
           grid-template-columns: 1fr;
           gap: 1.5rem;
         }
+        .rk-upload-cols > * { min-width: 0; }
         @media (min-width: 760px) {
           .rk-upload-cols { grid-template-columns: 1fr 280px; align-items: start; }
         }
