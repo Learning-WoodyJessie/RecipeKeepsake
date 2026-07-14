@@ -137,6 +137,9 @@ function CapturePageInner() {
   // Deep-linked from "Our People" (e.g. /capture?narrator=Grandma) so adding
   // someone there flows straight into recording for them, no re-selecting
   // the chip you just effectively chose by clicking "Record a memory".
+  useEffect(() => {
+    if (searchParams.get('mode') === 'direct') setMode('direct')
+  }, [searchParams])
   const [narrator, setNarrator] = useState(searchParams.get('narrator') ?? '')
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')

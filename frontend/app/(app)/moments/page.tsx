@@ -230,7 +230,7 @@ function RightPanel() {
           Ask a family member to share a song, story, or memory. You&rsquo;ll keep it forever.
         </p>
         <Link
-          href="/capture"
+          href="/capture?mode=direct"
           style={{
             display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
             background: 'var(--accent)', color: 'white', textDecoration: 'none',
@@ -433,7 +433,7 @@ export default function MomentsPage() {
                   </p>
                   <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap' }}>
                     <Link
-                      href="/capture"
+                      href="/capture?mode=direct"
                       style={{
                         display: 'inline-flex', alignItems: 'center', gap: '0.45rem',
                         background: 'var(--accent)', color: 'white', textDecoration: 'none',
@@ -447,7 +447,7 @@ export default function MomentsPage() {
                       Record a voice
                     </Link>
                     <Link
-                      href="/upload"
+                      href="/upload?mode=direct"
                       style={{
                         display: 'inline-flex', alignItems: 'center', gap: '0.45rem',
                         background: 'transparent', color: 'var(--accent)', textDecoration: 'none',
@@ -565,7 +565,7 @@ export default function MomentsPage() {
                   ? `No moments saved for ${narratorParam} yet.`
                   : 'No moments yet.'}{' '}
                 {!narratorParam && (
-                  <Link href="/upload" style={{ color: 'var(--accent)', fontWeight: 600 }}>
+                  <Link href="/upload?mode=direct" style={{ color: 'var(--accent)', fontWeight: 600 }}>
                     Add the first one
                   </Link>
                 )}
@@ -622,7 +622,7 @@ export default function MomentsPage() {
           </div>
           <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap' }}>
             <Link
-              href="/capture"
+              href="/capture?mode=direct"
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: '0.45rem',
                 background: 'var(--accent)', color: 'white', textDecoration: 'none',
@@ -636,7 +636,7 @@ export default function MomentsPage() {
               Record a memory
             </Link>
             <Link
-              href="/upload"
+              href="/upload?mode=direct"
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: '0.45rem',
                 background: 'transparent', color: 'var(--accent)', textDecoration: 'none',
