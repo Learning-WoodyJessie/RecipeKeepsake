@@ -945,7 +945,7 @@ function MemoryDetail() {
           onClick={() => setShowDeleteModal(false)}
           style={{
             position: 'fixed', inset: 0, zIndex: 1000,
-            background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(3px)',
+            background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(2px)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             padding: '1.5rem',
           }}
@@ -953,51 +953,58 @@ function MemoryDetail() {
           <div
             onClick={e => e.stopPropagation()}
             style={{
-              background: 'var(--surface)', borderRadius: 20,
-              padding: '2rem 1.75rem 1.75rem',
-              maxWidth: 380, width: '100%',
-              boxShadow: '0 24px 64px rgba(0,0,0,0.22)',
-              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.6rem',
+              background: 'var(--surface)', borderRadius: 12,
+              maxWidth: 520, width: '100%',
+              boxShadow: '0 20px 60px rgba(0,0,0,0.18)',
+              overflow: 'hidden',
             }}
           >
-            <div style={{ width: 52, height: 52, borderRadius: '50%', background: '#FEE2E2', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '0.25rem' }}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#B91C1C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/>
-              </svg>
-            </div>
-
-            <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: 'var(--text)', textAlign: 'center' }}>
-              Delete this memory?
-            </h2>
-            <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--muted)', textAlign: 'center', lineHeight: 1.6 }}>
-              <strong style={{ color: 'var(--text)' }}>{memory?.title}</strong>{' '}
-              will be permanently removed, including the recording, transcript, and photo. This cannot be undone.
-            </p>
-
-            <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.75rem', width: '100%' }}>
+            {/* Header */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1.25rem 1.5rem' }}>
+              <h2 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 700, color: 'var(--text)' }}>
+                Delete Memory
+              </h2>
               <button
                 type="button"
                 onClick={() => setShowDeleteModal(false)}
                 style={{
-                  flex: 1, padding: '0.75rem', borderRadius: 12,
-                  border: '1.5px solid var(--border)', background: 'transparent',
-                  color: 'var(--text)', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer',
-                  fontFamily: 'var(--sans)',
+                  width: 28, height: 28, borderRadius: 6,
+                  border: '1.5px solid var(--border)', background: 'var(--surface)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  cursor: 'pointer', color: 'var(--muted)', flexShrink: 0,
                 }}
+                aria-label="Close"
               >
-                Cancel
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
               </button>
+            </div>
+
+            <div style={{ height: 1, background: 'var(--border)' }} />
+
+            {/* Body */}
+            <div style={{ padding: '1.5rem' }}>
+              <p style={{ margin: '0 0 0.75rem', fontSize: '0.9rem', color: 'var(--text)', lineHeight: 1.6 }}>
+                Are you sure you want to delete{' '}
+                <strong>{memory?.title}</strong>?
+              </p>
+              <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--muted)', lineHeight: 1.6 }}>
+                This action cannot be undone. The recording, transcript, and photo will be permanently removed from your archive.
+              </p>
+
               <button
                 type="button"
                 onClick={deleteMemory}
                 style={{
-                  flex: 1, padding: '0.75rem', borderRadius: 12,
+                  marginTop: '1.5rem',
+                  padding: '0.65rem 1.25rem', borderRadius: 8,
                   border: 'none', background: '#B91C1C',
-                  color: 'white', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer',
-                  fontFamily: 'var(--sans)',
+                  color: 'white', fontWeight: 600, fontSize: '0.875rem',
+                  cursor: 'pointer', fontFamily: 'var(--sans)',
                 }}
               >
-                Delete memory
+                Delete Memory
               </button>
             </div>
           </div>
