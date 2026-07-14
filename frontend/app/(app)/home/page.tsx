@@ -92,7 +92,7 @@ function HeroCard({ userName }: { userName: string }) {
             <span aria-hidden style={{ color: 'var(--muted)' }}>♡</span>
           </h1>
           <p style={{ fontSize: '0.88rem', color: 'var(--muted)', lineHeight: 1.65, marginBottom: '1.2rem' }}>
-            Some things are priceless. The way they said it, the voice behind every memory. A recipe. A lullaby. A story told just once. Keep it alive, across generations.
+            Some things are priceless. The way they said it, the voice behind every memory. A recipe. A lullaby. A story told just once. Keep it alive, eternally.
           </p>
           <div className="rk-action-tiles">
             <ActionTile
