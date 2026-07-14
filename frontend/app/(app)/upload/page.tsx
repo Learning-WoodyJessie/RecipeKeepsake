@@ -236,7 +236,9 @@ export default function UploadPage() {
   })
 
   useEffect(() => {
-    if (searchParams.get('mode') === 'text') setMode('text')
+    const m = searchParams.get('mode')
+    if (m === 'text') setMode('text')
+    else if (m === 'direct') setMode('direct')
   }, [searchParams])
   const [memoryType, setMemoryType] = useState<string>('song')
   const language = 'te'
