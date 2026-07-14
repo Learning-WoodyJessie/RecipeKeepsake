@@ -622,34 +622,28 @@ function MemoryDetail() {
         </div>
 
         {/* ── Transcript block (read-only) ── */}
-        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, padding: '1.25rem', marginBottom: '1rem' }}>
-          <h2 style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '1.05rem', color: 'var(--text)', marginBottom: '0.75rem' }}>
-            Transcript
-          </h2>
+        <section style={{ marginBottom: '1.25rem' }}>
+          <h2 style={{ fontSize: '0.78rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--muted)', marginBottom: '0.65rem' }}>Transcript</h2>
           {transcript ? (
-            <p style={{
-              fontSize: '0.9rem', color: 'var(--text2)', lineHeight: 1.75,
-              fontFamily: 'var(--serif)', fontStyle: 'italic',
-              margin: 0, whiteSpace: 'pre-wrap',
-            }}>
-              {transcript}
-            </p>
+            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: '0.85rem' }}>
+              <p style={{ fontSize: '0.88rem', color: 'var(--text2)', lineHeight: 1.85, fontFamily: 'var(--serif)', fontStyle: 'italic', margin: 0, whiteSpace: 'pre-wrap' }}>
+                {transcript}
+              </p>
+            </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.4rem', padding: '0.75rem 0 0.25rem', textAlign: 'center' }}>
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--border)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: '1.25rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.4rem', textAlign: 'center' }}>
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--border)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                 <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
               </svg>
               <p style={{ fontSize: '0.85rem', color: 'var(--muted)', margin: 0 }}>No transcript yet</p>
               <p style={{ fontSize: '0.75rem', color: 'var(--muted)', margin: 0, opacity: 0.8 }}>Captured recordings generate one automatically</p>
             </div>
           )}
-        </div>
+        </section>
 
         {/* ── Notes ── */}
-        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, padding: '1.25rem', marginBottom: '1.75rem' }}>
-          <h2 style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '1.05rem', color: 'var(--text)', marginBottom: '0.85rem' }}>
-            Your notes
-          </h2>
+        <section style={{ marginBottom: '1.75rem' }}>
+          <h2 style={{ fontSize: '0.78rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--muted)', marginBottom: '0.65rem' }}>Your notes</h2>
           <textarea
             value={notes}
             onChange={e => {
@@ -667,15 +661,15 @@ function MemoryDetail() {
             rows={4}
             style={{
               width: '100%', border: '1px solid var(--border)', borderRadius: 10,
-              padding: '0.7rem', fontSize: '0.88rem', fontFamily: 'var(--sans)',
-              color: 'var(--text)', background: 'var(--cream)', resize: 'vertical',
-              lineHeight: 1.65, boxSizing: 'border-box',
+              padding: '0.7rem', fontSize: '0.85rem', fontFamily: 'var(--sans)',
+              color: 'var(--text)', background: 'var(--gold-light)', resize: 'vertical',
+              boxSizing: 'border-box',
             }}
           />
-          <p style={{ fontSize: '0.7rem', color: 'var(--muted)', marginTop: '0.4rem' }}>
+          <p style={{ fontSize: '0.72rem', color: 'var(--muted)', marginTop: '0.35rem' }}>
             Saves automatically when you stop typing.
           </p>
-        </div>
+        </section>
 
         {/* ── Tags ── */}
         {displayTags.length > 0 && (
@@ -734,7 +728,7 @@ function MemoryDetail() {
                   Are you sure you want to delete <strong>{memory?.title}</strong>?
                 </p>
                 <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--muted)', lineHeight: 1.6 }}>
-                  This action cannot be undone. The recording, transcript, and photo will be permanently removed from your archive.
+                  This memory will be permanently removed from your archive.
                 </p>
                 <button
                   type="button"
