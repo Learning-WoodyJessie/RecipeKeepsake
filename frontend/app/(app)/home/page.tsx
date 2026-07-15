@@ -216,9 +216,9 @@ function MemoriesSection({
           >
             {showFavsOnly ? '♥' : '♡'} Favorites
           </button>
-          {/* Family Collection link pill */}
+          {/* Family Collection link pill — dedicated authenticated page, not the public portal */}
           <Link
-            href="/recipes?collection=1"
+            href="/collection"
             style={{
               display: 'inline-flex',
               alignItems: 'center',
