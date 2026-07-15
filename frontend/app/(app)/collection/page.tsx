@@ -129,10 +129,27 @@ export default function CollectionPage() {
 
   return (
     <div style={{ maxWidth: 800, margin: '0 auto', padding: 'clamp(1rem, 3vw, 1.75rem)' }}>
-      <h1 style={{ fontFamily: 'var(--serif)', fontSize: '1.5rem', fontWeight: 700, color: 'var(--text)', marginBottom: '0.35rem' }}>
-        Family Collection
-      </h1>
-      <p style={{ fontSize: '0.85rem', color: 'var(--muted)', marginBottom: '1.5rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', marginBottom: '0.35rem' }}>
+        <svg width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style={{ flexShrink: 0 }}>
+          <circle cx="26" cy="26" r="26" fill="var(--gold-light)" />
+          {/* Left person */}
+          <circle cx="16" cy="22" r="5.5" fill="var(--amber)" opacity="0.6" />
+          <path d="M7 40c0-4.97 4.03-8 9-8s9 3.03 9 8" stroke="var(--amber)" strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.6" />
+          {/* Right person */}
+          <circle cx="36" cy="22" r="5.5" fill="var(--accent)" opacity="0.45" />
+          <path d="M27 40c0-4.97 4.03-8 9-8s9 3.03 9 8" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.45" />
+          {/* Centre person */}
+          <circle cx="26" cy="19" r="6.5" fill="var(--amber)" />
+          <path d="M13.5 42c0-6.35 5.6-10.5 12.5-10.5S38.5 35.65 38.5 42" stroke="var(--amber)" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+          {/* Heart above centre */}
+          <path d="M26 11.5c0 0-1.2-1 -1.2-1.8a1.2 1.2 0 012.4 0c0 .8-1.2 1.8-1.2 1.8z" fill="var(--accent)" opacity="0.85" />
+          <path d="M26 12c-.5-.45-2-1.6-2-3a2 2 0 014 0c0 1.4-1.5 2.55-2 3z" fill="var(--accent)" opacity="0.85" />
+        </svg>
+        <h1 style={{ fontFamily: 'var(--serif)', fontSize: '1.5rem', fontWeight: 700, color: 'var(--text)', margin: 0 }}>
+          Family Collection
+        </h1>
+      </div>
+      <p style={{ fontSize: '0.85rem', color: 'var(--muted)', marginBottom: '1.5rem', paddingLeft: '0.1rem' }}>
         Memories your family has chosen to share with everyone in the group.
       </p>
 
