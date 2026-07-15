@@ -78,11 +78,11 @@ function BowlPlaceholder({ token }: { token: string }) {
   const base = (h % 36) / 10
   const d1 = `${base}s`, d2 = `${base + 0.32}s`, d3 = `${base + 0.64}s`
   return (
-    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(140deg, #F2E5CE 0%, #E4C898 55%, #D4AD72 100%)' }}>
-      <svg viewBox="0 0 100 88" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: '62%', maxWidth: 150, overflow: 'visible' }}>
-        <path className="rk-bowl-steam" style={{ animationDelay: d1 }} d="M 36 36 C 32 27 40 20 36 11 C 33 4 39 -1 36 -7" stroke="rgba(255,255,255,0.82)" strokeWidth="2.3" strokeLinecap="round"/>
-        <path className="rk-bowl-steam" style={{ animationDelay: d2 }} d="M 50 33 C 46 24 54 17 50 8 C 47 1 53 -4 50 -10" stroke="rgba(255,255,255,0.82)" strokeWidth="2.3" strokeLinecap="round"/>
-        <path className="rk-bowl-steam" style={{ animationDelay: d3 }} d="M 64 36 C 60 27 68 20 64 11 C 61 4 67 -1 64 -7" stroke="rgba(255,255,255,0.82)" strokeWidth="2.3" strokeLinecap="round"/>
+    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(140deg, #F5EBD6 0%, #ECD9AE 100%)' }}>
+      <svg viewBox="0 0 100 88" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: '36%', maxWidth: 90, overflow: 'visible' }}>
+        <path className="rk-bowl-steam" style={{ animationDelay: d1 }} d="M 36 36 C 32 27 40 20 36 11 C 33 4 39 -1 36 -7" stroke="rgba(120,74,20,0.4)" strokeWidth="2.3" strokeLinecap="round"/>
+        <path className="rk-bowl-steam" style={{ animationDelay: d2 }} d="M 50 33 C 46 24 54 17 50 8 C 47 1 53 -4 50 -10" stroke="rgba(120,74,20,0.4)" strokeWidth="2.3" strokeLinecap="round"/>
+        <path className="rk-bowl-steam" style={{ animationDelay: d3 }} d="M 64 36 C 60 27 68 20 64 11 C 61 4 67 -1 64 -7" stroke="rgba(120,74,20,0.4)" strokeWidth="2.3" strokeLinecap="round"/>
         <ellipse cx="50" cy="83" rx="24" ry="5" fill="rgba(100,60,10,0.12)"/>
         <path d="M 14 40 Q 12 70 30 78 Q 50 85 70 78 Q 88 70 86 40" fill="#C8924A"/>
         <path d="M 14 40 Q 12 64 26 74 Q 20 58 18 40 Z" fill="rgba(255,220,150,0.15)"/>
@@ -113,9 +113,9 @@ const EQ_BARS = [13, 19, 25, 29, 31, 29, 25, 19, 13]
 
 function EqualizerPlaceholder() {
   return (
-    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(160deg, #120F07 0%, #1C1810 60%, #110E06 100%)' }}>
-      <svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg" style={{ width: '88%', maxWidth: 220 }}>
-        <line x1="4" y1="40" x2="96" y2="40" stroke="rgba(200,146,74,0.18)" strokeWidth="0.6"/>
+    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(140deg, #EEF3F0 0%, #DDE8E2 100%)' }}>
+      <svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg" style={{ width: '58%', maxWidth: 150 }}>
+        <line x1="4" y1="40" x2="96" y2="40" stroke="rgba(24,107,94,0.2)" strokeWidth="0.6"/>
         {EQ_BARS.map((halfH, i) => (
           <rect
             key={i}
@@ -125,8 +125,8 @@ function EqualizerPlaceholder() {
             width={5}
             height={halfH * 2}
             rx={2}
-            fill={i === 4 ? '#E0B070' : '#C8924A'}
-            opacity={0.88}
+            fill={i === 4 ? '#9EC4B8' : '#82AFA1'}
+            opacity={i === 4 ? 0.95 : 0.8}
             style={{ animationDelay: `${i * 0.13}s` }}
           />
         ))}

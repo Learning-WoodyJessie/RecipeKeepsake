@@ -81,10 +81,10 @@ const EQ_BARS = [13, 19, 25, 29, 31, 29, 25, 19, 13] // half-heights
 
 function EqualizerPlaceholder() {
   return (
-    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(160deg, #120F07 0%, #1C1810 60%, #110E06 100%)' }}>
-      <svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg" style={{ width: '88%', maxWidth: 220 }}>
+    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(140deg, #EEF3F0 0%, #DDE8E2 100%)' }}>
+      <svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg" style={{ width: '58%', maxWidth: 150 }}>
         {/* Faint centre axis */}
-        <line x1="4" y1="40" x2="96" y2="40" stroke="rgba(200,146,74,0.18)" strokeWidth="0.6"/>
+        <line x1="4" y1="40" x2="96" y2="40" stroke="rgba(24,107,94,0.2)" strokeWidth="0.6"/>
         {EQ_BARS.map((halfH, i) => (
           <rect
             key={i}
@@ -94,8 +94,8 @@ function EqualizerPlaceholder() {
             width={5}
             height={halfH * 2}
             rx={2}
-            fill={i === 4 ? '#E0B070' : '#C8924A'}
-            opacity={0.88}
+            fill={i === 4 ? '#9EC4B8' : '#82AFA1'}
+            opacity={i === 4 ? 0.95 : 0.8}
             style={{ animationDelay: `${i * 0.13}s` }}
           />
         ))}
