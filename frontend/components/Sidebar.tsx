@@ -239,6 +239,7 @@ export default function Sidebar({ isOpen = false, onClose }: { isOpen?: boolean;
         <div style={GROUP_LABEL}>Memories</div>
         {navLink('/recipes', 'All Recipes', Icon.bowl)}
         {navLinkAudio('/moments', 'Moments', Icon.sparkle)}
+        {navLink('/collection', 'Family Collection', Icon.people)}
 
         <div style={GROUP_LABEL}>Record</div>
         {navLink('/capture', 'Capture a Memory', Icon.mic)}
