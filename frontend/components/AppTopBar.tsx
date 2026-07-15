@@ -26,8 +26,19 @@ export default function AppTopBar({ onMenuClick }: { onMenuClick?: () => void })
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
-  // Keep input in sync with URL (back-nav, direct links)
+  // dirtyRef is set only by real user input (typing or the clear button) —
+  // see the debounced navigate effect below for why this matters.
+  const dirtyRef = useRef(false)
+
+  // Keep input in sync with URL (back-nav, direct links). This is a URL-
+  // driven change, not user input — clear dirtyRef so the debounced navigate
+  // effect below doesn't treat it as a real edit. Without this, once a user
+  // has typed in search even once this session, dirtyRef stays permanently
+  // true, so navigating to ANY other page (which resets q via this effect)
+  // re-arms the debounce and silently redirects to /recipes or /search
+  // shortly after landing, regardless of what the user actually clicked.
   useEffect(() => {
+    dirtyRef.current = false
     setQ(searchParams.get('q') ?? '')
   }, [searchParams])
 
@@ -57,16 +68,19 @@ export default function AppTopBar({ onMenuClick }: { onMenuClick?: () => void })
   // Live search — debounced 300ms, no submit needed
   const navigate = useCallback((val: string) => {
     const s = val.trim()
-    if (s) router.replace(`/search?q=${encodeURIComponent(s)}`)
+    if (s) {
+      // Live search uses replace() (not push) so typing doesn't spam history —
+      // that means the page you searched FROM isn't a distinct history entry,
+      // so Search's own back-link can't rely on router.back(). Record it
+      // explicitly the first time we leave a non-search page.
+      if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/search')) {
+        sessionStorage.setItem('searchOrigin', window.location.pathname + window.location.search)
+      }
+      router.replace(`/search?q=${encodeURIComponent(s)}`)
+    }
     else router.replace('/recipes')
   }, [router])
 
-  // dirtyRef is set only by real user input (typing or the clear button),
-  // never by mounting or by the URL-sync effect above. This bar is shared
-  // across every page in the app, so without it, landing on any page with no
-  // ?q= (e.g. a shared /memory?token= link) fired an unwanted redirect to
-  // /recipes 300ms after mount.
-  const dirtyRef = useRef(false)
   useEffect(() => {
     if (!dirtyRef.current) return
     const t = setTimeout(() => navigate(q), 300)

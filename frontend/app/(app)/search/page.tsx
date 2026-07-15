@@ -233,6 +233,9 @@ export default function SearchPage() {
   const searchParams = useSearchParams()
   const q = searchParams.get('q') ?? ''
   const typeParam = (searchParams.get('kind') ?? 'All') as TypeTab
+  // See AppTopBar's navigate() — records the page you searched from, since
+  // router.back() can't be relied on here (search navigates via replace()).
+  const backHref = (typeof window !== 'undefined' && sessionStorage.getItem('searchOrigin')) || '/recipes'
 
   const [memories, setMemories] = useState<Memory[]>([])
   const [people, setPeople] = useState<Person[]>([])
@@ -368,6 +371,23 @@ export default function SearchPage() {
       `}</style>
 
       <div className="rk-search-wrap">
+        {/* Back — search is reached from the top bar on any page, not a
+            sidebar destination. The top bar's live search uses router.replace()
+            (not push) so typing doesn't spam history, which means router.back()
+            skips past the page you actually searched from. AppTopBar records
+            that page explicitly in sessionStorage before navigating here. */}
+        <Link
+          href={backHref}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+            color: 'var(--text2)', textDecoration: 'none',
+            fontSize: '0.85rem', fontWeight: 500, marginBottom: '1rem',
+          }}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><polyline points="15 18 9 12 15 6"/></svg>
+          Back
+        </Link>
+
         {/* Hero */}
         <div style={{ marginBottom: '1.5rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
