@@ -126,6 +126,10 @@ function MemoryDetail() {
   const [inviteUrl, setInviteUrl] = useState('')
   const [portalToast, setPortalToast] = useState<'added' | 'removed' | null>(null)
   const [inviteCopied, setInviteCopied] = useState(false)
+  const [showCreateGroupModal, setShowCreateGroupModal] = useState(false)
+  const [newGroupName, setNewGroupName] = useState('')
+  const [creatingGroup, setCreatingGroup] = useState(false)
+  const [createGroupError, setCreateGroupError] = useState('')
 
   // Non-owner viewing state — see docs/plans/2026-07-14-memory-sharing-redesign-design.md
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
@@ -231,6 +235,28 @@ function MemoryDetail() {
     await navigator.clipboard.writeText(inviteUrl)
     setInviteCopied(true)
     setTimeout(() => setInviteCopied(false), 2000)
+  }
+
+  // Create the family group inline (from the memory page) and immediately add
+  // this memory to it — avoids sending a first-time owner away to Account
+  // settings just to come back and toggle the memory in afterward.
+  async function createGroupAndAdd() {
+    if (!newGroupName.trim()) { setCreateGroupError('Enter a name for your family.'); return }
+    setCreatingGroup(true)
+    setCreateGroupError('')
+    try {
+      const d = await api.family.createGroup(newGroupName.trim()) as { portal_url: string; invite_url: string }
+      setIsInGroup(true)
+      setPortalUrl(d.portal_url)
+      setInviteUrl(d.invite_url)
+      setShowCreateGroupModal(false)
+      setNewGroupName('')
+      await togglePortal()
+    } catch (e: unknown) {
+      setCreateGroupError((e as Error).message)
+    } finally {
+      setCreatingGroup(false)
+    }
   }
 
   async function patchField(patch: Record<string, unknown>) {
@@ -405,6 +431,64 @@ function MemoryDetail() {
       )}
     </div>
   ) : null
+
+  // Inline "create a family" prompt — lets an owner with no group yet create
+  // one without leaving the memory page, then this memory is added right away.
+  const createGroupModal = (
+    <div
+      onClick={() => !creatingGroup && setShowCreateGroupModal(false)}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 1000,
+        background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(2px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: '1.5rem',
+      }}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          background: 'var(--surface)', borderRadius: 12,
+          maxWidth: 420, width: '100%',
+          boxShadow: '0 20px 60px rgba(0,0,0,0.18)',
+          padding: '1.5rem',
+        }}
+      >
+        <h2 style={{ margin: '0 0 0.5rem', fontSize: '1.1rem', fontWeight: 700, color: 'var(--text)' }}>
+          Create your family collection
+        </h2>
+        <p style={{ margin: '0 0 1rem', fontSize: '0.85rem', color: 'var(--muted)', lineHeight: 1.6 }}>
+          Give it a name — this memory will be added to it right away, and you'll get an invite link to share.
+        </p>
+        {createGroupError && <p style={{ color: 'var(--accent)', fontSize: '0.8rem', marginBottom: '0.75rem' }}>{createGroupError}</p>}
+        <input
+          autoFocus
+          value={newGroupName}
+          onChange={e => setNewGroupName(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter') createGroupAndAdd() }}
+          placeholder="e.g. Lakshmi Family"
+          style={{ width: '100%', border: '1px solid var(--border)', borderRadius: 10, padding: '0.6rem 0.85rem', fontSize: '0.9rem', fontFamily: 'var(--sans)', background: 'var(--cream)', color: 'var(--text)', boxSizing: 'border-box', marginBottom: '1rem' }}
+        />
+        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+          <button
+            type="button"
+            onClick={() => setShowCreateGroupModal(false)}
+            disabled={creatingGroup}
+            style={{ background: 'transparent', color: 'var(--muted)', border: '1px solid var(--border)', borderRadius: 8, padding: '0.55rem 1rem', cursor: creatingGroup ? 'default' : 'pointer', fontSize: '0.85rem' }}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={createGroupAndAdd}
+            disabled={creatingGroup}
+            style={{ background: 'var(--accent)', color: 'white', border: 'none', borderRadius: 8, padding: '0.55rem 1.25rem', fontWeight: 600, cursor: creatingGroup ? 'default' : 'pointer', fontSize: '0.85rem' }}
+          >
+            {creatingGroup ? 'Creating…' : 'Create & add →'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
 
   // ══════════════════════════════════════════════════════
   //  AUDIO MEMORY LAYOUT
@@ -683,18 +767,22 @@ function MemoryDetail() {
             </button>
           )}
           {isOwner && !isInGroup && (
-            <Link href="/account#family" style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
-              background: 'var(--surface)', border: '1.5px solid var(--border)',
-              borderRadius: 12, padding: '0.72rem 0.5rem', textDecoration: 'none',
-              fontSize: '0.82rem', fontWeight: 600, color: 'var(--text2)',
-            }}>
+            <button
+              type="button"
+              onClick={() => setShowCreateGroupModal(true)}
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
+                background: 'var(--surface)', border: '1.5px solid var(--border)',
+                borderRadius: 12, padding: '0.72rem 0.5rem', cursor: 'pointer',
+                fontSize: '0.82rem', fontWeight: 600, color: 'var(--text2)',
+              }}
+            >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                 <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
                 <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
               </svg>
               Family Collection
-            </Link>
+            </button>
           )}
         </div>
         {isOwner && isInGroup && familyCollectionCaption}
@@ -807,6 +895,8 @@ function MemoryDetail() {
         )}
 
         {onboardingBanner}
+
+        {showCreateGroupModal && createGroupModal}
 
         {/* ── Delete confirmation modal (audio layout) ── */}
         {showDeleteModal && (
@@ -1122,18 +1212,22 @@ function MemoryDetail() {
           </button>
         )}
         {isOwner && !isInGroup && (
-          <Link href="/account#family" style={{
-            flex: '1 1 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
-            padding: '0.6rem 0.75rem', borderRadius: 12, fontSize: '0.82rem', fontWeight: 600,
-            border: '1.5px solid var(--border)', textDecoration: 'none',
-            background: 'var(--surface)', color: 'var(--text2)',
-          }}>
+          <button
+            type="button"
+            onClick={() => setShowCreateGroupModal(true)}
+            style={{
+              flex: '1 1 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
+              padding: '0.6rem 0.75rem', borderRadius: 12, fontSize: '0.82rem', fontWeight: 600,
+              border: '1.5px solid var(--border)', cursor: 'pointer',
+              background: 'var(--surface)', color: 'var(--text2)',
+            }}
+          >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
               <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
               <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
             </svg>
             Family Collection
-          </Link>
+          </button>
         )}
         <button
           onClick={openWhatsApp}
@@ -1219,6 +1313,8 @@ function MemoryDetail() {
       )}
 
       {onboardingBanner}
+
+      {showCreateGroupModal && createGroupModal}
 
       {/* ── Delete confirmation modal ── */}
       {showDeleteModal && (
