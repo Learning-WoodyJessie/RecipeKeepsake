@@ -163,7 +163,14 @@ export default function CollectionPage() {
         <div style={{ padding: '2rem 1.5rem', borderRadius: 14, background: 'var(--surface)', border: '1px dashed var(--border2)', textAlign: 'center' }}>
           <p style={{ color: 'var(--muted)', fontSize: '0.85rem', lineHeight: 1.7, marginBottom: '1.1rem' }}>
             No memories in your Family Collection yet.<br />
-            Add it here from any memory&rsquo;s <strong style={{ color: 'var(--text2)' }}>Family Collection</strong> button.
+            Add it here from any memory by clicking{' '}
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', verticalAlign: 'middle', background: 'var(--accent-light)', border: '1px solid rgba(24,107,94,0.2)', borderRadius: 8, padding: '2px 8px', fontSize: '0.78rem', fontWeight: 600, color: 'var(--accent)', whiteSpace: 'nowrap' }}>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+              </svg>
+              Family Collection
+            </span>
           </p>
           <Link
             href="/capture"
