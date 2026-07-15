@@ -143,8 +143,26 @@ export default function CollectionPage() {
       ) : error ? (
         <div style={{ padding: '2rem', color: 'var(--accent)' }}>{error}</div>
       ) : memories.length === 0 ? (
-        <div style={{ padding: '1.25rem 1rem', borderRadius: 14, background: 'var(--surface)', border: '1px dashed var(--border2)', color: 'var(--muted)', fontSize: '0.85rem', textAlign: 'center', lineHeight: 1.6 }}>
-          No memories in your Family Collection yet. <Link href="/capture" style={{ color: 'var(--accent)', fontWeight: 600 }}>Capture your first one</Link>, then add it here from any memory's <strong>Add to Family Collection</strong> button.
+        <div style={{ padding: '2rem 1.5rem', borderRadius: 14, background: 'var(--surface)', border: '1px dashed var(--border2)', textAlign: 'center' }}>
+          <p style={{ color: 'var(--muted)', fontSize: '0.85rem', lineHeight: 1.7, marginBottom: '1.1rem' }}>
+            No memories in your Family Collection yet.<br />
+            Add it here from any memory&rsquo;s <strong style={{ color: 'var(--text2)' }}>Family Collection</strong> button.
+          </p>
+          <Link
+            href="/capture"
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+              background: 'var(--accent)', color: 'white', textDecoration: 'none',
+              padding: '0.55rem 1.2rem', borderRadius: 10,
+              fontSize: '0.85rem', fontWeight: 700,
+              boxShadow: '0 2px 8px rgba(24,107,94,0.22)',
+            }}
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/>
+            </svg>
+            Capture your first one
+          </Link>
         </div>
       ) : (
         <>
