@@ -144,7 +144,7 @@ export default function CollectionPage() {
         <div style={{ padding: '2rem', color: 'var(--accent)' }}>{error}</div>
       ) : memories.length === 0 ? (
         <div style={{ padding: '1.25rem 1rem', borderRadius: 14, background: 'var(--surface)', border: '1px dashed var(--border2)', color: 'var(--muted)', fontSize: '0.85rem', textAlign: 'center', lineHeight: 1.6 }}>
-          No memories in your Family Collection yet. Add one from any memory's <strong>Add to Family Collection</strong> button.
+          No memories in your Family Collection yet. <Link href="/capture" style={{ color: 'var(--accent)', fontWeight: 600 }}>Capture your first one</Link>, then add it here from any memory's <strong>Add to Family Collection</strong> button.
         </div>
       ) : (
         <>
