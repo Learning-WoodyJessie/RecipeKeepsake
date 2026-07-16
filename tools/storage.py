@@ -104,12 +104,32 @@ def upload_memory_photo(image_bytes: bytes, content_type: str) -> str:
     return sb.storage.from_("memory-photos").get_public_url(filename)
 
 
-def upload_audio(local_path: str, filename: str) -> str:
+# Python's mimetypes returns video/webm and video/mp4 for these extensions.
+# Supabase then serves stored files with those content-types, causing Chrome on
+# Windows/Android to refuse to decode them in an <audio> element (shows correct
+# duration but produces no sound). Map explicitly to audio/* types instead.
+_AUDIO_MIME: dict[str, str] = {
+    ".webm": "audio/webm",
+    ".mp4":  "audio/mp4",
+    ".m4a":  "audio/mp4",
+    ".ogg":  "audio/ogg",
+    ".oga":  "audio/ogg",
+    ".opus": "audio/ogg",
+    ".wav":  "audio/wav",
+    ".flac": "audio/flac",
+    ".mp3":  "audio/mpeg",
+    ".aac":  "audio/aac",
+}
+
+
+def upload_audio(local_path: str, filename: str, user_id: str = "") -> str:
     """Upload an audio file to the private 'audio' bucket. Returns the filename (storage path)."""
-    mime = mimetypes.guess_type(filename)[0] or "audio/webm"
+    ext = Path(filename).suffix.lower()
+    mime = _AUDIO_MIME.get(ext) or mimetypes.guess_type(filename)[0] or "audio/webm"
     with open(local_path, "rb") as f:
         data = f.read()
 
+    _logger.info(f"event=upload_audio filename={filename} ext={ext} mime={mime} size={len(data)} user_id={user_id}")
     sb = _client()
     sb.storage.from_("audio").upload(
         path=filename,

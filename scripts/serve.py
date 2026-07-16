@@ -619,7 +619,7 @@ async def capture_endpoint(audio: UploadFile = File(...), language: str = Form("
             if saved.audio_url:
                 from tools.storage import _sign_audio, _client as _sb
                 recipe["audio_url"] = _sign_audio(saved.audio_url, _sb())
-            _logger.info(f"event=capture_saved id={saved.id} dish={recipe_data.title}")
+            _logger.info(f"event=capture_saved id={saved.id} dish={recipe_data.title} user_id={_user_id(user)}")
         else:
             _logger.warning("event=capture_no_db")
 
@@ -754,7 +754,7 @@ async def capture_save_endpoint(
             from tools.storage import _sign_audio, _client as _sb
             result["audio_url"] = _sign_audio(saved.audio_url, _sb())
 
-        _logger.info(f"event=save_done id={saved.id}")
+        _logger.info(f"event=save_done id={saved.id} user_id={_user_id(user)}")
         return JSONResponse(content=result)
 
     except Exception as e:
@@ -812,7 +812,7 @@ async def save_audio_endpoint(
 
         tags = ["tale"]
         if audio_filename:
-            upload_audio(tmp_path, audio_filename)
+            upload_audio(tmp_path, audio_filename, user_id=_user_id(user))
             tags.append("audio")
 
         # Auto-transcribe when audio is present, no user-supplied text, and not a recipe
@@ -845,7 +845,7 @@ async def save_audio_endpoint(
         })
 
         audio_url = _sign_audio(row.get("audio_url", ""), _sb()) if audio_filename else None
-        _logger.info(f"event=save_audio_done id={row.get('id')} has_audio={bool(audio_filename)}")
+        _logger.info(f"event=save_audio_done id={row.get('id')} has_audio={bool(audio_filename)} user_id={_user_id(user)}")
         return JSONResponse(content={
             "token": row["token"],
             "audio_url": audio_url,

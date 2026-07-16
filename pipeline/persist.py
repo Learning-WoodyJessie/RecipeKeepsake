@@ -44,7 +44,7 @@ def run_persist(
     """
     stored_path = ""
     try:
-        stored_path = upload_audio(audio_path, audio_filename)
+        stored_path = upload_audio(audio_path, audio_filename, user_id=user_id)
     except Exception as e:
         _logger.warning(f"event=audio_upload_failed error={type(e).__name__} msg={e}")
 
