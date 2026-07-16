@@ -5,7 +5,7 @@
 
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { api } from '@/lib/api'
 import WaveformBars from '@/components/WaveformBars'
@@ -40,19 +40,62 @@ const TYPE_LABELS: Record<string, string> = {
 }
 const TYPE_ORDER = ['recipe', 'song', 'story', 'fable', 'wisdom', 'poem'] as const
 
+const TYPE_ICON: Record<string, React.ReactNode> = {
+  recipe: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M3 2h18l-2 7H5L3 2z"/><path d="M5 9s0 5 7 5 7-5 7-5"/>
+      <line x1="12" y1="14" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/>
+    </svg>
+  ),
+  song: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+    </svg>
+  ),
+  story: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/>
+    </svg>
+  ),
+  fable: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+    </svg>
+  ),
+  wisdom: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+    </svg>
+  ),
+  poem: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
+    </svg>
+  ),
+}
+
+function typeAccent(type: string | null) {
+  return (type === 'recipe' || !type) ? 'var(--amber)' : 'var(--accent)'
+}
+function typeBg(type: string | null) {
+  return (type === 'recipe' || !type) ? 'var(--gold-light)' : 'var(--accent-light)'
+}
+
 function MemoryRow({ memory, isFav, onToggle }: { memory: Memory; isFav: boolean; onToggle: () => void }) {
   const narr = memory.narrator ?? 'Narrator'
   const title = memory.title ?? 'Untitled memory'
-  const initial = narr[0]?.toUpperCase() ?? '?'
+  const t = memory.type ?? 'recipe'
+  const audio = isAudio(memory)
 
   return (
     <div
       className="rk-card-hoverable"
       style={{
-        display: 'flex', alignItems: 'center', gap: '0.75rem',
-        padding: '0.7rem 0.85rem', minHeight: 76,
+        display: 'flex', alignItems: 'center', gap: '0.85rem',
+        padding: '0.85rem 1rem', minHeight: 80,
         background: 'var(--surface)', border: '1px solid var(--border)',
         borderRadius: 14, position: 'relative',
+        borderLeft: `3px solid ${typeAccent(memory.type)}`,
       }}
     >
       <Link
@@ -61,40 +104,28 @@ function MemoryRow({ memory, isFav, onToggle }: { memory: Memory; isFav: boolean
         style={{ position: 'absolute', inset: 0, borderRadius: 14, zIndex: 2 }}
       />
 
-      <div style={{ width: 42, height: 42, borderRadius: '50%', background: 'var(--accent-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-        <span style={{ fontFamily: 'var(--serif)', fontWeight: 700, color: 'var(--accent)', fontSize: '1.05rem' }}>{initial}</span>
+      <div style={{ width: 44, height: 44, borderRadius: 12, background: typeBg(memory.type), display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        {TYPE_ICON[t] ?? TYPE_ICON.recipe}
       </div>
 
       <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ fontFamily: 'var(--serif)', fontWeight: 600, color: 'var(--text)', fontSize: '0.9rem', marginBottom: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-          {isAudio(memory) && <span style={{ fontSize: '0.72rem', color: 'var(--accent)', flexShrink: 0 }}>✦</span>}
+        <p style={{ fontFamily: 'var(--serif)', fontWeight: 600, color: 'var(--text)', fontSize: '0.9rem', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {title}
         </p>
-        <p style={{ fontSize: '0.7rem', color: 'var(--muted)', marginBottom: 5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <p style={{ fontSize: '0.72rem', color: 'var(--muted)', marginBottom: audio ? 5 : 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {narr} · {fmtDate(memory.recorded_at)}
-          {memory.type && memory.type !== 'recipe' && (
-            <span style={{ marginLeft: 6, padding: '1px 7px', borderRadius: 8, background: 'var(--surface)', border: '1px solid var(--border)', fontSize: 10, textTransform: 'capitalize', verticalAlign: 'middle' }}>{memory.type}</span>
-          )}
           {memory.recorded_by_name && (
-            <span style={{ marginLeft: 6, fontSize: 10, color: 'var(--muted)' }}>by {memory.recorded_by_name}</span>
+            <span style={{ marginLeft: 6, fontSize: 10 }}>by {memory.recorded_by_name}</span>
           )}
         </p>
-        <WaveformBars token={memory.token} barCount={18} />
+        {audio && <WaveformBars token={memory.token} barCount={18} />}
       </div>
 
-      <FavoriteHeart favorite={isFav} onToggle={onToggle} style={{ flexShrink: 0, position: 'relative', zIndex: 3 }} />
-
-      <div
-        aria-hidden
-        style={{
-          width: 34, height: 34, borderRadius: '50%',
-          border: '2px solid var(--accent)', color: 'var(--accent)',
-          background: 'transparent',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: '0.7rem', flexShrink: 0, pointerEvents: 'none',
-        }}
-      >
-        ▶
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem', flexShrink: 0 }}>
+        <span style={{ fontSize: 10, fontWeight: 600, color: typeAccent(memory.type), textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+          {t === 'recipe' ? 'Recipe' : t}
+        </span>
+        <FavoriteHeart favorite={isFav} onToggle={onToggle} style={{ position: 'relative', zIndex: 3 }} />
       </div>
     </div>
   )
