@@ -144,7 +144,7 @@ function CapturePageInner() {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [memoryType, setMemoryType] = useState<string>('song')
-  const language = 'te'
+  const language = 'auto'
   const [duration, setDuration] = useState(0)
   const [draft, setDraft] = useState<any>(null)
   const [audioFile, setAudioFile] = useState<File | null>(null)

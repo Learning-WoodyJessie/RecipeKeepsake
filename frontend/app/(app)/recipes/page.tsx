@@ -22,6 +22,7 @@ type Memory = {
   tags: string[] | null
   type?: string | null
   portal_visible?: boolean
+  content?: { title?: string | null } | null
 }
 
 const SORT_OPTIONS = ['Recently added', 'Oldest first', 'A–Z']
@@ -314,15 +315,24 @@ function AudioCard({
 }
 
 // ─── Animated bowl placeholder ───────────────────────────────────────────
-function BowlPlaceholder({ token }: { token: string }) {
+function BowlPlaceholder({ token, title, englishTitle }: { token: string; title?: string | null; englishTitle?: string | null }) {
   // Stable per-card stagger so lids don't all lift simultaneously
   let h = 0
   for (let i = 0; i < token.length; i++) h = (h * 31 + token.charCodeAt(i)) & 0xffffff
   const base = (h % 36) / 10
   const d1 = `${base}s`, d2 = `${base + 0.32}s`, d3 = `${base + 0.64}s`
 
+  // First ASCII letter — prefer title, fall back to englishTitle for Telugu-only titles
+  const letterSource = (title && /[A-Za-z]/.test(title)) ? title : (englishTitle ?? '')
+  const letter = (letterSource.match(/[A-Za-z]/)?.[0] ?? '').toUpperCase()
+
   return (
-    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(140deg, #F5EBD6 0%, #ECD9AE 100%)' }}>
+    <div style={{ position: 'relative', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(140deg, #F5EBD6 0%, #ECD9AE 100%)' }}>
+      {letter && (
+        <span style={{ position: 'absolute', fontSize: 'clamp(56px, 28%, 100px)', fontFamily: 'Georgia, serif', fontWeight: 700, color: '#784A14', opacity: 0.18, lineHeight: 1, pointerEvents: 'none', userSelect: 'none', zIndex: 1 }}>
+          {letter}
+        </span>
+      )}
       <svg viewBox="0 0 100 88" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: '36%', maxWidth: 90, overflow: 'visible' }}>
         {/* Steam — synced with lid open phase */}
         <path className="rk-bowl-steam" style={{ animationDelay: d1 }} d="M 36 36 C 32 27 40 20 36 11 C 33 4 39 -1 36 -7" stroke="rgba(120,74,20,0.4)" strokeWidth="2.3" strokeLinecap="round"/>
@@ -377,6 +387,10 @@ function RecipeCard({
   narratorPhoto: string
   narratorRelationship: string
 }) {
+  // If the stored title is all Telugu script (no ASCII), surface the English dish name from content
+  const hasAscii = memory.title ? /[A-Za-z]/.test(memory.title) : false
+  const englishTitle = (!hasAscii && memory.content?.title) ? memory.content.title : null
+
   return (
     <div className="rk-card-hoverable" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, overflow: 'hidden', boxShadow: '0 2px 10px rgba(45,27,14,0.06), 0 0 22px rgba(24,107,94,0.14)', display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* Food photo */}
@@ -384,7 +398,7 @@ function RecipeCard({
         <Link href={`/memory?token=${memory.token}&from=recipes`} style={{ display: 'block', height: '100%' }}>
           {memory.image_url
             ? <img src={memory.image_url} alt={memory.title ?? ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            : <BowlPlaceholder token={memory.token} />
+            : <BowlPlaceholder token={memory.token} title={memory.title} englishTitle={englishTitle} />
           }
         </Link>
         <CardShareButton token={memory.token} title={memory.title} type={memory.type} narrator={memory.narrator} top={8} right={38} />
@@ -400,9 +414,14 @@ function RecipeCard({
 
       <div style={{ padding: '0.85rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
         {/* Name */}
-        <p style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '0.98rem', color: 'var(--text)', marginBottom: '0.55rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <p style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '0.98rem', color: 'var(--text)', marginBottom: englishTitle ? '0.15rem' : '0.55rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {memory.title ?? 'Untitled'}
         </p>
+        {englishTitle && (
+          <p style={{ fontSize: '0.72rem', color: 'var(--muted)', marginBottom: '0.4rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {englishTitle}
+          </p>
+        )}
 
         {/* Narrator row — no wrap; name truncates if too long */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.4rem', overflow: 'hidden' }}>
