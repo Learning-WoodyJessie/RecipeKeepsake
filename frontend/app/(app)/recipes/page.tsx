@@ -233,10 +233,10 @@ function BookmarkToggle({ inCollection, onToggle }: { inCollection: boolean; onT
 // ─── Equalizer placeholder ────────────────────────────────────────────────
 const EQ_BARS = [13, 19, 25, 29, 31, 29, 25, 19, 13]
 
-function EqualizerPlaceholder() {
+function EqualizerPlaceholder({ title }: { title?: string | null }) {
   return (
-    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(140deg, #E9F0EC 0%, #D7E6DF 100%)' }}>
-      <svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg" style={{ width: '58%', maxWidth: 150 }}>
+    <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(140deg, #E9F0EC 0%, #D7E6DF 100%)', gap: 6, padding: '4px 10px 10px' }}>
+      <svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg" style={{ width: '52%', maxWidth: 130, flexShrink: 0 }}>
         <line x1="4" y1="40" x2="96" y2="40" stroke="rgba(24,107,94,0.2)" strokeWidth="0.6"/>
         {EQ_BARS.map((halfH, i) => (
           <rect
@@ -253,6 +253,25 @@ function EqualizerPlaceholder() {
           />
         ))}
       </svg>
+      {title && (
+        <p style={{
+          margin: 0,
+          fontFamily: 'var(--serif)',
+          fontWeight: 700,
+          fontSize: 'clamp(10px, 3.2vw, 13px)',
+          color: '#1B6B52',
+          textAlign: 'center',
+          lineHeight: 1.3,
+          overflow: 'hidden',
+          display: '-webkit-box',
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: 'vertical',
+          width: '100%',
+          wordBreak: 'break-word',
+        }}>
+          {title}
+        </p>
+      )}
     </div>
   )
 }
@@ -280,7 +299,7 @@ function AudioCard({
     >
       {/* Equalizer thumbnail */}
       <div style={{ position: 'relative', aspectRatio: '4/3', overflow: 'hidden', flexShrink: 0 }}>
-        <EqualizerPlaceholder />
+        <EqualizerPlaceholder title={memory.title} />
         <CardShareButton token={memory.token} title={memory.title} type={memory.type} narrator={memory.narrator} top={6} right={44} />
         <BookmarkToggle inCollection={inCollection} onToggle={e => { e.preventDefault(); onToggleCollection() }} />
         <FavoriteHeart
@@ -292,9 +311,7 @@ function AudioCard({
       </div>
 
       <div style={{ padding: '0.85rem' }}>
-        <p style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '0.95rem', color: 'var(--text)', marginBottom: '0.45rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {memory.title ?? 'Untitled'}
-        </p>
+        <div style={{ marginBottom: '0.35rem' }} />
         {memory.narrator && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.4rem' }}>
             <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'var(--accent-light)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
