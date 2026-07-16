@@ -8,23 +8,18 @@ type Particle = {
   vx: number; vy: number
   opacity: number
   phase: number
-  kind: 'amber' | 'green' | 'terracotta'
 }
 
 function makeParticles(n: number): Particle[] {
-  return Array.from({ length: n }, () => {
-    const r = Math.random()
-    return {
-      x: Math.random(),
-      y: Math.random(),
-      size: 7 + Math.random() * 10,
-      vx: (Math.random() - 0.5) * 0.00022,
-      vy: -(0.0003 + Math.random() * 0.0007),
-      opacity: 0.22 + Math.random() * 0.45,
-      phase: Math.random() * Math.PI * 2,
-      kind: r < 0.38 ? 'amber' : r < 0.72 ? 'green' : 'terracotta',
-    }
-  })
+  return Array.from({ length: n }, () => ({
+    x: Math.random(),
+    y: Math.random(),
+    size: 7 + Math.random() * 10,
+    vx: (Math.random() - 0.5) * 0.00022,
+    vy: -(0.0003 + Math.random() * 0.0007),
+    opacity: 0.22 + Math.random() * 0.45,
+    phase: Math.random() * Math.PI * 2,
+  }))
 }
 
 export default function HomeParticles({ count = 120 }: { count?: number }) {
@@ -65,15 +60,8 @@ export default function HomeParticles({ count = 120 }: { count?: number }) {
 
         const alpha = p.opacity * (0.6 + 0.4 * Math.sin(t * 0.6 + p.phase))
         ctx!.font = `${p.size}px serif`
-        if (p.kind === 'terracotta') {
-          ctx!.fillStyle = `rgba(193,100,70,${alpha})`
-          ctx!.fillText('♡', p.x * W, p.y * H)
-        } else {
-          ctx!.fillStyle = p.kind === 'amber'
-            ? `rgba(201,148,31,${alpha})`
-            : `rgba(24,107,94,${alpha})`
-          ctx!.fillText('♥', p.x * W, p.y * H)
-        }
+        ctx!.fillStyle = `rgba(193,100,70,${alpha})`
+        ctx!.fillText('♡', p.x * W, p.y * H)
       }
 
       rafId = requestAnimationFrame(draw)
