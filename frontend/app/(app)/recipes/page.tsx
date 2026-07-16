@@ -185,7 +185,7 @@ const WA_ICON = (
   </svg>
 )
 
-function CardShareButton({ token, title, type, narrator, top = 8, right = 38 }: { token: string; title: string | null; type?: string | null; narrator?: string | null; top?: number; right?: number }) {
+function CardShareButton({ token, title, type, narrator, top = 6, right = 44 }: { token: string; title: string | null; type?: string | null; narrator?: string | null; top?: number; right?: number }) {
   return (
     <button
       type="button"
@@ -198,7 +198,7 @@ function CardShareButton({ token, title, type, narrator, top = 8, right = 38 }: 
       title="Share on WhatsApp"
       style={{
         position: 'absolute', top, right,
-        width: 26, height: 26, borderRadius: '50%',
+        width: 34, height: 34, borderRadius: '50%',
         background: '#25D366', border: 'none', cursor: 'pointer',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         boxShadow: '0 1px 4px rgba(0,0,0,0.18)', zIndex: 2,
@@ -216,13 +216,13 @@ function BookmarkToggle({ inCollection, onToggle }: { inCollection: boolean; onT
       onClick={onToggle}
       title={inCollection ? 'Remove from Family Recipes' : 'Add to Family Recipes'}
       style={{
-        position: 'absolute', top: 8, left: 8, width: 26, height: 26, borderRadius: '50%',
+        position: 'absolute', top: 6, left: 6, width: 34, height: 34, borderRadius: '50%',
         background: inCollection ? 'var(--accent)' : 'rgba(255,255,255,0.9)',
         border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
         boxShadow: '0 1px 4px rgba(0,0,0,0.15)', zIndex: 2, transition: 'background 0.15s',
       }}
     >
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={inCollection ? 'white' : 'var(--accent)'} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={inCollection ? 'white' : 'var(--accent)'} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
         <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
         <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
       </svg>
@@ -281,13 +281,13 @@ function AudioCard({
       {/* Equalizer thumbnail */}
       <div style={{ position: 'relative', aspectRatio: '4/3', overflow: 'hidden', flexShrink: 0 }}>
         <EqualizerPlaceholder />
-        <CardShareButton token={memory.token} title={memory.title} type={memory.type} narrator={memory.narrator} top={8} right={38} />
+        <CardShareButton token={memory.token} title={memory.title} type={memory.type} narrator={memory.narrator} top={6} right={44} />
         <BookmarkToggle inCollection={inCollection} onToggle={e => { e.preventDefault(); onToggleCollection() }} />
         <FavoriteHeart
           favorite={isFav}
           onToggle={onToggleFav}
           size="0.85rem"
-          style={{ position: 'absolute', top: 8, right: 8, width: 26, height: 26, borderRadius: '50%', background: 'rgba(255,255,255,0.9)' }}
+          style={{ position: 'absolute', top: 6, right: 6, width: 34, height: 34, borderRadius: '50%', background: 'rgba(255,255,255,0.9)' }}
         />
       </div>
 
@@ -322,18 +322,12 @@ function BowlPlaceholder({ token, title, englishTitle }: { token: string; title?
   const base = (h % 36) / 10
   const d1 = `${base}s`, d2 = `${base + 0.32}s`, d3 = `${base + 0.64}s`
 
-  // First ASCII letter — prefer title, fall back to englishTitle for Telugu-only titles
-  const letterSource = (title && /[A-Za-z]/.test(title)) ? title : (englishTitle ?? '')
-  const letter = (letterSource.match(/[A-Za-z]/)?.[0] ?? '').toUpperCase()
+  // Prefer the stored title; fall back to English title for Telugu-only titles
+  const displayTitle = title || englishTitle
 
   return (
-    <div style={{ position: 'relative', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(140deg, #F5EBD6 0%, #ECD9AE 100%)' }}>
-      {letter && (
-        <span style={{ position: 'absolute', fontSize: 'clamp(56px, 28%, 100px)', fontFamily: 'Georgia, serif', fontWeight: 700, color: '#784A14', opacity: 0.18, lineHeight: 1, pointerEvents: 'none', userSelect: 'none', zIndex: 1 }}>
-          {letter}
-        </span>
-      )}
-      <svg viewBox="0 0 100 88" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: '36%', maxWidth: 90, overflow: 'visible' }}>
+    <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(140deg, #F5EBD6 0%, #ECD9AE 100%)', gap: 6, padding: '4px 10px 10px' }}>
+      <svg viewBox="0 0 100 88" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: '30%', maxWidth: 76, overflow: 'visible', flexShrink: 0 }}>
         {/* Steam — synced with lid open phase */}
         <path className="rk-bowl-steam" style={{ animationDelay: d1 }} d="M 36 36 C 32 27 40 20 36 11 C 33 4 39 -1 36 -7" stroke="rgba(120,74,20,0.4)" strokeWidth="2.3" strokeLinecap="round"/>
         <path className="rk-bowl-steam" style={{ animationDelay: d2 }} d="M 50 33 C 46 24 54 17 50 8 C 47 1 53 -4 50 -10" stroke="rgba(120,74,20,0.4)" strokeWidth="2.3" strokeLinecap="round"/>
@@ -365,6 +359,25 @@ function BowlPlaceholder({ token, title, englishTitle }: { token: string; title?
           <ellipse cx="50" cy="5.5" rx="3.5" ry="2.5" fill="#E0B878"/>
         </g>
       </svg>
+      {displayTitle && (
+        <p style={{
+          margin: 0,
+          fontFamily: 'var(--serif)',
+          fontWeight: 700,
+          fontSize: 'clamp(10px, 3.2vw, 13px)',
+          color: '#784A14',
+          textAlign: 'center',
+          lineHeight: 1.3,
+          overflow: 'hidden',
+          display: '-webkit-box',
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: 'vertical',
+          width: '100%',
+          wordBreak: 'break-word',
+        }}>
+          {displayTitle}
+        </p>
+      )}
     </div>
   )
 }
@@ -401,26 +414,32 @@ function RecipeCard({
             : <BowlPlaceholder token={memory.token} title={memory.title} englishTitle={englishTitle} />
           }
         </Link>
-        <CardShareButton token={memory.token} title={memory.title} type={memory.type} narrator={memory.narrator} top={8} right={38} />
+        <CardShareButton token={memory.token} title={memory.title} type={memory.type} narrator={memory.narrator} top={6} right={44} />
         <BookmarkToggle inCollection={inCollection} onToggle={e => { e.preventDefault(); onToggleCollection() }} />
         {/* Heart toggle */}
         <FavoriteHeart
           favorite={isFav}
           onToggle={onToggleFav}
           size="0.85rem"
-          style={{ position: 'absolute', top: 8, right: 8, width: 26, height: 26, borderRadius: '50%', background: 'rgba(255,255,255,0.9)', boxShadow: '0 2px 6px rgba(0,0,0,0.12)' }}
+          style={{ position: 'absolute', top: 6, right: 6, width: 34, height: 34, borderRadius: '50%', background: 'rgba(255,255,255,0.9)', boxShadow: '0 2px 6px rgba(0,0,0,0.12)' }}
         />
       </div>
 
       <div style={{ padding: '0.85rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
-        {/* Name */}
-        <p style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '0.98rem', color: 'var(--text)', marginBottom: englishTitle ? '0.15rem' : '0.55rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {memory.title ?? 'Untitled'}
-        </p>
-        {englishTitle && (
-          <p style={{ fontSize: '0.72rem', color: 'var(--muted)', marginBottom: '0.4rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {englishTitle}
-          </p>
+        {/* Name — shown here only when card has a real image; otherwise it lives inside BowlPlaceholder */}
+        {memory.image_url ? (
+          <>
+            <p style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '0.98rem', color: 'var(--text)', marginBottom: englishTitle ? '0.15rem' : '0.55rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {memory.title ?? 'Untitled'}
+            </p>
+            {englishTitle && (
+              <p style={{ fontSize: '0.72rem', color: 'var(--muted)', marginBottom: '0.4rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {englishTitle}
+              </p>
+            )}
+          </>
+        ) : (
+          <div style={{ marginBottom: '0.35rem' }} />
         )}
 
         {/* Narrator row — no wrap; name truncates if too long */}
