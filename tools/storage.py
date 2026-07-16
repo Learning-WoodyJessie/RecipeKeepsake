@@ -196,6 +196,18 @@ def get_recipe_by_token(token: str) -> dict:
     return recipe
 
 
+def get_recipe_by_token_prefix(prefix: str) -> dict:
+    """Fetch a memory by the first 8 chars of its token (used by short share URLs)."""
+    sb = _client()
+    result = sb.table("memories").select("*").like("token", f"{prefix}%").limit(1).execute()
+    if not result.data:
+        raise ValueError(f"No memory found for token prefix {prefix!r}")
+    recipe = result.data[0]
+    if recipe.get("audio_url"):
+        recipe["audio_url"] = _sign_audio(recipe["audio_url"], sb)
+    return recipe
+
+
 def get_recipe_by_slug(slug: str) -> dict:
     """Fetch a single recipe by its human-readable slug. audio_url replaced with a fresh signed URL."""
     sb = _client()

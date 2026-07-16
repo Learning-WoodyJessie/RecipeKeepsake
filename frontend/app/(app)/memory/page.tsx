@@ -12,6 +12,7 @@ import AudioPlayer from '@/components/AudioPlayer'
 import LanguageSwitcher from '@/components/LanguageSwitcher'
 import { readFavorites, toggleFavorite as toggleFav } from '@/lib/favorites'
 import { buildMemoryShareMessage, toWhatsAppUrl } from '@/lib/share'
+import { buildMemoryShortUrl } from '@/lib/url'
 
 type Ingredient = { item: string; quantity: string }
 type MemoryType = 'recipe' | 'song' | 'story' | 'fable' | 'wisdom' | 'poem'
@@ -335,9 +336,7 @@ function MemoryDetail() {
   }
 
   function openWhatsApp() {
-    const memoryUrl = memory?.slug
-      ? `${window.location.origin}/memory/${memory.slug}`
-      : `${window.location.origin}/memory?token=${token}`
+    const memoryUrl = buildMemoryShortUrl(window.location.origin, memory?.narrator, memory?.type, token)
     // Only substitute the viewer's own family portal when they own this memory —
     // otherwise a non-owner who happens to belong to their own unrelated family
     // group would forward a link to THEIR portal instead of this memory.
