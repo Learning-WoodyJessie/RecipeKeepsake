@@ -156,6 +156,7 @@ function CapturePageInner() {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const extRef = useRef<string>('.webm')
   const audioCtxRef = useRef<AudioContext | null>(null)
+  const analyserStreamRef = useRef<MediaStream | null>(null)
   const rafRef = useRef<number | null>(null)
 
   const fmt = (s: number) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`
@@ -164,7 +165,12 @@ function CapturePageInner() {
     const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
     const ctx = new AudioCtx()
     audioCtxRef.current = ctx
-    const source = ctx.createMediaStreamSource(stream)
+    // Clone the stream so the AudioContext analyser doesn't share tracks with
+    // MediaRecorder. On Android/Windows Chrome, createMediaStreamSource on a
+    // shared stream causes MediaRecorder to capture empty audio frames.
+    const analyserStream = stream.clone()
+    analyserStreamRef.current = analyserStream
+    const source = ctx.createMediaStreamSource(analyserStream)
     const analyser = ctx.createAnalyser()
     analyser.fftSize = 64
     source.connect(analyser)
@@ -188,6 +194,8 @@ function CapturePageInner() {
     rafRef.current = null
     audioCtxRef.current?.close().catch(() => {})
     audioCtxRef.current = null
+    analyserStreamRef.current?.getTracks().forEach(t => t.stop())
+    analyserStreamRef.current = null
     setLevels(Array(20).fill(0.1))
   }
 
@@ -196,6 +204,7 @@ function CapturePageInner() {
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current)
       audioCtxRef.current?.close().catch(() => {})
+      analyserStreamRef.current?.getTracks().forEach(t => t.stop())
     }
   }, [])
 
@@ -206,23 +215,38 @@ function CapturePageInner() {
       if (!stream) { setError('Microphone access denied. Please allow microphone access and try again.'); setStage('error'); return }
       const { mimeType, ext } = pickMimeType()
       extRef.current = ext
+      console.log('[capture] start mime=%s ext=%s tracks=%d', mimeType, ext, stream.getAudioTracks().length)
       const mr = new MediaRecorder(stream, mimeType ? { mimeType } : {})
       mrRef.current = mr
       chunksRef.current = []
       startLevelMeter(stream)
-      mr.ondataavailable = e => { if (e.data.size > 0) chunksRef.current.push(e.data) }
+      mr.ondataavailable = e => {
+        console.log('[capture] dataavailable size=%d', e.data.size)
+        if (e.data.size > 0) chunksRef.current.push(e.data)
+      }
+      mr.onerror = (e) => {
+        console.error('[capture] MediaRecorder error', e)
+      }
       mr.onstop = () => {
+        const totalBytes = chunksRef.current.reduce((s, c) => s + c.size, 0)
+        const blob = new Blob(chunksRef.current, { type: mr.mimeType })
+        console.log('[capture] stop chunks=%d totalBytes=%d blobSize=%d blobType=%s',
+          chunksRef.current.length, totalBytes, blob.size, blob.type)
+        if (blob.size < 1000) {
+          console.warn('[capture] blob is suspiciously small — audio may not have been captured')
+        }
         stream.getTracks().forEach(t => t.stop())
         stopLevelMeter()
-        const blob = new Blob(chunksRef.current, { type: mr.mimeType })
         if (mode === 'direct') saveAudioDirect(blob)
         else processAudio(blob)
       }
       mr.start()
+      console.log('[capture] MediaRecorder started state=%s', mr.state)
       setStage('recording')
       setDuration(0)
       timerRef.current = setInterval(() => setDuration(d => d + 1), 1000)
     } catch (e: unknown) {
+      console.error('[capture] startRecording failed', e)
       setError((e as Error).message || 'Could not start recording. Please try again.')
       setStage('error')
     }
