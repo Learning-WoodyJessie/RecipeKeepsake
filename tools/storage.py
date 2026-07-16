@@ -240,6 +240,10 @@ def list_recipes(user_id: str) -> list:
     for r in recipes:
         if r.get("audio_url"):
             r["audio_url"] = _sign_audio(r["audio_url"], sb)
+        # Extract only the English title from content to avoid sending the full JSONB blob
+        content = r.pop("content", None)
+        if isinstance(content, dict):
+            r["content_title"] = content.get("title")
     return recipes
 
 

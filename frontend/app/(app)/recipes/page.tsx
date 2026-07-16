@@ -22,7 +22,7 @@ type Memory = {
   tags: string[] | null
   type?: string | null
   portal_visible?: boolean
-  content?: { title?: string | null } | null
+  content_title?: string | null
 }
 
 const SORT_OPTIONS = ['Recently added', 'Oldest first', 'A–Z']
@@ -389,7 +389,7 @@ function RecipeCard({
 }) {
   // If the stored title is all Telugu script (no ASCII), surface the English dish name from content
   const hasAscii = memory.title ? /[A-Za-z]/.test(memory.title) : false
-  const englishTitle = (!hasAscii && memory.content?.title) ? memory.content.title : null
+  const englishTitle = (!hasAscii && memory.content_title) ? memory.content_title : null
 
   return (
     <div className="rk-card-hoverable" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, overflow: 'hidden', boxShadow: '0 2px 10px rgba(45,27,14,0.06), 0 0 22px rgba(24,107,94,0.14)', display: 'flex', flexDirection: 'column', height: '100%' }}>
