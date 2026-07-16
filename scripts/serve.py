@@ -537,6 +537,24 @@ async def get_memory_by_short_token(prefix: str, user: dict = Depends(require_au
         raise HTTPException(status_code=404, detail="Memory not found")
 
 
+@app.get("/memory/{shortcode}")
+async def memory_shortcode_redirect(shortcode: str):
+    """Resolve share URLs like /memory/smitha-recipe-42329f17 → /memory?token=<full-token>.
+
+    No auth required — the memory page itself enforces auth after redirect.
+    Extracts the 8-char token prefix from the last hyphen-separated segment.
+    """
+    prefix = shortcode.split("-")[-1]
+    if len(prefix) != 8:
+        return RedirectResponse(url="/recipes", status_code=302)
+    try:
+        from tools.storage import get_recipe_by_token_prefix
+        recipe = get_recipe_by_token_prefix(prefix)
+        return RedirectResponse(url=f"/memory?token={recipe['token']}", status_code=302)
+    except Exception:
+        return RedirectResponse(url="/recipes", status_code=302)
+
+
 @app.get("/recipe/by-slug/{slug}")
 async def get_recipe_by_slug_endpoint(slug: str, user: dict = Depends(require_auth)):
     """Fetch a single recipe by its human-readable slug."""
