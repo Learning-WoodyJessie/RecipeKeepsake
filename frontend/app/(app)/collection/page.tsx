@@ -142,7 +142,7 @@ function RightPanel() {
         </svg>
       ),
       title: 'One archive, whole family',
-      desc: 'Every memory added here is instantly visible to everyone in your group — no links to share, no apps to install.',
+      desc: 'Every memory added here is instantly visible to everyone in your group. No links to share, no apps to install.',
     },
     {
       icon: (
@@ -151,7 +151,7 @@ function RightPanel() {
         </svg>
       ),
       title: 'Their voice, unchanged',
-      desc: 'Recipes, songs, and stories stay exactly as they were captured — grandma\'s words, not a summary of them.',
+      desc: 'Recipes, songs, and stories stay exactly as they were captured. Grandma\'s words, not a summary of them.',
     },
     {
       icon: (
@@ -160,13 +160,13 @@ function RightPanel() {
         </svg>
       ),
       title: 'A gift that outlasts you',
-      desc: 'The memories you share here become a living keepsake — something children and grandchildren can return to.',
+      desc: 'The memories you share here become a living keepsake, something children and grandchildren can return to.',
     },
   ]
 
   const quote = {
     text: '"The stories we tell ourselves about our families are the most important stories we will ever hear."',
-    attr: '— Chitra Banerjee Divakaruni',
+    attr: 'Chitra Banerjee Divakaruni',
   }
 
   return (
