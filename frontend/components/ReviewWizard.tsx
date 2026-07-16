@@ -301,11 +301,25 @@ export default function ReviewWizard({ draft, audioFile, narrator: narratorProp,
         )}
       </div>
 
-      {error && (
-        <div style={{ color: 'var(--accent)', fontSize: '0.82rem', marginBottom: '0.75rem', padding: '0.6rem 0.85rem', background: '#FFF5F5', borderRadius: 8 }}>
+      {error && (error.includes('memory_cap_reached') ? (
+        <div style={{ border: '1px solid var(--border)', borderRadius: 14, padding: '1.1rem 1.25rem', marginBottom: '1rem', textAlign: 'center', background: 'var(--surface)' }}>
+          <p style={{ fontSize: '1.3rem', marginBottom: '0.35rem' }}>🔒</p>
+          <p style={{ fontWeight: 700, color: 'var(--text)', fontSize: '0.9rem', marginBottom: '0.3rem' }}>You've reached your memory limit</p>
+          <p style={{ fontSize: '0.8rem', color: 'var(--muted)', marginBottom: '0.9rem', lineHeight: 1.5 }}>
+            Unlimited storage is coming soon. Drop us an email and we'll notify you the moment it's ready.
+          </p>
+          <a
+            href="mailto:support@theechoesofhome.com?subject=Unlimited memories — please notify me"
+            style={{ display: 'inline-block', padding: '0.5rem 1.25rem', background: 'var(--accent)', color: 'white', borderRadius: 10, fontSize: '0.82rem', fontWeight: 700, textDecoration: 'none' }}
+          >
+            Contact support
+          </a>
+        </div>
+      ) : (
+        <div style={{ color: 'var(--accent)', fontSize: '0.82rem', marginBottom: '0.75rem', padding: '0.6rem 0.85rem', background: 'var(--accent-light)', borderRadius: 8 }}>
           {error}
         </div>
-      )}
+      ))}
 
       {/* Sticky action bar */}
       <div style={STICKY_BAR}>
