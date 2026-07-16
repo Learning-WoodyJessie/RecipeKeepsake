@@ -231,7 +231,7 @@ def list_recipes(user_id: str) -> list:
     sb = _client()
     result = (
         sb.table("memories")
-        .select("id, token, title, narrator, recorded_at, image_url, audio_url, tags, type, language, portal_visible, slug, content")
+        .select("id, token, title, narrator, recorded_at, image_url, audio_url, tags, type, language, portal_visible, slug")
         .eq("user_id", user_id)
         .order("recorded_at", desc=True)
         .execute()
@@ -240,11 +240,40 @@ def list_recipes(user_id: str) -> list:
     for r in recipes:
         if r.get("audio_url"):
             r["audio_url"] = _sign_audio(r["audio_url"], sb)
-        # Extract only the English title from content to avoid sending the full JSONB blob
-        content = r.pop("content", None)
-        if isinstance(content, dict):
-            r["content_title"] = content.get("title")
+    # For records with no ASCII in the title, fetch the English dish name from content
+    _enrich_content_titles(recipes, sb)
     return recipes
+
+
+def _enrich_content_titles(recipes: list, sb) -> None:
+    """Fetch content->>'title' for records whose stored title has no ASCII letters.
+
+    Runs a single targeted query rather than pulling full JSONB blobs for every card.
+    """
+    def _needs_english(r: dict) -> bool:
+        t = r.get("title") or ""
+        return bool(t) and not any(c.isalpha() and c.isascii() for c in t)
+
+    tokens = [r["token"] for r in recipes if _needs_english(r)]
+    if not tokens:
+        return
+    try:
+        rows = (
+            sb.table("memories")
+            .select("token, content")
+            .in_("token", tokens)
+            .execute()
+        ).data
+        title_map = {}
+        for row in rows:
+            c = row.get("content")
+            if isinstance(c, dict):
+                title_map[row["token"]] = c.get("title")
+        for r in recipes:
+            if r["token"] in title_map:
+                r["content_title"] = title_map[r["token"]]
+    except Exception:
+        pass  # non-fatal: card falls back to bowl without letter
 
 
 def get_cached_translation(token: str, lang: str) -> dict | None:
