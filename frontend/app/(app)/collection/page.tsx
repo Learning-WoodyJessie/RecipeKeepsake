@@ -131,6 +131,75 @@ function MemoryRow({ memory, isFav, onToggle }: { memory: Memory; isFav: boolean
   )
 }
 
+// ─── Right panel ─────────────────────────────────────────────────────────────
+function RightPanel() {
+  const items = [
+    {
+      icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+        </svg>
+      ),
+      title: 'One archive, whole family',
+      desc: 'Every memory added here is instantly visible to everyone in your group — no links to share, no apps to install.',
+    },
+    {
+      icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <path d="M3 18v-6a9 9 0 0118 0v6"/><path d="M21 19a2 2 0 01-2 2h-1a2 2 0 01-2-2v-3a2 2 0 012-2h3zM3 19a2 2 0 002 2h1a2 2 0 002-2v-3a2 2 0 00-2-2H3z"/>
+        </svg>
+      ),
+      title: 'Their voice, unchanged',
+      desc: 'Recipes, songs, and stories stay exactly as they were captured — grandma\'s words, not a summary of them.',
+    },
+    {
+      icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <path d="M20 12V22H4V12"/><path d="M22 7H2v5h20V7z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/>
+        </svg>
+      ),
+      title: 'A gift that outlasts you',
+      desc: 'The memories you share here become a living keepsake — something children and grandchildren can return to.',
+    },
+  ]
+
+  const quote = {
+    text: '"The stories we tell ourselves about our families are the most important stories we will ever hear."',
+    attr: '— Chitra Banerjee Divakaruni',
+  }
+
+  return (
+    <aside style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, padding: '1.25rem' }}>
+        <p style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '0.95rem', color: 'var(--text)', marginBottom: '1rem' }}>
+          Why share with your family?
+        </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {items.map((item, i) => (
+            <div key={i} style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+              <div style={{ width: 34, height: 34, borderRadius: 10, background: 'var(--accent-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: 'var(--accent)' }}>
+                {item.icon}
+              </div>
+              <div>
+                <p style={{ fontSize: '0.83rem', fontWeight: 700, color: 'var(--text)', marginBottom: '0.15rem' }}>{item.title}</p>
+                <p style={{ fontSize: '0.78rem', color: 'var(--muted)', lineHeight: 1.5 }}>{item.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ background: 'var(--gold-light)', border: '1px solid var(--border)', borderRadius: 16, padding: '1.25rem' }}>
+        <p style={{ fontFamily: 'var(--serif)', fontSize: '0.88rem', color: 'var(--text2)', lineHeight: 1.65, marginBottom: '0.6rem', fontStyle: 'italic' }}>
+          {quote.text}
+        </p>
+        <p style={{ fontSize: '0.72rem', color: 'var(--muted)', fontWeight: 600 }}>{quote.attr}</p>
+      </div>
+    </aside>
+  )
+}
+
 export default function CollectionPage() {
   const [memories, setMemories] = useState<Memory[]>([])
   const [loading, setLoading] = useState(true)
@@ -159,7 +228,14 @@ export default function CollectionPage() {
   }, [memories, activeType])
 
   return (
-    <div style={{ maxWidth: 800, margin: '0 auto', padding: 'clamp(1rem, 3vw, 1.75rem)' }}>
+    <div style={{ padding: '1.5rem 1.75rem 2.5rem' }}>
+      <style>{`
+        .rk-col-wrap { max-width: 1200px; margin: 0 auto; }
+        .rk-col-cols { display: grid; grid-template-columns: 1fr; gap: 1.25rem; }
+        .rk-col-cols > * { min-width: 0; }
+        @media (min-width: 860px) { .rk-col-cols { grid-template-columns: 1fr 272px; align-items: start; } }
+      `}</style>
+      <div className="rk-col-wrap">
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', marginBottom: '0.35rem' }}>
         <svg width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style={{ flexShrink: 0 }}>
           <circle cx="26" cy="26" r="26" fill="var(--gold-light)" />
@@ -184,6 +260,8 @@ export default function CollectionPage() {
         Memories your family has chosen to share with everyone in the group.
       </p>
 
+      <div className="rk-col-cols">
+      <div>
       {loading ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
           {Array.from({ length: 4 }, (_, i) => <SkeletonRow key={i} />)}
@@ -267,6 +345,10 @@ export default function CollectionPage() {
           </div>
         </>
       )}
+      </div>
+      <RightPanel />
+      </div>
+      </div>
     </div>
   )
 }
