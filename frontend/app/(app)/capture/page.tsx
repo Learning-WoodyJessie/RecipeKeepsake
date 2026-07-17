@@ -216,7 +216,10 @@ function CapturePageInner() {
       const { mimeType, ext } = pickMimeType()
       extRef.current = ext
       console.log('[capture] start mime=%s ext=%s tracks=%d', mimeType, ext, stream.getAudioTracks().length)
-      const mr = new MediaRecorder(stream, mimeType ? { mimeType } : {})
+      const mr = new MediaRecorder(stream, {
+        ...(mimeType ? { mimeType } : {}),
+        audioBitsPerSecond: 32000,
+      })
       mrRef.current = mr
       chunksRef.current = []
       startLevelMeter(stream)
