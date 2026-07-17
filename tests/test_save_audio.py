@@ -8,6 +8,8 @@ from unittest.mock import patch, MagicMock
 from fastapi.testclient import TestClient
 from scripts.serve import app, require_auth
 
+_client = TestClient(app)
+
 _DUMMY_USER = {
     "sub": "test-user-id",
     "email": "test@example.com",
@@ -38,8 +40,7 @@ class TestSaveAudioTranscription:
                  patch("tools.storage.insert_recipe", side_effect=_mock_insert), \
                  patch("tools.storage._sign_audio", return_value="https://signed.url/audio.mp3"), \
                  patch("tools.storage._client"):
-                client = TestClient(app)
-                response = client.post(
+                response = _client.post(
                     "/save-audio",
                     files={"audio": ("test.mp3", io.BytesIO(_MP3_MAGIC), "audio/mpeg")},
                     data={"title": "Lullaby", "memory_type": "song"},
@@ -70,8 +71,7 @@ class TestSaveAudioTranscription:
                  patch("tools.storage.insert_recipe", side_effect=capture_insert), \
                  patch("tools.storage._sign_audio", return_value="https://signed.url/audio.mp3"), \
                  patch("tools.storage._client"):
-                client = TestClient(app)
-                client.post(
+                _client.post(
                     "/save-audio",
                     files={"audio": ("test.mp3", io.BytesIO(_MP3_MAGIC), "audio/mpeg")},
                     data={"title": "Lullaby", "memory_type": "song"},
@@ -93,8 +93,7 @@ class TestSaveAudioTranscription:
                  patch("tools.storage.insert_recipe", side_effect=_mock_insert), \
                  patch("tools.storage._sign_audio", return_value="https://signed.url/audio.mp3"), \
                  patch("tools.storage._client"):
-                client = TestClient(app)
-                response = client.post(
+                response = _client.post(
                     "/save-audio",
                     files={"audio": ("test.mp3", io.BytesIO(_MP3_MAGIC), "audio/mpeg")},
                     data={"title": "Lullaby", "original_text": "ఒక పాట", "memory_type": "song"},
@@ -119,8 +118,7 @@ class TestSaveAudioTranscription:
                  patch("tools.storage.insert_recipe", side_effect=_mock_insert), \
                  patch("tools.storage._sign_audio", return_value="https://signed.url/audio.mp3"), \
                  patch("tools.storage._client"):
-                client = TestClient(app)
-                response = client.post(
+                response = _client.post(
                     "/save-audio",
                     files={"audio": ("test.mp3", io.BytesIO(_MP3_MAGIC), "audio/mpeg")},
                     data={"title": "Lullaby", "memory_type": "song"},
@@ -145,8 +143,7 @@ class TestSaveAudioTranscription:
                  patch("tools.storage.insert_recipe", side_effect=_mock_insert), \
                  patch("tools.storage._sign_audio", return_value="https://signed.url/audio.mp3"), \
                  patch("tools.storage._client"):
-                client = TestClient(app)
-                response = client.post(
+                response = _client.post(
                     "/save-audio",
                     files={"audio": ("test.mp3", io.BytesIO(_MP3_MAGIC), "audio/mpeg")},
                     data={"title": "Biryani", "memory_type": "recipe"},

@@ -7,6 +7,8 @@ from fastapi.testclient import TestClient
 
 from scripts.serve import app, require_auth
 
+_client = TestClient(app)
+
 JPEG = b"\xff\xd8\xff" + b"\x00" * 100
 PNG  = b"\x89PNG\r\n\x1a\n" + b"\x00" * 100
 WEBP = b"RIFF" + b"\x00" * 100
@@ -38,8 +40,7 @@ class TestUploadMemoryPhotoEndpoint:
             mock_sb.storage.from_("memory-photos").get_public_url.return_value = "https://sb.io/photo.jpg"
             mock_client_fn.return_value = mock_sb
             app.dependency_overrides[require_auth] = _auth_u1
-            client = TestClient(app)
-            res = client.post(
+            res = _client.post(
                 "/memories/tok1/photo",
                 files={"photo": ("dish.jpg", JPEG, "image/jpeg")},
                 headers={"Authorization": "Bearer fake"},
@@ -56,8 +57,7 @@ class TestUploadMemoryPhotoEndpoint:
                 MagicMock(data=recipe)
             mock_client_fn.return_value = mock_sb
             app.dependency_overrides[require_auth] = _auth_u1
-            client = TestClient(app)
-            res = client.post(
+            res = _client.post(
                 "/memories/tok1/photo",
                 files={"photo": ("dish.jpg", JPEG, "image/jpeg")},
                 headers={"Authorization": "Bearer fake"},
@@ -72,8 +72,7 @@ class TestUploadMemoryPhotoEndpoint:
                 Exception("not found")
             mock_client_fn.return_value = mock_sb
             app.dependency_overrides[require_auth] = _auth_u1
-            client = TestClient(app)
-            res = client.post(
+            res = _client.post(
                 "/memories/bad/photo",
                 files={"photo": ("dish.jpg", JPEG, "image/jpeg")},
                 headers={"Authorization": "Bearer fake"},
@@ -113,8 +112,7 @@ class TestValidateImageUpload:
         try:
             with patch("tools.storage._client"), \
                  patch("scripts.serve.check_rate_limit_db"):
-                client = TestClient(app)
-                return client.post(
+                return _client.post(
                     "/memories/tok1/photo",
                     files={"photo": (filename, data, content_type)},
                     headers={"Authorization": "Bearer fake"},
