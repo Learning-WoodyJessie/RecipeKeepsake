@@ -12,7 +12,7 @@ import ReviewWizard from '@/components/ReviewWizard'
 import SingleScreenReview from '@/components/SingleScreenReview'
 import { api } from '@/lib/api'
 
-type Stage = 'idle' | 'recording' | 'processing' | 'review' | 'direct-review' | 'error'
+type Stage = 'idle' | 'recording' | 'processing' | 'preview' | 'review' | 'direct-review' | 'error'
 
 const TIPS_RECIPE = [
   {
@@ -158,6 +158,9 @@ function CapturePageInner() {
   const audioCtxRef = useRef<AudioContext | null>(null)
   const analyserStreamRef = useRef<MediaStream | null>(null)
   const rafRef = useRef<number | null>(null)
+  const blobRef = useRef<Blob | null>(null)
+  const previewUrlRef = useRef<string | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
 
   const fmt = (s: number) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`
 
@@ -199,12 +202,13 @@ function CapturePageInner() {
     setLevels(Array(20).fill(0.1))
   }
 
-  // Safety net if the user navigates away mid-recording
+  // Safety net if the user navigates away mid-recording or mid-preview
   useEffect(() => {
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current)
       audioCtxRef.current?.close().catch(() => {})
       analyserStreamRef.current?.getTracks().forEach(t => t.stop())
+      if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current)
     }
   }, [])
 
@@ -240,8 +244,12 @@ function CapturePageInner() {
         }
         stream.getTracks().forEach(t => t.stop())
         stopLevelMeter()
-        if (mode === 'direct') saveAudioDirect(blob)
-        else processAudio(blob)
+        blobRef.current = blob
+        const url = URL.createObjectURL(blob)
+        if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current)
+        previewUrlRef.current = url
+        setPreviewUrl(url)
+        setStage('preview')
       }
       mr.start()
       console.log('[capture] MediaRecorder started state=%s', mr.state)
@@ -258,7 +266,25 @@ function CapturePageInner() {
   function stopRecording() {
     if (timerRef.current) clearInterval(timerRef.current)
     mrRef.current?.stop()
+    // stage transitions to 'preview' inside mr.onstop once the blob is ready
+  }
+
+  function confirmRecording() {
+    const blob = blobRef.current
+    if (!blob) return
+    if (previewUrlRef.current) { URL.revokeObjectURL(previewUrlRef.current); previewUrlRef.current = null }
+    setPreviewUrl(null)
     setStage('processing')
+    if (mode === 'direct') saveAudioDirect(blob)
+    else processAudio(blob)
+  }
+
+  function discardRecording() {
+    if (previewUrlRef.current) { URL.revokeObjectURL(previewUrlRef.current); previewUrlRef.current = null }
+    setPreviewUrl(null)
+    blobRef.current = null
+    setDuration(0)
+    setStage('idle')
   }
 
   async function processAudio(blob: Blob) {
@@ -546,6 +572,56 @@ function CapturePageInner() {
                 <p style={{ fontSize: '0.82rem', color: '#DC2626', marginBottom: '1.25rem' }}>Recording… tap to stop</p>
                 <LiveWaveform levels={levels} />
               </>
+            )}
+
+            {stage === 'preview' && previewUrl && (
+              <div style={{ padding: '0.5rem 0 0.25rem' }}>
+                <p style={{ fontSize: '0.82rem', color: 'var(--muted)', marginBottom: '0.85rem' }}>
+                  Listen back — does it sound right?
+                </p>
+                <audio
+                  src={previewUrl}
+                  controls
+                  style={{ width: '100%', marginBottom: '1.25rem', borderRadius: 8 }}
+                />
+                <p style={{ fontSize: '0.72rem', color: 'var(--muted)', marginBottom: '1.1rem', lineHeight: 1.5 }}>
+                  {fmt(duration)} recorded · {(blobRef.current ? (blobRef.current.size / 1024).toFixed(0) : '–')} KB
+                </p>
+                <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
+                  <button
+                    onClick={discardRecording}
+                    style={{
+                      padding: '0.65rem 1.5rem',
+                      borderRadius: 10,
+                      border: '1px solid var(--border)',
+                      background: 'var(--surface)',
+                      color: 'var(--text2)',
+                      fontWeight: 600,
+                      fontSize: '0.9rem',
+                      cursor: 'pointer',
+                      fontFamily: 'var(--sans)',
+                    }}
+                  >
+                    Re-record
+                  </button>
+                  <button
+                    onClick={confirmRecording}
+                    style={{
+                      padding: '0.65rem 1.5rem',
+                      borderRadius: 10,
+                      border: 'none',
+                      background: 'var(--accent)',
+                      color: 'white',
+                      fontWeight: 600,
+                      fontSize: '0.9rem',
+                      cursor: 'pointer',
+                      fontFamily: 'var(--sans)',
+                    }}
+                  >
+                    Sounds good →
+                  </button>
+                </div>
+              </div>
             )}
 
             {stage === 'processing' && (
