@@ -148,11 +148,9 @@ function MemoryDetail() {
     const search = new URLSearchParams(window.location.search)
     setFrom(search.get('from') ?? '')
     const t = search.get('token')
-    console.log('[memory] mount pathname:', window.location.pathname, 'search:', window.location.search, 'token:', t)
     if (t) { setToken(t); return }
     const segs = window.location.pathname.split('/').filter(Boolean)
     const slug = segs.length === 2 && segs[0] === 'memory' ? segs[1] : null
-    console.log('[memory] no token found, slug:', slug, '→', slug ? 'resolving slug' : 'redirecting to /recipes')
     if (slug) {
       api.recipes.getBySlug(slug)
         .then((m: Memory) => setToken(m.token))
