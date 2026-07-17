@@ -70,8 +70,8 @@ function MemoryDetail() {
   const params = useSearchParams()
   const router = useRouter()
   const from = params.get('from') ?? ''
-  const backHref = from === 'moments' ? '/moments' : from === 'home' ? '/home' : '/recipes'
-  const backLabel = from === 'moments' ? 'Moments' : from === 'home' ? 'Home' : 'All Recipes'
+  const backHref = from === 'moments' ? '/moments' : from === 'home' ? '/home' : from === 'collection' ? '/collection' : '/recipes'
+  const backLabel = from === 'moments' ? 'Moments' : from === 'home' ? 'Home' : from === 'collection' ? 'Family Collection' : 'All Recipes'
   // Read token from window.location.search directly — useSearchParams() can lag
   // during client-side navigation, causing tokenReady to initialise false and
   // the slug-resolution effect to fire a spurious redirect to /recipes.
