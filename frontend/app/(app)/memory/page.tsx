@@ -71,7 +71,14 @@ function MemoryDetail() {
   const [from, setFrom] = useState('')
   const backHref = from === 'moments' ? '/moments' : from === 'home' ? '/home' : from === 'collection' ? '/collection' : '/recipes'
   const backLabel = from === 'moments' ? 'Moments' : from === 'home' ? 'Home' : from === 'collection' ? 'Family Collection' : 'All Recipes'
-  const [token, setToken] = useState('')
+  // Lazy init reads the URL synchronously — avoids an extra render cycle before
+  // the API call starts. The mount effect below is a silent fallback for the rare
+  // case where concurrent mode renders before pushState has fired.
+  const [token, setToken] = useState(() =>
+    typeof window !== 'undefined'
+      ? new URLSearchParams(window.location.search).get('token') ?? ''
+      : ''
+  )
 
   const [memory, setMemory] = useState<Memory | null>(null)
   const [translated, setTranslated] = useState<Partial<Memory> | null>(null)
@@ -142,11 +149,12 @@ function MemoryDetail() {
     }
   }
 
-  // Resolve token on mount — window.location is always committed by this point,
-  // no useSearchParams lag. Also sets 'from' for the back button.
+  // Mount effect: sets 'from' for the back button, and resolves the token for
+  // slug URLs or when the lazy init missed it (concurrent mode edge case).
   useEffect(() => {
     const search = new URLSearchParams(window.location.search)
     setFrom(search.get('from') ?? '')
+    if (token) return  // lazy init already read the token — nothing more to do
     const t = search.get('token')
     if (t) { setToken(t); return }
     const segs = window.location.pathname.split('/').filter(Boolean)
@@ -158,7 +166,7 @@ function MemoryDetail() {
     } else {
       router.replace('/recipes')
     }
-  }, [router])
+  }, [router, token])
 
   useEffect(() => {
     if (!token) return
@@ -175,7 +183,8 @@ function MemoryDetail() {
   }, [token])
 
   useEffect(() => {
-    api.family.getMyGroup().then((d: { portal_url?: string; invite_url?: string }) => {
+    api.family.getMyGroup().then((d: { group: unknown; portal_url?: string; invite_url?: string }) => {
+      if (!d.group) return
       setIsInGroup(true)
       setPortalUrl(d?.portal_url ?? '')
       setInviteUrl(d?.invite_url ?? '')
@@ -346,7 +355,24 @@ function MemoryDetail() {
 
   const display = translated ?? memory
 
-  if (loading) return <div style={{ padding: '2rem', color: 'var(--muted)' }}>Loading…</div>
+  if (loading) return (
+    <div style={{ maxWidth: 720, margin: '0 auto', padding: '1.5rem 2rem' }}>
+      {/* Title + date row */}
+      <div className="rk-skeleton" style={{ height: 32, width: '65%', borderRadius: 8, marginBottom: 10 }} />
+      <div className="rk-skeleton" style={{ height: 14, width: '30%', borderRadius: 6, marginBottom: 24 }} />
+      {/* Image placeholder */}
+      <div className="rk-skeleton" style={{ width: '100%', aspectRatio: '16/9', borderRadius: 14, marginBottom: 20 }} />
+      {/* Ingredient rows */}
+      {[80, 65, 72, 58].map((w, i) => (
+        <div key={i} className="rk-skeleton" style={{ height: 36, borderRadius: 8, marginBottom: 6, width: `${w}%` }} />
+      ))}
+      {/* Method steps */}
+      <div className="rk-skeleton" style={{ height: 14, width: '15%', borderRadius: 6, marginTop: 20, marginBottom: 10 }} />
+      {[90, 75, 82, 68].map((w, i) => (
+        <div key={i} className="rk-skeleton" style={{ height: 20, borderRadius: 6, marginBottom: 8, width: `${w}%` }} />
+      ))}
+    </div>
+  )
   if (error) return <div style={{ padding: '2rem', color: 'var(--accent)' }}>{error}</div>
   if (!memory || !display) return null
 

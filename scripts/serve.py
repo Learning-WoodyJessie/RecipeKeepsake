@@ -1120,11 +1120,11 @@ async def create_family_group_endpoint(request: Request, user: dict = Depends(re
 
 @app.get("/family/groups/me")
 async def get_my_family_group_endpoint(user: dict = Depends(require_auth)):
-    """Return the authenticated user's family group, or 404."""
+    """Return the authenticated user's family group. Returns group: null when not in a group."""
     from tools.groups import get_group_for_user
     group = get_group_for_user(_user_id(user))
     if not group:
-        raise HTTPException(status_code=404, detail="Not in a family group.")
+        return JSONResponse(content={"group": None, "portal_url": None, "invite_url": None})
     base = os.environ.get("NEXT_PUBLIC_APP_URL", "https://www.theechoesofhome.com")
     return JSONResponse(content={
         "group": group,
@@ -1149,11 +1149,11 @@ async def join_family_group_endpoint(invite_token: str, user: dict = Depends(req
 
 @app.get("/family/members")
 async def list_family_members_endpoint(user: dict = Depends(require_auth)):
-    """List all members of the authenticated user's family group."""
+    """List all members of the authenticated user's family group. Returns empty list when not in a group."""
     from tools.groups import get_group_for_user, list_group_members
     group = get_group_for_user(_user_id(user))
     if not group:
-        raise HTTPException(status_code=404, detail="Not in a family group.")
+        return JSONResponse(content={"members": []})
     return JSONResponse(content={"members": list_group_members(group["id"])})
 
 

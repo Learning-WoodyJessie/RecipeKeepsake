@@ -5,6 +5,8 @@ from unittest.mock import patch, MagicMock
 from fastapi.testclient import TestClient
 from scripts.serve import app, require_auth
 
+_client = TestClient(app)
+
 _DUMMY_USER = {"sub": "test-user-id", "email": "test@example.com"}
 
 
@@ -28,7 +30,7 @@ class TestSaveTextEndpoint:
                  patch("scripts.serve.check_rate_limit_db", return_value=0), \
                  patch("tools.storage.insert_recipe", side_effect=capture), \
                  patch("tools.storage._client"):
-                resp = TestClient(app).post("/save-text", json={
+                resp = _client.post("/save-text", json={
                     "title": "రాజశేఖర్ కవిత", "text": "రాజశేఖర్", "memory_type": "poem"
                 })
             assert resp.status_code == 200
@@ -43,7 +45,7 @@ class TestSaveTextEndpoint:
                  patch("scripts.serve.check_rate_limit_db", return_value=0), \
                  patch("tools.storage.insert_recipe", side_effect=_mock_insert), \
                  patch("tools.storage._client"):
-                TestClient(app).post("/save-text", json={
+                _client.post("/save-text", json={
                     "title": "Poem", "text": "రాజశేఖర్", "memory_type": "poem"
                 })
             assert mock_t.called
@@ -58,7 +60,7 @@ class TestSaveTextEndpoint:
                  patch("scripts.serve.check_rate_limit_db", return_value=0), \
                  patch("tools.storage.insert_recipe", side_effect=_mock_insert), \
                  patch("tools.storage._client"):
-                resp = TestClient(app).post("/save-text", json={
+                resp = _client.post("/save-text", json={
                     "title": "Poem", "text": "పాట", "memory_type": "poem"
                 })
             body = resp.json()
@@ -72,7 +74,7 @@ class TestSaveTextEndpoint:
         app.dependency_overrides[require_auth] = lambda: _DUMMY_USER
         try:
             with patch("tools.storage._client"):
-                resp = TestClient(app).post("/save-text", json={
+                resp = _client.post("/save-text", json={
                     "title": "", "text": "పాట", "memory_type": "poem"
                 })
             assert resp.status_code == 400
@@ -83,7 +85,7 @@ class TestSaveTextEndpoint:
         app.dependency_overrides[require_auth] = lambda: _DUMMY_USER
         try:
             with patch("tools.storage._client"):
-                resp = TestClient(app).post("/save-text", json={
+                resp = _client.post("/save-text", json={
                     "title": "Poem", "text": "", "memory_type": "poem"
                 })
             assert resp.status_code == 400
@@ -103,7 +105,7 @@ class TestSaveTextEndpoint:
                  patch("scripts.serve.check_rate_limit_db", return_value=0), \
                  patch("tools.storage.insert_recipe", side_effect=capture), \
                  patch("tools.storage._client"):
-                resp = TestClient(app).post("/save-text", json={
+                resp = _client.post("/save-text", json={
                     "title": "Poem", "text": "పాట", "memory_type": "poem"
                 })
             assert resp.status_code == 200

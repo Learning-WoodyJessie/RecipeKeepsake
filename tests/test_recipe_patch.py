@@ -9,6 +9,8 @@ from fastapi.testclient import TestClient
 
 from scripts.serve import app, require_auth
 
+_client = TestClient(app)
+
 
 async def _auth_u1():
     return {"sub": "u1"}
@@ -23,8 +25,7 @@ class TestPatchRecipeEndpoint:
         with patch("tools.storage.get_recipe_by_token", return_value=recipe), \
              patch("tools.storage.patch_recipe") as mock_patch:
             app.dependency_overrides[require_auth] = _auth_u1
-            client = TestClient(app)
-            res = client.patch(
+            res = _client.patch(
                 "/recipe/tok1",
                 json={"title": "Hijacked title"},
                 headers={"Authorization": "Bearer fake"},
@@ -37,8 +38,7 @@ class TestPatchRecipeEndpoint:
         with patch("tools.storage.get_recipe_by_token", return_value=recipe), \
              patch("tools.storage.patch_recipe", return_value={**recipe, "title": "New title"}) as mock_patch:
             app.dependency_overrides[require_auth] = _auth_u1
-            client = TestClient(app)
-            res = client.patch(
+            res = _client.patch(
                 "/recipe/tok1",
                 json={"title": "New title"},
                 headers={"Authorization": "Bearer fake"},

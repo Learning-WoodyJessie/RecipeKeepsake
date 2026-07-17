@@ -4,6 +4,8 @@ from unittest.mock import patch, MagicMock
 from fastapi.testclient import TestClient
 from scripts.serve import app
 
+_client = TestClient(app)
+
 
 class TestHealthEndpoint:
     def test_returns_ok_when_db_reachable(self):
@@ -13,7 +15,7 @@ class TestHealthEndpoint:
         with patch("tools.storage._client") as mock_client:
             mock_client.return_value.table.return_value.select.return_value \
                 .limit.return_value.execute.return_value = mock_result
-            response = TestClient(app).get("/health")
+            response = _client.get("/health")
         assert response.status_code == 200
         assert response.json()["status"] == "ok"
         assert response.json()["db"] == "ok"
@@ -23,7 +25,7 @@ class TestHealthEndpoint:
         with patch("tools.storage._client") as mock_client:
             mock_client.return_value.table.return_value.select.return_value \
                 .limit.return_value.execute.side_effect = Exception("connection refused")
-            response = TestClient(app).get("/health")
+            response = _client.get("/health")
         assert response.status_code == 503
         assert response.json()["status"] == "degraded"
 
@@ -34,7 +36,7 @@ class TestHealthEndpoint:
         with patch("tools.storage._client") as mock_client:
             mock_client.return_value.table.return_value.select.return_value \
                 .limit.return_value.execute.return_value = mock_result
-            response = TestClient(app).get("/health")
+            response = _client.get("/health")
         assert "version" in response.json()
 
 
@@ -42,7 +44,7 @@ class TestAdminClearCache:
     def test_rejects_wrong_secret(self):
         """POST /admin/clear-translation-cache returns 403 with wrong secret."""
         with patch.dict(os.environ, {"ADMIN_SECRET": "correct-secret"}):
-            response = TestClient(app).post(
+            response = _client.post(
                 "/admin/clear-translation-cache?lang=te&secret=wrong"
             )
         assert response.status_code == 403
@@ -51,7 +53,7 @@ class TestAdminClearCache:
         """POST /admin/clear-translation-cache calls clear_translation_cache and returns count."""
         with patch.dict(os.environ, {"ADMIN_SECRET": "correct-secret"}), \
              patch("tools.storage.clear_translation_cache", return_value=7) as mock_clear:
-            response = TestClient(app).post(
+            response = _client.post(
                 "/admin/clear-translation-cache?lang=te&secret=correct-secret"
             )
         assert response.status_code == 200
@@ -62,7 +64,7 @@ class TestAdminClearCache:
         """POST /admin/clear-translation-cache returns 503 if ADMIN_SECRET not configured."""
         env_without_admin = {k: v for k, v in os.environ.items() if k != "ADMIN_SECRET"}
         with patch.dict(os.environ, env_without_admin, clear=True):
-            response = TestClient(app).post(
+            response = _client.post(
                 "/admin/clear-translation-cache?lang=te&secret=anything"
             )
         assert response.status_code == 503
@@ -72,7 +74,7 @@ class TestClientErrorEndpoint:
     def test_logs_client_error_and_returns_ok(self, caplog):
         """POST /client-error logs event=client_error and returns {ok: true}."""
         with caplog.at_level(logging.ERROR, logger="serve"):
-            response = TestClient(app).post(
+            response = _client.post(
                 "/client-error",
                 json={"error": "Cannot read properties of null", "url": "/memories"},
             )
