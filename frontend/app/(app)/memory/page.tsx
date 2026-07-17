@@ -151,24 +151,22 @@ function MemoryDetail() {
     }
   }
 
-  // Resolve slug → token when the URL is /memory/some-slug (no ?token= param).
+  // Resolve slug → token for /memory/some-slug URLs, or wait for useSearchParams
+  // to catch up for /memory?token= URLs.
   //
-  // Race: useState(initialToken) runs during render; window.location.search may
-  // still point at the previous route at that instant, so initialToken can be ''
-  // and tokenReady initialises to false even for a plain ?token= navigation.
-  // By the time useEffect fires, the browser URL is always committed, so we
-  // re-read window.location.search here. We also check useSearchParams (params)
-  // as a second fallback and keep params in the dep array so the effect re-runs
-  // when useSearchParams eventually catches up.
+  // Race: during Next.js concurrent-mode transitions, both window.location.search
+  // and useSearchParams() can lag behind the actual URL on the first render and
+  // the first effect run. The fix: if there is no token and no slug yet, simply
+  // return and wait — params is in the dep array so this effect re-runs the moment
+  // useSearchParams catches up, at which point params.get('token') returns the real
+  // value. Only redirect to /recipes if a slug IS present but cannot be resolved.
   useEffect(() => {
     if (tokenReady) return
-    // window.location.search is always the committed URL by the time effects run
-    const windowToken = new URLSearchParams(window.location.search).get('token')
-    const t = windowToken || params.get('token')
+    const t = params.get('token')
     if (t) { setToken(t); setTokenReady(true); return }
     const segs = window.location.pathname.split('/').filter(Boolean)
     const slug = segs.length === 2 && segs[0] === 'memory' ? segs[1] : null
-    if (!slug) { router.replace('/recipes'); return }
+    if (!slug) return
     api.recipes.getBySlug(slug)
       .then((m: Memory) => { setToken(m.token); setTokenReady(true) })
       .catch(() => router.replace('/recipes'))
