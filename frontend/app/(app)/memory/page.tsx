@@ -183,7 +183,8 @@ function MemoryDetail() {
   }, [token])
 
   useEffect(() => {
-    api.family.getMyGroup().then((d: { portal_url?: string; invite_url?: string }) => {
+    api.family.getMyGroup().then((d: { group: unknown; portal_url?: string; invite_url?: string }) => {
+      if (!d.group) return
       setIsInGroup(true)
       setPortalUrl(d?.portal_url ?? '')
       setInviteUrl(d?.invite_url ?? '')
