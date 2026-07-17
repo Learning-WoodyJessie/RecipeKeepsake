@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 import mimetypes
 import uuid as _uuid
 from pathlib import Path
@@ -103,12 +104,32 @@ def upload_memory_photo(image_bytes: bytes, content_type: str) -> str:
     return sb.storage.from_("memory-photos").get_public_url(filename)
 
 
-def upload_audio(local_path: str, filename: str) -> str:
+# Python's mimetypes returns video/webm and video/mp4 for these extensions.
+# Supabase then serves stored files with those content-types, causing Chrome on
+# Windows/Android to refuse to decode them in an <audio> element (shows correct
+# duration but produces no sound). Map explicitly to audio/* types instead.
+_AUDIO_MIME: dict[str, str] = {
+    ".webm": "audio/webm",
+    ".mp4":  "audio/mp4",
+    ".m4a":  "audio/mp4",
+    ".ogg":  "audio/ogg",
+    ".oga":  "audio/ogg",
+    ".opus": "audio/ogg",
+    ".wav":  "audio/wav",
+    ".flac": "audio/flac",
+    ".mp3":  "audio/mpeg",
+    ".aac":  "audio/aac",
+}
+
+
+def upload_audio(local_path: str, filename: str, user_id: str = "") -> str:
     """Upload an audio file to the private 'audio' bucket. Returns the filename (storage path)."""
-    mime = mimetypes.guess_type(filename)[0] or "audio/webm"
+    ext = Path(filename).suffix.lower()
+    mime = _AUDIO_MIME.get(ext) or mimetypes.guess_type(filename)[0] or "audio/webm"
     with open(local_path, "rb") as f:
         data = f.read()
 
+    _logger.info(f"event=upload_audio filename={filename} ext={ext} mime={mime} size={len(data)} user_id={user_id}")
     sb = _client()
     sb.storage.from_("audio").upload(
         path=filename,
@@ -117,6 +138,27 @@ def upload_audio(local_path: str, filename: str) -> str:
     )
     # Store just the filename — signed URLs are generated at serve time
     return filename
+
+
+def _to_slug(text: str) -> str:
+    """Convert a title to a URL-safe kebab-case slug (max 80 chars)."""
+    text = text.lower().strip()
+    text = re.sub(r'[^\w\s-]', '', text)
+    text = re.sub(r'[\s_]+', '-', text)
+    text = re.sub(r'-{2,}', '-', text)
+    return text.strip('-')[:80]
+
+
+def _unique_slug(base: str, sb) -> str:
+    """Return base slug if unclaimed in the memories table, else base-2, base-3, …"""
+    slug = base or 'memory'
+    i = 2
+    while True:
+        exists = sb.table("memories").select("id").eq("slug", slug).execute()
+        if not exists.data:
+            return slug
+        slug = f"{base}-{i}"
+        i += 1
 
 
 FREE_MEMORY_LIMIT = 10
@@ -135,8 +177,12 @@ def is_pro_user(user_id: str) -> bool:
 
 
 def insert_recipe(recipe: dict) -> dict:
-    """Insert a recipe row into Supabase. Returns the saved row with id + token."""
-    result = _client().table("memories").insert(recipe).execute()
+    """Insert a recipe row into Supabase. Generates a slug from title if not already set."""
+    sb = _client()
+    if not recipe.get("slug") and recipe.get("title"):
+        base = _to_slug(recipe["title"])
+        recipe = {**recipe, "slug": _unique_slug(base, sb)}
+    result = sb.table("memories").insert(recipe).execute()
     return result.data[0]
 
 
@@ -144,6 +190,28 @@ def get_recipe_by_token(token: str) -> dict:
     """Fetch a single recipe by its share token. audio_url is replaced with a fresh signed URL."""
     sb = _client()
     result = sb.table("memories").select("*").eq("token", token).single().execute()
+    recipe = result.data
+    if recipe.get("audio_url"):
+        recipe["audio_url"] = _sign_audio(recipe["audio_url"], sb)
+    return recipe
+
+
+def get_recipe_by_token_prefix(prefix: str) -> dict:
+    """Fetch a memory by the first 8 chars of its token (used by short share URLs)."""
+    sb = _client()
+    result = sb.table("memories").select("*").like("token", f"{prefix}%").limit(1).execute()
+    if not result.data:
+        raise ValueError(f"No memory found for token prefix {prefix!r}")
+    recipe = result.data[0]
+    if recipe.get("audio_url"):
+        recipe["audio_url"] = _sign_audio(recipe["audio_url"], sb)
+    return recipe
+
+
+def get_recipe_by_slug(slug: str) -> dict:
+    """Fetch a single recipe by its human-readable slug. audio_url replaced with a fresh signed URL."""
+    sb = _client()
+    result = sb.table("memories").select("*").eq("slug", slug).single().execute()
     recipe = result.data
     if recipe.get("audio_url"):
         recipe["audio_url"] = _sign_audio(recipe["audio_url"], sb)
@@ -163,7 +231,7 @@ def list_recipes(user_id: str) -> list:
     sb = _client()
     result = (
         sb.table("memories")
-        .select("id, token, title, narrator, recorded_at, image_url, audio_url, tags")
+        .select("id, token, title, narrator, recorded_at, image_url, audio_url, tags, type, language, portal_visible, slug")
         .eq("user_id", user_id)
         .order("recorded_at", desc=True)
         .execute()
@@ -172,7 +240,40 @@ def list_recipes(user_id: str) -> list:
     for r in recipes:
         if r.get("audio_url"):
             r["audio_url"] = _sign_audio(r["audio_url"], sb)
+    # For records with no ASCII in the title, fetch the English dish name from content
+    _enrich_content_titles(recipes, sb)
     return recipes
+
+
+def _enrich_content_titles(recipes: list, sb) -> None:
+    """Fetch content->>'title' for records whose stored title has no ASCII letters.
+
+    Runs a single targeted query rather than pulling full JSONB blobs for every card.
+    """
+    def _needs_english(r: dict) -> bool:
+        t = r.get("title") or ""
+        return bool(t) and not any(c.isalpha() and c.isascii() for c in t)
+
+    tokens = [r["token"] for r in recipes if _needs_english(r)]
+    if not tokens:
+        return
+    try:
+        rows = (
+            sb.table("memories")
+            .select("token, content")
+            .in_("token", tokens)
+            .execute()
+        ).data
+        title_map = {}
+        for row in rows:
+            c = row.get("content")
+            if isinstance(c, dict):
+                title_map[row["token"]] = c.get("title")
+        for r in recipes:
+            if r["token"] in title_map:
+                r["content_title"] = title_map[r["token"]]
+    except Exception:
+        pass  # non-fatal: card falls back to bowl without letter
 
 
 def get_cached_translation(token: str, lang: str) -> dict | None:
@@ -382,7 +483,7 @@ def list_recipes_for_owners(owner_user_ids: list[str]) -> list:
     sb = _client()
     result = (
         sb.table("memories")
-        .select("id, token, title, narrator, recorded_at, image_url, audio_url, tags")
+        .select("id, token, title, narrator, recorded_at, image_url, audio_url, tags, type, language")
         .in_("user_id", owner_user_ids)
         .order("recorded_at", desc=True)
         .execute()

@@ -1,22 +1,32 @@
 import { supabase } from './supabase'
+import { clearUserData } from './favorites'
 
 const AUTH_CALLBACK = process.env.NEXT_PUBLIC_APP_URL
   ? `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`
   : 'https://www.theechoesofhome.com/auth/callback'
 
-export async function signInWithGoogle(): Promise<void> {
+function callbackUrl(next?: string) {
+  return next ? `${AUTH_CALLBACK}?next=${encodeURIComponent(next)}` : AUTH_CALLBACK
+}
+
+export async function signOut(): Promise<void> {
+  clearUserData()
+  await supabase.auth.signOut()
+}
+
+export async function signInWithGoogle(next?: string): Promise<void> {
   await supabase.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: AUTH_CALLBACK },
+    options: { redirectTo: callbackUrl(next), queryParams: { prompt: 'select_account' } },
   })
 }
 
-export async function signInWithApple(): Promise<void> {
+export async function signInWithApple(next?: string): Promise<void> {
   // Use Supabase OAuth redirect for Apple sign-in (works on web and native via browser)
   // Note: @capacitor-community/apple-sign-in does not yet support Capacitor 8
   await supabase.auth.signInWithOAuth({
     provider: 'apple',
-    options: { redirectTo: AUTH_CALLBACK },
+    options: { redirectTo: callbackUrl(next) },
   })
 }
 

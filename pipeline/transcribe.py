@@ -17,16 +17,17 @@ from prompts.llm import LLMProvider, OpenAIProvider
 from pipeline.models import TranscriptResult
 
 
-def run_transcribe(audio_path: str, provider: LLMProvider | None = None) -> TranscriptResult:
+def run_transcribe(audio_path: str, provider: LLMProvider | None = None, language: str = "auto") -> TranscriptResult:
     """
-    Stage 1: transcribe audio and faithfully translate to English.
+    Stage 1: transcribe audio and (for Telugu) faithfully translate to English.
 
     Args:
-        audio_path: path to audio file (any format Whisper accepts)
+        audio_path: path to audio file
         provider:   LLM provider for translation. Defaults to OpenAIProvider from config.
+        language:   "te" (Telugu), "en" (English — skip translation), "auto" (detect)
 
     Returns:
-        TranscriptResult with raw Telugu transcript and English translation.
+        TranscriptResult with raw transcript and English translation.
     """
     if provider is None:
         config = load_config()
@@ -34,8 +35,12 @@ def run_transcribe(audio_path: str, provider: LLMProvider | None = None) -> Tran
         provider = OpenAIProvider(model=model)
 
     t0 = time.perf_counter()
-    raw = transcribe_audio(audio_path)
-    _logger.info(f"event=transcribe_done duration={time.perf_counter()-t0:.2f}s")
+    raw = transcribe_audio(audio_path, language=language)
+    _logger.info(f"event=transcribe_done duration={time.perf_counter()-t0:.2f}s language={language}")
+
+    if language == "en":
+        # Already English — no translation needed
+        return TranscriptResult(raw=raw, english=raw)
 
     t1 = time.perf_counter()
     english = translate_to_english(raw, provider)

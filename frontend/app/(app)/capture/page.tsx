@@ -56,6 +56,7 @@ const MEMORY_TYPES = [
   { value: 'fable',   label: 'Fable',   emoji: '✨' },
   { value: 'wisdom',  label: 'Wisdom',  emoji: '🙏' },
   { value: 'poem',    label: 'Poem',    emoji: '🖊️' },
+  { value: 'other',   label: 'Other',   emoji: '•' },
 ] as const
 
 function TipsPanel({ mode }: { mode: 'ai' | 'direct' }) {
@@ -136,10 +137,14 @@ function CapturePageInner() {
   // Deep-linked from "Our People" (e.g. /capture?narrator=Grandma) so adding
   // someone there flows straight into recording for them, no re-selecting
   // the chip you just effectively chose by clicking "Record a memory".
+  useEffect(() => {
+    if (searchParams.get('mode') === 'direct') setMode('direct')
+  }, [searchParams])
   const [narrator, setNarrator] = useState(searchParams.get('narrator') ?? '')
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [memoryType, setMemoryType] = useState<string>('song')
+  const language = 'auto'
   const [duration, setDuration] = useState(0)
   const [draft, setDraft] = useState<any>(null)
   const [audioFile, setAudioFile] = useState<File | null>(null)
@@ -151,6 +156,7 @@ function CapturePageInner() {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const extRef = useRef<string>('.webm')
   const audioCtxRef = useRef<AudioContext | null>(null)
+  const analyserStreamRef = useRef<MediaStream | null>(null)
   const rafRef = useRef<number | null>(null)
 
   const fmt = (s: number) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`
@@ -159,7 +165,12 @@ function CapturePageInner() {
     const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
     const ctx = new AudioCtx()
     audioCtxRef.current = ctx
-    const source = ctx.createMediaStreamSource(stream)
+    // Clone the stream so the AudioContext analyser doesn't share tracks with
+    // MediaRecorder. On Android/Windows Chrome, createMediaStreamSource on a
+    // shared stream causes MediaRecorder to capture empty audio frames.
+    const analyserStream = stream.clone()
+    analyserStreamRef.current = analyserStream
+    const source = ctx.createMediaStreamSource(analyserStream)
     const analyser = ctx.createAnalyser()
     analyser.fftSize = 64
     source.connect(analyser)
@@ -183,6 +194,8 @@ function CapturePageInner() {
     rafRef.current = null
     audioCtxRef.current?.close().catch(() => {})
     audioCtxRef.current = null
+    analyserStreamRef.current?.getTracks().forEach(t => t.stop())
+    analyserStreamRef.current = null
     setLevels(Array(20).fill(0.1))
   }
 
@@ -191,6 +204,7 @@ function CapturePageInner() {
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current)
       audioCtxRef.current?.close().catch(() => {})
+      analyserStreamRef.current?.getTracks().forEach(t => t.stop())
     }
   }, [])
 
@@ -201,23 +215,38 @@ function CapturePageInner() {
       if (!stream) { setError('Microphone access denied. Please allow microphone access and try again.'); setStage('error'); return }
       const { mimeType, ext } = pickMimeType()
       extRef.current = ext
+      console.log('[capture] start mime=%s ext=%s tracks=%d', mimeType, ext, stream.getAudioTracks().length)
       const mr = new MediaRecorder(stream, mimeType ? { mimeType } : {})
       mrRef.current = mr
       chunksRef.current = []
       startLevelMeter(stream)
-      mr.ondataavailable = e => { if (e.data.size > 0) chunksRef.current.push(e.data) }
+      mr.ondataavailable = e => {
+        console.log('[capture] dataavailable size=%d', e.data.size)
+        if (e.data.size > 0) chunksRef.current.push(e.data)
+      }
+      mr.onerror = (e) => {
+        console.error('[capture] MediaRecorder error', e)
+      }
       mr.onstop = () => {
+        const totalBytes = chunksRef.current.reduce((s, c) => s + c.size, 0)
+        const blob = new Blob(chunksRef.current, { type: mr.mimeType })
+        console.log('[capture] stop chunks=%d totalBytes=%d blobSize=%d blobType=%s',
+          chunksRef.current.length, totalBytes, blob.size, blob.type)
+        if (blob.size < 1000) {
+          console.warn('[capture] blob is suspiciously small — audio may not have been captured')
+        }
         stream.getTracks().forEach(t => t.stop())
         stopLevelMeter()
-        const blob = new Blob(chunksRef.current, { type: mr.mimeType })
         if (mode === 'direct') saveAudioDirect(blob)
         else processAudio(blob)
       }
       mr.start()
+      console.log('[capture] MediaRecorder started state=%s', mr.state)
       setStage('recording')
       setDuration(0)
       timerRef.current = setInterval(() => setDuration(d => d + 1), 1000)
     } catch (e: unknown) {
+      console.error('[capture] startRecording failed', e)
       setError((e as Error).message || 'Could not start recording. Please try again.')
       setStage('error')
     }
@@ -234,6 +263,7 @@ function CapturePageInner() {
     const form = new FormData()
     const filename = `recording${extRef.current}`
     form.append('audio', blob, filename)
+    form.append('language', language)
     if (narrator) form.append('narrator', narrator)
     try {
       const result = await api.capture.process(form)
@@ -248,6 +278,7 @@ function CapturePageInner() {
     form.append('audio', blob, `recording${extRef.current}`)
     form.append('title', title.trim())
     form.append('memory_type', memoryType)
+    form.append('language', language)
     if (narrator) form.append('narrator', narrator)
     if (description.trim()) form.append('description', description.trim())
     try {
@@ -288,10 +319,10 @@ function CapturePageInner() {
       `}</style>
 
       {/* Back */}
-      <Link href="/home" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text2)', textDecoration: 'none', fontSize: '0.85rem', marginBottom: '1.5rem', fontWeight: 500 }}>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      <button onClick={() => router.back()} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text2)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.85rem', marginBottom: '1.5rem', fontWeight: 500, padding: 0 }}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><polyline points="15 18 9 12 15 6"/></svg>
         Back
-      </Link>
+      </button>
 
       <div className="rk-capture-cols">
         {/* ── Main ── */}
@@ -337,9 +368,18 @@ function CapturePageInner() {
                     color: mode === m ? 'white' : 'var(--muted)',
                     boxShadow: mode === m ? '0 2px 8px rgba(45,27,14,0.15)' : 'none',
                     transition: 'all 0.15s',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem',
                   }}
                 >
-                  {m === 'ai' ? '🎙 Their recipe' : '🎵 Their voice'}
+                  {m === 'ai' ? (
+                  <><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, verticalAlign: 'middle' }}>
+                    <path d="M12 2c-1 2-1 3 0 4s1 2 0 4"/><path d="M8 2c-1 2-1 3 0 4s1 2 0 4"/><path d="M16 2c-1 2-1 3 0 4s1 2 0 4"/><path d="M4 14h16"/><path d="M4 14c0 4 3.6 7 8 7s8-3 8-7"/>
+                  </svg>{' '}Their recipe</>
+                ) : (
+                  <><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, verticalAlign: 'middle' }}>
+                    <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/>
+                  </svg>{' '}Their voice</>
+                )}
                 </button>
               ))}
             </div>
@@ -370,6 +410,7 @@ function CapturePageInner() {
               ))}
             </div>
           )}
+
 
           {/* Title + description for direct mode */}
           {mode === 'direct' && stage === 'idle' && (
@@ -515,23 +556,27 @@ function CapturePageInner() {
               </div>
             )}
 
-            {stage === 'error' && error === 'memory_cap_reached' && (
+            {stage === 'error' && error?.includes('memory_cap_reached') && (
               <div style={{ padding: '1.25rem', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, textAlign: 'center' }}>
                 <p style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>🔒</p>
-                <p style={{ fontWeight: 600, color: 'var(--text)', marginBottom: '0.35rem' }}>You've reached 10 memories</p>
+                <p style={{ fontWeight: 600, color: 'var(--text)', marginBottom: '0.35rem' }}>You've saved 10 memories</p>
                 <p style={{ fontSize: 13, color: 'var(--muted)', marginBottom: '1rem', lineHeight: 1.5 }}>
-                  Unlimited storage is coming soon. Join the waitlist and we'll let you know first.
+                  Unlimited storage is coming soon. Email us and we'll let you know when it's ready.
                 </p>
                 <a
-                  href="mailto:hello@theechoesofhome.com?subject=Unlimited memories waitlist"
-                  style={{ display: 'inline-block', padding: '0.6rem 1.4rem', background: 'var(--accent)', color: 'white', borderRadius: 10, fontSize: 14, fontWeight: 600, textDecoration: 'none' }}
+                  href="mailto:pavanimbr@gmail.com?subject=Unlimited memories waitlist"
+                  style={{ display: 'inline-block', padding: '0.6rem 1.4rem', background: 'var(--accent)', color: 'white', borderRadius: 10, fontSize: 14, fontWeight: 600, textDecoration: 'none', marginBottom: '0.6rem' }}
                 >
-                  Join the waitlist
+                  support@theechoesofhome.com
                 </a>
+                <br />
+                <Link href="/recipes" style={{ fontSize: 13, color: 'var(--muted)', textDecoration: 'underline' }}>
+                  Manage your memories
+                </Link>
               </div>
             )}
 
-            {stage === 'error' && error !== 'memory_cap_reached' && (
+            {stage === 'error' && !error?.includes('memory_cap_reached') && (
               <div style={{ padding: '1rem 0' }}>
                 <p style={{ color: 'var(--accent)', marginBottom: '1rem', fontSize: '0.9rem' }}>{error}</p>
                 <button onClick={() => { setStage('idle'); setError('') }} style={{ background: 'var(--accent)', color: 'white', border: 'none', borderRadius: 10, padding: '0.6rem 1.5rem', cursor: 'pointer', fontWeight: 600 }}>Try again</button>

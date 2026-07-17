@@ -58,6 +58,8 @@ export const api = {
       return []
     },
     get: (token: string) => authFetch(`/recipe/${token}`),
+    getBySlug: (slug: string) => authFetch(`/recipe/by-slug/${slug}`),
+    getByShortToken: (prefix: string) => authFetch(`/memory/short/${prefix}`),
     translate: (token: string, lang: string) => authFetch(`/recipe/${token}/translate?lang=${lang}`),
     patch: (token: string, body: object) => authFetch(`/recipe/${token}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }),
     delete: (token: string) => authFetch(`/recipe/${token}`, { method: 'DELETE' }),

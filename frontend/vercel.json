@@ -2,5 +2,8 @@
   "framework": "nextjs",
   "buildCommand": "npm run build",
   "outputDirectory": ".next",
-  "installCommand": "npm install"
+  "installCommand": "npm install",
+  "rewrites": [
+    { "source": "/memory/:slug([a-z0-9][a-z0-9-]*)", "destination": "/memory" }
+  ]
 }

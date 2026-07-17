@@ -1,36 +1,34 @@
-// This file defines the Auth Callback page in the application.
-// Purpose: Handles authentication state changes and redirects users after signing in.
-// Why: Ensures seamless navigation after authentication events.
-// How: Listens for auth state changes using Supabase and redirects users to the home page.
-
 'use client'
-import { useEffect } from 'react'
+import { Suspense, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { api } from '@/lib/api'
 
-export default function AuthCallback() {
+function AuthCallbackInner() {
   const router = useRouter()
 
+  // Read `next` immediately at mount — before Supabase calls history.replaceState
+  // to strip the code param, which also wipes our `next` query string.
+  const nextRef = useRef<string | null>(
+    typeof window !== 'undefined'
+      ? new URLSearchParams(window.location.search).get('next')
+      : null
+  )
+
   useEffect(() => {
-    supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
-        // Viewer-role accounts (approved by an owner, signed in via OTP) land
-        // on the read-only shared view instead of the normal capture/edit UI.
+        const destination = nextRef.current || localStorage.getItem('returnTo') || '/home'
+        localStorage.removeItem('returnTo')
+
         api.viewers.sharedWithMe()
           .then((data: { is_viewer?: boolean }) => {
-            if (data.is_viewer) { router.replace('/shared'); return }
-            const returnTo = sessionStorage.getItem('returnTo')
-            sessionStorage.removeItem('returnTo')
-            router.replace(returnTo || '/home')
+            router.replace(data.is_viewer ? '/shared' : destination)
           })
-          .catch(() => {
-            const returnTo = sessionStorage.getItem('returnTo')
-            sessionStorage.removeItem('returnTo')
-            router.replace(returnTo || '/home')
-          })
+          .catch(() => router.replace(destination))
       }
     })
+    return () => subscription.unsubscribe()
   }, [router])
 
   return (
@@ -38,4 +36,8 @@ export default function AuthCallback() {
       <p style={{ color: 'var(--muted)' }}>Signing you in…</p>
     </div>
   )
+}
+
+export default function AuthCallback() {
+  return <Suspense><AuthCallbackInner /></Suspense>
 }

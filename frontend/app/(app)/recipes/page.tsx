@@ -10,29 +10,25 @@ import { api, type Person } from '@/lib/api'
 import { readFavorites, toggleFavorite } from '@/lib/favorites'
 import FavoriteHeart from '@/components/FavoriteHeart'
 import { SkeletonCard } from '@/components/Skeleton'
+import { buildMemoryShortUrl } from '@/lib/url'
 
 type Memory = {
   token: string
+  slug?: string | null
   title: string | null
   narrator: string | null
   recorded_at: string
   image_url: string | null
   tags: string[] | null
   type?: string | null
+  portal_visible?: boolean
+  content_title?: string | null
 }
 
-
-const FILTER_TAGS = ['All', 'Favorites', 'Breakfast', 'Lunch', 'Sweets', 'Pickles', 'Snacks', 'Drinks', 'Recently added']
 const SORT_OPTIONS = ['Recently added', 'Oldest first', 'A–Z']
-const AUDIO_TYPE_FILTERS = [
-  { value: 'All',       label: 'All' },
-  { value: 'song',      label: '🎵 Songs' },
-  { value: 'story',     label: '📖 Stories' },
-  { value: 'fable',     label: '✨ Fables' },
-  { value: 'wisdom',    label: '🙏 Wisdom' },
-  { value: 'poem',      label: '🖊️ Poems' },
-  { value: 'Favorites', label: '♥ Favorites' },
-] as const
+const RECIPE_CATEGORIES = ['Breakfast', 'Lunch', 'Sweets', 'Pickles', 'Snacks', 'Drinks', 'Other']
+const MOMENT_CATEGORIES = ['Song', 'Story', 'Fable', 'Wisdom', 'Poem', 'Other']
+const KNOWN_MOMENT_TYPES = ['song', 'story', 'fable', 'wisdom', 'poem']
 
 // "tale" covers Tales & Songs entries with or without audio (e.g. a typed
 // poem with no recording). "audio" alone is kept for back-compat with rows
@@ -41,16 +37,10 @@ function isAudio(m: Memory) { return (m.tags ?? []).some(t => t === 'tale' || t 
 
 // ─── Right panel ────────────────────────────────────────────────────────
 function RightPanel({
-  filter,
-  setFilter,
   isAudioMode,
   searchActive,
   narratorParam,
 }: {
-  filter: string
-  setFilter: (f: string) => void
-  sort: string
-  setSort: (s: string) => void
   isAudioMode: boolean
   searchActive: boolean
   narratorParam: string
@@ -156,66 +146,6 @@ function RightPanel({
 
   return (
     <aside style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      {/* Filter box — recipes only, hidden during search or narrator view */}
-      {!isAudioMode && !searchActive && !narratorParam && (
-        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 18, padding: '1.25rem', boxShadow: '0 4px 16px rgba(45,27,14,0.05)' }}>
-          <h3 style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '0.95rem', color: 'var(--text)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-            Filter recipes
-          </h3>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem' }}>
-            {FILTER_TAGS.map((tag) => {
-              const isFavTag = tag === 'Favorites'
-              const active = filter === tag
-              return (
-                <button
-                  key={tag}
-                  onClick={() => setFilter(tag)}
-                  style={{
-                    padding: '0.3rem 0.75rem', borderRadius: 20, fontSize: '0.78rem', fontWeight: 500,
-                    border: '1.5px solid', cursor: 'pointer',
-                    borderColor: active ? (isFavTag ? 'var(--amber)' : 'var(--accent)') : 'var(--border)',
-                    background: active ? (isFavTag ? 'var(--gold-light)' : 'var(--accent-light)') : 'transparent',
-                    color: active ? (isFavTag ? 'var(--amber)' : 'var(--accent)') : 'var(--text2)',
-                    display: 'flex', alignItems: 'center', gap: '0.25rem',
-                  }}
-                >
-                  {isFavTag && (active ? '♥ ' : '♡ ')}{tag}
-                </button>
-              )
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Audio filter — type tabs, hidden during search or narrator view */}
-      {isAudioMode && !searchActive && !narratorParam && (
-        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 18, padding: '1.25rem', boxShadow: '0 4px 16px rgba(45,27,14,0.05)' }}>
-          <h3 style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '0.95rem', color: 'var(--text)', marginBottom: '1rem' }}>
-            Filter memories
-          </h3>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem' }}>
-            {AUDIO_TYPE_FILTERS.map(({ value, label }) => {
-              const isFav = value === 'Favorites'
-              const active = filter === value
-              return (
-                <button key={value} onClick={() => setFilter(value)}
-                  style={{
-                    padding: '0.3rem 0.75rem', borderRadius: 20, fontSize: '0.78rem', fontWeight: 500,
-                    border: '1.5px solid', cursor: 'pointer',
-                    borderColor: active ? (isFav ? 'var(--amber)' : 'var(--accent)') : 'var(--border)',
-                    background: active ? (isFav ? 'var(--gold-light)' : 'var(--accent-light)') : 'transparent',
-                    color: active ? (isFav ? 'var(--amber)' : 'var(--accent)') : 'var(--text2)',
-                  }}
-                >
-                  {label}
-                </button>
-              )
-            })}
-          </div>
-        </div>
-      )}
-
       {/* Why panel */}
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 18, padding: '1.25rem', boxShadow: '0 4px 16px rgba(45,27,14,0.05)' }}>
         <h3 style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '0.95rem', color: 'var(--text)', marginBottom: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
@@ -242,7 +172,6 @@ function RightPanel({
               ? `”Some memories are meant to be heard.”`
               : `”A recipe is more than ingredients. It’s a story we live and share.”`}
           </p>
-          <span style={{ color: 'var(--muted)', fontSize: '1rem' }}>♡</span>
         </div>
       </div>
     </aside>
@@ -250,45 +179,139 @@ function RightPanel({
 }
 
 // ─── Audio card ──────────────────────────────────────────────────────────
+const WA_ICON = (
+  <svg width="11" height="11" viewBox="0 0 24 24" fill="white" aria-hidden="true">
+    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+  </svg>
+)
+
+function CardShareButton({ token, title, type, narrator, top = 6, right = 44 }: { token: string; title: string | null; type?: string | null; narrator?: string | null; top?: number; right?: number }) {
+  return (
+    <button
+      type="button"
+      onClick={e => {
+        e.preventDefault()
+        const origin = typeof window !== 'undefined' ? window.location.origin : 'https://www.theechoesofhome.com'
+        const shareUrl = buildMemoryShortUrl(origin, narrator, type, token)
+        window.open(`https://wa.me/?text=${encodeURIComponent(`"${title ?? 'this memory'}" on Echoes of Home:\n${shareUrl}`)}`, '_blank')
+      }}
+      title="Share on WhatsApp"
+      style={{
+        position: 'absolute', top, right,
+        width: 34, height: 34, borderRadius: '50%',
+        background: '#25D366', border: 'none', cursor: 'pointer',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        boxShadow: '0 1px 4px rgba(0,0,0,0.18)', zIndex: 2,
+      }}
+    >
+      {WA_ICON}
+    </button>
+  )
+}
+
+function BookmarkToggle({ inCollection, onToggle }: { inCollection: boolean; onToggle: (e: React.MouseEvent) => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      title={inCollection ? 'Remove from Family Recipes' : 'Add to Family Recipes'}
+      style={{
+        position: 'absolute', top: 6, left: 6, width: 34, height: 34, borderRadius: '50%',
+        background: inCollection ? 'var(--accent)' : 'rgba(255,255,255,0.9)',
+        border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        boxShadow: '0 1px 4px rgba(0,0,0,0.15)', zIndex: 2, transition: 'background 0.15s',
+      }}
+    >
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={inCollection ? 'white' : 'var(--accent)'} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+      </svg>
+    </button>
+  )
+}
+
+// ─── Equalizer placeholder ────────────────────────────────────────────────
+const EQ_BARS = [13, 19, 25, 29, 31, 29, 25, 19, 13]
+
+function EqualizerPlaceholder({ title }: { title?: string | null }) {
+  return (
+    <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(140deg, #E9F0EC 0%, #D7E6DF 100%)', gap: 6, padding: '4px 10px 10px' }}>
+      <svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg" style={{ width: '52%', maxWidth: 130, flexShrink: 0 }}>
+        <line x1="4" y1="40" x2="96" y2="40" stroke="rgba(24,107,94,0.2)" strokeWidth="0.6"/>
+        {EQ_BARS.map((halfH, i) => (
+          <rect
+            key={i}
+            className="rk-eq-bar"
+            x={7 + i * 10}
+            y={40 - halfH}
+            width={5}
+            height={halfH * 2}
+            rx={2}
+            fill={i === 4 ? '#49B79C' : '#2F8E78'}
+            opacity={0.9}
+            style={{ animationDelay: `${i * 0.13}s` }}
+          />
+        ))}
+      </svg>
+      {title && (
+        <p style={{
+          margin: 0,
+          fontFamily: 'var(--serif)',
+          fontWeight: 700,
+          fontSize: 'clamp(10px, 3.2vw, 13px)',
+          color: '#1B6B52',
+          textAlign: 'center',
+          lineHeight: 1.3,
+          overflow: 'hidden',
+          display: '-webkit-box',
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: 'vertical',
+          width: '100%',
+          wordBreak: 'break-word',
+        }}>
+          {title}
+        </p>
+      )}
+    </div>
+  )
+}
+
 function AudioCard({
   memory,
   isFav,
   onToggleFav,
+  inCollection,
+  onToggleCollection,
   narratorPhoto,
 }: {
   memory: Memory
   isFav: boolean
   onToggleFav: () => void
+  inCollection: boolean
+  onToggleCollection: () => void
   narratorPhoto: string
 }) {
   return (
     <Link
-      href={`/memory?token=${memory.token}`}
+      href={`/memory?token=${memory.token}&from=recipes`}
       className="rk-card-hoverable"
       style={{ textDecoration: 'none', display: 'block', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, overflow: 'hidden', boxShadow: '0 2px 10px rgba(45,27,14,0.06)' }}
     >
-      {/* Waveform banner */}
-      <div style={{ position: 'relative', background: 'linear-gradient(135deg, var(--gold-light) 0%, #EAD9AE 100%)', padding: '1.25rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3, minHeight: 80 }}>
-        {[4,7,11,9,14,10,6,13,8,11,6,9,12,7,5].map((h, i) => (
-          <div key={i} style={{ width: 3, height: h * 3, borderRadius: 2, background: 'var(--accent)', opacity: 0.6 }} />
-        ))}
-        <div style={{ position: 'absolute', width: 40, height: 40, borderRadius: '50%', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(45,27,14,0.15)' }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
-          </svg>
-        </div>
+      {/* Equalizer thumbnail */}
+      <div style={{ position: 'relative', aspectRatio: '4/3', overflow: 'hidden', flexShrink: 0 }}>
+        <EqualizerPlaceholder title={memory.title} />
+        <CardShareButton token={memory.token} title={memory.title} type={memory.type} narrator={memory.narrator} top={6} right={44} />
+        <BookmarkToggle inCollection={inCollection} onToggle={e => { e.preventDefault(); onToggleCollection() }} />
         <FavoriteHeart
           favorite={isFav}
           onToggle={onToggleFav}
           size="0.85rem"
-          style={{ position: 'absolute', top: 8, right: 8, width: 26, height: 26, borderRadius: '50%', background: 'rgba(255,255,255,0.9)' }}
+          style={{ position: 'absolute', top: 6, right: 6, width: 34, height: 34, borderRadius: '50%', background: 'rgba(255,255,255,0.9)' }}
         />
       </div>
 
       <div style={{ padding: '0.85rem' }}>
-        <p style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '0.95rem', color: 'var(--text)', marginBottom: '0.45rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {memory.title ?? 'Untitled'}
-        </p>
+        <div style={{ marginBottom: '0.35rem' }} />
         {memory.narrator && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.4rem' }}>
             <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'var(--accent-light)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -300,34 +323,79 @@ function AudioCard({
             <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text2)' }}>{memory.narrator}</span>
           </div>
         )}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.5rem' }}>
-          <p style={{ fontSize: '0.7rem', color: 'var(--muted)', margin: 0 }}>
-            {new Date(memory.recorded_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-          </p>
-          {/* WhatsApp share — pre-generate URL before open to satisfy iOS Safari */}
-          <button
-            type="button"
-            onClick={e => {
-              e.preventDefault()
-              const shareUrl = `${typeof window !== 'undefined' ? window.location.origin : 'https://www.theechoesofhome.com'}/memory?token=${memory.token}`
-              const waUrl = `https://wa.me/?text=${encodeURIComponent(`🎵 "${memory.title ?? 'this memory'}" on Echoes of Home:\n${shareUrl}`)}`
-              window.open(waUrl, '_blank')
-            }}
-            style={{
-              display: 'flex', alignItems: 'center', gap: '0.25rem',
-              background: '#25D366', border: 'none', borderRadius: 6,
-              padding: '0.25rem 0.55rem', cursor: 'pointer',
-              fontSize: '0.7rem', fontWeight: 600, color: 'white',
-            }}
-          >
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="white" aria-hidden="true">
-              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-            </svg>
-            Share
-          </button>
-        </div>
+        <p style={{ fontSize: '0.7rem', color: 'var(--muted)', margin: '0.5rem 0 0' }}>
+          {new Date(memory.recorded_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+        </p>
       </div>
     </Link>
+  )
+}
+
+// ─── Animated bowl placeholder ───────────────────────────────────────────
+function BowlPlaceholder({ token, title, englishTitle }: { token: string; title?: string | null; englishTitle?: string | null }) {
+  // Stable per-card stagger so lids don't all lift simultaneously
+  let h = 0
+  for (let i = 0; i < token.length; i++) h = (h * 31 + token.charCodeAt(i)) & 0xffffff
+  const base = (h % 36) / 10
+  const d1 = `${base}s`, d2 = `${base + 0.32}s`, d3 = `${base + 0.64}s`
+
+  // Prefer the stored title; fall back to English title for Telugu-only titles
+  const displayTitle = title || englishTitle
+
+  return (
+    <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(140deg, #F5EBD6 0%, #ECD9AE 100%)', gap: 6, padding: '4px 10px 10px' }}>
+      <svg viewBox="0 0 100 88" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: '30%', maxWidth: 76, overflow: 'visible', flexShrink: 0 }}>
+        {/* Steam — synced with lid open phase */}
+        <path className="rk-bowl-steam" style={{ animationDelay: d1 }} d="M 36 36 C 32 27 40 20 36 11 C 33 4 39 -1 36 -7" stroke="rgba(120,74,20,0.4)" strokeWidth="2.3" strokeLinecap="round"/>
+        <path className="rk-bowl-steam" style={{ animationDelay: d2 }} d="M 50 33 C 46 24 54 17 50 8 C 47 1 53 -4 50 -10" stroke="rgba(120,74,20,0.4)" strokeWidth="2.3" strokeLinecap="round"/>
+        <path className="rk-bowl-steam" style={{ animationDelay: d3 }} d="M 64 36 C 60 27 68 20 64 11 C 61 4 67 -1 64 -7" stroke="rgba(120,74,20,0.4)" strokeWidth="2.3" strokeLinecap="round"/>
+        {/* Shadow */}
+        <ellipse cx="50" cy="83" rx="24" ry="5" fill="rgba(100,60,10,0.12)"/>
+        {/* Bowl body */}
+        <path d="M 14 40 Q 12 70 30 78 Q 50 85 70 78 Q 88 70 86 40" fill="#C8924A"/>
+        <path d="M 14 40 Q 12 64 26 74 Q 20 58 18 40 Z" fill="rgba(255,220,150,0.15)"/>
+        {/* Rim */}
+        <ellipse cx="50" cy="40" rx="36" ry="9.5" fill="#D4A060"/>
+        <ellipse cx="50" cy="40" rx="29" ry="7.5" fill="#A86B22"/>
+        {/* Food surface */}
+        <ellipse cx="50" cy="40" rx="24" ry="5.8" fill="#D4960E" opacity="0.85"/>
+        <ellipse cx="44" cy="38.5" rx="8" ry="2.5" fill="rgba(255,230,120,0.3)"/>
+        {/* Base */}
+        <path d="M 32 78 Q 32 84 50 84 Q 68 84 68 78" fill="#A86222"/>
+        <ellipse cx="50" cy="84" rx="18" ry="4" fill="#B87030"/>
+        {/* Lid (animated) */}
+        <g className="rk-bowl-lid" style={{ animationDelay: d1 }}>
+          <path d="M 16 40 Q 16 10 50 6 Q 84 10 84 40" fill="#D4A060"/>
+          <path d="M 16 40 Q 20 14 50 10 Q 24 12 18 40 Z" fill="rgba(255,220,150,0.15)"/>
+          <path d="M 84 40 Q 80 14 50 10 Q 76 12 82 40 Z" fill="rgba(100,60,10,0.08)"/>
+          <ellipse cx="50" cy="40" rx="36" ry="9.5" fill="#C8924A"/>
+          <ellipse cx="50" cy="40" rx="36" ry="9.5" fill="none" stroke="#E0B070" strokeWidth="1"/>
+          <ellipse cx="50" cy="40" rx="30" ry="7.8" fill="#B8801E"/>
+          <ellipse cx="50" cy="7" rx="7" ry="3.5" fill="#B87030"/>
+          <ellipse cx="50" cy="5.5" rx="5.5" ry="4" fill="#D4A060"/>
+          <ellipse cx="50" cy="5.5" rx="3.5" ry="2.5" fill="#E0B878"/>
+        </g>
+      </svg>
+      {displayTitle && (
+        <p style={{
+          margin: 0,
+          fontFamily: 'var(--serif)',
+          fontWeight: 700,
+          fontSize: 'clamp(10px, 3.2vw, 13px)',
+          color: '#784A14',
+          textAlign: 'center',
+          lineHeight: 1.3,
+          overflow: 'hidden',
+          display: '-webkit-box',
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: 'vertical',
+          width: '100%',
+          wordBreak: 'break-word',
+        }}>
+          {displayTitle}
+        </p>
+      )}
+    </div>
   )
 }
 
@@ -336,88 +404,86 @@ function RecipeCard({
   memory,
   isFav,
   onToggleFav,
+  inCollection,
+  onToggleCollection,
   narratorPhoto,
   narratorRelationship,
 }: {
   memory: Memory
   isFav: boolean
   onToggleFav: () => void
+  inCollection: boolean
+  onToggleCollection: () => void
   narratorPhoto: string
   narratorRelationship: string
 }) {
+  // If the stored title is all Telugu script (no ASCII), surface the English dish name from content
+  const hasAscii = memory.title ? /[A-Za-z]/.test(memory.title) : false
+  const englishTitle = (!hasAscii && memory.content_title) ? memory.content_title : null
+
   return (
-    <div className="rk-card-hoverable" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, overflow: 'hidden', boxShadow: '0 2px 10px rgba(45,27,14,0.06), 0 0 22px rgba(24,107,94,0.14)' }}>
+    <div className="rk-card-hoverable" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, overflow: 'hidden', boxShadow: '0 2px 10px rgba(45,27,14,0.06), 0 0 22px rgba(24,107,94,0.14)', display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* Food photo */}
-      <div style={{ position: 'relative', aspectRatio: '4/3', background: 'var(--cream2)', overflow: 'hidden' }}>
-        <Link href={`/memory?token=${memory.token}`} style={{ display: 'block', height: '100%' }}>
+      <div style={{ position: 'relative', aspectRatio: '4/3', overflow: 'hidden', flexShrink: 0 }}>
+        <Link href={`/memory?token=${memory.token}&from=recipes`} style={{ display: 'block', height: '100%' }}>
           {memory.image_url
             ? <img src={memory.image_url} alt={memory.title ?? ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '3rem' }}>🍽️</div>
+            : <BowlPlaceholder token={memory.token} title={memory.title} englishTitle={englishTitle} />
           }
         </Link>
+        <CardShareButton token={memory.token} title={memory.title} type={memory.type} narrator={memory.narrator} top={6} right={44} />
+        <BookmarkToggle inCollection={inCollection} onToggle={e => { e.preventDefault(); onToggleCollection() }} />
         {/* Heart toggle */}
         <FavoriteHeart
           favorite={isFav}
           onToggle={onToggleFav}
           size="0.85rem"
-          style={{ position: 'absolute', top: 8, right: 8, width: 26, height: 26, borderRadius: '50%', background: 'rgba(255,255,255,0.9)', boxShadow: '0 2px 6px rgba(0,0,0,0.12)' }}
+          style={{ position: 'absolute', top: 6, right: 6, width: 34, height: 34, borderRadius: '50%', background: 'rgba(255,255,255,0.9)', boxShadow: '0 2px 6px rgba(0,0,0,0.12)' }}
         />
       </div>
 
-      <div style={{ padding: '0.85rem' }}>
-        {/* Name */}
-        <p style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '0.98rem', color: 'var(--text)', marginBottom: '0.55rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {memory.title ?? 'Untitled'}
-        </p>
+      <div style={{ padding: '0.85rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
+        {/* Name — shown here only when card has a real image; otherwise it lives inside BowlPlaceholder */}
+        {memory.image_url ? (
+          <>
+            <p style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '0.98rem', color: 'var(--text)', marginBottom: englishTitle ? '0.15rem' : '0.55rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {memory.title ?? 'Untitled'}
+            </p>
+            {englishTitle && (
+              <p style={{ fontSize: '0.72rem', color: 'var(--muted)', marginBottom: '0.4rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {englishTitle}
+              </p>
+            )}
+          </>
+        ) : (
+          <div style={{ marginBottom: '0.35rem' }} />
+        )}
 
-        {/* Narrator row */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.4rem', flexWrap: 'wrap' }}>
+        {/* Narrator row — no wrap; name truncates if too long */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.4rem', overflow: 'hidden' }}>
           <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'var(--accent-light)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: '1.5px solid var(--border)' }}>
             {narratorPhoto
               ? <img src={narratorPhoto} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               : <span style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--accent)' }}>{(memory.narrator ?? '?')[0]?.toUpperCase()}</span>
             }
           </div>
-          <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text2)' }}>{memory.narrator ?? 'Narrator'}</span>
+          <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: '1 1 auto', minWidth: 0 }}>{memory.narrator ?? 'Narrator'}</span>
           {narratorRelationship && (
-            <span style={{ fontSize: '0.68rem', fontWeight: 600, color: 'var(--accent)', background: 'var(--accent-light)', borderRadius: 20, padding: '0.15rem 0.5rem', border: '1px solid rgba(24,107,94,0.15)' }}>
+            <span style={{ fontSize: '0.68rem', fontWeight: 600, color: 'var(--accent)', background: 'var(--accent-light)', borderRadius: 20, padding: '0.15rem 0.5rem', border: '1px solid rgba(24,107,94,0.15)', flexShrink: 0, whiteSpace: 'nowrap' }}>
               {narratorRelationship}
             </span>
           )}
         </div>
 
-        {/* Memory count */}
-        <p style={{ fontSize: '0.72rem', color: 'var(--muted)', marginBottom: '0.65rem' }}>1 memory</p>
-
-        {/* View recipe + share row */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        {/* View memory link — pinned to bottom */}
+        <div style={{ marginTop: 'auto', paddingTop: '0.5rem' }}>
           <Link
-            href={`/memory?token=${memory.token}`}
-            style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none', color: 'var(--accent)', fontSize: '0.8rem', fontWeight: 600 }}
+            href={`/memory?token=${memory.token}&from=recipes`}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none', color: 'var(--accent)', fontSize: '0.8rem', fontWeight: 600 }}
           >
             <div style={{ width: 22, height: 22, borderRadius: '50%', border: '1.5px solid var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.55rem' }}>▶</div>
-            View recipe
+            View memory
           </Link>
-          <button
-            type="button"
-            onClick={e => {
-              e.preventDefault()
-              const shareUrl = `${typeof window !== 'undefined' ? window.location.origin : 'https://www.theechoesofhome.com'}/memory?token=${memory.token}`
-              const waUrl = `https://wa.me/?text=${encodeURIComponent(`🍽️ "${memory.title ?? 'this recipe'}" on Echoes of Home:\n${shareUrl}`)}`
-              window.open(waUrl, '_blank')
-            }}
-            style={{
-              display: 'flex', alignItems: 'center', gap: '0.25rem',
-              background: '#25D366', border: 'none', borderRadius: 6,
-              padding: '0.25rem 0.55rem', cursor: 'pointer',
-              fontSize: '0.7rem', fontWeight: 600, color: 'white',
-            }}
-          >
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="white" aria-hidden="true">
-              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-            </svg>
-            Share
-          </button>
         </div>
       </div>
     </div>
@@ -475,17 +541,23 @@ export default function MemoriesPage() {
   const [people, setPeople] = useState<Person[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [filter, setFilter] = useState(typeParam === 'audio' ? 'audio' : 'All')
+  const collectionParam = searchParams.get('collection')
+  const [quickFilter, setQuickFilter] = useState<'All' | 'Favorites' | 'Family Recipes'>(
+    collectionParam === '1' ? 'Family Recipes' : 'All'
+  )
+  const [categoryFilter, setCategoryFilter] = useState('')
   const [sort, setSort] = useState('Recently added')
   const [favTick, setFavTick] = useState(0)
-  const [selectMode, setSelectMode] = useState(false)
-  const [selected, setSelected] = useState<Set<string>>(new Set())
-  const [addingToCollection, setAddingToCollection] = useState(false)
-  const [collectionDone, setCollectionDone] = useState(false)
+  const [collectionSet, setCollectionSet] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     Promise.all([api.recipes.list(), api.people.list().catch(() => [])])
-      .then(([m, p]) => { setMemories(m as Memory[]); setPeople(p as Person[]) })
+      .then(([m, p]) => {
+        const mems = m as Memory[]
+        setMemories(mems)
+        setPeople(p as Person[])
+        setCollectionSet(new Set(mems.filter(x => x.portal_visible).map(x => x.token)))
+      })
       .catch((e: Error) => setError(e.message))
       .finally(() => setLoading(false))
   }, [])
@@ -497,34 +569,14 @@ export default function MemoriesPage() {
     setFavTick(x => x + 1)
   }, [])
 
-  const toggleSelect = useCallback((token: string) => {
-    setSelected(prev => {
-      const next = new Set(prev)
-      if (next.has(token)) next.delete(token)
-      else next.add(token)
-      return next
-    })
-  }, [])
-
-  const exitSelectMode = useCallback(() => {
-    setSelectMode(false)
-    setSelected(new Set())
-    setCollectionDone(false)
-  }, [])
-
-  async function addToCollection() {
-    if (selected.size === 0 || addingToCollection) return
-    setAddingToCollection(true)
-    try {
-      await Promise.all([...selected].map(token => api.recipes.patch(token, { portal_visible: true })))
-      setCollectionDone(true)
-      setTimeout(() => exitSelectMode(), 1800)
-    } catch {
-      // silent — leave mode open so user can retry
-    } finally {
-      setAddingToCollection(false)
-    }
-  }
+  const toggleCollection = useCallback(async (token: string) => {
+    const next = new Set(collectionSet)
+    const adding = !next.has(token)
+    if (adding) next.add(token); else next.delete(token)
+    setCollectionSet(next)
+    try { await api.recipes.patch(token, { portal_visible: adding }) }
+    catch { setCollectionSet(collectionSet) }
+  }, [collectionSet])
 
   const peopleMap = useMemo(() => {
     const map: Record<string, { photo: string; relationship: string }> = {}
@@ -537,32 +589,37 @@ export default function MemoriesPage() {
   const displayed = useMemo(() => {
     let list = [...memories]
     const ql = q.toLowerCase()
-    // Narrator filter from ?narrator= param (coming from Our People page)
-    // When viewing a specific person, show ALL their memories (recipes + audio combined)
     if (narratorParam) {
       list = list.filter(m => (m.narrator ?? '').toLowerCase() === narratorParam.toLowerCase())
     } else if (ql) {
-      // Search mode: skip type split, search across all memories by title or narrator
       list = list.filter(m =>
         (m.title ?? '').toLowerCase().includes(ql) ||
         (m.narrator ?? '').toLowerCase().includes(ql)
       )
     } else {
-      // Global view: keep recipe and audio tabs separate
       if (isAudioMode) list = list.filter(isAudio)
       else list = list.filter(m => !isAudio(m))
     }
-    // Filter
-    if (filter === 'Favorites') list = list.filter(m => favTokens.includes(m.token))
-    else if (filter === 'Recently added') list = list.slice().sort((a, b) => new Date(b.recorded_at).getTime() - new Date(a.recorded_at).getTime())
-    else if (['song', 'story', 'fable', 'wisdom', 'poem'].includes(filter)) list = list.filter(m => m.type === filter)
-    else if (filter !== 'All') list = list.filter(m => (m.tags ?? []).includes(filter))
+    // Quick filter pill
+    if (quickFilter === 'Favorites') list = list.filter(m => favTokens.includes(m.token))
+    else if (quickFilter === 'Family Recipes') list = list.filter(m => collectionSet.has(m.token))
+    // Category dropdown
+    if (categoryFilter) {
+      if (categoryFilter === 'Other') {
+        if (isAudioMode) list = list.filter(m => !KNOWN_MOMENT_TYPES.includes(m.type ?? ''))
+        else list = list.filter(m => !RECIPE_CATEGORIES.slice(0, -1).some(c => (m.tags ?? []).includes(c)))
+      } else if (isAudioMode) {
+        list = list.filter(m => m.type === categoryFilter.toLowerCase())
+      } else {
+        list = list.filter(m => (m.tags ?? []).includes(categoryFilter))
+      }
+    }
     // Sort
     if (sort === 'Recently added') list = list.slice().sort((a, b) => new Date(b.recorded_at).getTime() - new Date(a.recorded_at).getTime())
     else if (sort === 'Oldest first') list = list.slice().sort((a, b) => new Date(a.recorded_at).getTime() - new Date(b.recorded_at).getTime())
     else if (sort === 'A–Z') list = list.slice().sort((a, b) => (a.title ?? '').localeCompare(b.title ?? ''))
     return list
-  }, [memories, filter, sort, q, narratorParam, favTick, isAudioMode])
+  }, [memories, quickFilter, categoryFilter, sort, q, narratorParam, favTick, isAudioMode])
 
   if (loading) return (
     <div style={{ padding: '1.5rem 1.75rem 2.5rem', maxWidth: 1200, margin: '0 auto' }}>
@@ -582,6 +639,36 @@ export default function MemoriesPage() {
         .rk-recipe-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
         @media (min-width: 640px) { .rk-recipe-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
         @media (min-width: 900px) { .rk-recipe-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+        @keyframes rk-lid-up {
+          0%, 15%   { transform: translateY(0px); }
+          28%, 62%  { transform: translateY(-16px); }
+          75%, 100% { transform: translateY(0px); }
+        }
+        @keyframes rk-steam-appear {
+          0%, 20%  { opacity: 0; transform: translateY(4px) scaleX(1); }
+          30%      { opacity: 0.85; }
+          65%      { opacity: 0.3; }
+          75%, 100%{ opacity: 0; transform: translateY(-24px) scaleX(0.4); }
+        }
+        .rk-bowl-lid {
+          animation: rk-lid-up 3.6s cubic-bezier(0.45,0,0.55,1) infinite;
+          transform-box: fill-box;
+          transform-origin: center bottom;
+        }
+        .rk-bowl-steam {
+          animation: rk-steam-appear 3.6s ease-out infinite;
+          transform-box: fill-box;
+          transform-origin: bottom center;
+        }
+        @keyframes rk-eq-bounce {
+          0%, 100% { transform: scaleY(0.18); }
+          50%       { transform: scaleY(1); }
+        }
+        .rk-eq-bar {
+          animation: rk-eq-bounce 1.3s ease-in-out infinite;
+          transform-box: fill-box;
+          transform-origin: center;
+        }
       `}</style>
 
       <div className="rk-mem-wrap">
@@ -595,7 +682,7 @@ export default function MemoriesPage() {
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap', marginBottom: '0.5rem' }}>
                     <h1 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.6rem, 3vw, 2rem)', fontWeight: 700, color: 'var(--text)', margin: 0 }}>
-                      {narratorParam}&rsquo;s memories <span style={{ color: 'var(--muted)' }}>♡</span>
+                      {narratorParam}&rsquo;s memories
                     </h1>
                   </div>
                   <p style={{ fontSize: '0.9rem', color: 'var(--muted)', lineHeight: 1.6, maxWidth: 380 }}>
@@ -684,14 +771,14 @@ export default function MemoriesPage() {
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap', marginBottom: '0.5rem' }}>
                     <h1 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.6rem, 3vw, 2rem)', fontWeight: 700, color: 'var(--text)', margin: 0, display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-                      All Recipes <span style={{ color: 'var(--muted)' }}>♡</span>
+                      All Recipes
                     </h1>
                     <Link href={narratorParam ? `/capture?narrator=${encodeURIComponent(narratorParam)}` : '/capture'} style={{ background: 'var(--accent)', color: 'white', textDecoration: 'none', padding: '0.45rem 1rem', borderRadius: 10, fontSize: '0.82rem', fontWeight: 700, whiteSpace: 'nowrap', flexShrink: 0, boxShadow: '0 2px 8px rgba(24,107,94,0.22)', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
-                      + Add Recipe
+                      + Capture a memory
                     </Link>
                   </div>
                   <p style={{ fontSize: '0.9rem', color: 'var(--muted)', lineHeight: 1.6, maxWidth: 360 }}>
-                    Timeless recipes, lovingly shared by the people who made our moments special.
+                    Every recipe lovingly shared by the people who made your world.
                   </p>
                 </div>
                 <HeroIllustration />
@@ -699,55 +786,87 @@ export default function MemoriesPage() {
             )}
 
             {/* Count + sort bar */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '0.65rem 1rem' }}>
-              <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text2)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.9rem' }}>
+              <span style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                 {isAudioMode && (
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                     <line x1="2" y1="12" x2="4" y2="12"/><line x1="5" y1="8" x2="5" y2="16"/><line x1="8" y1="5" x2="8" y2="19"/><line x1="11" y1="9" x2="11" y2="15"/><line x1="14" y1="6" x2="14" y2="18"/><line x1="17" y1="10" x2="17" y2="14"/><line x1="20" y1="8" x2="20" y2="16"/><line x1="22" y1="12" x2="24" y2="12"/>
                   </svg>
                 )}
-                {selectMode ? `${selected.size} selected` : `${displayed.length} ${(q || narratorParam) ? `Memor${displayed.length !== 1 ? 'ies' : 'y'}` : isAudioMode ? `Memor${displayed.length !== 1 ? 'ies' : 'y'}` : `Recipe${displayed.length !== 1 ? 's' : ''}`}`}
+                {`${displayed.length} ${(q || narratorParam) ? `Memor${displayed.length !== 1 ? 'ies' : 'y'}` : isAudioMode ? `Memor${displayed.length !== 1 ? 'ies' : 'y'}` : `Recipe${displayed.length !== 1 ? 's' : ''}`}`}
               </span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                {!selectMode ? (
-                  <button
-                    type="button"
-                    onClick={() => setSelectMode(true)}
-                    style={{ background: 'transparent', border: '1px solid var(--border)', borderRadius: 8, padding: '0.25rem 0.7rem', fontSize: '0.78rem', color: 'var(--text2)', cursor: 'pointer', fontFamily: 'var(--sans)' }}
-                  >
-                    Select
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={exitSelectMode}
-                    style={{ background: 'transparent', border: '1px solid var(--border)', borderRadius: 8, padding: '0.25rem 0.7rem', fontSize: '0.78rem', color: 'var(--text2)', cursor: 'pointer', fontFamily: 'var(--sans)' }}
-                  >
-                    Cancel
-                  </button>
-                )}
-                {!selectMode && (
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.8rem', color: 'var(--muted)' }}>
-                    Sort by:
-                    <select
-                      value={sort}
-                      onChange={e => setSort(e.target.value)}
-                      style={{ border: '1px solid var(--border)', borderRadius: 8, padding: '0.25rem 0.55rem', fontSize: '0.78rem', background: 'var(--surface)', color: 'var(--text2)', cursor: 'pointer' }}
-                    >
-                      {SORT_OPTIONS.map(o => <option key={o}>{o}</option>)}
-                    </select>
-                  </label>
-                )}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: 'var(--muted)' }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 6h18M7 12h10M11 18h2"/>
+                </svg>
+                <select
+                  value={sort}
+                  onChange={e => setSort(e.target.value)}
+                  style={{ border: 'none', background: 'transparent', fontSize: '0.8rem', color: 'var(--text2)', cursor: 'pointer', fontFamily: 'var(--sans)', padding: 0, appearance: 'none', WebkitAppearance: 'none' }}
+                >
+                  {SORT_OPTIONS.map(o => <option key={o}>{o}</option>)}
+                </select>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ pointerEvents: 'none', flexShrink: 0 }}>
+                  <path d="M6 9l6 6 6-6"/>
+                </svg>
               </div>
             </div>
+
+            {/* Compact filter row — hidden during search / narrator view */}
+            {!q && !narratorParam && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.85rem', flexWrap: 'wrap' }}>
+                {(['All', 'Favorites', 'Family Recipes'] as const).map(f => (
+                  <button
+                    key={f}
+                    type="button"
+                    onClick={() => setQuickFilter(f)}
+                    style={{
+                      padding: '0.28rem 0.75rem', borderRadius: 20, fontSize: '0.78rem', fontWeight: 600,
+                      border: '1.5px solid', cursor: 'pointer', transition: 'all 0.15s',
+                      borderColor: quickFilter === f ? (f === 'Favorites' ? 'var(--amber)' : 'var(--accent)') : 'var(--border)',
+                      background: quickFilter === f ? (f === 'Favorites' ? 'var(--gold-light)' : 'var(--accent-light)') : 'transparent',
+                      color: quickFilter === f ? (f === 'Favorites' ? 'var(--amber)' : 'var(--accent)') : 'var(--text2)',
+                    }}
+                  >
+                    {f === 'Favorites' ? '♥ Favorites' : f === 'Family Recipes' ? (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                          <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                          <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+                        </svg>
+                        Family Recipes
+                      </span>
+                    ) : 'All'}
+                  </button>
+                ))}
+                <select
+                  value={categoryFilter}
+                  onChange={e => setCategoryFilter(e.target.value)}
+                  style={{
+                    border: `1.5px solid ${categoryFilter ? 'var(--accent)' : 'var(--border)'}`,
+                    borderRadius: 20, padding: '0.28rem 0.75rem', fontSize: '0.78rem', fontWeight: 600,
+                    background: categoryFilter ? 'var(--accent-light)' : 'transparent',
+                    color: categoryFilter ? 'var(--accent)' : 'var(--text2)',
+                    cursor: 'pointer', fontFamily: 'var(--sans)',
+                  }}
+                >
+                  <option value="">{isAudioMode ? 'All types' : 'All Categories'}</option>
+                  {(isAudioMode ? MOMENT_CATEGORIES : RECIPE_CATEGORIES).map(cat => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             {/* Grid */}
             {displayed.length === 0 ? (
               <div style={{ padding: '2.5rem', textAlign: 'center', color: 'var(--muted)', background: 'var(--surface)', borderRadius: 14, border: '1px dashed var(--border)', fontSize: '0.88rem' }}>
                 {q
                   ? `No memories matching "${q}"`
-                  : filter === 'Favorites'
+                  : quickFilter === 'Favorites'
                   ? 'No favorites yet. Heart one to add it here.'
+                  : quickFilter === 'Family Recipes'
+                  ? 'No memories in your Family Recipes yet. Bookmark one from any memory card.'
                   : narratorParam
                   ? `No memories saved for ${narratorParam} yet.`
                   : isAudioMode ? 'No recordings yet.' : 'No recipes yet.'}
@@ -762,44 +881,15 @@ export default function MemoriesPage() {
               <div className="rk-recipe-grid">
                 {displayed.map(m => {
                   const info = peopleMap[m.narrator?.toLowerCase() ?? ''] ?? { photo: '', relationship: '' }
-                  const isSelected = selected.has(m.token)
                   return (
-                    <div
-                      key={m.token}
-                      style={{ position: 'relative', minWidth: 0, cursor: selectMode ? 'pointer' : undefined }}
-                      onClick={selectMode ? () => toggleSelect(m.token) : undefined}
-                    >
-                      {/* Selection overlay */}
-                      {selectMode && (
-                        <div style={{
-                          position: 'absolute', inset: 0, zIndex: 10, borderRadius: 16,
-                          border: isSelected ? '2.5px solid var(--accent)' : '2.5px solid transparent',
-                          background: isSelected ? 'rgba(24,107,94,0.08)' : 'transparent',
-                          transition: 'border-color 0.15s, background 0.15s',
-                        }} />
-                      )}
-                      {selectMode && (
-                        <div style={{
-                          position: 'absolute', top: 10, left: 10, zIndex: 20,
-                          width: 22, height: 22, borderRadius: 6,
-                          background: isSelected ? 'var(--accent)' : 'rgba(255,255,255,0.92)',
-                          border: isSelected ? '2px solid var(--accent)' : '2px solid var(--border)',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          boxShadow: '0 1px 4px rgba(0,0,0,0.15)',
-                          transition: 'background 0.15s, border-color 0.15s',
-                        }}>
-                          {isSelected && (
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                              <polyline points="20 6 9 17 4 12"/>
-                            </svg>
-                          )}
-                        </div>
-                      )}
+                    <div key={m.token} style={{ position: 'relative', minWidth: 0 }}>
                       {isAudio(m) ? (
                         <AudioCard
                           memory={m}
                           isFav={favTokens.includes(m.token)}
                           onToggleFav={() => toggleFav(m.token)}
+                          inCollection={collectionSet.has(m.token)}
+                          onToggleCollection={() => toggleCollection(m.token)}
                           narratorPhoto={info.photo}
                         />
                       ) : (
@@ -807,6 +897,8 @@ export default function MemoriesPage() {
                           memory={m}
                           isFav={favTokens.includes(m.token)}
                           onToggleFav={() => toggleFav(m.token)}
+                          inCollection={collectionSet.has(m.token)}
+                          onToggleCollection={() => toggleCollection(m.token)}
                           narratorPhoto={info.photo}
                           narratorRelationship={info.relationship}
                         />
@@ -819,11 +911,11 @@ export default function MemoriesPage() {
           </div>
 
           {/* ── Right panel ── */}
-          <RightPanel filter={filter} setFilter={setFilter} sort={sort} setSort={setSort} isAudioMode={isAudioMode} searchActive={!!q} narratorParam={narratorParam} />
+          <RightPanel isAudioMode={isAudioMode} searchActive={!!q} narratorParam={narratorParam} />
         </div>
 
         {/* ── Full-width bottom CTA ── */}
-        {!selectMode && <div style={{
+        <div style={{
           display: 'flex',
           alignItems: 'center',
           gap: '1.5rem',
@@ -843,19 +935,16 @@ export default function MemoriesPage() {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             flexShrink: 0, boxShadow: '0 4px 12px rgba(45,27,14,0.1)',
           }}>
-            {isAudioMode
-              ? <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-              : <span style={{ fontSize: '1.75rem' }}>🥘</span>
-            }
+            <span style={{ fontSize: '1.6rem', color: 'var(--accent)', lineHeight: 1 }}>✦</span>
           </div>
           <div style={{ flex: 1, minWidth: 200 }}>
             <p style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '1.05rem', color: 'var(--text)', marginBottom: '0.3rem' }}>
-              {isAudioMode ? 'Have a moment worth keeping?' : 'Have a family recipe to add?'}
+              {isAudioMode ? 'Have a moment worth keeping?' : 'Have a memory to preserve?'}
             </p>
             <p style={{ fontSize: '0.83rem', color: 'var(--muted)', lineHeight: 1.55 }}>
               {isAudioMode
                 ? 'Record it now or upload an audio file. Every voice deserves to be heard again.'
-                : 'Record it, write it or upload it. Keep your family\'s stories and flavors alive for generations to come.'}
+                : 'Record it, write it or upload it. Keep every recipe, song and story alive for generations to come.'}
             </p>
           </div>
           {/* Decorative floral — audio mode only */}
@@ -873,51 +962,8 @@ export default function MemoriesPage() {
               <circle cx="22" cy="22" r="4" fill="var(--accent)"/>
             </svg>
           )}
-        </div>}
-      </div>
-
-      {/* Sticky action bar — shown when items are selected */}
-      {selectMode && selected.size > 0 && (
-        <div style={{
-          position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)',
-          zIndex: 100, display: 'flex', alignItems: 'center', gap: '0.75rem',
-          background: 'var(--text)', color: 'white',
-          borderRadius: 999, padding: '0.75rem 1.25rem',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.28)',
-          fontSize: '0.88rem', fontWeight: 600,
-          whiteSpace: 'nowrap',
-          animation: 'rk-slideup 0.2s ease',
-        }}>
-          <style>{`@keyframes rk-slideup { from { opacity:0; transform: translateX(-50%) translateY(12px); } to { opacity:1; transform: translateX(-50%) translateY(0); } }`}</style>
-          <span style={{ color: 'rgba(255,255,255,0.7)', fontWeight: 400 }}>{selected.size} selected</span>
-          <button
-            type="button"
-            onClick={addToCollection}
-            disabled={addingToCollection}
-            style={{
-              background: collectionDone ? '#25D366' : 'var(--accent)',
-              color: 'white', border: 'none', borderRadius: 999,
-              padding: '0.5rem 1.1rem', fontSize: '0.88rem', fontWeight: 700,
-              cursor: addingToCollection ? 'default' : 'pointer',
-              display: 'flex', alignItems: 'center', gap: '0.4rem',
-              transition: 'background 0.2s',
-            }}
-          >
-            {collectionDone
-              ? <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Added!</>
-              : addingToCollection ? 'Adding…'
-              : '+ Add to family collection'
-            }
-          </button>
-          <button
-            type="button"
-            onClick={exitSelectMode}
-            style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.6)', fontSize: '0.82rem', cursor: 'pointer', padding: '0.25rem' }}
-          >
-            ✕
-          </button>
         </div>
-      )}
+      </div>
     </div>
   )
 }

@@ -30,7 +30,7 @@ from dotenv import load_dotenv
 # Load .env from project root — no-op in production (Railway sets env vars directly)
 load_dotenv(Path(__file__).parent.parent / ".env")
 
-from fastapi import FastAPI, UploadFile, File, HTTPException, Depends, Request
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
@@ -158,6 +158,12 @@ _MAGIC: list[tuple[int, bytes]] = [
     (0, b"\xff\xf9"),      # AAC ADTS variant
     (0, b"FORM"),          # AIFF
 ]
+
+
+def _is_model_overloaded(e: Exception) -> bool:
+    """Return True if the exception is a transient AI-model capacity error."""
+    msg = str(e).lower()
+    return any(k in msg for k in ("unavailable", "high demand", "try again later", "resource_exhausted", "overloaded"))
 
 
 def _validate_audio_upload(audio: UploadFile, data: bytes) -> None:
@@ -380,6 +386,46 @@ class _RequestIDMiddleware(BaseHTTPMiddleware):
         return response
 
 
+class _SpaMiddleware(BaseHTTPMiddleware):
+    """Serve Next.js static pages for browser navigations before API route matching.
+
+    Browser navigations (Accept: text/html, no Authorization header) to paths
+    that have a built static file are served directly here, before FastAPI's
+    router runs. This prevents API routes like GET /recipes from shadowing the
+    frontend /recipes/ page when a user navigates there in a browser.
+
+    API calls from the frontend always carry an Authorization header, so they
+    pass straight through to the API routes.
+    """
+    _PASSTHROUGH_PREFIXES = ("/_next/", "/api/", "/auth/", "/static/")
+
+    async def dispatch(self, request, call_next):
+        accept = request.headers.get("accept", "")
+        has_auth = bool(request.headers.get("authorization"))
+
+        if "text/html" in accept and not has_auth:
+            url_path = request.url.path
+            path = url_path.lstrip("/")
+
+            # Skip paths that should never be served as static pages
+            if not any(url_path.startswith(p) for p in self._PASSTHROUGH_PREFIXES):
+                # Rewrite /memory/<slug> → serve the /memory page (client resolves slug)
+                # This is the Railway equivalent of the Vercel rewrite in vercel.json
+                parts = path.split("/")
+                if len(parts) == 2 and parts[0] == "memory":
+                    path = "memory"
+
+                candidate = _FRONTEND_OUT / path / "index.html"
+                if candidate.exists():
+                    return FileResponse(str(candidate), headers=_NO_CACHE_HEADERS)
+                # SPA fallback — let the React app handle routing client-side
+                root = _FRONTEND_OUT / "index.html"
+                if root.exists():
+                    return FileResponse(str(root), headers=_NO_CACHE_HEADERS)
+
+        return await call_next(request)
+
+
 class _ApexRedirectMiddleware(BaseHTTPMiddleware):
     """301-redirect the bare apex domain to www, preserving path and query.
 
@@ -409,6 +455,7 @@ app.add_middleware(
     allow_headers=["Authorization", "Content-Type", "apikey", "X-Client-Info", "X-Request-ID"],
 )
 app.add_middleware(_ApexRedirectMiddleware)
+app.add_middleware(_SpaMiddleware)
 
 
 _NO_CACHE_HEADERS = {
@@ -477,6 +524,58 @@ async def index():
     return JSONResponse(content={"status": "Echoes of Home API"})
 
 
+@app.get("/memory/short/{prefix}")
+async def get_memory_by_short_token(prefix: str, user: dict = Depends(require_auth)):
+    """Resolve a short 8-char token prefix to a full memory. Used by /memory/{narrator}-{type}-{prefix} share URLs."""
+    if not (os.environ.get("SUPABASE_URL") and os.environ.get("SUPABASE_SERVICE_KEY")):
+        raise HTTPException(status_code=503, detail="Storage not configured")
+    from tools.storage import get_recipe_by_token_prefix
+    try:
+        recipe = get_recipe_by_token_prefix(prefix)
+        return JSONResponse(content=recipe)
+    except Exception:
+        raise HTTPException(status_code=404, detail="Memory not found")
+
+
+@app.get("/memory/{shortcode}")
+async def memory_shortcode_redirect(shortcode: str):
+    """Resolve share URLs like /memory/smitha-recipe-42329f17 → /memory?token=<full-token>.
+
+    No auth required — the memory page itself enforces auth after redirect.
+    Extracts the 8-char token prefix from the last hyphen-separated segment.
+    """
+    # Next.js 16 prefetches /memory/__next._tree.txt (and similar __next.* files)
+    # during client-side navigation. This route intercepts before serve_frontend,
+    # so we must serve the actual static file rather than redirecting to /recipes.
+    if shortcode.startswith("__next"):
+        static_file = _FRONTEND_OUT / "memory" / shortcode
+        if static_file.is_file():
+            return FileResponse(static_file)
+        raise HTTPException(status_code=404, detail="not found")
+    prefix = shortcode.split("-")[-1]
+    if len(prefix) != 8:
+        return RedirectResponse(url="/recipes", status_code=302)
+    try:
+        from tools.storage import get_recipe_by_token_prefix
+        recipe = get_recipe_by_token_prefix(prefix)
+        return RedirectResponse(url=f"/memory?token={recipe['token']}", status_code=302)
+    except Exception:
+        return RedirectResponse(url="/recipes", status_code=302)
+
+
+@app.get("/recipe/by-slug/{slug}")
+async def get_recipe_by_slug_endpoint(slug: str, user: dict = Depends(require_auth)):
+    """Fetch a single recipe by its human-readable slug."""
+    if not (os.environ.get("SUPABASE_URL") and os.environ.get("SUPABASE_SERVICE_KEY")):
+        raise HTTPException(status_code=503, detail="Storage not configured")
+    from tools.storage import get_recipe_by_slug
+    try:
+        recipe = get_recipe_by_slug(slug)
+        return JSONResponse(content=recipe)
+    except Exception:
+        raise HTTPException(status_code=404, detail="Memory not found")
+
+
 @app.get("/recipe/{token}")
 async def get_recipe_endpoint(token: str, user: dict = Depends(require_auth)):
     """Fetch a single recipe by share token."""
@@ -501,7 +600,7 @@ async def list_recipes_endpoint(user: dict = Depends(require_auth)):
 
 
 @app.post("/capture")
-async def capture_endpoint(audio: UploadFile = File(...), user: dict = Depends(require_auth)):
+async def capture_endpoint(audio: UploadFile = File(...), language: str = Form("auto"), user: dict = Depends(require_auth)):
     """
     Full pipeline: transcribe → translate → structure → image → save.
     Returns saved recipe JSON. Use /capture/process for review-before-save flow.
@@ -522,7 +621,7 @@ async def capture_endpoint(audio: UploadFile = File(...), user: dict = Depends(r
     try:
         _logger.info(f"event=capture_start file={audio.filename}")
 
-        transcript = run_transcribe(tmp_path)
+        transcript = run_transcribe(tmp_path, language=language)
         _moderate_transcript(transcript.english)
         recipe_data = run_transform(transcript)
         recipe_data.image_url = _generate_image(
@@ -559,7 +658,7 @@ async def capture_endpoint(audio: UploadFile = File(...), user: dict = Depends(r
             if saved.audio_url:
                 from tools.storage import _sign_audio, _client as _sb
                 recipe["audio_url"] = _sign_audio(saved.audio_url, _sb())
-            _logger.info(f"event=capture_saved id={saved.id} dish={recipe_data.title}")
+            _logger.info(f"event=capture_saved id={saved.id} dish={recipe_data.title} user_id={_user_id(user)}")
         else:
             _logger.warning("event=capture_no_db")
 
@@ -578,6 +677,7 @@ async def capture_endpoint(audio: UploadFile = File(...), user: dict = Depends(r
 @app.post("/capture/process")
 async def capture_process_endpoint(
     audio: UploadFile = File(...),
+    language: str = Form("auto"),
     user: dict = Depends(require_auth),
 ):
     """
@@ -600,7 +700,7 @@ async def capture_process_endpoint(
     try:
         _logger.info(f"event=process_start file={audio.filename}")
 
-        transcript = run_transcribe(tmp_path)
+        transcript = run_transcribe(tmp_path, language=language)
         _moderate_transcript(transcript.english)
         recipe_data = run_transform(transcript)
         recipe_data.image_url = _generate_image(
@@ -693,7 +793,7 @@ async def capture_save_endpoint(
             from tools.storage import _sign_audio, _client as _sb
             result["audio_url"] = _sign_audio(saved.audio_url, _sb())
 
-        _logger.info(f"event=save_done id={saved.id}")
+        _logger.info(f"event=save_done id={saved.id} user_id={_user_id(user)}")
         return JSONResponse(content=result)
 
     except Exception as e:
@@ -716,6 +816,7 @@ async def save_audio_endpoint(
     description: str = File(default=""),
     original_text: str = File(default=""),
     memory_type: str = File(default="song"),
+    language: str = Form("auto"),
     user: dict = Depends(require_auth),
 ):
     """
@@ -750,7 +851,7 @@ async def save_audio_endpoint(
 
         tags = ["tale"]
         if audio_filename:
-            upload_audio(tmp_path, audio_filename)
+            upload_audio(tmp_path, audio_filename, user_id=_user_id(user))
             tags.append("audio")
 
         # Auto-transcribe when audio is present, no user-supplied text, and not a recipe
@@ -759,7 +860,7 @@ async def save_audio_endpoint(
         transcript_english = description.strip()
         if tmp_path and not transcript_raw and memory_type != "recipe":
             try:
-                result = run_transcribe(tmp_path)
+                result = run_transcribe(tmp_path, language=language)
                 transcript_raw = result.raw
                 transcript_english = result.english
             except Exception as _te:
@@ -783,7 +884,7 @@ async def save_audio_endpoint(
         })
 
         audio_url = _sign_audio(row.get("audio_url", ""), _sb()) if audio_filename else None
-        _logger.info(f"event=save_audio_done id={row.get('id')} has_audio={bool(audio_filename)}")
+        _logger.info(f"event=save_audio_done id={row.get('id')} has_audio={bool(audio_filename)} user_id={_user_id(user)}")
         return JSONResponse(content={
             "token": row["token"],
             "audio_url": audio_url,
@@ -1127,14 +1228,22 @@ class PatchRecipeRequest(BaseModel):
 
 @app.patch("/recipe/{token}")
 async def patch_recipe_endpoint(token: str, body: PatchRecipeRequest, user: dict = Depends(require_auth)):
-    """Update editable fields on a recipe. Only non-None fields are written."""
+    """Update editable fields on a recipe. Only non-None fields are written. Caller must own the recipe."""
     if not (os.environ.get("SUPABASE_URL") and os.environ.get("SUPABASE_SERVICE_KEY")):
         raise HTTPException(status_code=503, detail="Storage not configured")
-    from tools.storage import patch_recipe
+    from tools.storage import get_recipe_by_token, patch_recipe
     # Build patch dict from only the fields that were explicitly provided
     fields = {k: v for k, v in body.model_dump().items() if v is not None}
     if not fields:
         raise HTTPException(status_code=400, detail="No fields to update")
+    try:
+        recipe = get_recipe_by_token(token)
+    except Exception:
+        raise HTTPException(status_code=404, detail="Recipe not found")
+    # Ownership check — unauthenticated local dev (empty user dict) skips check
+    user_id = _user_id(user)
+    if user_id and recipe.get("user_id") and recipe["user_id"] != user_id:
+        raise HTTPException(status_code=403, detail="Not your recipe")
     try:
         updated = patch_recipe(token, fields)
         return JSONResponse(content=updated)

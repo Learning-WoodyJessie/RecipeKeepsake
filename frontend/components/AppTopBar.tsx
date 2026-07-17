@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { signOut as authSignOut } from '@/lib/auth'
 
 function cap(s: string) { return s.charAt(0).toUpperCase() + s.slice(1) }
 
@@ -25,8 +26,19 @@ export default function AppTopBar({ onMenuClick }: { onMenuClick?: () => void })
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
-  // Keep input in sync with URL (back-nav, direct links)
+  // dirtyRef is set only by real user input (typing or the clear button) —
+  // see the debounced navigate effect below for why this matters.
+  const dirtyRef = useRef(false)
+
+  // Keep input in sync with URL (back-nav, direct links). This is a URL-
+  // driven change, not user input — clear dirtyRef so the debounced navigate
+  // effect below doesn't treat it as a real edit. Without this, once a user
+  // has typed in search even once this session, dirtyRef stays permanently
+  // true, so navigating to ANY other page (which resets q via this effect)
+  // re-arms the debounce and silently redirects to /recipes or /search
+  // shortly after landing, regardless of what the user actually clicked.
   useEffect(() => {
+    dirtyRef.current = false
     setQ(searchParams.get('q') ?? '')
   }, [searchParams])
 
@@ -41,7 +53,7 @@ export default function AppTopBar({ onMenuClick }: { onMenuClick?: () => void })
 
   async function signOut() {
     setMenuOpen(false)
-    await supabase.auth.signOut()
+    await authSignOut()
     router.replace('/')
   }
 
@@ -56,11 +68,21 @@ export default function AppTopBar({ onMenuClick }: { onMenuClick?: () => void })
   // Live search — debounced 300ms, no submit needed
   const navigate = useCallback((val: string) => {
     const s = val.trim()
-    if (s) router.replace(`/memories?q=${encodeURIComponent(s)}`)
-    else router.replace('/memories')
+    if (s) {
+      // Live search uses replace() (not push) so typing doesn't spam history —
+      // that means the page you searched FROM isn't a distinct history entry,
+      // so Search's own back-link can't rely on router.back(). Record it
+      // explicitly the first time we leave a non-search page.
+      if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/search')) {
+        sessionStorage.setItem('searchOrigin', window.location.pathname + window.location.search)
+      }
+      router.replace(`/search?q=${encodeURIComponent(s)}`)
+    }
+    else router.replace('/recipes')
   }, [router])
 
   useEffect(() => {
+    if (!dirtyRef.current) return
     const t = setTimeout(() => navigate(q), 300)
     return () => clearTimeout(t)
   }, [q, navigate])
@@ -105,10 +127,10 @@ export default function AppTopBar({ onMenuClick }: { onMenuClick?: () => void })
       <div style={{ flex: 1, maxWidth: 520, position: 'relative', display: 'flex', alignItems: 'center' }}>
         <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', opacity: 0.45, fontSize: '0.95rem', pointerEvents: 'none' }} aria-hidden>🔍</span>
         <input
-          type="search"
+          type="text"
           value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="Search moments, recipes, people…"
+          onChange={(e) => { dirtyRef.current = true; setQ(e.target.value) }}
+          placeholder="Search by title or narrator…"
           style={{
             width: '100%',
             padding: q ? '0.65rem 2.4rem 0.65rem 2.5rem' : '0.65rem 0.85rem 0.65rem 2.5rem',
@@ -124,7 +146,7 @@ export default function AppTopBar({ onMenuClick }: { onMenuClick?: () => void })
           <button
             type="button"
             aria-label="Clear search"
-            onClick={() => setQ('')}
+            onClick={() => { dirtyRef.current = true; setQ('') }}
             style={{
               position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
               background: 'none', border: 'none', cursor: 'pointer',
@@ -151,7 +173,7 @@ export default function AppTopBar({ onMenuClick }: { onMenuClick?: () => void })
           flexShrink: 0,
         }}
       >
-        Welcome home, {name} <span aria-hidden style={{ color: 'var(--muted)' }}>♡</span>
+        Welcome home, {name}
       </p>
       <style>{`
         .rk-greeting { display: none; }

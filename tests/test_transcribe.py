@@ -1,6 +1,6 @@
 import os
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, mock_open
 from tools.transcribe import transcribe_audio, _strip_hallucination_loops, _collapse_ngram_runs, _MAX_CONSECUTIVE_REPEATS
 
 
@@ -98,18 +98,29 @@ class TestTranscribeAudio:
         assert mock_client.files.get.call_count == 2
         assert result == "ready"
 
-    def test_raises_if_file_fails(self):
-        """transcribe_audio() raises RuntimeError if Gemini reports file FAILED."""
+    def test_falls_back_to_whisper_if_gemini_file_fails(self, monkeypatch):
+        """When both Gemini models fail file processing, falls back to OpenAI Whisper."""
+        monkeypatch.setenv("OPENAI_API_KEY", "test-openai-key")
+
         failed_file = MagicMock()
         failed_file.state.name = "FAILED"
-        mock_client = MagicMock()
-        mock_client.files.upload.return_value = failed_file
-        mock_client.files.get.return_value = failed_file
+        mock_gemini_client = MagicMock()
+        mock_gemini_client.files.upload.return_value = failed_file
+        mock_gemini_client.files.get.return_value = failed_file
 
-        with patch("tools.transcribe.genai.Client", return_value=mock_client), \
+        mock_whisper_resp = MagicMock()
+        mock_whisper_resp.text = "whisper fallback transcript"
+        mock_openai_client = MagicMock()
+        mock_openai_client.audio.transcriptions.create.return_value = mock_whisper_resp
+
+        with patch("tools.transcribe.genai.Client", return_value=mock_gemini_client), \
              patch("tools.transcribe.time.sleep"), \
-             pytest.raises(RuntimeError, match="processing failed"):
-            transcribe_audio("test.m4a")
+             patch("tools.transcribe.OpenAI", return_value=mock_openai_client), \
+             patch("builtins.open", mock_open(read_data=b"audio")):
+            result = transcribe_audio("test.m4a")
+
+        assert result == "whisper fallback transcript"
+        mock_openai_client.audio.transcriptions.create.assert_called_once()
 
 
 class TestStripHallucinationLoops:

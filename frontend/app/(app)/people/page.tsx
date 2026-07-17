@@ -16,15 +16,32 @@ import PhotoPicker from '@/components/PhotoPicker'
 type FormData = Omit<Person, 'id'> & { photo_data?: string }
 const EMPTY: FormData = { name: '', relationship: '', emoji: '👤', photo_url: '', bio: '', notes: '' }
 
+type MemoryBreakdown = {
+  recipes: number; songs: number; stories: number
+  fables: number; wisdom: number; poems: number
+  languages: string[]
+}
+const EMPTY_BREAKDOWN: MemoryBreakdown = { recipes: 0, songs: 0, stories: 0, fables: 0, wisdom: 0, poems: 0, languages: [] }
+
+const LANG_NAMES: Record<string, string> = { te: 'Telugu', hi: 'Hindi', en: 'English', kn: 'Kannada', ta: 'Tamil', es: 'Spanish', fr: 'French' }
+
+function isAudioMemory(m: { tags?: string[] | null }): boolean {
+  return (m.tags ?? []).some(t => t === 'tale' || t === 'audio')
+}
+
+function resolveBreakdown(counts: Record<string, MemoryBreakdown>, personName: string): MemoryBreakdown {
+  const pKey = personName.toLowerCase().trim()
+  // Exact match first
+  if (counts[pKey]) return counts[pKey]
+  // Fall back to partial match — mirrors the .includes() logic in the memories grid narrator filter
+  const partial = Object.keys(counts).find(k => k.includes(pKey) || pKey.includes(k))
+  return partial ? counts[partial] : EMPTY_BREAKDOWN
+}
+
 // ─── SVG Icons ────────────────────────────────────────────────────────────
 const ChevronRight = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <polyline points="9 18 15 12 9 6"/>
-  </svg>
-)
-const BookIcon = () => (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/>
   </svg>
 )
 
@@ -155,9 +172,8 @@ function WhyItMatters() {
         {/* Quote */}
         <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem', marginTop: '0.25rem' }}>
           <p style={{ fontFamily: 'var(--serif)', fontStyle: 'italic', fontSize: '0.88rem', color: 'var(--text2)', lineHeight: 1.65, textAlign: 'center', marginBottom: '0.65rem' }}>
-            &ldquo;The stories we collect today become the memories our children will treasure tomorrow.&rdquo;
+            &ldquo;The stories we collect today become the memories generations will treasure tomorrow.&rdquo;
           </p>
-          <div style={{ textAlign: 'center', color: 'var(--muted)', fontSize: '1rem' }}>♡</div>
         </div>
       </div>
     </aside>
@@ -165,7 +181,7 @@ function WhyItMatters() {
 }
 
 // ─── Person row card ──────────────────────────────────────────────────────
-function PersonCard({ person, recipeCount, onEdit, onNavigate }: { person: Person; recipeCount: number; onEdit: () => void; onNavigate: () => void }) {
+function PersonCard({ person, breakdown, onEdit, onNavigate }: { person: Person; breakdown: MemoryBreakdown; onEdit: () => void; onNavigate: () => void }) {
   return (
     <div
       style={{
@@ -216,10 +232,32 @@ function PersonCard({ person, recipeCount, onEdit, onNavigate }: { person: Perso
             {person.bio}
           </p>
         )}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: 'var(--muted)', fontSize: '0.75rem' }}>
-          <BookIcon />
-          <span>{recipeCount} {recipeCount === 1 ? 'recipe' : 'recipes'}</span>
-        </div>
+        {(() => {
+          const total = breakdown.recipes + breakdown.songs + breakdown.stories + breakdown.fables + breakdown.wisdom + breakdown.poems
+          if (total === 0) return <p style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: '0.35rem' }}>No memories yet</p>
+          const chips: Array<{ count: number; label: string; bg: string; border: string; color: string }> = [
+            { count: breakdown.recipes, label: 'recipe',  bg: 'var(--accent-light)', border: 'rgba(24,107,94,0.25)', color: 'var(--accent)' },
+            { count: breakdown.songs,   label: 'song',    bg: '#EEEDFE', border: '#CECBF6', color: '#534AB7' },
+            { count: breakdown.stories, label: 'story',   bg: '#FAEEDA', border: '#FAC775', color: '#854F0B' },
+            { count: breakdown.fables,  label: 'fable',   bg: '#FBEAF0', border: '#F4C0D1', color: '#993556' },
+            { count: breakdown.wisdom,  label: 'wisdom',  bg: '#E6F1FB', border: '#B5D4F4', color: '#185FA5' },
+            { count: breakdown.poems,   label: 'poem',    bg: '#E1F5EE', border: '#9FE1CB', color: '#0F6E56' },
+          ].filter(c => c.count > 0)
+          return (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem', marginTop: '0.45rem' }}>
+              {chips.map(c => (
+                <span key={c.label} style={{ fontSize: '0.7rem', fontWeight: 600, padding: '0.2rem 0.6rem', borderRadius: 20, background: c.bg, border: `1px solid ${c.border}`, color: c.color, whiteSpace: 'nowrap' }}>
+                  {c.count} {c.count === 1 ? c.label : c.label + 's'}
+                </span>
+              ))}
+              {breakdown.languages.length > 0 && (
+                <span style={{ fontSize: '0.7rem', fontWeight: 600, padding: '0.2rem 0.6rem', borderRadius: 20, background: 'var(--cream2, #F3EDE4)', border: '1px solid var(--border)', color: 'var(--text2)', whiteSpace: 'nowrap' }}>
+                  {breakdown.languages.map(l => LANG_NAMES[l] ?? l).join(' · ')}
+                </span>
+              )}
+            </div>
+          )
+        })()}
       </div>
 
       {/* Record + Edit + chevron */}
@@ -372,7 +410,7 @@ function PersonModal({
 export default function PeoplePage() {
   const router = useRouter()
   const [people, setPeople] = useState<Person[]>([])
-  const [recipeCounts, setRecipeCounts] = useState<Record<string, number>>({})
+  const [memoryCounts, setMemoryCounts] = useState<Record<string, MemoryBreakdown>>({})
   const [modal, setModal] = useState<{ open: boolean; editing: Person | null }>({ open: false, editing: null })
   const [form, setForm] = useState<FormData>(EMPTY)
   const [saving, setSaving] = useState(false)
@@ -382,13 +420,27 @@ export default function PeoplePage() {
 
   useEffect(() => {
     api.people.list().then(setPeople).catch((e: Error) => setError(e.message))
-    api.recipes.list().then((recipes: Array<{ narrator?: string }>) => {
-      const counts: Record<string, number> = {}
-      for (const r of recipes) {
-        const key = (r.narrator ?? '').toLowerCase().trim()
-        if (key) counts[key] = (counts[key] ?? 0) + 1
+    api.recipes.list().then((memories: Array<{ narrator?: string; type?: string | null; tags?: string[] | null; language?: string | null }>) => {
+      const counts: Record<string, MemoryBreakdown> = {}
+      for (const m of memories) {
+        const key = (m.narrator ?? '').toLowerCase().trim()
+        if (!key) continue
+        if (!counts[key]) counts[key] = { ...EMPTY_BREAKDOWN, languages: [] }
+        const b = counts[key]
+        if (isAudioMemory(m)) {
+          const t = m.type ?? ''
+          if (t === 'song' || t === '' || t === 'recipe') b.songs++
+          else if (t === 'story') b.stories++
+          else if (t === 'fable') b.fables++
+          else if (t === 'wisdom') b.wisdom++
+          else if (t === 'poem') b.poems++
+          else b.songs++
+        } else {
+          b.recipes++
+        }
+        if (m.language && !b.languages.includes(m.language)) b.languages.push(m.language)
       }
-      setRecipeCounts(counts)
+      setMemoryCounts(counts)
     }).catch(() => {})
     api.family.getMyGroup().then((d: { portal_url?: string; invite_url?: string }) => {
       setGroupData(d)
@@ -440,10 +492,10 @@ export default function PeoplePage() {
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1.5rem', flex: 1 }}>
               <div style={{ flex: 1 }}>
                 <h1 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.6rem, 3vw, 2rem)', fontWeight: 700, color: 'var(--text)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-                  Our People <span style={{ color: 'var(--muted)' }}>♡</span>
+                  Our People
                 </h1>
                 <p style={{ fontSize: '0.9rem', color: 'var(--muted)', lineHeight: 1.6, maxWidth: 400 }}>
-                  The beautiful people who fill our kitchen with love, stories and unforgettable recipes.
+                  Precious voices that echo through every recipe, every song, every story. Treasured here, forever.
                 </p>
               </div>
               <HeroIllustration />
@@ -478,9 +530,9 @@ export default function PeoplePage() {
               <PersonCard
                 key={p.id}
                 person={p}
-                recipeCount={recipeCounts[p.name.toLowerCase().trim()] ?? 0}
+                breakdown={resolveBreakdown(memoryCounts, p.name)}
                 onEdit={() => openEdit(p)}
-                onNavigate={() => router.push(`/memories?narrator=${encodeURIComponent(p.name)}`)}
+                onNavigate={() => router.push(`/recipes?narrator=${encodeURIComponent(p.name)}`)}
               />
             ))}
           </div>

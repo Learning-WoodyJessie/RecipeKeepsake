@@ -88,11 +88,10 @@ function HeroCard({ userName }: { userName: string }) {
         </div>
         <div className="rk-hero-text" style={{ order: 1 }}>
           <h1 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.35rem, 3vw, 2rem)', fontWeight: 700, color: 'var(--text)', lineHeight: 1.2, marginBottom: '0.5rem' }}>
-            Welcome home, {userName}!{' '}
-            <span aria-hidden style={{ color: 'var(--muted)' }}>♡</span>
+            Welcome home, {userName}!
           </h1>
           <p style={{ fontSize: '0.88rem', color: 'var(--muted)', lineHeight: 1.65, marginBottom: '1.2rem' }}>
-            Some things are priceless. The way they said it, the voice behind every memory. A recipe. A lullaby. A story told just once. Keep it alive, across generations.
+            Some things are priceless. The way they said it, the voice behind every memory. A recipe. A lullaby. A story told just once. Keep it alive, eternally.
           </p>
           <div className="rk-action-tiles">
             <ActionTile
@@ -195,7 +194,7 @@ function MemoriesSection({
           {showFavsOnly ? 'Your favorites' : isFamily ? 'Family Memories' : 'Recent memories'}
         </h2>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-          {/* ♥ filter pill */}
+          {/* ♥ Favorites toggle pill */}
           <button
             type="button"
             onClick={() => setShowFavsOnly(v => !v)}
@@ -217,7 +216,31 @@ function MemoriesSection({
           >
             {showFavsOnly ? '♥' : '♡'} Favorites
           </button>
-          <Link href="/memories" style={{ fontSize: '0.78rem', color: 'var(--accent)', textDecoration: 'none', fontWeight: 500, whiteSpace: 'nowrap' }}>
+          {/* Family Collection link pill — dedicated authenticated page, not the public portal */}
+          <Link
+            href="/collection"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.3rem',
+              padding: '0.28rem 0.7rem',
+              borderRadius: 20,
+              border: '1.5px solid var(--border)',
+              background: 'transparent',
+              color: 'var(--muted)',
+              fontSize: '0.78rem',
+              fontWeight: 600,
+              textDecoration: 'none',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+            </svg>
+            Family Collection
+          </Link>
+          <Link href="/recipes" style={{ fontSize: '0.78rem', color: 'var(--accent)', textDecoration: 'none', fontWeight: 500, whiteSpace: 'nowrap' }}>
             View all ›
           </Link>
         </div>
@@ -278,21 +301,22 @@ function MemoryRow({
         alignItems: 'center',
         gap: '0.75rem',
         padding: '0.7rem 0.85rem',
+        minHeight: 76,
         background: 'var(--surface)',
         border: '1px solid var(--border)',
         borderRadius: 14,
         position: 'relative',
       }}
     >
-      {/* Whole-card tap target */}
+      {/* Whole-card tap target — zIndex 2 so it sits above content divs */}
       <Link
-        href={`/memory?token=${memory.token}`}
+        href={`/memory?token=${memory.token}&from=home`}
         aria-label={`Open ${title}`}
-        style={{ position: 'absolute', inset: 0, borderRadius: 14, zIndex: 0 }}
+        style={{ position: 'absolute', inset: 0, borderRadius: 14, zIndex: 2 }}
       />
 
       {/* Narrator avatar */}
-      <div style={{ width: 42, height: 42, borderRadius: '50%', background: 'var(--accent-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0, zIndex: 1 }}>
+      <div style={{ width: 42, height: 42, borderRadius: '50%', background: 'var(--accent-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0 }}>
         {photoUrl
           ? <img src={photoUrl} alt={narr} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           : <span style={{ fontFamily: 'var(--serif)', fontWeight: 700, color: 'var(--accent)', fontSize: '1.05rem' }}>{initial}</span>
@@ -300,12 +324,12 @@ function MemoryRow({
       </div>
 
       {/* Title + meta + waveform */}
-      <div style={{ flex: 1, minWidth: 0, zIndex: 1 }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
         <p style={{ fontFamily: 'var(--serif)', fontWeight: 600, color: 'var(--text)', fontSize: '0.9rem', marginBottom: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-          {isAudio(memory) && <span style={{ fontSize: '0.72rem', color: 'var(--accent)', flexShrink: 0 }}>♪</span>}
+          {isAudio(memory) && <span style={{ fontSize: '0.72rem', color: 'var(--accent)', flexShrink: 0 }}>✦</span>}
           {title}
         </p>
-        <p style={{ fontSize: '0.7rem', color: 'var(--muted)', marginBottom: 5 }}>
+        <p style={{ fontSize: '0.7rem', color: 'var(--muted)', marginBottom: 5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {narr} · {fmtDate(memory.recorded_at)}
           {memory.type && memory.type !== 'recipe' && (
             <span style={{ marginLeft: 6, padding: '1px 7px', borderRadius: 8, background: 'var(--surface)', border: '1px solid var(--border)', fontSize: 10, textTransform: 'capitalize', verticalAlign: 'middle' }}>{memory.type}</span>
@@ -317,10 +341,10 @@ function MemoryRow({
         <WaveformBars token={memory.token} barCount={18} />
       </div>
 
-      {/* Heart */}
-      <FavoriteHeart favorite={isFav} onToggle={onToggle} style={{ flexShrink: 0, zIndex: 1 }} />
+      {/* Heart — zIndex 3 so it stays above the Link tap target */}
+      <FavoriteHeart favorite={isFav} onToggle={onToggle} style={{ flexShrink: 0, position: 'relative', zIndex: 3 }} />
 
-      {/* Play circle (visual only — card Link handles tap) */}
+      {/* Play circle (visual only) */}
       <div
         aria-hidden
         style={{
@@ -328,7 +352,7 @@ function MemoryRow({
           border: '2px solid var(--accent)', color: 'var(--accent)',
           background: 'transparent',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: '0.7rem', flexShrink: 0, zIndex: 1, pointerEvents: 'none',
+          fontSize: '0.7rem', flexShrink: 0, pointerEvents: 'none',
         }}
       >
         ▶
@@ -349,6 +373,27 @@ function QuotePanel() {
         <p style={{ fontSize: '0.75rem', color: 'var(--muted)', letterSpacing: '0.01em' }}>
           Echoes of Home
         </p>
+      </div>
+
+      {/* Family Collection — routes to Account's family section, which already
+          shows the create form or the manage view depending on group state. */}
+      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 20, padding: '1.25rem', marginBottom: '1rem', boxShadow: '0 4px 16px rgba(45,27,14,0.05)' }}>
+        <h3 style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '0.95rem', color: 'var(--text)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+          </svg>
+          Family Collection
+        </h3>
+        <p style={{ fontSize: '0.78rem', color: 'var(--muted)', lineHeight: 1.5, marginBottom: '0.85rem' }}>
+          Create a shared collection for your family, or grab the invite and portal links to share.
+        </p>
+        <Link href="/account#family" style={{
+          display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
+          fontSize: '0.82rem', fontWeight: 600, color: 'var(--accent)', textDecoration: 'none',
+        }}>
+          Create or manage →
+        </Link>
       </div>
 
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 20, padding: '1.25rem', boxShadow: '0 4px 16px rgba(45,27,14,0.05)' }}>

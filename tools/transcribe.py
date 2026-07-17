@@ -1,27 +1,34 @@
 """
-Gemini-based Telugu audio transcription.
+Gemini-based Telugu audio transcription with OpenAI Whisper fallback.
 
-Uses gemini-2.5-flash instead of gpt-4o-transcribe because Gemini was trained
-on significantly more South Asian language data and handles Telugu regional
-dialects (Telangana, Andhra, Rayalaseema, Hyderabadi) far better than a model
-primarily optimised for English. The dialect-aware prompt gives the model
-explicit context that gpt-4o-transcribe's `initial_prompt` parameter cannot
-express.
+Primary: gemini-2.5-flash — best Telugu dialect coverage (Telangana, Andhra,
+Rayalaseema, Hyderabadi). The dialect-aware prompt preserves regional verb forms
+and cooking vocabulary that generic transcription models normalise away.
+
+Fallback chain on 503/capacity errors:
+  1. gemini-2.5-flash  (best quality)
+  2. gemini-2.0-flash  (still strong Telugu, usually less congested)
+  3. OpenAI whisper-1  (lower Telugu accuracy but highly available)
 
 D-002: _strip_hallucination_loops() is kept as a post-processing safety net —
 Gemini can still occasionally loop on silence, though far less than Whisper.
 """
+import logging
 import mimetypes
 import os
 import time
 
 from google import genai
+from openai import OpenAI
 
 from tools.glossary import build_glossary_terms_list
 
-_MODEL = "gemini-2.5-flash"
+_logger = logging.getLogger(__name__)
 
-_TRANSCRIPTION_PROMPT = """\
+_MODEL_PRIMARY  = "gemini-2.5-flash"
+_MODEL_FALLBACK = "gemini-2.0-flash"
+
+_PROMPT_TELUGU = """\
 Transcribe the following Telugu audio recording accurately.
 
 Rules:
@@ -36,6 +43,29 @@ translation, no commentary.
 - If the speaker code-switches into English mid-sentence, transcribe those words \
 in English as spoken.
 - Telugu cooking vocabulary that may appear: {glossary}
+"""
+
+_PROMPT_ENGLISH = """\
+Transcribe the following audio recording accurately in English.
+
+Rules:
+- Return only the transcription. No explanations, no commentary.
+- Preserve the speaker's exact words including hesitations and pauses if meaningful.
+- If the speaker uses any Telugu or Indian language words, transcribe them phonetically.
+"""
+
+_PROMPT_AUTO = """\
+Transcribe the following audio recording accurately.
+
+Rules:
+- Detect the spoken language automatically and transcribe in that language.
+- If the speaker is speaking Telugu (Telangana, Andhra, Rayalaseema, or Hyderabadi \
+dialect), transcribe in Telugu script and preserve dialectal forms exactly. \
+Telugu cooking vocabulary that may appear: {glossary}
+- If the speaker is speaking English, transcribe in English.
+- If the speaker code-switches between languages mid-sentence, reflect that in the \
+transcription (Telugu words in Telugu script, English words in English).
+- Return only the transcription. No explanations, no translation, no commentary.
 """
 
 # If any word/phrase appears more than this many times consecutively it's a
@@ -109,29 +139,20 @@ def _mime_type(audio_path: str) -> str:
     return mime
 
 
-def transcribe_audio(audio_path: str) -> str:
-    """Transcribe audio using Gemini 2.5 Flash with a dialect-aware Telugu prompt.
+def _is_overloaded(e: Exception) -> bool:
+    msg = str(e).lower()
+    return any(k in msg for k in ("unavailable", "high demand", "try again later", "resource_exhausted", "overloaded", "503"))
 
-    Gemini handles Telugu regional dialects (Telangana, Andhra, Rayalaseema,
-    Hyderabadi) far better than gpt-4o-transcribe because its training data
-    includes far more South Asian language content. The prompt explicitly tells
-    the model to preserve dialectal verb forms (-లి endings), Urdu borrowings,
-    and domain-specific cooking vocabulary rather than normalising to formal Telugu.
 
-    Audio is uploaded via the Gemini File API (size-independent) and the file
-    reference passed to generate_content alongside the transcription prompt.
-    """
+def _gemini_transcribe(audio_path: str, model: str, prompt: str) -> str:
+    """Upload audio to Gemini Files API and run transcription with the given model."""
     client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
-
-    prompt = _TRANSCRIPTION_PROMPT.format(glossary=build_glossary_terms_list())
 
     audio_file = client.files.upload(
         file=audio_path,
         config={"mime_type": _mime_type(audio_path)},
     )
 
-    # File goes through PROCESSING → ACTIVE before it can be used.
-    # Poll until ACTIVE (usually < 5s for audio files).
     for _ in range(20):
         audio_file = client.files.get(name=audio_file.name)
         if audio_file.state.name == "ACTIVE":
@@ -142,9 +163,61 @@ def transcribe_audio(audio_path: str) -> str:
     else:
         raise RuntimeError(f"Gemini file never became ACTIVE: {audio_file.name}")
 
-    response = client.models.generate_content(
-        model=_MODEL,
-        contents=[prompt, audio_file],
-    )
-
+    response = client.models.generate_content(model=model, contents=[prompt, audio_file])
+    if not response.text:
+        raise RuntimeError(f"Gemini ({model}) returned empty transcription — possible content filter or unsupported audio")
     return _strip_hallucination_loops(response.text)
+
+
+def _whisper_transcribe(audio_path: str, language: str) -> str:
+    """Fallback: OpenAI Whisper transcription."""
+    glossary = build_glossary_terms_list()
+    client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+    # Whisper's whisper-1 model does not accept "te" as a language code.
+    # Pass no language and let Whisper auto-detect; the glossary prompt hint
+    # steers it toward correct Telugu cooking vocabulary regardless.
+    is_telugu = language in ("te", "auto")
+    with open(audio_path, "rb") as f:
+        resp = client.audio.transcriptions.create(
+            model="whisper-1",
+            file=f,
+            prompt=f"Telugu cooking vocabulary: {glossary[:300]}" if is_telugu else None,
+        )
+    return resp.text
+
+
+def transcribe_audio(audio_path: str, language: str = "auto") -> str:
+    """Transcribe audio with automatic fallback on capacity errors.
+
+    Tries gemini-2.5-flash first (best Telugu dialect quality), falls back to
+    gemini-2.0-flash, then OpenAI whisper-1 as a last resort.
+    """
+    glossary = build_glossary_terms_list()
+    if language == "en":
+        prompt = _PROMPT_ENGLISH
+    elif language == "te":
+        prompt = _PROMPT_TELUGU.format(glossary=glossary)
+    else:
+        prompt = _PROMPT_AUTO.format(glossary=glossary)
+
+    # 1. Primary: gemini-2.5-flash
+    primary_error: Exception | None = None
+    try:
+        result = _gemini_transcribe(audio_path, _MODEL_PRIMARY, prompt)
+        _logger.info("event=transcribe_model model=gemini-2.5-flash")
+        return result
+    except Exception as e:
+        primary_error = e
+        _logger.warning(f"event=transcribe_fallback model={_MODEL_PRIMARY} error={type(e).__name__}: {e}")
+
+    # 2. Fallback: gemini-2.0-flash
+    try:
+        result = _gemini_transcribe(audio_path, _MODEL_FALLBACK, prompt)
+        _logger.info("event=transcribe_model model=gemini-2.0-flash")
+        return result
+    except Exception as e:
+        _logger.warning(f"event=transcribe_fallback model={_MODEL_FALLBACK} error={type(e).__name__}: {e}")
+
+    # 3. Last resort: OpenAI Whisper
+    _logger.warning("event=transcribe_fallback model=whisper-1")
+    return _whisper_transcribe(audio_path, language)

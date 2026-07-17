@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { signOut as authSignOut } from '@/lib/auth'
 import { EchoesLogoMark } from '@/components/EchoesLogoMark'
 import { useEffect, useState } from 'react'
 
@@ -91,7 +92,7 @@ export default function Sidebar({ isOpen = false, onClose }: { isOpen?: boolean;
   }, [])
 
   function navLinkAudio(href: string, label: string, icon: React.ReactNode) {
-    const active = pathMatches(path, '/memories') && searchParams.get('type') === 'audio'
+    const active = pathMatches(path, '/recipes') && searchParams.get('type') === 'audio'
     return (
       <Link
         key={href}
@@ -118,7 +119,11 @@ export default function Sidebar({ isOpen = false, onClose }: { isOpen?: boolean;
   }
 
   function navLink(href: string, label: string, icon: React.ReactNode, danger = false) {
-    const active = pathMatches(path, href) && !(href === '/memories' && searchParams.get('type') === 'audio')
+    const isAudioMode = searchParams.get('type') === 'audio'
+    const isSearchPage = path === '/search'
+    const active = pathMatches(path, href)
+      && !(href === '/recipes' && isAudioMode)
+      && !isSearchPage
     return (
       <Link
         key={href}
@@ -232,8 +237,9 @@ export default function Sidebar({ isOpen = false, onClose }: { isOpen?: boolean;
         {navLink('/people', 'Our People', Icon.people)}
 
         <div style={GROUP_LABEL}>Memories</div>
-        {navLink('/memories', 'All Recipes', Icon.bowl)}
-        {navLinkAudio('/memories?type=audio', 'Moments', Icon.sparkle)}
+        {navLink('/recipes', 'All Recipes', Icon.bowl)}
+        {navLinkAudio('/moments', 'Moments', Icon.sparkle)}
+        {navLink('/collection', 'Family Collection', Icon.people)}
 
         <div style={GROUP_LABEL}>Record</div>
         {navLink('/capture', 'Capture a Memory', Icon.mic)}
@@ -288,7 +294,7 @@ export default function Sidebar({ isOpen = false, onClose }: { isOpen?: boolean;
               </button>
               <button
                 type="button"
-                onClick={() => { setProfileMenuOpen(false); supabase.auth.signOut() }}
+                onClick={() => { setProfileMenuOpen(false); authSignOut().then(() => router.replace('/')) }}
                 style={{
                   display: 'flex', width: '100%', alignItems: 'center', gap: '0.6rem',
                   padding: '0.65rem 0.9rem', background: 'none', border: 'none',

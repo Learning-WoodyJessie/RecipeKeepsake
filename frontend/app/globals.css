@@ -85,6 +85,11 @@ body {
   .rk-rec-pulse { animation: rk-rec-pulse 1.4s ease-out infinite; }
 }
 
+/* Hide volume slider on touch devices (iOS ignores software volume anyway) */
+@media (hover: none) {
+  .rk-desktop-only { display: none !important; }
+}
+
 /* Respect reduced-motion preference: disable everything above outright */
 @media (prefers-reduced-motion: reduce) {
   .rk-heart-pop, .rk-gold-pulse, .rk-skeleton, .rk-rec-pulse { animation: none !important; }

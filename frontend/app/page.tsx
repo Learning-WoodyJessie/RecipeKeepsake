@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useEffect, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { signInWithGoogle, signInWithApple } from '@/lib/auth'
 import { EchoesLogoMark } from '@/components/EchoesLogoMark'
@@ -38,13 +38,35 @@ const features = [
 ]
 
 export default function LandingPage() {
+  return <Suspense><LandingPageInner /></Suspense>
+}
+
+function LandingPageInner() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const next = searchParams.get('next') ?? ''
+
+  useEffect(() => {
+    // Persist next in localStorage so the auth callback can read it
+    // even if localStorage was cleared during the OAuth round-trip
+    if (next) localStorage.setItem('returnTo', next)
+  }, [next])
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) router.replace('/home')
+      if (session) router.replace(next || '/home')
     })
-  }, [router])
+  }, [router, next])
+
+  function handleGoogle() {
+    if (next) localStorage.setItem('returnTo', next)
+    signInWithGoogle(next || undefined)
+  }
+
+  function handleApple() {
+    if (next) localStorage.setItem('returnTo', next)
+    signInWithApple(next || undefined)
+  }
 
   return (
     <main
@@ -283,7 +305,7 @@ export default function LandingPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', marginBottom: '1.1rem' }}>
               <button
                 type="button"
-                onClick={signInWithGoogle}
+                onClick={handleGoogle}
                 style={{
                   width: '100%',
                   background: 'var(--accent)',
@@ -314,7 +336,7 @@ export default function LandingPage() {
 
               <button
                 type="button"
-                onClick={signInWithApple}
+                onClick={handleApple}
                 style={{
                   width: '100%',
                   background: '#FFFFFF',
