@@ -3,6 +3,7 @@ Echoes of Home API server — thin HTTP adapter.
 
 Business logic lives in pipeline/. This file handles:
   - HTTP transport (FastAPI routes, multipart forms, JSON responses)
+  # deploy trigger 2026-07-17
   - Auth (Supabase JWT validation)
   - Rate limiting (in-memory, per-user-per-day)
   - Static file serving
