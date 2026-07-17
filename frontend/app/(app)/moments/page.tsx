@@ -31,7 +31,7 @@ const WA_ICON = (
   </svg>
 )
 
-function CardShareButton({ token, title, type, narrator, top = 8, right = 38 }: { token: string; title: string | null; type?: string | null; narrator?: string | null; top?: number; right?: number }) {
+function CardShareButton({ token, title, type, narrator, top = 6, right = 44 }: { token: string; title: string | null; type?: string | null; narrator?: string | null; top?: number; right?: number }) {
   return (
     <button
       type="button"
@@ -44,7 +44,7 @@ function CardShareButton({ token, title, type, narrator, top = 8, right = 38 }: 
       title="Share on WhatsApp"
       style={{
         position: 'absolute', top, right,
-        width: 26, height: 26, borderRadius: '50%',
+        width: 34, height: 34, borderRadius: '50%',
         background: '#25D366', border: 'none', cursor: 'pointer',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         boxShadow: '0 1px 4px rgba(0,0,0,0.18)', zIndex: 2,
@@ -62,13 +62,13 @@ function BookmarkToggle({ inCollection, onToggle }: { inCollection: boolean; onT
       onClick={onToggle}
       title={inCollection ? 'Remove from Family Moments' : 'Add to Family Moments'}
       style={{
-        position: 'absolute', top: 8, left: 8, width: 26, height: 26, borderRadius: '50%',
+        position: 'absolute', top: 6, left: 6, width: 34, height: 34, borderRadius: '50%',
         background: inCollection ? 'var(--accent)' : 'rgba(255,255,255,0.9)',
         border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
         boxShadow: '0 1px 4px rgba(0,0,0,0.15)', zIndex: 2, transition: 'background 0.15s',
       }}
     >
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={inCollection ? 'white' : 'var(--accent)'} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={inCollection ? 'white' : 'var(--accent)'} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
         <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
         <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
       </svg>
@@ -80,10 +80,10 @@ function BookmarkToggle({ inCollection, onToggle }: { inCollection: boolean; onT
 // 9 bars that go up and down from a centre axis independently (not connected)
 const EQ_BARS = [13, 19, 25, 29, 31, 29, 25, 19, 13] // half-heights
 
-function EqualizerPlaceholder() {
+function EqualizerPlaceholder({ title }: { title?: string | null }) {
   return (
-    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(140deg, #EEF3F0 0%, #DDE8E2 100%)' }}>
-      <svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg" style={{ width: '58%', maxWidth: 150 }}>
+    <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(140deg, #EEF3F0 0%, #DDE8E2 100%)', gap: 6, padding: '4px 10px 10px' }}>
+      <svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg" style={{ width: '52%', maxWidth: 130, flexShrink: 0 }}>
         {/* Faint centre axis */}
         <line x1="4" y1="40" x2="96" y2="40" stroke="rgba(24,107,94,0.2)" strokeWidth="0.6"/>
         {EQ_BARS.map((halfH, i) => (
@@ -101,6 +101,25 @@ function EqualizerPlaceholder() {
           />
         ))}
       </svg>
+      {title && (
+        <p style={{
+          margin: 0,
+          fontFamily: 'var(--serif)',
+          fontWeight: 700,
+          fontSize: 'clamp(10px, 3.2vw, 13px)',
+          color: '#1B6B52',
+          textAlign: 'center',
+          lineHeight: 1.3,
+          overflow: 'hidden',
+          display: '-webkit-box',
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: 'vertical',
+          width: '100%',
+          wordBreak: 'break-word',
+        }}>
+          {title}
+        </p>
+      )}
     </div>
   )
 }
@@ -126,22 +145,20 @@ function AudioCard({
       {/* Equalizer thumbnail */}
       <div style={{ position: 'relative', aspectRatio: '4/3', overflow: 'hidden', flexShrink: 0 }}>
         <Link href={`/memory?token=${memory.token}&from=moments`} style={{ display: 'block', height: '100%' }}>
-          <EqualizerPlaceholder />
+          <EqualizerPlaceholder title={memory.title} />
         </Link>
-        <CardShareButton token={memory.token} title={memory.title} type={memory.type} narrator={memory.narrator} top={8} right={38} />
+        <CardShareButton token={memory.token} title={memory.title} type={memory.type} narrator={memory.narrator} top={6} right={44} />
         <BookmarkToggle inCollection={inCollection} onToggle={e => { e.preventDefault(); onToggleCollection() }} />
         <FavoriteHeart
           favorite={isFav}
           onToggle={onToggleFav}
           size="0.85rem"
-          style={{ position: 'absolute', top: 8, right: 8, width: 26, height: 26, borderRadius: '50%', background: 'rgba(255,255,255,0.9)', boxShadow: '0 2px 6px rgba(0,0,0,0.12)' }}
+          style={{ position: 'absolute', top: 6, right: 6, width: 34, height: 34, borderRadius: '50%', background: 'rgba(255,255,255,0.9)', boxShadow: '0 2px 6px rgba(0,0,0,0.12)' }}
         />
       </div>
 
       <div style={{ padding: '0.85rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
-        <p style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '0.98rem', color: 'var(--text)', marginBottom: '0.55rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {memory.title ?? 'Untitled'}
-        </p>
+        <div style={{ marginBottom: '0.35rem' }} />
         {memory.narrator && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.4rem', overflow: 'hidden' }}>
             <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'var(--accent-light)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: '1.5px solid var(--border)' }}>

@@ -151,16 +151,28 @@ function MemoryDetail() {
     }
   }
 
-  // Resolve slug → token when the URL is /memory/some-slug (no ?token= param)
+  // Resolve slug → token when the URL is /memory/some-slug (no ?token= param).
+  //
+  // Race: useState(initialToken) runs during render; window.location.search may
+  // still point at the previous route at that instant, so initialToken can be ''
+  // and tokenReady initialises to false even for a plain ?token= navigation.
+  // By the time useEffect fires, the browser URL is always committed, so we
+  // re-read window.location.search here. We also check useSearchParams (params)
+  // as a second fallback and keep params in the dep array so the effect re-runs
+  // when useSearchParams eventually catches up.
   useEffect(() => {
     if (tokenReady) return
+    // window.location.search is always the committed URL by the time effects run
+    const windowToken = new URLSearchParams(window.location.search).get('token')
+    const t = windowToken || params.get('token')
+    if (t) { setToken(t); setTokenReady(true); return }
     const segs = window.location.pathname.split('/').filter(Boolean)
     const slug = segs.length === 2 && segs[0] === 'memory' ? segs[1] : null
     if (!slug) { router.replace('/recipes'); return }
     api.recipes.getBySlug(slug)
       .then((m: Memory) => { setToken(m.token); setTokenReady(true) })
       .catch(() => router.replace('/recipes'))
-  }, [tokenReady, router])
+  }, [tokenReady, router, params])
 
   useEffect(() => {
     if (!tokenReady || !token) return
