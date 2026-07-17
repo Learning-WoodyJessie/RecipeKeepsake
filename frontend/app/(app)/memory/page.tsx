@@ -4,7 +4,7 @@
 
 'use client'
 import { useEffect, useState, useRef, Suspense } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { api } from '@/lib/api'
 import { supabase } from '@/lib/supabase'
@@ -67,20 +67,11 @@ function WaIcon() {
 }
 
 function MemoryDetail() {
-  const params = useSearchParams()
   const router = useRouter()
-  const from = params.get('from') ?? ''
+  const [from, setFrom] = useState('')
   const backHref = from === 'moments' ? '/moments' : from === 'home' ? '/home' : from === 'collection' ? '/collection' : '/recipes'
   const backLabel = from === 'moments' ? 'Moments' : from === 'home' ? 'Home' : from === 'collection' ? 'Family Collection' : 'All Recipes'
-  // Read token from window.location.search directly — useSearchParams() can lag
-  // during client-side navigation, causing tokenReady to initialise false and
-  // the slug-resolution effect to fire a spurious redirect to /recipes.
-  const initialToken = (typeof window !== 'undefined'
-    ? new URLSearchParams(window.location.search).get('token')
-    : null) ?? params.get('token') ?? ''
-  const [token, setToken] = useState(initialToken)
-  // tokenReady: true when token is known (either from ?token= param or resolved from slug)
-  const [tokenReady, setTokenReady] = useState(!!initialToken)
+  const [token, setToken] = useState('')
 
   const [memory, setMemory] = useState<Memory | null>(null)
   const [translated, setTranslated] = useState<Partial<Memory> | null>(null)
@@ -151,29 +142,26 @@ function MemoryDetail() {
     }
   }
 
-  // Resolve slug → token for /memory/some-slug URLs, or wait for useSearchParams
-  // to catch up for /memory?token= URLs.
-  //
-  // Race: during Next.js concurrent-mode transitions, both window.location.search
-  // and useSearchParams() can lag behind the actual URL on the first render and
-  // the first effect run. The fix: if there is no token and no slug yet, simply
-  // return and wait — params is in the dep array so this effect re-runs the moment
-  // useSearchParams catches up, at which point params.get('token') returns the real
-  // value. Only redirect to /recipes if a slug IS present but cannot be resolved.
+  // Resolve token on mount — window.location is always committed by this point,
+  // no useSearchParams lag. Also sets 'from' for the back button.
   useEffect(() => {
-    if (tokenReady) return
-    const t = params.get('token')
-    if (t) { setToken(t); setTokenReady(true); return }
+    const search = new URLSearchParams(window.location.search)
+    setFrom(search.get('from') ?? '')
+    const t = search.get('token')
+    if (t) { setToken(t); return }
     const segs = window.location.pathname.split('/').filter(Boolean)
     const slug = segs.length === 2 && segs[0] === 'memory' ? segs[1] : null
-    if (!slug) return
-    api.recipes.getBySlug(slug)
-      .then((m: Memory) => { setToken(m.token); setTokenReady(true) })
-      .catch(() => router.replace('/recipes'))
-  }, [tokenReady, router, params])
+    if (slug) {
+      api.recipes.getBySlug(slug)
+        .then((m: Memory) => setToken(m.token))
+        .catch(() => router.replace('/recipes'))
+    } else {
+      router.replace('/recipes')
+    }
+  }, [router])
 
   useEffect(() => {
-    if (!tokenReady || !token) return
+    if (!token) return
     api.recipes.get(token).then((m: Memory) => {
       setMemory(m)
       setTitleValue(m.title ?? '')
@@ -184,7 +172,7 @@ function MemoryDetail() {
       setNotes(m.user_notes ?? '')
       setInPortal(m.portal_visible ?? false)
     }).catch((e: Error) => setError(e.message)).finally(() => setLoading(false))
-  }, [token, tokenReady, router])
+  }, [token])
 
   useEffect(() => {
     api.family.getMyGroup().then((d: { portal_url?: string; invite_url?: string }) => {
@@ -209,7 +197,7 @@ function MemoryDetail() {
   }, [])
 
   useEffect(() => {
-    if (params.get('justSaved') !== '1') return
+    if (new URLSearchParams(window.location.search).get('justSaved') !== '1') return
     setJustSavedToast(true)
     const t = setTimeout(() => setJustSavedToast(false), 2600)
     // Strip justSaved but keep the from param so the back button still works
