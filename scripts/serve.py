@@ -544,6 +544,10 @@ async def memory_shortcode_redirect(shortcode: str):
     No auth required — the memory page itself enforces auth after redirect.
     Extracts the 8-char token prefix from the last hyphen-separated segment.
     """
+    # Next.js 16 fetches /memory/__next_tree.txt during navigation prefetching.
+    # Return 404 so the client skips the prefetch rather than following a /recipes redirect.
+    if shortcode.startswith("__next"):
+        raise HTTPException(status_code=404, detail="not found")
     prefix = shortcode.split("-")[-1]
     if len(prefix) != 8:
         return RedirectResponse(url="/recipes", status_code=302)
