@@ -13,6 +13,7 @@ Fallback chain on 503/capacity errors:
 D-002: _strip_hallucination_loops() is kept as a post-processing safety net —
 Gemini can still occasionally loop on silence, though far less than Whisper.
 """
+import json
 import logging
 import mimetypes
 import os
@@ -144,6 +145,22 @@ def _is_overloaded(e: Exception) -> bool:
     return any(k in msg for k in ("unavailable", "high demand", "try again later", "resource_exhausted", "overloaded", "503"))
 
 
+def _flatten_gemini_response(text: str) -> str:
+    """Gemini sometimes returns a JSON object with a 'segments' array instead of plain text.
+
+    When that happens, join the text_content values into a single string so
+    transcript_raw is always stored as plain text, not raw JSON.
+    """
+    try:
+        parsed = json.loads(text)
+        if isinstance(parsed, dict) and "segments" in parsed:
+            parts = [seg["text_content"] for seg in parsed["segments"] if seg.get("text_content")]
+            return " ".join(parts)
+    except (json.JSONDecodeError, KeyError, TypeError):
+        pass
+    return text
+
+
 def _gemini_transcribe(audio_path: str, model: str, prompt: str) -> str:
     """Upload audio to Gemini Files API and run transcription with the given model."""
     client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
@@ -166,7 +183,7 @@ def _gemini_transcribe(audio_path: str, model: str, prompt: str) -> str:
     response = client.models.generate_content(model=model, contents=[prompt, audio_file])
     if not response.text:
         raise RuntimeError(f"Gemini ({model}) returned empty transcription — possible content filter or unsupported audio")
-    return _strip_hallucination_loops(response.text)
+    return _strip_hallucination_loops(_flatten_gemini_response(response.text))
 
 
 def _whisper_transcribe(audio_path: str, language: str) -> str:

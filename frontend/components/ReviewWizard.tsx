@@ -21,6 +21,21 @@ type Draft = {
 // Matches pipeline/transform.py's VALID_CATEGORIES exactly
 const CATEGORIES = ['Breakfast', 'Lunch', 'Sweets', 'Pickles', 'Snacks', 'Drinks', 'Other'] as const
 
+function parseTranscript(raw: string): string {
+  try {
+    const parsed = JSON.parse(raw)
+    if (parsed && Array.isArray(parsed.segments)) {
+      return parsed.segments
+        .map((s: { text_content?: string }) => s.text_content ?? '')
+        .filter(Boolean)
+        .join(' ')
+    }
+  } catch {
+    // plain text — use as-is
+  }
+  return raw
+}
+
 const ACTION_BAR: React.CSSProperties = {
   flexShrink: 0,
   background: 'var(--surface)',
@@ -142,7 +157,7 @@ export default function ReviewWizard({ draft, audioFile, narrator: narratorProp,
               </button>
               {transcriptOpen && (
                 <div style={{ background: 'var(--cream2)', border: '1px solid var(--border)', borderTop: 'none', borderRadius: '0 0 10px 10px', padding: '0.85rem 1rem', fontSize: '0.82rem', color: 'var(--text2)', lineHeight: 1.85, maxHeight: 220, overflowY: 'auto' }}>
-                  {draft.transcript_raw.split(/(?<=[.!?])\s+/).map((s, i) => (
+                  {parseTranscript(draft.transcript_raw).split(/(?<=[.!?])\s+/).map((s, i) => (
                     <p key={i} style={{ margin: '0 0 0.35rem' }}>{s}</p>
                   ))}
                 </div>
