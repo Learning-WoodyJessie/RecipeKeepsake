@@ -162,7 +162,7 @@ export default function ReviewWizard({ draft, audioFile, narrator: narratorProp,
           disabled={!title.trim() || !narrator.trim()}
           style={{ flex: 2, padding: '0.75rem', borderRadius: 10, background: (title.trim() && narrator.trim()) ? 'var(--accent)' : 'var(--muted)', color: 'white', border: 'none', fontWeight: 700, cursor: (title.trim() && narrator.trim()) ? 'pointer' : 'default', fontSize: '0.95rem' }}
         >
-          Review &amp; save →
+          Review &amp; Continue →
         </button>
       </div>
     </div>
