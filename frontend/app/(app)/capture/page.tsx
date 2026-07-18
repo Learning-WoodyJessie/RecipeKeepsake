@@ -161,6 +161,8 @@ function CapturePageInner() {
   const blobRef = useRef<Blob | null>(null)
   const previewUrlRef = useRef<string | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const audioPreviewRef = useRef<HTMLAudioElement | null>(null)
+  const [previewPlaying, setPreviewPlaying] = useState(false)
 
   const fmt = (s: number) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`
 
@@ -299,6 +301,8 @@ function CapturePageInner() {
   }
 
   function discardRecording() {
+    if (audioPreviewRef.current) { audioPreviewRef.current.pause(); audioPreviewRef.current.src = '' }
+    setPreviewPlaying(false)
     if (previewUrlRef.current) { URL.revokeObjectURL(previewUrlRef.current); previewUrlRef.current = null }
     setPreviewUrl(null)
     blobRef.current = null
@@ -594,53 +598,50 @@ function CapturePageInner() {
             )}
 
             {stage === 'preview' && previewUrl && (
-              <div style={{ padding: '0.5rem 0 0.25rem' }}>
-                <p style={{ fontSize: '0.82rem', color: 'var(--muted)', marginBottom: '0.85rem' }}>
-                  Listen back — does it sound right?
-                </p>
+              <>
                 <audio
+                  ref={audioPreviewRef}
                   src={previewUrl}
-                  controls
-                  style={{ width: '100%', marginBottom: '1.25rem', borderRadius: 8 }}
+                  onEnded={() => setPreviewPlaying(false)}
                 />
-                <p style={{ fontSize: '0.72rem', color: 'var(--muted)', marginBottom: '1.1rem', lineHeight: 1.5 }}>
-                  {fmt(duration)} recorded · {(blobRef.current ? (blobRef.current.size / 1024).toFixed(0) : '–')} KB
+                <div style={{ position: 'relative', width: 110, height: 110, margin: '0 auto 1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '2px solid var(--accent)', opacity: 0.35, pointerEvents: 'none' }} />
+                  <button
+                    onClick={() => {
+                      const a = audioPreviewRef.current
+                      if (!a) return
+                      if (previewPlaying) { a.pause(); setPreviewPlaying(false) }
+                      else { a.play(); setPreviewPlaying(true) }
+                    }}
+                    style={{ width: 80, height: 80, borderRadius: '50%', background: 'var(--accent-light)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent)' }}
+                    aria-label={previewPlaying ? 'Pause' : 'Play recording'}
+                  >
+                    {previewPlaying
+                      ? <svg width="26" height="26" viewBox="0 0 24 24" fill="var(--accent)" stroke="none"><rect x="5" y="4" width="4" height="16" rx="1"/><rect x="15" y="4" width="4" height="16" rx="1"/></svg>
+                      : <svg width="26" height="26" viewBox="0 0 24 24" fill="var(--accent)" stroke="none"><polygon points="6,3 20,12 6,21"/></svg>
+                    }
+                  </button>
+                </div>
+                <p style={{ fontFamily: 'monospace', fontSize: '1.75rem', fontWeight: 600, color: 'var(--text)', marginBottom: '0.5rem', letterSpacing: '0.05em' }}>{fmt(duration)}</p>
+                <p style={{ fontSize: '0.82rem', color: 'var(--muted)', marginBottom: '1.25rem' }}>
+                  {previewPlaying ? 'Playing…' : 'Tap to listen back'}
                 </p>
-                <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
+                <WaveformDecoration />
+                <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', marginTop: '1.25rem' }}>
                   <button
                     onClick={discardRecording}
-                    style={{
-                      padding: '0.65rem 1.5rem',
-                      borderRadius: 10,
-                      border: '1px solid var(--border)',
-                      background: 'var(--surface)',
-                      color: 'var(--text2)',
-                      fontWeight: 600,
-                      fontSize: '0.9rem',
-                      cursor: 'pointer',
-                      fontFamily: 'var(--sans)',
-                    }}
+                    style={{ padding: '0.6rem 1.25rem', borderRadius: 10, border: '1px solid var(--border)', background: 'none', color: 'var(--text2)', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', fontFamily: 'var(--sans)' }}
                   >
                     Re-record
                   </button>
                   <button
                     onClick={confirmRecording}
-                    style={{
-                      padding: '0.65rem 1.5rem',
-                      borderRadius: 10,
-                      border: 'none',
-                      background: 'var(--accent)',
-                      color: 'white',
-                      fontWeight: 600,
-                      fontSize: '0.9rem',
-                      cursor: 'pointer',
-                      fontFamily: 'var(--sans)',
-                    }}
+                    style={{ padding: '0.6rem 1.25rem', borderRadius: 10, border: 'none', background: 'var(--accent)', color: 'white', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', fontFamily: 'var(--sans)' }}
                   >
                     Sounds good →
                   </button>
                 </div>
-              </div>
+              </>
             )}
 
             {stage === 'processing' && (
