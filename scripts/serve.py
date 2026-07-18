@@ -852,7 +852,7 @@ async def save_audio_endpoint(
 
         tags = ["tale"]
         if audio_filename:
-            upload_audio(tmp_path, audio_filename, user_id=_user_id(user))
+            audio_filename = upload_audio(tmp_path, audio_filename, user_id=_user_id(user))
             tags.append("audio")
 
         # Auto-transcribe when audio is present, no user-supplied text, and not a recipe

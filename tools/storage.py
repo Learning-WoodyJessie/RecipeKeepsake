@@ -1,7 +1,9 @@
 import logging
 import os
 import re
+import subprocess
 import mimetypes
+import tempfile
 import uuid as _uuid
 from pathlib import Path
 from supabase import create_client, Client
@@ -122,10 +124,50 @@ _AUDIO_MIME: dict[str, str] = {
 }
 
 
+def _transcode_to_mp3(local_path: str) -> tuple[str, bool]:
+    """Convert audio to MP3 via ffmpeg for universal browser playback (iOS Safari compatibility).
+    Returns (mp3_path, True) on success or (local_path, False) if ffmpeg is unavailable/fails.
+    Caller is responsible for deleting the returned mp3_path when done.
+    """
+    mp3_tmp = tempfile.NamedTemporaryFile(suffix='.mp3', delete=False)
+    mp3_path = mp3_tmp.name
+    mp3_tmp.close()
+    try:
+        result = subprocess.run(
+            ['ffmpeg', '-y', '-i', local_path, '-ar', '44100', '-ac', '1', '-b:a', '32k', mp3_path],
+            capture_output=True,
+            timeout=60,
+        )
+        if result.returncode == 0 and Path(mp3_path).stat().st_size > 0:
+            return mp3_path, True
+        _logger.warning(f'event=transcode_failed returncode={result.returncode} stderr={result.stderr[:200]}')
+    except FileNotFoundError:
+        _logger.warning('event=transcode_skip reason=ffmpeg_not_found')
+    except Exception as e:
+        _logger.warning(f'event=transcode_error error={e}')
+    try:
+        os.unlink(mp3_path)
+    except Exception:
+        pass
+    return local_path, False
+
+
 def upload_audio(local_path: str, filename: str, user_id: str = "") -> str:
-    """Upload an audio file to the private 'audio' bucket. Returns the filename (storage path)."""
+    """Upload an audio file to the private 'audio' bucket. Returns the stored filename.
+    WebM and OGG files are transcoded to MP3 first for iOS Safari compatibility.
+    """
     ext = Path(filename).suffix.lower()
-    mime = _AUDIO_MIME.get(ext) or mimetypes.guess_type(filename)[0] or "audio/webm"
+
+    mp3_path = None
+    if ext in ('.webm', '.ogg'):
+        transcoded, ok = _transcode_to_mp3(local_path)
+        if ok:
+            mp3_path = transcoded
+            local_path = mp3_path
+            filename = Path(filename).stem + '.mp3'
+            ext = '.mp3'
+
+    mime = _AUDIO_MIME.get(ext) or mimetypes.guess_type(filename)[0] or "audio/mpeg"
     with open(local_path, "rb") as f:
         data = f.read()
 
@@ -136,6 +178,13 @@ def upload_audio(local_path: str, filename: str, user_id: str = "") -> str:
         file=data,
         file_options={"content-type": mime, "upsert": "true"},
     )
+
+    if mp3_path:
+        try:
+            os.unlink(mp3_path)
+        except Exception:
+            pass
+
     # Store just the filename — signed URLs are generated at serve time
     return filename
 
