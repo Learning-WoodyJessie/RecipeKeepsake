@@ -295,7 +295,7 @@ function AudioCard({
     <Link
       href={`/memory?token=${memory.token}&from=recipes`}
       className="rk-card-hoverable"
-      style={{ textDecoration: 'none', display: 'block', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, overflow: 'hidden', boxShadow: '0 2px 10px rgba(45,27,14,0.06)' }}
+      style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, overflow: 'hidden', boxShadow: '0 2px 10px rgba(45,27,14,0.06)' }}
     >
       {/* Equalizer thumbnail */}
       <div style={{ position: 'relative', aspectRatio: '4/3', overflow: 'hidden', flexShrink: 0 }}>
@@ -310,7 +310,7 @@ function AudioCard({
         />
       </div>
 
-      <div style={{ padding: '0.85rem' }}>
+      <div style={{ padding: '0.85rem', display: 'flex', flexDirection: 'column', flex: 1 }}>
         <div style={{ marginBottom: '0.35rem' }} />
         {memory.narrator && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.4rem' }}>
@@ -326,6 +326,12 @@ function AudioCard({
         <p style={{ fontSize: '0.7rem', color: 'var(--muted)', margin: '0.5rem 0 0' }}>
           {new Date(memory.recorded_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
         </p>
+        <div style={{ marginTop: 'auto', paddingTop: '0.5rem' }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', color: 'var(--accent)', fontSize: '0.8rem', fontWeight: 600 }}>
+            <span style={{ width: 22, height: 22, borderRadius: '50%', border: '1.5px solid var(--accent)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.55rem' }}>▶</span>
+            View memory
+          </span>
+        </div>
       </div>
     </Link>
   )

@@ -215,8 +215,17 @@ function CapturePageInner() {
   async function startRecording() {
     try {
       setError('')
+      const ua = navigator.userAgent
+      const isAndroid = /android/i.test(ua)
+      const isIOS = /iphone|ipad|ipod/i.test(ua)
+      console.log('[capture] ua=%s android=%s ios=%s', ua, isAndroid, isIOS)
+
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true }).catch(() => null)
       if (!stream) { setError('Microphone access denied. Please allow microphone access and try again.'); setStage('error'); return }
+
+      const track = stream.getAudioTracks()[0]
+      console.log('[capture] track label=%s settings=%o', track?.label, track?.getSettings())
+
       const { mimeType, ext } = pickMimeType()
       extRef.current = ext
       console.log('[capture] start mime=%s ext=%s tracks=%d', mimeType, ext, stream.getAudioTracks().length)
@@ -224,23 +233,33 @@ function CapturePageInner() {
         ...(mimeType ? { mimeType } : {}),
         audioBitsPerSecond: 32000,
       })
+      console.log('[capture] mr.audioBitsPerSecond=%d state=%s', mr.audioBitsPerSecond, mr.state)
       mrRef.current = mr
       chunksRef.current = []
-      startLevelMeter(stream)
+
+      // AudioContext analyser causes clicking/empty audio on Android — skip it there.
+      // The live waveform shows static bars instead; recording quality is unaffected.
+      if (!isAndroid) startLevelMeter(stream)
+
+      const recStart = Date.now()
       mr.ondataavailable = e => {
-        console.log('[capture] dataavailable size=%d', e.data.size)
+        const elapsed = ((Date.now() - recStart) / 1000).toFixed(1)
+        console.log('[capture] chunk t=%ss size=%d cumulative=%d', elapsed, e.data.size,
+          chunksRef.current.reduce((s, c) => s + c.size, 0) + e.data.size)
         if (e.data.size > 0) chunksRef.current.push(e.data)
       }
       mr.onerror = (e) => {
         console.error('[capture] MediaRecorder error', e)
       }
       mr.onstop = () => {
+        const durationSec = (Date.now() - recStart) / 1000
         const totalBytes = chunksRef.current.reduce((s, c) => s + c.size, 0)
         const blob = new Blob(chunksRef.current, { type: mr.mimeType })
-        console.log('[capture] stop chunks=%d totalBytes=%d blobSize=%d blobType=%s',
-          chunksRef.current.length, totalBytes, blob.size, blob.type)
+        const kbps = totalBytes > 0 ? ((totalBytes * 8) / durationSec / 1000).toFixed(1) : '0'
+        console.log('[capture] stop duration=%.1fs chunks=%d totalBytes=%d blobSize=%d blobType=%s kbps=%s',
+          durationSec, chunksRef.current.length, totalBytes, blob.size, blob.type, kbps)
         if (blob.size < 1000) {
-          console.warn('[capture] blob is suspiciously small — audio may not have been captured')
+          console.warn('[capture] blob suspiciously small — likely empty audio (android AudioContext interference?)')
         }
         stream.getTracks().forEach(t => t.stop())
         stopLevelMeter()
