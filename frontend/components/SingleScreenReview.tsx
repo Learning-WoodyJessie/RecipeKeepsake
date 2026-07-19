@@ -33,10 +33,10 @@ export default function SingleScreenReview({
       if (title.trim() && title.trim() !== initialTitle) {
         await api.recipes.patch(token, { title: title.trim() })
       }
-      router.push(`/memory?token=${token}&justSaved=1`)
+      router.push(`/memory?token=${token}&justSaved=1&from=moments`)
     } catch {
       // Patch failure is non-fatal — navigate anyway, title can be edited later
-      router.push(`/memory?token=${token}&justSaved=1`)
+      router.push(`/memory?token=${token}&justSaved=1&from=moments`)
     }
   }
 

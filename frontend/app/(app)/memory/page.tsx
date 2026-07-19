@@ -70,7 +70,7 @@ function MemoryDetail() {
   const router = useRouter()
   const [from, setFrom] = useState('')
   const backHref = from === 'moments' ? '/moments' : from === 'home' ? '/home' : from === 'collection' ? '/collection' : '/recipes'
-  const backLabel = from === 'moments' ? 'Moments' : from === 'home' ? 'Home' : from === 'collection' ? 'Family Collection' : 'All Recipes'
+  const backLabel = from === 'moments' ? 'All Moments' : from === 'home' ? 'Home' : from === 'collection' ? 'Family Collection' : 'All Recipes'
   // Lazy init reads the URL synchronously — avoids an extra render cycle before
   // the API call starts. The mount effect below is a silent fallback for the rare
   // case where concurrent mode renders before pushState has fired.
