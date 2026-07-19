@@ -145,6 +145,29 @@ def _is_overloaded(e: Exception) -> bool:
     return any(k in msg for k in ("unavailable", "high demand", "try again later", "resource_exhausted", "overloaded", "503"))
 
 
+_REFUSAL_FRAGMENTS = (
+    "sorry, i can't",
+    "i'm sorry, but i can't",
+    "i cannot assist",
+    "i can't assist",
+    "i'm unable to",
+    "i cannot help",
+    "i can't help",
+    "i'm not able to",
+)
+
+
+def _is_refusal(text: str) -> bool:
+    """Return True when Gemini returns a safety/policy refusal instead of a transcript.
+
+    Songs trigger Gemini's copyright filters even for personal family recordings.
+    Detecting the refusal lets the fallback chain (gemini-2.0-flash → whisper-1)
+    handle it — Whisper has no such restriction.
+    """
+    lower = text.strip().lower()
+    return len(text.strip()) < 300 and any(frag in lower for frag in _REFUSAL_FRAGMENTS)
+
+
 def _flatten_gemini_response(text: str) -> str:
     """Gemini sometimes returns a JSON object with a 'segments' array instead of plain text.
 
@@ -183,6 +206,8 @@ def _gemini_transcribe(audio_path: str, model: str, prompt: str) -> str:
     response = client.models.generate_content(model=model, contents=[prompt, audio_file])
     if not response.text:
         raise RuntimeError(f"Gemini ({model}) returned empty transcription — possible content filter or unsupported audio")
+    if _is_refusal(response.text):
+        raise RuntimeError(f"Gemini ({model}) refused transcription (likely copyright/safety filter) — falling back")
     return _strip_hallucination_loops(_flatten_gemini_response(response.text))
 
 
