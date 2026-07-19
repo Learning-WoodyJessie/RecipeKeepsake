@@ -690,6 +690,10 @@ export default function MemoriesPage() {
                     <h1 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.6rem, 3vw, 2rem)', fontWeight: 700, color: 'var(--text)', margin: 0 }}>
                       {narratorParam}&rsquo;s memories
                     </h1>
+                    <Link href={`/capture?narrator=${encodeURIComponent(narratorParam)}`} style={{ background: 'var(--accent)', color: 'white', textDecoration: 'none', padding: '0.45rem 1rem', borderRadius: 10, fontSize: '0.82rem', fontWeight: 700, whiteSpace: 'nowrap', flexShrink: 0, boxShadow: '0 2px 8px rgba(24,107,94,0.22)', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/></svg>
+                      Capture a memory
+                    </Link>
                   </div>
                   <p style={{ fontSize: '0.9rem', color: 'var(--muted)', lineHeight: 1.6, maxWidth: 380 }}>
                     Recipes, songs, stories. Everything saved from {narratorParam}.
@@ -877,7 +881,11 @@ export default function MemoriesPage() {
                   ? `No memories saved for ${narratorParam} yet.`
                   : isAudioMode ? 'No recordings yet.' : 'No recipes yet.'}
                 {' '}
-                {!narratorParam && (
+                {narratorParam ? (
+                  <Link href={`/capture?narrator=${encodeURIComponent(narratorParam)}`} style={{ color: 'var(--accent)', fontWeight: 600 }}>
+                    Capture the first one
+                  </Link>
+                ) : (
                   <Link href={isAudioMode ? '/upload' : '/capture'} style={{ color: 'var(--accent)', fontWeight: 600 }}>
                     {isAudioMode ? 'Upload the first one' : 'Capture the first one'}
                   </Link>

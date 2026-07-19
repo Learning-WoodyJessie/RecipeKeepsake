@@ -76,7 +76,7 @@ export default function SingleScreenReview({
           textTransform: 'uppercase', letterSpacing: '0.1em',
           color: 'var(--muted)', marginBottom: '0.4rem',
         }}>
-          Title
+          Title <span style={{ color: 'var(--accent)' }}>*</span>
         </label>
         <input
           type="text"

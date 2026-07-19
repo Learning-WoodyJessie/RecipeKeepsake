@@ -95,7 +95,7 @@ export default function ReviewWizard({ draft, audioFile, narrator: narratorProp,
       <div style={{ flex: 1, overflowY: 'auto', overscrollBehavior: 'contain' }}>
         <div style={{ maxWidth: 520, margin: '0 auto', padding: '1.5rem 1.5rem' }}>
           <h2 style={{ fontFamily: 'var(--serif)', color: 'var(--text)', marginBottom: '0.35rem' }}>
-            What's this recipe called?
+            What's this recipe called? <span style={{ color: 'var(--accent)', fontSize: '0.9em' }}>*</span>
           </h2>
           <p style={{ fontSize: '0.83rem', color: 'var(--muted)', marginBottom: '1rem', lineHeight: 1.5 }}>
             {title
@@ -117,7 +117,7 @@ export default function ReviewWizard({ draft, audioFile, narrator: narratorProp,
           />
 
           <h2 style={{ fontFamily: 'var(--serif)', color: 'var(--text)', marginBottom: '0.35rem', fontSize: '1.1rem' }}>
-            Who narrated this?
+            Who narrated this? <span style={{ color: 'var(--accent)', fontSize: '0.9em' }}>*</span>
           </h2>
           <p style={{ fontSize: '0.83rem', color: 'var(--muted)', marginBottom: '0.75rem', lineHeight: 1.5 }}>
             Required. Every memory should be attributed to a real person, not a default.
