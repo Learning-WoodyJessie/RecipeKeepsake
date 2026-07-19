@@ -91,9 +91,9 @@ _bearer = HTTPBearer(auto_error=False)
 
 # ── Rate limiting (Postgres — accurate across instances, survives restarts) ──
 _LIMITS = {
-    "capture":         int(os.environ.get("MAX_CAPTURE_PER_DAY",   "10")),
-    "translate":       int(os.environ.get("MAX_TRANSLATE_PER_DAY", "50")),
-    "generate-image":  int(os.environ.get("MAX_IMAGE_PER_DAY",     "20")),
+    "capture":         int(os.environ.get("MAX_CAPTURE_PER_DAY",   "9999")),
+    "translate":       int(os.environ.get("MAX_TRANSLATE_PER_DAY", "9999")),
+    "generate-image":  int(os.environ.get("MAX_IMAGE_PER_DAY",     "9999")),
 }
 
 
