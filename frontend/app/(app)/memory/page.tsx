@@ -347,8 +347,7 @@ function MemoryDetail() {
     // Only substitute the viewer's own family portal when they own this memory —
     // otherwise a non-owner who happens to belong to their own unrelated family
     // group would forward a link to THEIR portal instead of this memory.
-    const isOwnerForShare = !!currentUserId && memory?.user_id === currentUserId
-    const url = (isOwnerForShare && portalUrl) || memoryUrl
+    const url = memoryUrl
     const msg = buildMemoryShareMessage(memory?.type, memory?.title, memory?.narrator, url)
     window.open(toWhatsAppUrl(msg), '_blank')
   }
