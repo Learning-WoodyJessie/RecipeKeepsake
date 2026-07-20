@@ -992,19 +992,33 @@ function MemoryDetail() {
         </Link>
       )}
 
-      {/* ── Identity block ── */}
-      <div style={{ marginBottom: '1.25rem' }}>
-        {/* Compact meta row: category pill · language switcher · type badge · saved */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.7rem', flexWrap: 'wrap' }}>
+      {/* ── Hero banner (same treatment as audio/moments) ── */}
+      <div style={{
+        background: 'linear-gradient(135deg, var(--gold-light) 0%, #EFDFB8 60%, #EAD9AE 100%)',
+        borderRadius: 20, overflow: 'hidden', marginBottom: '1.25rem',
+        position: 'relative',
+        border: '1px solid rgba(201,148,31,0.18)',
+        boxShadow: '0 8px 32px rgba(45,27,14,0.09)',
+        padding: 'clamp(1.25rem,4vw,2rem)',
+      }}>
+        {/* Waveform watermark */}
+        <svg aria-hidden style={{ position: 'absolute', right: -8, bottom: -6, opacity: 0.07, pointerEvents: 'none' }} width="160" height="90" viewBox="0 0 160 90" fill="none">
+          {[3,5,8,6,11,9,7,13,10,8,14,9,6,11,8,12,7,10,6,9,11,7,8,13,9,6,10,8,12,7,9,11,6,8,10,7,13,9,5,8].map((h, i) => (
+            <rect key={i} x={i * 4} y={(45 - h * 2.5)} width="3" height={h * 5} rx="1.5" fill="var(--amber)" />
+          ))}
+        </svg>
+
+        {/* Category pill + saved badge */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
           {isOwner ? (
             <select
               value={category}
               onChange={e => changeCategory(e.target.value)}
               disabled={savingCategory}
               style={{
-                border: '1px solid var(--border)', borderRadius: 20,
-                padding: '0.28rem 1.6rem 0.28rem 0.85rem', fontSize: '0.78rem', fontWeight: 600,
-                background: category ? 'var(--accent)' : 'var(--surface)',
+                border: '1px solid rgba(201,148,31,0.4)', borderRadius: 20,
+                padding: '0.25rem 1.6rem 0.25rem 0.85rem', fontSize: '0.78rem', fontWeight: 600,
+                background: category ? 'var(--accent)' : 'rgba(255,255,255,0.55)',
                 color: category ? 'white' : 'var(--muted)',
                 cursor: savingCategory ? 'default' : 'pointer', opacity: savingCategory ? 0.6 : 1,
                 fontFamily: 'var(--sans)', appearance: 'none', WebkitAppearance: 'none',
@@ -1024,76 +1038,55 @@ function MemoryDetail() {
               {category}
             </span>
           ) : null}
-          {memory.type && memory.type !== 'recipe' && (
-            <span style={{
-              display: 'inline-block', padding: '3px 12px', borderRadius: 12,
-              background: 'var(--surface)', border: '1px solid var(--border)',
-              fontSize: 12, color: 'var(--muted)', textTransform: 'capitalize',
-            }}>
-              {memory.type}
-            </span>
-          )}
           <SavedBadge show={savedFlash} />
         </div>
 
-        {/* Title + edit pencil + heart */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', marginBottom: '0.35rem' }}>
-          {isOwner && editingTitle ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1, flexWrap: 'wrap' }}>
-              <input
-                autoFocus
-                value={titleValue}
-                onChange={e => setTitleValue(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter') handleTitleSave(); if (e.key === 'Escape') handleTitleCancel() }}
-                style={{
-                  fontFamily: 'var(--serif)', fontSize: '1.75rem', fontWeight: 700,
-                  color: 'var(--text)', border: '1px solid var(--accent)', borderRadius: 8,
-                  background: 'rgba(255,255,255,0.7)', outline: 'none',
-                  flex: 1, padding: '0.2rem 0.5rem', minWidth: 0,
-                }}
-              />
-              <button onClick={handleTitleSave} style={{ background: 'var(--accent)', color: 'white', border: 'none', borderRadius: 8, padding: '0.3rem 0.8rem', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                Save
-              </button>
-              <button onClick={handleTitleCancel} style={{ background: 'transparent', color: 'var(--muted)', border: '1px solid var(--border)', borderRadius: 8, padding: '0.3rem 0.6rem', cursor: 'pointer', fontSize: '0.82rem' }}>Cancel</button>
-            </div>
-          ) : (
-            <>
-              <h1 style={{ fontFamily: 'var(--serif)', fontSize: '1.8rem', color: 'var(--text)', margin: 0, flex: 1, lineHeight: 1.2 }}>
-                {titleValue || 'Untitled'}
-              </h1>
-              {isOwner && (
-                <button
-                  onClick={() => setEditingTitle(true)}
-                  aria-label="Edit title"
-                  style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 7, padding: '4px 7px', cursor: 'pointer', display: 'flex', alignItems: 'center', color: 'var(--muted)', flexShrink: 0, marginTop: 6 }}
-                >
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                    <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
-                    <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                  </svg>
-                </button>
-              )}
-            </>
-          )}
-          {isOwner && (
-            <button
-              onClick={toggleFavorite}
-              aria-label={favorite ? 'Remove from favorites' : 'Add to favorites'}
-              className={heartPopping ? 'rk-heart-pop' : undefined}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', flexShrink: 0, fontSize: '1.4rem', lineHeight: 1, padding: '4px', color: favorite ? 'var(--amber)' : 'var(--muted)', marginTop: 4 }}
-            >
-              {favorite ? '♥' : '♡'}
+        {/* Title + edit pencil */}
+        {isOwner && editingTitle ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.5rem' }}>
+            <input
+              autoFocus
+              value={titleValue}
+              onChange={e => setTitleValue(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') handleTitleSave(); if (e.key === 'Escape') handleTitleCancel() }}
+              style={{
+                fontFamily: 'var(--serif)', fontSize: 'clamp(1.4rem,3vw,2rem)', fontWeight: 700,
+                color: 'var(--text)', border: '1px solid var(--accent)', borderRadius: 8,
+                background: 'rgba(255,255,255,0.7)', outline: 'none',
+                flex: 1, padding: '0.25rem 0.6rem', minWidth: 0,
+              }}
+            />
+            <button onClick={handleTitleSave} style={{ background: 'var(--accent)', color: 'white', border: 'none', borderRadius: 8, padding: '0.35rem 0.85rem', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.3rem', flexShrink: 0 }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              Save
             </button>
-          )}
-        </div>
+            <button onClick={handleTitleCancel} style={{ background: 'rgba(255,255,255,0.6)', color: 'var(--muted)', border: '1px solid var(--border)', borderRadius: 8, padding: '0.35rem 0.7rem', cursor: 'pointer', fontSize: '0.82rem', flexShrink: 0 }}>Cancel</button>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
+            <h1 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.6rem,3.5vw,2.4rem)', fontWeight: 700, color: 'var(--text)', margin: 0, lineHeight: 1.15 }}>
+              {titleValue || 'Untitled'}
+            </h1>
+            {isOwner && (
+              <button
+                onClick={() => setEditingTitle(true)}
+                aria-label="Edit title"
+                style={{ background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(201,148,31,0.3)', borderRadius: 7, padding: '4px 7px', cursor: 'pointer', display: 'flex', alignItems: 'center', color: 'var(--muted)', flexShrink: 0 }}
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                  <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Narrator + date */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
           {!isOwner ? (
-            <span style={{ fontSize: '0.82rem', color: 'var(--muted)' }}>
-              Narrated by <strong style={{ color: 'var(--text2)' }}>{memory.narrator || 'Unknown'}</strong>
+            <span style={{ fontSize: '0.88rem', color: 'var(--text2)' }}>
+              Narrated by <strong>{memory.narrator || 'Unknown'}</strong>
             </span>
           ) : editingNarrator ? (
             <input
@@ -1109,25 +1102,25 @@ function MemoryDetail() {
               }}
               onKeyDown={e => { if (e.key === 'Enter' || e.key === 'Escape') (e.target as HTMLInputElement).blur() }}
               placeholder="Narrator name"
-              style={{ fontSize: '0.82rem', border: '1px solid var(--border)', borderRadius: 7, padding: '0.2rem 0.5rem', background: 'var(--surface)', color: 'var(--text)', fontFamily: 'var(--sans)', width: 140 }}
+              style={{ fontSize: '0.88rem', border: '1px solid var(--border)', borderRadius: 7, padding: '0.25rem 0.55rem', background: 'var(--surface)', color: 'var(--text)', fontFamily: 'var(--sans)', width: 160 }}
             />
           ) : (
             <button
               type="button"
               onClick={() => setEditingNarrator(true)}
               title="Edit narrator"
-              style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+              style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
             >
-              <span style={{ fontSize: '0.82rem', color: 'var(--muted)' }}>
-                Narrated by <strong style={{ color: 'var(--text2)' }}>{memory.narrator || 'Unknown'}</strong>
+              <span style={{ fontSize: '0.88rem', color: 'var(--text2)' }}>
+                Narrated by <strong>{memory.narrator || 'Unknown'}</strong>
               </span>
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--muted)', opacity: 0.5 }} aria-hidden>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--muted)', opacity: 0.6 }}>
                 <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
                 <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
               </svg>
             </button>
           )}
-          <span style={{ fontSize: '0.82rem', color: 'var(--muted)' }}>
+          <span style={{ fontSize: '0.88rem', color: 'var(--text2)' }}>
             · {new Date(memory.recorded_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
           </span>
         </div>
@@ -1212,26 +1205,38 @@ function MemoryDetail() {
         </>
       )}
 
-      {/* ── Actions strip: family collection (owner only) · share · delete (owner only) ── */}
-      <div style={{ display: 'flex', gap: '0.65rem', marginBottom: '1.75rem' }}>
+      {/* ── Primary actions: Share + Family Collection — same 2-col grid as moments ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: isOwner ? '1fr 1fr' : '1fr', gap: '0.65rem', marginBottom: '0.65rem' }}>
+        <button
+          onClick={openWhatsApp}
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+            background: '#25D366', border: 'none',
+            borderRadius: 12, padding: '0.72rem 0.5rem', cursor: 'pointer',
+            fontSize: '0.88rem', fontWeight: 700, color: 'white',
+            boxShadow: '0 3px 10px rgba(37,211,102,0.25)',
+          }}
+        >
+          <WaIcon /> Share
+        </button>
         {isOwner && isInGroup && (
           <button
             onClick={togglePortal}
             disabled={portalBusy}
             style={{
-              flex: '1 1 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
-              padding: '0.6rem 0.75rem', borderRadius: 12, fontSize: '0.82rem', fontWeight: 600,
-              border: `1.5px solid ${inPortal ? 'var(--accent)' : 'var(--border)'}`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
               background: inPortal ? 'var(--accent-light)' : 'var(--surface)',
+              border: `1.5px solid ${inPortal ? 'var(--accent)' : 'var(--border)'}`,
+              borderRadius: 12, padding: '0.72rem 0.5rem', cursor: portalBusy ? 'default' : 'pointer',
+              fontSize: '0.82rem', fontWeight: 600,
               color: inPortal ? 'var(--accent)' : 'var(--text2)',
-              cursor: portalBusy ? 'default' : 'pointer',
             }}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
               <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
               <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
             </svg>
-            {inPortal ? 'In Family Collection' : 'Add to Family Collection'}
+            {inPortal ? 'In Family Collection' : 'Family Collection'}
           </button>
         )}
         {isOwner && !isInGroup && (
@@ -1239,10 +1244,10 @@ function MemoryDetail() {
             type="button"
             onClick={() => setShowCreateGroupModal(true)}
             style={{
-              flex: '1 1 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
-              padding: '0.6rem 0.75rem', borderRadius: 12, fontSize: '0.82rem', fontWeight: 600,
-              border: '1.5px solid var(--border)', cursor: 'pointer',
-              background: 'var(--surface)', color: 'var(--text2)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
+              background: 'var(--surface)', border: '1.5px solid var(--border)',
+              borderRadius: 12, padding: '0.72rem 0.5rem', cursor: 'pointer',
+              fontSize: '0.82rem', fontWeight: 600, color: 'var(--text2)',
             }}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -1252,37 +1257,44 @@ function MemoryDetail() {
             Family Collection
           </button>
         )}
-        <button
-          onClick={openWhatsApp}
-          style={{
-            flex: '1 1 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
-            background: 'var(--surface)', border: '1.5px solid #25D366',
-            borderRadius: 12, padding: '0.6rem 0.75rem', cursor: 'pointer',
-            fontSize: '0.82rem', fontWeight: 600, color: '#25D366',
-          }}
-        >
-          <WaIcon /> Share
-        </button>
-        {isOwner && (
-          <button
-            onClick={() => setShowDeleteModal(true)}
-            disabled={deleting}
-            style={{
-              flex: '0 1 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
-              background: 'var(--surface)', border: '1.5px solid var(--border)',
-              borderRadius: 12, padding: '0.6rem 0.85rem', cursor: 'pointer',
-              fontSize: '0.82rem', fontWeight: 600, color: 'var(--muted)',
-            }}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-              <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/>
-            </svg>
-            {deleting ? 'Deleting…' : 'Delete'}
-          </button>
-        )}
       </div>
       {isOwner && isInGroup && familyCollectionCaption}
       {isOwner && isInGroup && familyCollectionToast}
+
+      {/* ── Secondary actions: Favorites + Delete — same row pattern as moments ── */}
+      {isOwner && (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.75rem', marginTop: '0.65rem' }}>
+        <button
+          onClick={toggleFavorite}
+          style={{
+            display: 'flex', alignItems: 'center', gap: '0.4rem',
+            background: favorite ? 'var(--gold-light)' : 'transparent',
+            border: `1.5px solid ${favorite ? 'var(--amber)' : 'var(--border)'}`,
+            borderRadius: 10, padding: '0.45rem 1rem', cursor: 'pointer',
+            fontSize: '0.82rem', fontWeight: 600,
+            color: favorite ? 'var(--amber)' : 'var(--text2)',
+          }}
+        >
+          <span className={heartPopping ? 'rk-heart-pop' : undefined} style={{ fontSize: '0.95rem', display: 'inline-block' }}>{favorite ? '♥' : '♡'}</span>
+          {favorite ? 'Saved' : 'Add to favorites'}
+        </button>
+        <button
+          onClick={() => setShowDeleteModal(true)}
+          disabled={deleting}
+          style={{
+            display: 'flex', alignItems: 'center', gap: '0.35rem',
+            background: 'none', border: 'none', cursor: deleting ? 'default' : 'pointer',
+            fontSize: '0.8rem', color: 'var(--muted)', opacity: deleting ? 0.4 : 0.65,
+            padding: '0.45rem 0.5rem', fontFamily: 'var(--sans)',
+          }}
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/>
+          </svg>
+          {deleting ? 'Deleting…' : 'Delete'}
+        </button>
+      </div>
+      )}
 
       {/* ── Original recording ── */}
       {memory.audio_url && (
