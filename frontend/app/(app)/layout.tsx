@@ -23,7 +23,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         }
       `}</style>
 
-      <div className="rk-sidebar-wrap" style={{ height: '100vh', overflow: 'hidden', background: 'var(--cream)' }}>
+      <div className="rk-sidebar-wrap" style={{ height: '100dvh', overflow: 'hidden', background: 'var(--cream)' }}>
         {/* Mobile backdrop */}
         {sidebarOpen && (
           <div
@@ -44,7 +44,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-        <div style={{ flex: 1, width: '100%', display: 'flex', flexDirection: 'column', minWidth: 0, minHeight: 0, height: '100vh' }}>
+        <div style={{ flex: 1, width: '100%', display: 'flex', flexDirection: 'column', minWidth: 0, minHeight: 0, height: '100dvh' }}>
           <AppTopBar onMenuClick={() => setSidebarOpen(o => !o)} />
           <main style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', minHeight: 0 }}>{children}</main>
         </div>
