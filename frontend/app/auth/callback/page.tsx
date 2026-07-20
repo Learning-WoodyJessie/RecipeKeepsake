@@ -23,7 +23,10 @@ function AuthCallbackInner() {
 
         api.viewers.sharedWithMe()
           .then((data: { is_viewer?: boolean }) => {
-            router.replace(data.is_viewer ? '/shared' : destination)
+            // Only redirect viewers to /shared when they have no specific deep-link
+            // destination. If they arrived via a shared memory URL, honour it.
+            const hasDeepLink = destination !== '/home'
+            router.replace(data.is_viewer && !hasDeepLink ? '/shared' : destination)
           })
           .catch(() => router.replace(destination))
       }
