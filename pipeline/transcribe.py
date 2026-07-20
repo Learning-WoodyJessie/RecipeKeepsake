@@ -17,6 +17,14 @@ from prompts.llm import LLMProvider, OpenAIProvider
 from pipeline.models import TranscriptResult
 
 
+def _is_mostly_latin(text: str) -> bool:
+    """Return True if >75% of letter characters are ASCII — transcript is already English."""
+    letters = [c for c in text if c.isalpha()]
+    if not letters:
+        return True
+    return sum(1 for c in letters if ord(c) < 128) / len(letters) > 0.75
+
+
 def run_transcribe(audio_path: str, provider: LLMProvider | None = None, language: str = "auto") -> TranscriptResult:
     """
     Stage 1: transcribe audio and (for Telugu) faithfully translate to English.
@@ -38,8 +46,9 @@ def run_transcribe(audio_path: str, provider: LLMProvider | None = None, languag
     raw = transcribe_audio(audio_path, language=language)
     _logger.info(f"event=transcribe_done duration={time.perf_counter()-t0:.2f}s language={language}")
 
-    if language == "en":
-        # Already English — no translation needed
+    if language == "en" or _is_mostly_latin(raw):
+        # Already English — no translation needed (avoids Call A reversing direction
+        # when given Latin-script input with a "translate Telugu → English" prompt)
         return TranscriptResult(raw=raw, english=raw)
 
     t1 = time.perf_counter()
