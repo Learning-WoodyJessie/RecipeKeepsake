@@ -1,13 +1,16 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { EchoesLogoMark } from '@/components/EchoesLogoMark'
 import { sendViewerEmailOtp } from '@/lib/auth'
 
 type Stage = 'enter' | 'sent' | 'error'
 
-export default function ViewPage() {
+function ViewPageInner() {
+  const searchParams = useSearchParams()
+  const next = searchParams.get('next') ?? undefined
   const [value, setValue] = useState('')
   const [stage, setStage] = useState<Stage>('enter')
   const [error, setError] = useState('')
@@ -15,7 +18,7 @@ export default function ViewPage() {
   async function sendCode() {
     setError('')
     try {
-      await sendViewerEmailOtp(value.trim())
+      await sendViewerEmailOtp(value.trim(), next)
       setStage('sent')
     } catch (e: unknown) {
       setError((e as Error).message)
@@ -70,4 +73,8 @@ export default function ViewPage() {
       </div>
     </main>
   )
+}
+
+export default function ViewPage() {
+  return <Suspense><ViewPageInner /></Suspense>
 }

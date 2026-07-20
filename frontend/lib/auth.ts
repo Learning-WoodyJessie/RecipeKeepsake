@@ -31,10 +31,10 @@ export async function signInWithApple(next?: string): Promise<void> {
 }
 
 /** Viewer role: send a one-time magic link to an email pre-approved by an owner. */
-export async function sendViewerEmailOtp(email: string): Promise<void> {
+export async function sendViewerEmailOtp(email: string, next?: string): Promise<void> {
   const { error } = await supabase.auth.signInWithOtp({
     email,
-    options: { emailRedirectTo: AUTH_CALLBACK },
+    options: { emailRedirectTo: callbackUrl(next) },
   })
   if (error) throw error
 }
