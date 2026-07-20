@@ -1,8 +1,10 @@
 'use client'
 
 import { useState, useEffect, Suspense } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { api } from '../../lib/api'
+import { supabase } from '../../lib/supabase'
+import ReactionBar from '../../components/ReactionBar'
 
 type Ingredient = { item: string; quantity?: string }
 
@@ -40,20 +42,52 @@ const TYPE_LABELS: Record<string, string> = {
 function PortalContent() {
   const params = useSearchParams()
   const portalToken = params.get('p')
+  const router = useRouter()
 
+  const [authed, setAuthed] = useState(false)
   const [data, setData] = useState<PortalData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [activeType, setActiveType] = useState<string>('all')
   const [playingId, setPlayingId] = useState<string | null>(null)
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [reactions, setReactions] = useState<Record<string, { counts: Record<string, number>; user_reactions: string[] }>>({})
+  const emptyReaction = { counts: { '❤️': 0, '🙏': 0, '😢': 0, '😄': 0 }, user_reactions: [] }
+
+  // Gate: require login before showing family memories
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) {
+        const here = window.location.pathname + window.location.search
+        localStorage.setItem('returnTo', here)
+        router.replace(`/?next=${encodeURIComponent(here)}`)
+      } else {
+        setAuthed(true)
+      }
+    })
+  }, [router])
 
   useEffect(() => {
+    if (!authed) return
     if (!portalToken) { setError('Invalid portal link.'); setLoading(false); return }
     api.portal.get(portalToken)
-      .then((d: PortalData) => { setData(d); setLoading(false) })
+      .then(async (d: PortalData) => {
+        setData(d)
+        setLoading(false)
+        // Batch-fetch reactions for all memories (non-blocking, errors are swallowed)
+        const tokens = (d.recipes ?? []).map((m: PortalMemory) => m.token)
+        const results = await Promise.all(
+          tokens.map((t: string) =>
+            (api.reactions.get(t) as Promise<{ counts: Record<string, number>; user_reactions: string[] }>)
+              .catch(() => ({ counts: { '❤️': 0, '🙏': 0, '😢': 0, '😄': 0 }, user_reactions: [] }))
+          )
+        )
+        const map: Record<string, { counts: Record<string, number>; user_reactions: string[] }> = {}
+        tokens.forEach((t: string, i: number) => { map[t] = results[i] })
+        setReactions(map)
+      })
       .catch(() => { setError('This family portal could not be found.'); setLoading(false) })
-  }, [portalToken])
+  }, [authed, portalToken])
 
   if (loading) return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--sans)' }}>
@@ -218,6 +252,13 @@ function PortalContent() {
                         )}
                       </>
                     )}
+                    {/* Reaction bar */}
+                    <div style={{ marginTop: '0.85rem', paddingTop: '0.75rem', borderTop: '1px solid var(--border)' }}>
+                      <ReactionBar
+                        token={m.token}
+                        initialData={reactions[m.token] ?? emptyReaction}
+                      />
+                    </div>
                   </div>
                 </div>
               )

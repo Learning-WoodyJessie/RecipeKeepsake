@@ -130,6 +130,15 @@ export const api = {
   portal: {
     get: (portalToken: string) => publicFetch(`/portal/${portalToken}`),
   },
+  reactions: {
+    get: (token: string) => authFetch(`/reactions/${token}`),
+    toggle: (token: string, emoji: string) =>
+      authFetch(`/reaction/${token}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ emoji }),
+      }),
+  },
   viewers: {
     list: () => authFetch('/viewers'),
     add: (body: { email?: string; phone?: string }) =>

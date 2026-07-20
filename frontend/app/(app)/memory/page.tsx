@@ -9,6 +9,7 @@ import Link from 'next/link'
 import { api } from '@/lib/api'
 import { supabase } from '@/lib/supabase'
 import AudioPlayer from '@/components/AudioPlayer'
+import ReactionBar from '@/components/ReactionBar'
 import LanguageSwitcher from '@/components/LanguageSwitcher'
 import { readFavorites, toggleFavorite as toggleFav } from '@/lib/favorites'
 import { buildMemoryShareMessage, toWhatsAppUrl } from '@/lib/share'
@@ -134,6 +135,8 @@ function MemoryDetail() {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [sameGroupIds, setSameGroupIds] = useState<string[]>([])
   const [ownMemoryCount, setOwnMemoryCount] = useState<number | null>(null)
+  const emptyReaction = { counts: { '❤️': 0, '🙏': 0, '😢': 0, '😄': 0 }, user_reactions: [] }
+  const [reactionData, setReactionData] = useState<{ counts: Record<string, number>; user_reactions: string[] }>(emptyReaction)
 
   // Signed URLs expire after 1 hour. If the audio element errors, re-fetch the
   // recipe to get a fresh signed URL. Guard prevents concurrent refresh calls.
@@ -180,6 +183,10 @@ function MemoryDetail() {
       setNotes(m.user_notes ?? '')
       setInPortal(m.portal_visible ?? false)
     }).catch((e: Error) => setError(e.message)).finally(() => setLoading(false))
+    // Fetch reactions non-blocking — failure silently keeps empty counts
+    api.reactions.get(token)
+      .then((r: unknown) => setReactionData(r as typeof reactionData))
+      .catch(() => {})
   }, [token])
 
   useEffect(() => {
@@ -754,6 +761,11 @@ function MemoryDetail() {
           </div>
         )}
 
+        {/* ── Emoji reactions ── */}
+        <div style={{ marginBottom: '1rem' }}>
+          <ReactionBar token={token} initialData={reactionData} />
+        </div>
+
         {/* ── Primary actions: Share + Family Collection (owner only) ── */}
         <div style={{ display: 'grid', gridTemplateColumns: isOwner ? '1fr 1fr' : '1fr', gap: '0.65rem', marginBottom: '0.65rem' }}>
           <button
@@ -1203,6 +1215,11 @@ function MemoryDetail() {
           )}
         </>
       )}
+
+      {/* ── Emoji reactions ── */}
+      <div style={{ marginBottom: '1.25rem' }}>
+        <ReactionBar token={token} initialData={reactionData} />
+      </div>
 
       {/* ── Primary actions: Share + Family Collection — same 2-col grid as moments ── */}
       <div style={{ display: 'grid', gridTemplateColumns: isOwner ? '1fr 1fr' : '1fr', gap: '0.65rem', marginBottom: '0.65rem' }}>
