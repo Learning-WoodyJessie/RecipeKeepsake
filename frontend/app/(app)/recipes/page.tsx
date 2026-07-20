@@ -3,7 +3,7 @@
 
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { api, type Person } from '@/lib/api'
@@ -185,6 +185,46 @@ const WA_ICON = (
   </svg>
 )
 
+function CardDeleteButton({ onDelete }: { onDelete: () => void }) {
+  const [armed, setArmed] = useState(false)
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  function handleClick(e: React.MouseEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    if (armed) {
+      if (timerRef.current) clearTimeout(timerRef.current)
+      onDelete()
+    } else {
+      setArmed(true)
+      timerRef.current = setTimeout(() => setArmed(false), 2500)
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      title={armed ? 'Tap again to confirm delete' : 'Delete memory'}
+      style={{
+        position: 'absolute', bottom: 6, right: 6,
+        width: 30, height: 30, borderRadius: '50%',
+        background: armed ? '#B91C1C' : 'rgba(255,255,255,0.88)',
+        border: armed ? 'none' : '1px solid rgba(0,0,0,0.08)',
+        cursor: 'pointer',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        boxShadow: '0 1px 4px rgba(0,0,0,0.18)', zIndex: 2,
+        transition: 'background 0.15s',
+      }}
+    >
+      {armed
+        ? <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden><polyline points="20 6 9 17 4 12"/></svg>
+        : <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#B91C1C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+      }
+    </button>
+  )
+}
+
 function CardShareButton({ token, title, type, narrator, top = 6, right = 44 }: { token: string; title: string | null; type?: string | null; narrator?: string | null; top?: number; right?: number }) {
   return (
     <button
@@ -283,6 +323,7 @@ function AudioCard({
   inCollection,
   onToggleCollection,
   narratorPhoto,
+  onDelete,
 }: {
   memory: Memory
   isFav: boolean
@@ -290,6 +331,7 @@ function AudioCard({
   inCollection: boolean
   onToggleCollection: () => void
   narratorPhoto: string
+  onDelete: () => void
 }) {
   return (
     <Link
@@ -308,6 +350,7 @@ function AudioCard({
           size="0.85rem"
           style={{ position: 'absolute', top: 6, right: 6, width: 34, height: 34, borderRadius: '50%', background: 'rgba(255,255,255,0.9)' }}
         />
+        <CardDeleteButton onDelete={onDelete} />
       </div>
 
       <div style={{ padding: '0.85rem', display: 'flex', flexDirection: 'column', flex: 1 }}>
@@ -414,6 +457,7 @@ function RecipeCard({
   onToggleCollection,
   narratorPhoto,
   narratorRelationship,
+  onDelete,
 }: {
   memory: Memory
   isFav: boolean
@@ -422,6 +466,7 @@ function RecipeCard({
   onToggleCollection: () => void
   narratorPhoto: string
   narratorRelationship: string
+  onDelete: () => void
 }) {
   // If the stored title is all Telugu script (no ASCII), surface the English dish name from content
   const hasAscii = memory.title ? /[A-Za-z]/.test(memory.title) : false
@@ -446,6 +491,7 @@ function RecipeCard({
           size="0.85rem"
           style={{ position: 'absolute', top: 6, right: 6, width: 34, height: 34, borderRadius: '50%', background: 'rgba(255,255,255,0.9)', boxShadow: '0 2px 6px rgba(0,0,0,0.12)' }}
         />
+        <CardDeleteButton onDelete={onDelete} />
       </div>
 
       <div style={{ padding: '0.85rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
@@ -583,6 +629,12 @@ export default function MemoriesPage() {
     try { await api.recipes.patch(token, { portal_visible: adding }) }
     catch { setCollectionSet(collectionSet) }
   }, [collectionSet])
+
+  const handleDelete = useCallback(async (token: string) => {
+    setMemories(ms => ms.filter(m => m.token !== token))
+    try { await api.recipes.delete(token) }
+    catch { /* already removed from UI; silent fail */ }
+  }, [])
 
   const peopleMap = useMemo(() => {
     const map: Record<string, { photo: string; relationship: string }> = {}
@@ -905,6 +957,7 @@ export default function MemoriesPage() {
                           inCollection={collectionSet.has(m.token)}
                           onToggleCollection={() => toggleCollection(m.token)}
                           narratorPhoto={info.photo}
+                          onDelete={() => handleDelete(m.token)}
                         />
                       ) : (
                         <RecipeCard
@@ -915,6 +968,7 @@ export default function MemoriesPage() {
                           onToggleCollection={() => toggleCollection(m.token)}
                           narratorPhoto={info.photo}
                           narratorRelationship={info.relationship}
+                          onDelete={() => handleDelete(m.token)}
                         />
                       )}
                     </div>
