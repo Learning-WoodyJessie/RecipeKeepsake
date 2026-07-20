@@ -953,12 +953,12 @@ export default function MemoriesPage() {
           </div>
           <div style={{ flex: 1, minWidth: 200 }}>
             <p style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '1.05rem', color: 'var(--text)', marginBottom: '0.3rem' }}>
-              {isAudioMode ? 'Have a moment worth keeping?' : 'Have a memory to preserve?'}
+              {isAudioMode ? 'Every voice has more stories' : 'Every family has more to share'}
             </p>
             <p style={{ fontSize: '0.83rem', color: 'var(--muted)', lineHeight: 1.55 }}>
               {isAudioMode
-                ? 'Record it now or upload an audio file. Every voice deserves to be heard again.'
-                : 'Record it, write it or upload it. Keep every recipe, song and story alive for generations to come.'}
+                ? 'Keep recording. Every song, every story, every moment — kept safe forever.'
+                : 'The more you capture, the richer the archive your family will cherish forever.'}
             </p>
           </div>
           {/* Decorative floral — audio mode only */}
