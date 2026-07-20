@@ -210,7 +210,7 @@ def _unique_slug(base: str, sb) -> str:
         i += 1
 
 
-FREE_MEMORY_LIMIT = 10
+FREE_MEMORY_LIMIT = 9999
 
 
 def count_memories(user_id: str) -> int:
