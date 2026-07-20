@@ -1404,6 +1404,37 @@ async def public_support_page():
     raise HTTPException(status_code=503, detail="Support page unavailable")
 
 
+# ── Emoji reactions ────────────────────────────────────────────────────────────
+
+
+class ReactionRequest(BaseModel):
+    emoji: str
+
+
+@app.get("/reactions/{memory_token}")
+async def get_reactions_endpoint(memory_token: str, user: dict = Depends(require_auth)):
+    """Return emoji reaction counts and the current user's reactions for a memory."""
+    from tools.storage import get_reactions
+    user_id = _user_id(user)
+    return JSONResponse(content=get_reactions(memory_token, user_id=user_id))
+
+
+@app.post("/reaction/{memory_token}")
+async def toggle_reaction_endpoint(
+    memory_token: str, body: ReactionRequest, user: dict = Depends(require_auth)
+):
+    """Toggle an emoji reaction on a memory. Returns updated counts."""
+    from tools.storage import toggle_reaction
+    user_id = _user_id(user)
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    try:
+        result = toggle_reaction(memory_token, user_id, body.emoji)
+        return JSONResponse(content=result)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
 # ── Frontend catch-all — must be last so all API routes take priority ──────
 # Next.js prefetches <Link> targets with HEAD; plain @app.get does not register HEAD (405).
 @app.api_route("/{path:path}", methods=["GET", "HEAD"])

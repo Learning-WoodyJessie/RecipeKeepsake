@@ -52,7 +52,7 @@ function PortalContent() {
   const [playingId, setPlayingId] = useState<string | null>(null)
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [reactions, setReactions] = useState<Record<string, { counts: Record<string, number>; user_reactions: string[] }>>({})
-  const emptyReaction = { counts: { '❤️': 0, '🙏': 0, '😢': 0, '😄': 0 }, user_reactions: [] }
+  const emptyReaction = { counts: { '😊': 0, '🥹': 0, '🏆': 0, '🙏': 0 }, user_reactions: [] }
 
   // Gate: require login before showing family memories
   useEffect(() => {
@@ -79,7 +79,7 @@ function PortalContent() {
         const results = await Promise.all(
           tokens.map((t: string) =>
             (api.reactions.get(t) as Promise<{ counts: Record<string, number>; user_reactions: string[] }>)
-              .catch(() => ({ counts: { '❤️': 0, '🙏': 0, '😢': 0, '😄': 0 }, user_reactions: [] }))
+              .catch(() => ({ counts: { '😊': 0, '🥹': 0, '🏆': 0, '🙏': 0 }, user_reactions: [] }))
           )
         )
         const map: Record<string, { counts: Record<string, number>; user_reactions: string[] }> = {}

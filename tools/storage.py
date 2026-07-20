@@ -546,7 +546,7 @@ def list_recipes_for_owners(owner_user_ids: list[str]) -> list:
 
 # ── Reactions ─────────────────────────────────────────────────────────────────
 
-_VALID_EMOJIS = {"❤️", "🙏", "😢", "😄"}
+_VALID_EMOJIS = {"😊", "🥹", "🏆", "🙏"}
 
 
 def get_reactions(memory_token: str, user_id: str | None = None) -> dict:

@@ -83,6 +83,15 @@ body {
     100% { box-shadow: 0 0 0 16px rgba(220, 38, 38, 0); }
   }
   .rk-rec-pulse { animation: rk-rec-pulse 1.4s ease-out infinite; }
+
+  /* Reaction tap pop — emoji bounces with a slight rotation on select */
+  @keyframes rk-react-pop {
+    0%   { transform: scale(1) rotate(0deg); }
+    40%  { transform: scale(1.45) rotate(-8deg); }
+    65%  { transform: scale(0.88) rotate(4deg); }
+    100% { transform: scale(1) rotate(0deg); }
+  }
+  .rk-react-pop { animation: rk-react-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
 }
 
 /* Hide volume slider on touch devices (iOS ignores software volume anyway) */
@@ -92,7 +101,7 @@ body {
 
 /* Respect reduced-motion preference: disable everything above outright */
 @media (prefers-reduced-motion: reduce) {
-  .rk-heart-pop, .rk-gold-pulse, .rk-skeleton, .rk-rec-pulse { animation: none !important; }
+  .rk-heart-pop, .rk-gold-pulse, .rk-skeleton, .rk-rec-pulse, .rk-react-pop { animation: none !important; }
   .rk-card-hoverable { transition: none !important; }
 }
 

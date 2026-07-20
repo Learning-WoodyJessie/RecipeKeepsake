@@ -135,7 +135,7 @@ function MemoryDetail() {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [sameGroupIds, setSameGroupIds] = useState<string[]>([])
   const [ownMemoryCount, setOwnMemoryCount] = useState<number | null>(null)
-  const emptyReaction = { counts: { '❤️': 0, '🙏': 0, '😢': 0, '😄': 0 }, user_reactions: [] }
+  const emptyReaction = { counts: { '😊': 0, '🥹': 0, '🏆': 0, '🙏': 0 }, user_reactions: [] }
   const [reactionData, setReactionData] = useState<{ counts: Record<string, number>; user_reactions: string[] }>(emptyReaction)
 
   // Signed URLs expire after 1 hour. If the audio element errors, re-fetch the
