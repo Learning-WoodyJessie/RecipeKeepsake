@@ -543,3 +543,50 @@ def list_recipes_for_owners(owner_user_ids: list[str]) -> list:
             r["audio_url"] = _sign_audio(r["audio_url"], sb)
     return recipes
 
+
+# ── Reactions ─────────────────────────────────────────────────────────────────
+
+_VALID_EMOJIS = {"❤️", "🙏", "😢", "😄"}
+
+
+def get_reactions(memory_token: str, user_id: str | None = None) -> dict:
+    """Return emoji counts and the current user's reactions for a memory."""
+    sb = _client()
+    rows = (
+        sb.table("reactions")
+        .select("emoji, user_id")
+        .eq("memory_token", memory_token)
+        .execute()
+        .data
+    ) or []
+    counts: dict[str, int] = {e: 0 for e in _VALID_EMOJIS}
+    for row in rows:
+        if row["emoji"] in counts:
+            counts[row["emoji"]] += 1
+    user_reactions = (
+        [r["emoji"] for r in rows if r.get("user_id") == user_id] if user_id else []
+    )
+    return {"counts": counts, "user_reactions": user_reactions}
+
+
+def toggle_reaction(memory_token: str, user_id: str, emoji: str) -> dict:
+    """Toggle an emoji reaction. Inserts if absent, deletes if present. Returns updated counts."""
+    if emoji not in _VALID_EMOJIS:
+        raise ValueError(f"Invalid emoji: {emoji!r}")
+    sb = _client()
+    existing = (
+        sb.table("reactions")
+        .select("id")
+        .eq("memory_token", memory_token)
+        .eq("user_id", user_id)
+        .eq("emoji", emoji)
+        .execute()
+    )
+    if existing.data:
+        sb.table("reactions").delete().eq("id", existing.data[0]["id"]).execute()
+    else:
+        sb.table("reactions").insert(
+            {"memory_token": memory_token, "user_id": user_id, "emoji": emoji}
+        ).execute()
+    return get_reactions(memory_token, user_id)
+

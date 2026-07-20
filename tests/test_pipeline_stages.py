@@ -41,7 +41,8 @@ class TestRunTranscribe:
 
     def test_passes_provider_to_translate(self):
         """run_transcribe() forwards the provider argument to translate_to_english."""
-        with patch("tools.transcribe.genai.Client", return_value=_gemini_mock("raw")), \
+        # Use a Telugu transcript so _is_mostly_latin() returns False and translation runs
+        with patch("tools.transcribe.genai.Client", return_value=_gemini_mock("ఇది పరీక్ష")), \
              patch("pipeline.transcribe.translate_to_english", return_value="eng") as mock_translate:
             p = _provider("eng")
             run_transcribe("test.m4a", provider=p)

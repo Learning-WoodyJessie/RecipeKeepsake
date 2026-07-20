@@ -30,7 +30,8 @@ class TestPipelineTiming:
         p.generate.return_value = "eng"
 
         with caplog.at_level(logging.INFO, logger="pipeline.transcribe"):
-            with patch("tools.transcribe.genai.Client", return_value=_gemini_mock("raw")), \
+            # Telugu transcript so _is_mostly_latin() is False and translation runs
+            with patch("tools.transcribe.genai.Client", return_value=_gemini_mock("ఇది పరీక్ష")), \
                  patch("pipeline.transcribe.translate_to_english", return_value="eng"):
                 run_transcribe("test.m4a", provider=p)
 
