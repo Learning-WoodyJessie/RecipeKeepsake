@@ -12,10 +12,17 @@ export default function FamilySetupPrompt() {
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && localStorage.getItem(DONE_KEY) === '1') return
     const t = setTimeout(() => {
       api.family.getMyGroup()
-        .then((d: { group: unknown }) => { if (!d.group) setVisible(true) })
+        .then((d: { group: unknown }) => {
+          if (!d.group) {
+            // No group — show prompt and clear any stale done-flag
+            if (typeof window !== 'undefined') localStorage.removeItem(DONE_KEY)
+            setVisible(true)
+          }
+          // Has group — silently mark done so we never show the prompt again
+          else if (typeof window !== 'undefined') localStorage.setItem(DONE_KEY, '1')
+        })
         .catch(() => {})
     }, 800)
     return () => clearTimeout(t)
