@@ -135,7 +135,7 @@ export default function AppTopBar({ onMenuClick }: { onMenuClick?: () => void })
             width: '100%',
             padding: q ? '0.65rem 2.4rem 0.65rem 2.5rem' : '0.65rem 0.85rem 0.65rem 2.5rem',
             borderRadius: 999,
-            border: '1px solid var(--border)',
+            border: '1px solid var(--border2)',
             background: 'var(--cream)',
             fontSize: '0.88rem',
             fontFamily: 'var(--sans)',

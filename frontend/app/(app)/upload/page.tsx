@@ -466,7 +466,7 @@ export default function UploadPage() {
                   placeholder="Ammamma's lullaby"
                   style={{
                     width: '100%',
-                    border: '1px solid var(--border)',
+                    border: '1px solid var(--border2)',
                     borderRadius: 10,
                     padding: '0.65rem 0.85rem',
                     fontSize: '0.9rem',
@@ -489,7 +489,7 @@ export default function UploadPage() {
                   rows={2}
                   style={{
                     width: '100%',
-                    border: '1px solid var(--border)',
+                    border: '1px solid var(--border2)',
                     borderRadius: 10,
                     padding: '0.65rem 0.85rem',
                     fontSize: '0.9rem',
@@ -524,7 +524,7 @@ export default function UploadPage() {
                   placeholder="Amma's Ugadi blessing"
                   style={{
                     width: '100%',
-                    border: '1px solid var(--border)',
+                    border: '1px solid var(--border2)',
                     borderRadius: 10,
                     padding: '0.65rem 0.85rem',
                     fontSize: '0.9rem',
@@ -576,7 +576,7 @@ export default function UploadPage() {
                   rows={photoFile ? 4 : 8}
                   style={{
                     width: '100%',
-                    border: '1px solid var(--border)',
+                    border: '1px solid var(--border2)',
                     borderRadius: 10,
                     padding: '0.65rem 0.85rem',
                     fontSize: '0.9rem',

@@ -489,7 +489,7 @@ function MemoryDetail() {
           onChange={e => setNewGroupName(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') createGroupAndAdd() }}
           placeholder="e.g. Lakshmi Family"
-          style={{ width: '100%', border: '1px solid var(--border)', borderRadius: 10, padding: '0.6rem 0.85rem', fontSize: '0.9rem', fontFamily: 'var(--sans)', background: 'var(--cream)', color: 'var(--text)', boxSizing: 'border-box', marginBottom: '1rem' }}
+          style={{ width: '100%', border: '1px solid var(--border2)', borderRadius: 10, padding: '0.6rem 0.85rem', fontSize: '0.9rem', fontFamily: 'var(--sans)', background: 'var(--cream)', color: 'var(--text)', boxSizing: 'border-box', marginBottom: '1rem' }}
         />
         <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
           <button
@@ -635,7 +635,7 @@ function MemoryDetail() {
                 }}
                 onKeyDown={e => { if (e.key === 'Enter' || e.key === 'Escape') (e.target as HTMLInputElement).blur() }}
                 placeholder="Narrator name"
-                style={{ fontSize: '0.88rem', border: '1px solid var(--border)', borderRadius: 7, padding: '0.25rem 0.55rem', background: 'var(--surface)', color: 'var(--text)', fontFamily: 'var(--sans)', width: 160 }}
+                style={{ fontSize: '0.88rem', border: '1px solid var(--border2)', borderRadius: 7, padding: '0.25rem 0.55rem', background: 'var(--surface)', color: 'var(--text)', fontFamily: 'var(--sans)', width: 160 }}
               />
             ) : (
               <button
@@ -887,7 +887,7 @@ function MemoryDetail() {
             }
             rows={4}
             style={{
-              width: '100%', border: '1px solid var(--border)', borderRadius: 10,
+              width: '100%', border: '1px solid var(--border2)', borderRadius: 10,
               padding: '0.7rem', fontSize: '0.85rem', fontFamily: 'var(--sans)',
               color: 'var(--text)', background: 'var(--gold-light)', resize: 'vertical',
               boxSizing: 'border-box',
@@ -1109,7 +1109,7 @@ function MemoryDetail() {
               }}
               onKeyDown={e => { if (e.key === 'Enter' || e.key === 'Escape') (e.target as HTMLInputElement).blur() }}
               placeholder="Narrator name"
-              style={{ fontSize: '0.82rem', border: '1px solid var(--border)', borderRadius: 7, padding: '0.2rem 0.5rem', background: 'var(--surface)', color: 'var(--text)', fontFamily: 'var(--sans)', width: 140 }}
+              style={{ fontSize: '0.82rem', border: '1px solid var(--border2)', borderRadius: 7, padding: '0.2rem 0.5rem', background: 'var(--surface)', color: 'var(--text)', fontFamily: 'var(--sans)', width: 140 }}
             />
           ) : (
             <button
@@ -1329,7 +1329,7 @@ function MemoryDetail() {
           onBlur={() => patchField({ user_notes: notes })}
           placeholder="Add your personal notes…"
           rows={3}
-          style={{ width: '100%', border: '1px solid var(--border)', borderRadius: 10, padding: '0.7rem', fontSize: '0.85rem', fontFamily: 'var(--sans)', color: 'var(--text)', background: 'var(--gold-light)', resize: 'vertical', boxSizing: 'border-box' }}
+          style={{ width: '100%', border: '1px solid var(--border2)', borderRadius: 10, padding: '0.7rem', fontSize: '0.85rem', fontFamily: 'var(--sans)', color: 'var(--text)', background: 'var(--gold-light)', resize: 'vertical', boxSizing: 'border-box' }}
         />
         <p style={{ fontSize: '0.72rem', color: 'var(--muted)', marginTop: '0.35rem' }}>Saves automatically when you stop typing.</p>
       </section>

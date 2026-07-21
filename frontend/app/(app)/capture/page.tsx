@@ -216,7 +216,10 @@ function CapturePageInner() {
       const { mimeType, ext } = pickMimeType()
       extRef.current = ext
       console.log('[capture] start mime=%s ext=%s tracks=%d', mimeType, ext, stream.getAudioTracks().length)
-      const mr = new MediaRecorder(stream, mimeType ? { mimeType } : {})
+      const mr = new MediaRecorder(stream, {
+        ...(mimeType ? { mimeType } : {}),
+        audioBitsPerSecond: 32000,
+      })
       mrRef.current = mr
       chunksRef.current = []
       startLevelMeter(stream)
@@ -426,7 +429,7 @@ function CapturePageInner() {
                   placeholder="Appa's evening ghazal"
                   style={{
                     width: '100%',
-                    border: '1px solid var(--border)',
+                    border: '1px solid var(--border2)',
                     borderRadius: 10,
                     padding: '0.65rem 0.85rem',
                     fontSize: '0.9rem',
@@ -448,7 +451,7 @@ function CapturePageInner() {
                   rows={2}
                   style={{
                     width: '100%',
-                    border: '1px solid var(--border)',
+                    border: '1px solid var(--border2)',
                     borderRadius: 10,
                     padding: '0.65rem 0.85rem',
                     fontSize: '0.9rem',
