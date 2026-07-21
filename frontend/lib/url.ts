@@ -10,16 +10,14 @@ function toAsciiSlug(s: string, maxLen = 15): string {
 }
 
 // Builds a clean, consistent share URL for a memory.
-// Format: /memory/{narrator}-{type}-{token8}
-// Example: /memory/smitha-recipe-42329f17
+// Format: /memory/{title-slug}-{token8}  (uses the slug stored in the DB)
+// Example: /memory/dads-song-3da38e4f
+// Falls back to memory-{token8} when slug is not yet set (old records).
 export function buildMemoryShortUrl(
   origin: string,
-  narrator: string | null | undefined,
-  type: string | null | undefined,
+  slug: string | null | undefined,
   token: string,
 ): string {
-  const narratorSlug = toAsciiSlug(narrator || 'family')
-  const typeSlug = (type || 'recipe').toLowerCase().replace(/[^a-z]+/g, '') || 'recipe'
-  const shortToken = token.slice(0, 8)
-  return `${origin}/memory/${narratorSlug}-${typeSlug}-${shortToken}`
+  const urlSlug = slug || `memory-${token.slice(0, 8)}`
+  return `${origin}/memory/${urlSlug}`
 }

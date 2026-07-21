@@ -163,7 +163,8 @@ function MemoryDetail() {
     const segs = window.location.pathname.split('/').filter(Boolean)
     const slug = segs.length === 2 && segs[0] === 'memory' ? segs[1] : null
     if (slug) {
-      api.recipes.getBySlug(slug)
+      const prefix = slug.split('-').pop() ?? ''
+      api.recipes.getByShortToken(prefix)
         .then((m: Memory) => setToken(m.token))
         .catch(() => router.replace('/recipes'))
     } else {
@@ -350,7 +351,7 @@ function MemoryDetail() {
   }
 
   function openWhatsApp() {
-    const memoryUrl = buildMemoryShortUrl(window.location.origin, memory?.narrator, memory?.type, token)
+    const memoryUrl = buildMemoryShortUrl(window.location.origin, memory?.slug, token)
     // Only substitute the viewer's own family portal when they own this memory —
     // otherwise a non-owner who happens to belong to their own unrelated family
     // group would forward a link to THEIR portal instead of this memory.

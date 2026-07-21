@@ -226,11 +226,13 @@ def is_pro_user(user_id: str) -> bool:
 
 
 def insert_recipe(recipe: dict) -> dict:
-    """Insert a recipe row into Supabase. Generates a slug from title if not already set."""
+    """Insert a recipe row into Supabase. Generates a slug from title+token8 if not already set."""
     sb = _client()
     if not recipe.get("slug") and recipe.get("title"):
         base = _to_slug(recipe["title"])
-        recipe = {**recipe, "slug": _unique_slug(base, sb)}
+        token8 = (recipe.get("token") or "")[:8]
+        # title-slug + token8 suffix guarantees uniqueness without DB collision checks
+        recipe = {**recipe, "slug": f"{base}-{token8}" if token8 else _unique_slug(base, sb)}
     result = sb.table("memories").insert(recipe).execute()
     return result.data[0]
 

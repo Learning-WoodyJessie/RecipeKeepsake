@@ -10,6 +10,7 @@ import { SkeletonCard } from '@/components/Skeleton'
 import { buildMemoryShortUrl } from '@/lib/url'
 type Memory = {
   token: string
+  slug?: string | null
   title: string | null
   narrator: string | null
   recorded_at: string
@@ -31,14 +32,14 @@ const WA_ICON = (
   </svg>
 )
 
-function CardShareButton({ token, title, type, narrator, top = 6, right = 44 }: { token: string; title: string | null; type?: string | null; narrator?: string | null; top?: number; right?: number }) {
+function CardShareButton({ token, title, slug, top = 6, right = 44 }: { token: string; title: string | null; slug?: string | null; top?: number; right?: number }) {
   return (
     <button
       type="button"
       onClick={e => {
         e.preventDefault()
         const origin = typeof window !== 'undefined' ? window.location.origin : 'https://www.theechoesofhome.com'
-        const shareUrl = buildMemoryShortUrl(origin, narrator, type, token)
+        const shareUrl = buildMemoryShortUrl(origin, slug, token)
         window.open(`https://wa.me/?text=${encodeURIComponent(`"${title ?? 'this moment'}" on Echoes of Home:\n${shareUrl}`)}`, '_blank')
       }}
       title="Share on WhatsApp"
@@ -147,7 +148,7 @@ function AudioCard({
         <Link href={`/memory?token=${memory.token}&from=moments`} style={{ display: 'block', height: '100%' }}>
           <EqualizerPlaceholder title={memory.title} />
         </Link>
-        <CardShareButton token={memory.token} title={memory.title} type={memory.type} narrator={memory.narrator} top={6} right={44} />
+        <CardShareButton token={memory.token} title={memory.title} slug={memory.slug} top={6} right={44} />
         <BookmarkToggle inCollection={inCollection} onToggle={e => { e.preventDefault(); onToggleCollection() }} />
         <FavoriteHeart
           favorite={isFav}

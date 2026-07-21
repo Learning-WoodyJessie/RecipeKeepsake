@@ -185,14 +185,14 @@ const WA_ICON = (
   </svg>
 )
 
-function CardShareButton({ token, title, type, narrator, top = 6, right = 44 }: { token: string; title: string | null; type?: string | null; narrator?: string | null; top?: number; right?: number }) {
+function CardShareButton({ token, title, slug, top = 6, right = 44 }: { token: string; title: string | null; slug?: string | null; top?: number; right?: number }) {
   return (
     <button
       type="button"
       onClick={e => {
         e.preventDefault()
         const origin = typeof window !== 'undefined' ? window.location.origin : 'https://www.theechoesofhome.com'
-        const shareUrl = buildMemoryShortUrl(origin, narrator, type, token)
+        const shareUrl = buildMemoryShortUrl(origin, slug, token)
         window.open(`https://wa.me/?text=${encodeURIComponent(`"${title ?? 'this memory'}" on Echoes of Home:\n${shareUrl}`)}`, '_blank')
       }}
       title="Share on WhatsApp"
@@ -300,7 +300,7 @@ function AudioCard({
       {/* Equalizer thumbnail */}
       <div style={{ position: 'relative', aspectRatio: '4/3', overflow: 'hidden', flexShrink: 0 }}>
         <EqualizerPlaceholder title={memory.title} />
-        <CardShareButton token={memory.token} title={memory.title} type={memory.type} narrator={memory.narrator} top={6} right={44} />
+        <CardShareButton token={memory.token} title={memory.title} slug={memory.slug} top={6} right={44} />
         <BookmarkToggle inCollection={inCollection} onToggle={e => { e.preventDefault(); onToggleCollection() }} />
         <FavoriteHeart
           favorite={isFav}
@@ -437,7 +437,7 @@ function RecipeCard({
             : <BowlPlaceholder token={memory.token} title={memory.title} englishTitle={englishTitle} />
           }
         </Link>
-        <CardShareButton token={memory.token} title={memory.title} type={memory.type} narrator={memory.narrator} top={6} right={44} />
+        <CardShareButton token={memory.token} title={memory.title} slug={memory.slug} top={6} right={44} />
         <BookmarkToggle inCollection={inCollection} onToggle={e => { e.preventDefault(); onToggleCollection() }} />
         {/* Heart toggle */}
         <FavoriteHeart
