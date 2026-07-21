@@ -425,8 +425,8 @@ export default function PrivacyPage() {
             <p className="pp-p">
               Your data is retained for as long as your account exists. To delete your account
               and all associated data (recordings, transcripts, photos, memories), email us at{' '}
-              <a className="pp-link" href="mailto:support@theechoesofhome.com">
-                support@theechoesofhome.com
+              <a className="pp-link" href="mailto:echoesofhome63@gmail.com">
+                echoesofhome63@gmail.com
               </a>. We will confirm deletion within 30 days.
             </p>
             <p className="pp-p">
@@ -470,8 +470,8 @@ export default function PrivacyPage() {
             <div className="pp-contact-box">
               <p className="pp-p" style={{ margin: 0 }}>
                 <strong>Echoes of Home</strong><br />
-                <a className="pp-link" href="mailto:support@theechoesofhome.com">
-                  support@theechoesofhome.com
+                <a className="pp-link" href="mailto:echoesofhome63@gmail.com">
+                  echoesofhome63@gmail.com
                 </a>
               </p>
             </div>
