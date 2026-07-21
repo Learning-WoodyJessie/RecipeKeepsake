@@ -26,11 +26,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-        {/* Explicit OG tags — belt-and-suspenders for static export + WhatsApp */}
         <meta property="og:site_name" content="Echoes of Home" />
         <meta property="og:type" content="website" />
-        <meta property="og:title" content="Echoes of Home" />
-        <meta property="og:description" content="Keep your family's stories alive. Record voices, recipes, and memories." />
         <meta property="og:image" content="https://www.theechoesofhome.com/og-image.png" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />

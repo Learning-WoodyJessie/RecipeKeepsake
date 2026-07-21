@@ -8,11 +8,13 @@ export const metadata: Metadata = {
     title: "You're invited to a family collection — Echoes of Home",
     description: "A family has invited you to join their memory archive on Echoes of Home — recipes, songs, and stories preserved forever.",
     siteName: 'Echoes of Home',
+    images: [{ url: 'https://www.theechoesofhome.com/og-image.png', width: 1200, height: 630 }],
   },
   twitter: {
-    card: 'summary',
+    card: 'summary_large_image',
     title: "You're invited to a family collection — Echoes of Home",
     description: "A family has invited you to join their memory archive on Echoes of Home — recipes, songs, and stories preserved forever.",
+    images: ['https://www.theechoesofhome.com/og-image.png'],
   },
 }
 
