@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import JoinContent from './JoinContent'
 
+export const dynamic = 'force-dynamic'
+
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://api.theechoesofhome.com'
 
 export async function generateMetadata(
