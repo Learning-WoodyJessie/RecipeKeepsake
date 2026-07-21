@@ -163,9 +163,16 @@ function MemoryDetail() {
     const segs = window.location.pathname.split('/').filter(Boolean)
     const slug = segs.length === 2 && segs[0] === 'memory' ? segs[1] : null
     if (slug) {
-      const prefix = slug.split('-').pop() ?? ''
-      api.recipes.getByShortToken(prefix)
+      // Try exact slug lookup first (works for all slug formats stored in DB).
+      // Fall back to token-prefix lookup using the last hyphen segment
+      // (handles future {title}-{token8} format where the suffix is a hex prefix).
+      api.recipes.getBySlug(slug)
         .then((m: Memory) => setToken(m.token))
+        .catch(() => {
+          const prefix = slug.split('-').pop() ?? ''
+          return api.recipes.getByShortToken(prefix)
+            .then((m: Memory) => setToken(m.token))
+        })
         .catch(() => router.replace('/recipes'))
     } else {
       router.replace('/recipes')
