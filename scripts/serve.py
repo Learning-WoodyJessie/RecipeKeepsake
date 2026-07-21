@@ -554,16 +554,31 @@ class ClientErrorRequest(BaseModel):
     url: str = ""
 
 
+_client_error_ip_hits: dict[str, tuple[int, str]] = {}
+
+
 @app.post("/client-error")
-async def client_error_endpoint(body: ClientErrorRequest):
+async def client_error_endpoint(body: ClientErrorRequest, request: Request):
     """Receive frontend error reports and log them to Railway stdout.
 
     Called by ErrorBoundary.componentDidCatch — no auth required,
     fire-and-forget from the browser.
     """
+    # IP-keyed rate limit: max 20 reports per IP per day
+    ip = request.headers.get("X-Forwarded-For", "unknown").split(",")[0].strip()
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    count, day = _client_error_ip_hits.get(ip, (0, today))
+    if day != today:
+        count = 0
+    count += 1
+    _client_error_ip_hits[ip] = (count, today)
+    if count > 20:
+        raise HTTPException(status_code=429, detail="Too many error reports")
+
+    # Truncate fields to prevent log flooding / injection
     _logger.error(
-        f"event=client_error error={body.error!r} "
-        f"url={body.url!r} component_stack={body.component_stack!r}"
+        f"event=client_error error={body.error[:2000]!r} "
+        f"url={body.url[:500]!r} component_stack={body.component_stack[:2000]!r}"
     )
     return {"ok": True}
 
@@ -628,8 +643,8 @@ async def memory_shortcode_redirect(shortcode: str, request: Request):
         return RedirectResponse(url="/recipes", status_code=302)
 
     base = os.environ.get("NEXT_PUBLIC_APP_URL", "https://www.theechoesofhome.com")
-    canonical = f"{base}/memory?token={recipe['token']}"
     slug = recipe.get("slug") or shortcode
+    canonical = f"{base}/memory/{slug}"
     share_url = f"{base}/memory/{slug}"
 
     if _is_bot(request):
@@ -648,28 +663,38 @@ async def memory_shortcode_redirect(shortcode: str, request: Request):
 
 @app.get("/recipe/by-slug/{slug}")
 async def get_recipe_by_slug_endpoint(slug: str, user: dict = Depends(require_auth)):
-    """Fetch a single recipe by its human-readable slug."""
+    """Fetch a single recipe by its human-readable slug. Caller must own the recipe."""
     if not (os.environ.get("SUPABASE_URL") and os.environ.get("SUPABASE_SERVICE_KEY")):
         raise HTTPException(status_code=503, detail="Storage not configured")
+    user_id = _user_id(user)
+    if not user_id:
+        raise HTTPException(status_code=403, detail="Cannot identify user")
     from tools.storage import get_recipe_by_slug
     try:
         recipe = get_recipe_by_slug(slug)
-        return JSONResponse(content=recipe)
     except Exception:
         raise HTTPException(status_code=404, detail="Memory not found")
+    if recipe.get("user_id") and recipe["user_id"] != user_id:
+        raise HTTPException(status_code=404, detail="Memory not found")
+    return JSONResponse(content=recipe)
 
 
 @app.get("/recipe/{token}")
 async def get_recipe_endpoint(token: str, user: dict = Depends(require_auth)):
-    """Fetch a single recipe by share token."""
+    """Fetch a single recipe by share token. Caller must own the recipe."""
     if not (os.environ.get("SUPABASE_URL") and os.environ.get("SUPABASE_SERVICE_KEY")):
         raise HTTPException(status_code=503, detail="Storage not configured")
+    user_id = _user_id(user)
+    if not user_id:
+        raise HTTPException(status_code=403, detail="Cannot identify user")
     from tools.storage import get_recipe_by_token
     try:
         recipe = get_recipe_by_token(token)
-        return JSONResponse(content=recipe)
     except Exception:
         raise HTTPException(status_code=404, detail="Recipe not found")
+    if recipe.get("user_id") and recipe["user_id"] != user_id:
+        raise HTTPException(status_code=404, detail="Recipe not found")
+    return JSONResponse(content=recipe)
 
 
 @app.get("/recipes")
@@ -1227,9 +1252,22 @@ async def get_my_family_group_endpoint(user: dict = Depends(require_auth)):
 
 
 
+_invite_preview_ip_hits: dict[str, tuple[int, str]] = {}
+
+
 @app.get("/family/invite/{invite_token}/preview")
-async def family_invite_preview_endpoint(invite_token: str):
+async def family_invite_preview_endpoint(invite_token: str, request: Request):
     """Public — returns group name for an invite token. Used for OG meta tags (no auth needed)."""
+    # IP-keyed rate limit: max 30 lookups per IP per day to prevent token enumeration
+    ip = request.headers.get("X-Forwarded-For", "unknown").split(",")[0].strip()
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    count, day = _invite_preview_ip_hits.get(ip, (0, today))
+    if day != today:
+        count = 0
+    count += 1
+    _invite_preview_ip_hits[ip] = (count, today)
+    if count > 30:
+        raise HTTPException(status_code=429, detail="Too many requests")
     from tools.groups import get_group_by_invite
     group = get_group_by_invite(invite_token)
     if not group:
@@ -1242,6 +1280,7 @@ async def join_family_group_endpoint(invite_token: str, user: dict = Depends(req
     """Join a family group via invite token."""
     from tools.groups import get_group_by_invite, join_group, get_group_for_user
     user_id = _user_id(user)
+    _check_rate_limit_db_or_raise(user_id, "join", 10)
     if get_group_for_user(user_id):
         raise HTTPException(status_code=409, detail="Already in a family group.")
     group = get_group_by_invite(invite_token)
@@ -1258,7 +1297,10 @@ async def list_family_members_endpoint(user: dict = Depends(require_auth)):
     group = get_group_for_user(_user_id(user))
     if not group:
         return JSONResponse(content={"members": []})
-    return JSONResponse(content={"members": list_group_members(group["id"])})
+    members = list_group_members(group["id"])
+    # Strip internal Supabase UUIDs — callers have no legitimate need for peer user_ids
+    safe = [{k: v for k, v in m.items() if k != "user_id"} for m in members]
+    return JSONResponse(content={"members": safe})
 
 
 @app.get("/family/recipes")
@@ -1272,8 +1314,8 @@ async def list_family_recipes_endpoint(user: dict = Depends(require_auth)):
 
 
 @app.get("/portal/{portal_token}")
-async def get_portal_endpoint(portal_token: str):
-    """Public endpoint — no auth required. Returns group name + all group recipes."""
+async def get_portal_endpoint(portal_token: str, user: dict = Depends(require_auth)):
+    """Auth-required. Returns group name + all group recipes for the family portal."""
     from tools.groups import get_portal_group, list_group_recipes
     group = get_portal_group(portal_token)
     if not group:
@@ -1291,12 +1333,9 @@ async def get_portal_endpoint(portal_token: str):
                 r["audio_url"] = _sign_audio(r["audio_url"], sb)
     except Exception as e:
         _logger.warning(f"event=portal_sign_audio_error error={e}")
-    base = os.environ.get("NEXT_PUBLIC_APP_URL", "https://www.theechoesofhome.com")
-    invite_token = group.get("invite_token")
     return JSONResponse(content={
         "group_name": group.get("name", ""),
         "recipes": recipes,
-        "invite_url": f"{base}/join?invite={invite_token}" if invite_token else None,
     })
 
 
@@ -1344,9 +1383,10 @@ async def patch_recipe_endpoint(token: str, body: PatchRecipeRequest, user: dict
         recipe = get_recipe_by_token(token)
     except Exception:
         raise HTTPException(status_code=404, detail="Recipe not found")
-    # Ownership check — unauthenticated local dev (empty user dict) skips check
     user_id = _user_id(user)
-    if user_id and recipe.get("user_id") and recipe["user_id"] != user_id:
+    if not user_id:
+        raise HTTPException(status_code=403, detail="Cannot identify user")
+    if recipe.get("user_id") and recipe["user_id"] != user_id:
         raise HTTPException(status_code=403, detail="Not your recipe")
     try:
         updated = patch_recipe(token, fields)
@@ -1365,9 +1405,10 @@ async def delete_recipe_endpoint(token: str, user: dict = Depends(require_auth))
         recipe = get_recipe_by_token(token)
     except Exception:
         raise HTTPException(status_code=404, detail="Recipe not found")
-    # Ownership check — unauthenticated local dev (empty user dict) skips check
     user_id = _user_id(user)
-    if user_id and recipe.get("user_id") and recipe["user_id"] != user_id:
+    if not user_id:
+        raise HTTPException(status_code=403, detail="Cannot identify user")
+    if recipe.get("user_id") and recipe["user_id"] != user_id:
         raise HTTPException(status_code=403, detail="Not your recipe")
     try:
         delete_recipe(token)
@@ -1433,6 +1474,8 @@ async def translate_recipe_endpoint(token: str, lang: str = "en", force: bool = 
     try:
         recipe = get_recipe_by_token(token)
     except Exception:
+        raise HTTPException(status_code=404, detail="Recipe not found")
+    if recipe.get("user_id") and recipe["user_id"] != _user_id(user):
         raise HTTPException(status_code=404, detail="Recipe not found")
 
     # English is always available — return stored fields directly, no LLM call

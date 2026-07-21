@@ -147,7 +147,7 @@ export const api = {
     },
   },
   portal: {
-    get: (portalToken: string) => publicFetch(`/portal/${portalToken}`),
+    get: (portalToken: string) => authFetch(`/portal/${portalToken}`),
   },
   reactions: {
     get: (token: string) => authFetch(`/reactions/${token}`),
