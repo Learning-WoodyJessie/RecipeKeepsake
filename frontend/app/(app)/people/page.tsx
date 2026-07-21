@@ -373,14 +373,14 @@ function PersonModal({
                 value={(form[field] as string) ?? ''}
                 onChange={e => setForm({ ...form, [field]: e.target.value })}
                 placeholder={placeholder}
-                style={{ width: '100%', border: '1px solid var(--border)', borderRadius: 10, padding: '0.55rem 0.75rem', fontSize: '0.85rem', fontFamily: 'var(--sans)', background: 'var(--cream)', color: 'var(--text)', resize: 'vertical' }}
+                style={{ width: '100%', border: '1px solid var(--border2)', borderRadius: 10, padding: '0.55rem 0.75rem', fontSize: '0.85rem', fontFamily: 'var(--sans)', background: 'var(--cream)', color: 'var(--text)', resize: 'vertical' }}
               />
             ) : (
               <input
                 value={(form[field] as string) ?? ''}
                 onChange={e => setForm({ ...form, [field]: e.target.value })}
                 placeholder={placeholder}
-                style={{ width: '100%', border: '1px solid var(--border)', borderRadius: 10, padding: '0.55rem 0.75rem', fontSize: '0.85rem', fontFamily: 'var(--sans)', background: 'var(--cream)', color: 'var(--text)' }}
+                style={{ width: '100%', border: '1px solid var(--border2)', borderRadius: 10, padding: '0.55rem 0.75rem', fontSize: '0.85rem', fontFamily: 'var(--sans)', background: 'var(--cream)', color: 'var(--text)' }}
               />
             )}
           </div>

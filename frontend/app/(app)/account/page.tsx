@@ -55,7 +55,7 @@ function ShareWithFamily() {
           value={value}
           onChange={(e) => setValue(e.target.value)}
           placeholder="family@example.com"
-          style={{ flex: 1, border: '1px solid var(--border)', borderRadius: 10, padding: '0.6rem 0.85rem', fontSize: '0.85rem', background: 'var(--surface)', color: 'var(--text)' }}
+          style={{ flex: 1, border: '1px solid var(--border2)', borderRadius: 10, padding: '0.6rem 0.85rem', fontSize: '0.85rem', background: 'var(--surface)', color: 'var(--text)' }}
         />
         <button onClick={addViewer} disabled={busy || !value.trim()} style={{ background: 'var(--accent)', color: 'white', border: 'none', borderRadius: 10, padding: '0.6rem 1.1rem', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer' }}>
           Invite
@@ -161,7 +161,7 @@ function FamilyGroupSection() {
           onChange={e => setGroupName(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && createGroup()}
           placeholder="e.g. Lakshmi Family"
-          style={{ flex: 1, border: '1px solid var(--border)', borderRadius: 10, padding: '0.6rem 0.85rem', fontSize: '0.9rem', fontFamily: 'var(--sans)', background: 'var(--bg)', color: 'var(--text)' }}
+          style={{ flex: 1, border: '1px solid var(--border2)', borderRadius: 10, padding: '0.6rem 0.85rem', fontSize: '0.9rem', fontFamily: 'var(--sans)', background: 'var(--bg)', color: 'var(--text)' }}
         />
         <button onClick={createGroup} disabled={creating} style={{ background: 'var(--accent)', color: 'white', border: 'none', borderRadius: 10, padding: '0.6rem 1.25rem', fontWeight: 600, cursor: creating ? 'default' : 'pointer', fontSize: '0.9rem' }}>
           {creating ? '…' : 'Create →'}

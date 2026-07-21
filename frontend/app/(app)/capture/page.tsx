@@ -246,7 +246,6 @@ function CapturePageInner() {
         ...(mimeType ? { mimeType } : {}),
         audioBitsPerSecond: 32000,
       })
-      console.log('[capture] mr.audioBitsPerSecond=%d state=%s', mr.audioBitsPerSecond, mr.state)
       mrRef.current = mr
       chunksRef.current = []
 
@@ -490,7 +489,7 @@ function CapturePageInner() {
                   placeholder="e.g. Nanna's evening ghazal"
                   style={{
                     width: '100%',
-                    border: '1px solid var(--border)',
+                    border: '1px solid var(--border2)',
                     borderRadius: 10,
                     padding: '0.65rem 0.85rem',
                     fontSize: '0.9rem',
@@ -512,7 +511,7 @@ function CapturePageInner() {
                   rows={2}
                   style={{
                     width: '100%',
-                    border: '1px solid var(--border)',
+                    border: '1px solid var(--border2)',
                     borderRadius: 10,
                     padding: '0.65rem 0.85rem',
                     fontSize: '0.9rem',
