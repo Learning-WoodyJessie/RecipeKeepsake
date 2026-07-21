@@ -2,6 +2,25 @@ import { supabase } from './supabase'
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080'
 
+// Deduplicate concurrent getSession() calls so they share one navigator.locks
+// acquisition instead of N separate ones. Without this, components mounting
+// simultaneously (AuthGuard, Sidebar, memory detail page) each call getSession()
+// within the same tick → all contest the same exclusive Web Lock → "Lock was
+// stolen by another request" on iOS WebKit.
+let _sessionCache: { promise: Promise<string | null>; ts: number } | null = null
+
+async function getToken(): Promise<string | null> {
+  const now = Date.now()
+  if (_sessionCache && now - _sessionCache.ts < 500) return _sessionCache.promise
+  _sessionCache = {
+    promise: supabase.auth.getSession()
+      .then(({ data: { session } }) => session?.access_token ?? null)
+      .catch(() => null),
+    ts: now,
+  }
+  return _sessionCache.promise
+}
+
 /** Narrator profile returned by `/people` endpoints. */
 export type Person = {
   id: string
@@ -25,10 +44,10 @@ async function publicFetch(path: string) {
 }
 
 async function authFetch(path: string, options: RequestInit = {}) {
-  const { data: { session } } = await supabase.auth.getSession()
+  const token = await getToken()
   const headers: HeadersInit = {
     ...(options.headers ?? {}),
-    ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
   }
   const res = await fetch(`${API}${path}`, { ...options, headers })
   if (!res.ok) {

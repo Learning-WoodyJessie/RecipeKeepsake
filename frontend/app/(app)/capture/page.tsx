@@ -152,6 +152,7 @@ function CapturePageInner() {
   const [error, setError] = useState('')
   const [levels, setLevels] = useState<number[]>(Array(20).fill(0.1))
   const mrRef = useRef<MediaRecorder | null>(null)
+  const streamRef = useRef<MediaStream | null>(null)
   const chunksRef = useRef<Blob[]>([])
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const extRef = useRef<string>('.webm')
@@ -194,22 +195,31 @@ function CapturePageInner() {
     tick()
   }
 
-  function stopLevelMeter() {
+  function stopLevelMeter(): Promise<void> {
     if (rafRef.current) cancelAnimationFrame(rafRef.current)
     rafRef.current = null
-    audioCtxRef.current?.close().catch(() => {})
+    // Await the close so iOS releases the audio session lock before the next
+    // audio element (on the memory detail page) tries to acquire it.
+    const closePromise = audioCtxRef.current?.close().catch(() => {}) ?? Promise.resolve()
     audioCtxRef.current = null
     analyserStreamRef.current?.getTracks().forEach(t => t.stop())
     analyserStreamRef.current = null
     setLevels(Array(20).fill(0.1))
+    return closePromise
   }
 
-  // Safety net if the user navigates away mid-recording or mid-preview
+  // Safety net if the user navigates away mid-recording or mid-preview.
+  // Stops all mic tracks and awaits AudioContext.close() so iOS releases the
+  // audio session lock before the next page's <audio> element tries to acquire it.
   useEffect(() => {
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current)
+      streamRef.current?.getTracks().forEach(t => t.stop())
+      streamRef.current = null
       audioCtxRef.current?.close().catch(() => {})
+      audioCtxRef.current = null
       analyserStreamRef.current?.getTracks().forEach(t => t.stop())
+      analyserStreamRef.current = null
       if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current)
     }
   }, [])
@@ -224,6 +234,7 @@ function CapturePageInner() {
 
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true }).catch(() => null)
       if (!stream) { setError('Microphone access denied. Please allow microphone access and try again.'); setStage('error'); return }
+      streamRef.current = stream
 
       const track = stream.getAudioTracks()[0]
       console.log('[capture] track label=%s settings=%o', track?.label, track?.getSettings())
@@ -264,6 +275,7 @@ function CapturePageInner() {
           console.warn('[capture] blob suspiciously small — likely empty audio (android AudioContext interference?)')
         }
         stream.getTracks().forEach(t => t.stop())
+        streamRef.current = null
         stopLevelMeter()
         blobRef.current = blob
         const url = URL.createObjectURL(blob)
