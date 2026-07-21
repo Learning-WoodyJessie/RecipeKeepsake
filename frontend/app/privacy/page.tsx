@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy — Echoes of Home',
+  title: 'Privacy Policy - Echoes of Home',
   description: 'How Echoes of Home collects, uses, and protects your family\'s data.',
 }
 
@@ -294,8 +294,8 @@ export default function PrivacyPage() {
           <section className="pp-section">
             <h2 className="pp-h2">What Echoes of Home does</h2>
             <p className="pp-p">
-              Echoes of Home is a private family archive. You record voice narrations — recipes,
-              songs, stories — from family members. The app transcribes the audio, translates it
+              Echoes of Home is a private family archive. You record voice narrations (recipes,
+              songs, stories) from family members. The app transcribes the audio, translates it
               into English if needed, and stores the memory so your family can revisit it forever.
             </p>
             <p className="pp-p">
@@ -312,14 +312,14 @@ export default function PrivacyPage() {
             <p className="pp-p">
               When you record a narration, your device captures the audio and sends it to
               Google Gemini for transcription. The resulting audio file is stored in a private
-              Supabase storage bucket linked only to your account — no one else can access it.
+              Supabase storage bucket linked only to your account. No one else can access it.
             </p>
 
             <h3 className="pp-h3">Transcripts & translations</h3>
             <p className="pp-p">
               The raw transcript from Gemini and the English translation from OpenAI GPT-4o are
               stored in your private database row. If your narration is in Telugu, Tamil, Hindi,
-              or another language, both versions are kept — the original voice and the translation.
+              or another language, both versions are kept: the original voice and the translation.
             </p>
 
             <h3 className="pp-h3">Photos</h3>
@@ -330,8 +330,8 @@ export default function PrivacyPage() {
 
             <h3 className="pp-h3">Account information</h3>
             <p className="pp-p">
-              When you sign in with Apple, we receive a unique identifier and — only if you
-              choose to share it — an email address. We store the identifier to authenticate you.
+              When you sign in with Apple, we receive a unique identifier and, only if you
+              choose to share it, an email address. We store the identifier to authenticate you.
               We never receive your Apple ID password.
             </p>
 
@@ -410,7 +410,7 @@ export default function PrivacyPage() {
             </p>
             <p className="pp-p">
               If you create or join a Family Group, members of that group can see the memories
-              shared within it. The Family Portal — a read-only view for relatives — requires a
+              shared within it. The Family Portal (a read-only view for relatives) requires a
               specific link that only you control. There are no public links and no anonymous access.
             </p>
             <p className="pp-p">
@@ -424,7 +424,7 @@ export default function PrivacyPage() {
             <h2 className="pp-h2">Data retention & deletion</h2>
             <p className="pp-p">
               Your data is retained for as long as your account exists. To delete your account
-              and all associated data — recordings, transcripts, photos, memories — email us at{' '}
+              and all associated data (recordings, transcripts, photos, memories), email us at{' '}
               <a className="pp-link" href="mailto:support@theechoesofhome.com">
                 support@theechoesofhome.com
               </a>. We will confirm deletion within 30 days.
@@ -448,7 +448,7 @@ export default function PrivacyPage() {
             <h2 className="pp-h2">Security</h2>
             <p className="pp-p">
               All data is transmitted over HTTPS. Audio files and database rows are protected by
-              Supabase row-level security — your data is only accessible with a valid authenticated
+              Supabase row-level security, so your data is only accessible with a valid authenticated
               session. API keys and service credentials are server-side only and never exposed to
               the client.
             </p>
@@ -465,7 +465,7 @@ export default function PrivacyPage() {
           <section className="pp-section">
             <h2 className="pp-h2">Contact us</h2>
             <p className="pp-p">
-              Questions about this policy or how your data is handled — we're happy to answer.
+              Questions about this policy or how your data is handled? We're happy to answer.
             </p>
             <div className="pp-contact-box">
               <p className="pp-p" style={{ margin: 0 }}>
