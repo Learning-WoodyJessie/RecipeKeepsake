@@ -12,19 +12,25 @@ export default function FamilySetupPrompt() {
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    const t = setTimeout(() => {
-      api.family.getMyGroup()
-        .then((d: { group: unknown }) => {
-          console.log('[FamilySetupPrompt] getMyGroup result:', d)
-          if (!d.group) {
-            if (typeof window !== 'undefined') localStorage.removeItem(DONE_KEY)
-            setVisible(true)
-          } else if (typeof window !== 'undefined') localStorage.setItem(DONE_KEY, '1')
-        })
-        .catch((e: unknown) => { console.error('[FamilySetupPrompt] getMyGroup error:', e) })
-    }, 800)
+    // Skip immediately if localStorage says a group was already created on this device
+    if (typeof window !== 'undefined' && localStorage.getItem(DONE_KEY) === '1') return
+    // Show after a short delay, then hide if the API confirms they already have a group
+    const t = setTimeout(() => setVisible(true), 800)
     return () => clearTimeout(t)
   }, [])
+
+  // Once visible, check the API; hide if they already have a group
+  useEffect(() => {
+    if (!visible) return
+    api.family.getMyGroup()
+      .then((d: { group: unknown }) => {
+        if (d.group) {
+          if (typeof window !== 'undefined') localStorage.setItem(DONE_KEY, '1')
+          setVisible(false)
+        }
+      })
+      .catch(() => {})
+  }, [visible])
 
   useEffect(() => {
     if (visible) setTimeout(() => inputRef.current?.focus(), 50)

@@ -33,16 +33,16 @@ const FAQS = [
     section: 'Sharing with Family',
     items: [
       {
-        q: 'How do I share a memory with my family?',
-        a: 'Open any memory and tap the Share button. This opens WhatsApp with a pre-written message and link. You can copy the link from there to send via any other app.',
+        q: 'How do I invite family members to see my collection?',
+        a: 'After signing in, you\'ll be prompted to name your family collection. Once created, go to the Family Collection page in the sidebar — you\'ll see a Copy invite link button. Send that link to family members so they can join.',
       },
       {
-        q: 'Does my family need to sign up to view a shared memory?',
-        a: 'Yes. Without an account, anyone who gets forwarded the link could access your entire archive. A free sign-in makes sure only the people you trust can see it.',
+        q: 'Does my family need to sign up to view memories?',
+        a: 'Yes. A free sign-in makes sure only the people you trust can access your archive. Once they join via your invite link, they can browse your full family collection.',
       },
       {
         q: 'Can I share my whole collection with family?',
-        a: 'Yes. Go to Account and create a Family Group. This gives you a private portal page you can share with family so they can browse all your memories in one place.',
+        a: 'Yes. Create a Family Group when prompted after sign-in (or from Account settings). Then share the invite link from the Family Collection page. Family members who join can view all memories you\'ve added to the collection.',
       },
     ],
   },
@@ -97,7 +97,7 @@ const FAQS = [
       },
       {
         q: 'Is there a limit on how many memories I can save?',
-        a: 'Free accounts can save up to 10 memories. Unlimited storage is coming soon. Join the waitlist from the app if you reach the limit.',
+        a: 'You can save up to 10 memories per day. There is no cap on total memories stored.',
       },
     ],
   },
@@ -173,7 +173,7 @@ export default function FAQPage() {
           Reach out and we'll get back to you.
         </p>
         <a
-          href="mailto:hello@theechoesofhome.com"
+          href="mailto:echoesofhome63@gmail.com"
           style={{ display: 'inline-block', padding: '0.6rem 1.5rem', background: 'var(--accent)', color: 'white', borderRadius: 10, textDecoration: 'none', fontWeight: 600, fontSize: '0.88rem' }}
         >
           Contact us
