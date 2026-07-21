@@ -364,6 +364,21 @@ function MemoryRow({
 // ─── Right panel ───────────────────────────────────────────────────────────
 
 function QuotePanel() {
+  const [groupName, setGroupName] = useState('')
+  const [inviteUrl, setInviteUrl] = useState('')
+  const [inviteCopied, setInviteCopied] = useState(false)
+
+  useEffect(() => {
+    api.family.getMyGroup()
+      .then((d: { group?: { name?: string } | null; invite_url?: string }) => {
+        if (d.group) {
+          setGroupName(d.group.name ?? '')
+          setInviteUrl(d.invite_url ?? '')
+        }
+      })
+      .catch(() => {})
+  }, [])
+
   return (
     <>
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 20, padding: '1.5rem 1.25rem', marginBottom: '1rem', boxShadow: '0 4px 16px rgba(45,27,14,0.05)' }}>
@@ -479,23 +494,9 @@ export default function HomePage() {
   const [error, setError] = useState('')
   const [favTick, setFavTick] = useState(0)
   const [isFamily, setIsFamily] = useState(false)
-  const [groupName, setGroupName] = useState('')
-  const [inviteUrl, setInviteUrl] = useState('')
-  const [inviteCopied, setInviteCopied] = useState(false)
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => setUserName(firstName(user)))
-  }, [])
-
-  useEffect(() => {
-    api.family.getMyGroup()
-      .then((d: { group?: { name?: string } | null; invite_url?: string }) => {
-        if (d.group) {
-          setGroupName(d.group.name ?? '')
-          setInviteUrl(d.invite_url ?? '')
-        }
-      })
-      .catch(() => {})
   }, [])
 
   useEffect(() => {
