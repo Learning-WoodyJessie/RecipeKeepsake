@@ -372,6 +372,35 @@ async def require_auth(creds: HTTPAuthorizationCredentials = Depends(_bearer)) -
     return await decode_auth_user(creds)
 
 
+_BOT_UA_FRAGMENTS = ("whatsapp", "facebookexternalhit", "twitterbot", "telegrambot", "linkedinbot", "slackbot", "discordbot")
+
+
+def _is_bot(request: Request) -> bool:
+    ua = (request.headers.get("user-agent") or "").lower()
+    return any(frag in ua for frag in _BOT_UA_FRAGMENTS)
+
+
+def _og_html(title: str, description: str, image_url: str, canonical_url: str) -> str:
+    """Minimal HTML page with OG meta tags for social media crawlers."""
+    def esc(s: str) -> str:
+        return s.replace("&", "&amp;").replace('"', "&quot;").replace("<", "&lt;")
+    return f"""<!doctype html><html><head>
+<meta charset="utf-8">
+<title>{esc(title)}</title>
+<meta property="og:title" content="{esc(title)}">
+<meta property="og:description" content="{esc(description)}">
+<meta property="og:image" content="{esc(image_url)}">
+<meta property="og:url" content="{esc(canonical_url)}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Echoes of Home">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{esc(title)}">
+<meta name="twitter:description" content="{esc(description)}">
+<meta name="twitter:image" content="{esc(image_url)}">
+<meta http-equiv="refresh" content="0;url={esc(canonical_url)}">
+</head><body></body></html>"""
+
+
 class _RequestIDMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
         request_id = uuid.uuid4().hex[:8]
@@ -407,6 +436,28 @@ class _SpaMiddleware(BaseHTTPMiddleware):
         if "text/html" in accept and not has_auth:
             url_path = request.url.path
             path = url_path.lstrip("/")
+
+            # Social bots visiting /join?invite=... get OG-tag HTML so the
+            # WhatsApp/Telegram/etc. preview shows the family group name and
+            # the full invite URL rather than the generic Echoes of Home card.
+            if (url_path == "/join" or url_path == "/join/") and _is_bot(request):
+                invite_token = request.query_params.get("invite")
+                base = os.environ.get("NEXT_PUBLIC_APP_URL", "https://www.theechoesofhome.com")
+                og_title = "You've been invited to a family memory group — Echoes of Home"
+                og_desc = "Join your family's private archive of voices, recipes, and memories. Accept the invite to listen and share together."
+                og_image = f"{base}/og-image.png"
+                canonical = f"{base}/join{f'?invite={invite_token}' if invite_token else ''}"
+                if invite_token:
+                    try:
+                        from tools.groups import get_group_by_invite
+                        group = get_group_by_invite(invite_token)
+                        if group:
+                            name = group.get("name", "")
+                            og_title = f"Join {name} on Echoes of Home"
+                            og_desc = f"You've been invited to the {name} family memory group. Tap to listen to voices, recipes, and stories shared by your family."
+                    except Exception:
+                        pass
+                return HTMLResponse(content=_og_html(og_title, og_desc, og_image, canonical))
 
             # Skip paths that should never be served as static pages
             if not any(url_path.startswith(p) for p in self._PASSTHROUGH_PREFIXES):
@@ -536,32 +587,6 @@ async def get_memory_by_short_token(prefix: str, user: dict = Depends(require_au
         return JSONResponse(content=recipe)
     except Exception:
         raise HTTPException(status_code=404, detail="Memory not found")
-
-
-_BOT_UA_FRAGMENTS = ("whatsapp", "facebookexternalhit", "twitterbot", "telegrambot", "linkedinbot", "slackbot", "discordbot")
-
-def _is_bot(request: Request) -> bool:
-    ua = (request.headers.get("user-agent") or "").lower()
-    return any(frag in ua for frag in _BOT_UA_FRAGMENTS)
-
-def _og_html(title: str, description: str, image_url: str, canonical_url: str) -> str:
-    """Minimal HTML page with OG meta tags for social media crawlers."""
-    esc = lambda s: s.replace("&", "&amp;").replace('"', "&quot;").replace("<", "&lt;")
-    return f"""<!doctype html><html><head>
-<meta charset="utf-8">
-<title>{esc(title)}</title>
-<meta property="og:title" content="{esc(title)}">
-<meta property="og:description" content="{esc(description)}">
-<meta property="og:image" content="{esc(image_url)}">
-<meta property="og:url" content="{esc(canonical_url)}">
-<meta property="og:type" content="website">
-<meta property="og:site_name" content="Echoes of Home">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="{esc(title)}">
-<meta name="twitter:description" content="{esc(description)}">
-<meta name="twitter:image" content="{esc(image_url)}">
-<meta http-equiv="refresh" content="0;url={esc(canonical_url)}">
-</head><body></body></html>"""
 
 
 @app.get("/memory/{shortcode}")
@@ -1189,6 +1214,7 @@ async def get_my_family_group_endpoint(user: dict = Depends(require_auth)):
         "portal_url": f"{base}/family?p={group['portal_token']}",
         "invite_url": f"{base}/join?invite={group['invite_token']}",
     })
+
 
 
 @app.post("/family/groups/join/{invite_token}")
