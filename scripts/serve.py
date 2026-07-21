@@ -1281,11 +1281,16 @@ async def join_family_group_endpoint(invite_token: str, user: dict = Depends(req
     from tools.groups import get_group_by_invite, join_group, get_group_for_user
     user_id = _user_id(user)
     _check_rate_limit_db_or_raise(user_id, "join", 10)
-    if get_group_for_user(user_id):
-        raise HTTPException(status_code=409, detail="Already in a family group.")
     group = get_group_by_invite(invite_token)
     if not group:
         raise HTTPException(status_code=404, detail="Invite link not found.")
+    if get_group_for_user(user_id):
+        base = os.environ.get("NEXT_PUBLIC_APP_URL", "https://www.theechoesofhome.com")
+        return JSONResponse(content={
+            "already_member": True,
+            "group_name": group["name"],
+            "portal_url": f"{base}/family?p={group['portal_token']}",
+        })
     join_group(group_id=group["id"], user_id=user_id)
     return JSONResponse(content={"joined": True, "group_name": group["name"]})
 

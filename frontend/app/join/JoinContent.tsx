@@ -8,8 +8,10 @@ function JoinInner() {
   const params = useSearchParams()
   const router = useRouter()
   const invite = params.get('invite') ?? ''
-  const [status, setStatus] = useState<'loading' | 'joining' | 'done' | 'error' | 'needsAuth'>('loading')
+  const [status, setStatus] = useState<'loading' | 'joining' | 'done' | 'error' | 'needsAuth' | 'alreadyMember'>('loading')
   const [message, setMessage] = useState('')
+  const [portalUrl, setPortalUrl] = useState('')
+  const [groupName, setGroupName] = useState('')
 
   useEffect(() => {
     if (!invite) { setStatus('error'); setMessage('Invalid invite link.'); return }
@@ -18,18 +20,19 @@ function JoinInner() {
       if (!session) { setStatus('needsAuth'); return }
       setStatus('joining')
       try {
-        const res = await api.family.join(invite) as { group_name: string }
-        setMessage(`You've joined ${res.group_name}!`)
-        setStatus('done')
-        setTimeout(() => router.push('/collection'), 1500)
-      } catch (e: unknown) {
-        const msg = (e as Error).message
-        if (msg.includes('Already in a family group')) {
-          router.push('/collection')
+        const res = await api.family.join(invite) as { joined?: boolean; already_member?: boolean; group_name: string; portal_url?: string }
+        if (res.already_member) {
+          setGroupName(res.group_name)
+          setPortalUrl(res.portal_url ?? '')
+          setStatus('alreadyMember')
         } else {
-          setStatus('error')
-          setMessage(msg)
+          setMessage(`You've joined ${res.group_name}!`)
+          setStatus('done')
+          setTimeout(() => router.push('/collection'), 1500)
         }
+      } catch (e: unknown) {
+        setStatus('error')
+        setMessage((e as Error).message)
       }
     })
   }, [invite, router])
@@ -52,6 +55,41 @@ function JoinInner() {
     </div>
   )
 
+  if (status === 'alreadyMember') return (
+    <div style={wrap}>
+      <p style={{ fontSize: '2rem', marginBottom: '1rem' }}>🏡</p>
+      <p style={{ fontFamily: 'var(--serif)', fontSize: '1.3rem', marginBottom: '0.75rem', lineHeight: 1.4 }}>
+        You're already in your own family collection
+      </p>
+      <p style={{ color: 'var(--text2)', marginBottom: '2rem', lineHeight: 1.6, fontSize: '0.9rem' }}>
+        Would you like to view <strong>{groupName}</strong>'s memories instead?
+      </p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <a
+          href={portalUrl}
+          style={{
+            display: 'inline-block', padding: '0.75rem 1.75rem',
+            background: 'var(--accent)', color: 'white', borderRadius: 10,
+            fontWeight: 600, textDecoration: 'none', fontSize: '0.95rem',
+          }}
+        >
+          View {groupName}'s collection →
+        </a>
+        <a
+          href="/collection"
+          style={{
+            display: 'inline-block', padding: '0.75rem 1.75rem',
+            background: 'transparent', color: 'var(--muted)', borderRadius: 10,
+            fontWeight: 500, textDecoration: 'none', fontSize: '0.85rem',
+            border: '1px solid var(--border)',
+          }}
+        >
+          Go to my collection
+        </a>
+      </div>
+    </div>
+  )
+
   if (status === 'needsAuth') return (
     <div style={wrap}>
       <p style={{ fontSize: '2rem', marginBottom: '1rem' }}>🔒</p>
@@ -67,14 +105,9 @@ function JoinInner() {
       <a
         href={`/?next=${encodeURIComponent(`/join?invite=${invite}`)}`}
         style={{
-          display: 'inline-block',
-          padding: '0.75rem 1.75rem',
-          background: 'var(--accent)',
-          color: 'white',
-          borderRadius: 10,
-          fontWeight: 600,
-          textDecoration: 'none',
-          fontSize: '0.95rem',
+          display: 'inline-block', padding: '0.75rem 1.75rem',
+          background: 'var(--accent)', color: 'white', borderRadius: 10,
+          fontWeight: 600, textDecoration: 'none', fontSize: '0.95rem',
         }}
       >
         Sign in to join →
