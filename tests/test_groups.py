@@ -142,7 +142,7 @@ class TestListGroupRecipes:
         members_select = MagicMock()
         members_select.eq.return_value.execute.return_value.data = []
         recipes_select = MagicMock()
-        recipes_select.in_.return_value.order.return_value.execute.return_value.data = [
+        recipes_select.in_.return_value.eq.return_value.order.return_value.execute.return_value.data = [
             {"id": "r1", "title": "Pesarattu"}
         ]
         mock.table.return_value.select.side_effect = [members_select, recipes_select]
@@ -159,7 +159,7 @@ class TestListGroupRecipes:
             {"user_id": "u1"}, {"user_id": "u2"}
         ]
         recipes_select = MagicMock()
-        recipes_select.in_.return_value.order.return_value.execute.return_value.data = [
+        recipes_select.in_.return_value.eq.return_value.order.return_value.execute.return_value.data = [
             {"id": "r1", "title": "Pesarattu", "user_id": "u1"},
             {"id": "r2", "title": "Biryani", "user_id": "u2"},
         ]

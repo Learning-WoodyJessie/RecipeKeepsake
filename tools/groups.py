@@ -163,6 +163,7 @@ def list_group_recipes(group_id: str, fallback_owner_id: str | None = None) -> l
         sb.table("memories")
         .select("id, token, title, narrator, recorded_at, image_url, audio_url, tags, type, recorded_by_name, ingredients, steps, cook_notes, portal_visible")
         .in_("user_id", user_ids)
+        .eq("portal_visible", True)
         .order("recorded_at", desc=True)
         .execute()
         .data
