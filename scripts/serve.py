@@ -876,6 +876,9 @@ async def capture_save_endpoint(
             from tools.storage import _sign_audio, _client as _sb
             result["audio_url"] = _sign_audio(saved.audio_url, _sb())
 
+        from tools.storage import ensure_person_exists
+        ensure_person_exists(_user_id(user), narrator)
+
         _logger.info(f"event=save_done id={saved.id} user_id={_user_id(user)}")
         return JSONResponse(content=result)
 
@@ -967,6 +970,10 @@ async def save_audio_endpoint(
         })
 
         audio_url = _sign_audio(row.get("audio_url", ""), _sb()) if audio_filename else None
+
+        from tools.storage import ensure_person_exists
+        ensure_person_exists(_user_id(user), narrator)
+
         _logger.info(f"event=save_audio_done id={row.get('id')} has_audio={bool(audio_filename)} user_id={_user_id(user)}")
         return JSONResponse(content={
             "token": row["token"],
@@ -1027,6 +1034,9 @@ async def save_text_endpoint(body: SaveTextRequest, user: dict = Depends(require
         "type": body.memory_type,
         "user_id": user_id,
     })
+
+    from tools.storage import ensure_person_exists
+    ensure_person_exists(user_id, body.narrator)
 
     return JSONResponse(content={
         "token": row["token"],

@@ -402,6 +402,28 @@ def create_person(user_id: str, data: dict) -> dict:
     return result.data[0]
 
 
+def ensure_person_exists(user_id: str, name: str) -> None:
+    """Create a minimal person profile if no person with this name exists for this user.
+
+    Called after every memory save so that a narrator typed in the ReviewWizard
+    (free-text field) always produces a corresponding entry in Our People —
+    even when the user never went through the explicit + New person flow.
+    Case-insensitive to avoid duplicate rows for 'grandma' vs 'Grandma'.
+    """
+    name = (name or "").strip()
+    if not name:
+        return
+    existing = (
+        _client().table("people")
+        .select("id")
+        .eq("user_id", user_id)
+        .ilike("name", name)
+        .execute()
+    )
+    if not existing.data:
+        _client().table("people").insert({"name": name, "user_id": user_id}).execute()
+
+
 def update_person(person_id: str, data: dict) -> dict:
     """Update a narrator profile by id. Returns the updated row."""
     result = _client().table("people").update(data).eq("id", person_id).execute()
