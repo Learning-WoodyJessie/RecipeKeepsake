@@ -21,12 +21,12 @@ function JoinContent() {
         const res = await api.family.join(invite) as { group_name: string }
         setMessage(`You've joined ${res.group_name}!`)
         setStatus('done')
-        setTimeout(() => router.push('/home'), 1500)
+        setTimeout(() => router.push('/collection'), 1500)
       } catch (e: unknown) {
         const msg = (e as Error).message
         // Already a member is fine — just go home
         if (msg.includes('Already in a family group')) {
-          router.push('/home')
+          router.push('/collection')
         } else {
           setStatus('error')
           setMessage(msg)
@@ -66,7 +66,7 @@ function JoinContent() {
         Without it, anyone who gets forwarded this link could access the entire family archive. A free account makes sure only the people you trust can see it.
       </p>
       <a
-        href={`/?next=/join?invite=${invite}`}
+        href={`/?next=${encodeURIComponent(`/join?invite=${invite}`)}`}
         style={{
           display: 'inline-block',
           padding: '0.75rem 1.75rem',
