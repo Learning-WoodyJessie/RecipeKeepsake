@@ -375,25 +375,59 @@ function QuotePanel() {
         </p>
       </div>
 
-      {/* Family Collection — routes to Account's family section, which already
-          shows the create form or the manage view depending on group state. */}
+      {/* Family Collection card — dynamic based on whether a group exists */}
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 20, padding: '1.25rem', marginBottom: '1rem', boxShadow: '0 4px 16px rgba(45,27,14,0.05)' }}>
         <h3 style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '0.95rem', color: 'var(--text)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
             <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
             <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
           </svg>
-          Family Collection
+          {groupName ? groupName : 'Family Collection'}
         </h3>
-        <p style={{ fontSize: '0.78rem', color: 'var(--muted)', lineHeight: 1.5, marginBottom: '0.85rem' }}>
-          Create a shared collection for your family, or grab the invite and portal links to share.
-        </p>
-        <Link href="/account#family" style={{
-          display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
-          fontSize: '0.82rem', fontWeight: 600, color: 'var(--accent)', textDecoration: 'none',
-        }}>
-          Create or manage →
-        </Link>
+        {groupName ? (
+          <>
+            <p style={{ fontSize: '0.78rem', color: 'var(--muted)', lineHeight: 1.5, marginBottom: '0.85rem' }}>
+              Share this invite link so family can join and see your collection.
+            </p>
+            <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(inviteUrl)
+                  setInviteCopied(true)
+                  setTimeout(() => setInviteCopied(false), 2000)
+                }}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
+                  background: inviteCopied ? 'var(--accent)' : 'var(--accent-light)',
+                  color: inviteCopied ? 'white' : 'var(--accent)',
+                  border: '1.5px solid var(--accent)', borderRadius: 8,
+                  padding: '0.42rem 0.85rem', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer',
+                }}
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                </svg>
+                {inviteCopied ? 'Copied!' : 'Copy invite link'}
+              </button>
+              <Link href="/collection" style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--accent)', textDecoration: 'none' }}>
+                View collection →
+              </Link>
+            </div>
+          </>
+        ) : (
+          <>
+            <p style={{ fontSize: '0.78rem', color: 'var(--muted)', lineHeight: 1.5, marginBottom: '0.85rem' }}>
+              Create a shared collection so your family can browse memories together and add their own.
+            </p>
+            <Link href="/account#family" style={{
+              display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
+              fontSize: '0.82rem', fontWeight: 600, color: 'var(--accent)', textDecoration: 'none',
+            }}>
+              Set up family collection →
+            </Link>
+          </>
+        )}
       </div>
 
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 20, padding: '1.25rem', boxShadow: '0 4px 16px rgba(45,27,14,0.05)' }}>
@@ -445,9 +479,23 @@ export default function HomePage() {
   const [error, setError] = useState('')
   const [favTick, setFavTick] = useState(0)
   const [isFamily, setIsFamily] = useState(false)
+  const [groupName, setGroupName] = useState('')
+  const [inviteUrl, setInviteUrl] = useState('')
+  const [inviteCopied, setInviteCopied] = useState(false)
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => setUserName(firstName(user)))
+  }, [])
+
+  useEffect(() => {
+    api.family.getMyGroup()
+      .then((d: { group?: { name?: string } | null; invite_url?: string }) => {
+        if (d.group) {
+          setGroupName(d.group.name ?? '')
+          setInviteUrl(d.invite_url ?? '')
+        }
+      })
+      .catch(() => {})
   }, [])
 
   useEffect(() => {
