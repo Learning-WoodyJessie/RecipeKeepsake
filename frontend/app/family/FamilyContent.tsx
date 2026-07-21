@@ -52,6 +52,7 @@ function PortalContent() {
   const [playingId, setPlayingId] = useState<string | null>(null)
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [reactions, setReactions] = useState<Record<string, { counts: Record<string, number>; user_reactions: string[] }>>({})
+  const [hasOwnGroup, setHasOwnGroup] = useState(false)
   const emptyReaction = { counts: { '😊': 0, '🥹': 0, '🏆': 0, '🙏': 0 }, user_reactions: [] }
 
   // Gate: require login before showing family memories
@@ -69,6 +70,9 @@ function PortalContent() {
 
   useEffect(() => {
     if (!authed) return
+    api.family.getMyGroup()
+      .then((d: { group: unknown }) => { if (d.group) setHasOwnGroup(true) })
+      .catch(() => {})
     if (!portalToken) { setError('Invalid portal link.'); setLoading(false); return }
     api.portal.get(portalToken)
       .then(async (d: PortalData) => {
@@ -267,8 +271,8 @@ function PortalContent() {
         )}
       </div>
 
-      {/* Sticky bottom banner */}
-      <div style={{
+      {/* Sticky bottom banner — only for users who don't have their own group */}
+      {!hasOwnGroup && <div style={{
         position: 'fixed', bottom: 0, left: 0, right: 0,
         background: 'var(--surface)',
         borderTop: '1px solid var(--border)',
@@ -299,7 +303,7 @@ function PortalContent() {
         >
           Start yours free →
         </a>
-      </div>
+      </div>}
     </div>
   )
 }
