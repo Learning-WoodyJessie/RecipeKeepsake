@@ -482,25 +482,23 @@ export default function PeoplePage() {
       <style>{`
         .rk-people-cols { display: grid; grid-template-columns: 1fr; gap: 1.25rem; max-width: 1200px; margin: 0 auto; }
         @media (min-width: 860px) { .rk-people-cols { grid-template-columns: 1fr 272px; align-items: start; } }
-        .rk-hero-illustration { display: none; }
-        @media (min-width: 600px) { .rk-hero-illustration { display: block; } }
       `}</style>
 
       <div className="rk-people-cols">
         {/* ── Main ── */}
         <div>
           {/* Hero — sticky so "+ Add Person" stays visible as list grows */}
-          <div style={{ position: 'sticky', top: 0, zIndex: 10, background: 'var(--cream, #FAF6F1)', paddingTop: '0.5rem', paddingBottom: '1rem', marginBottom: '0.75rem', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1.5rem', flex: 1 }}>
+          <div style={{ position: 'sticky', top: 0, zIndex: 10, background: 'var(--cream, #FAF6F1)', paddingTop: '0.5rem', paddingBottom: '1rem', marginBottom: '0.75rem', borderBottom: '1px solid var(--border)' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem', marginBottom: '0.75rem' }}>
               <div style={{ flex: 1 }}>
-                <h1 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.6rem, 3vw, 2rem)', fontWeight: 700, color: 'var(--text)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                <h1 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.4rem, 3vw, 2rem)', fontWeight: 700, color: 'var(--text)', marginBottom: '0.5rem' }}>
                   Our People
                 </h1>
-                <p style={{ fontSize: '0.9rem', color: 'var(--muted)', lineHeight: 1.6, maxWidth: 400 }}>
+                <p style={{ fontSize: '0.9rem', color: 'var(--muted)', lineHeight: 1.6, maxWidth: 400, margin: 0 }}>
                   Precious voices that echo through every recipe, every song, every story. Treasured here, forever.
                 </p>
               </div>
-              <div className="rk-hero-illustration"><HeroIllustration /></div>
+              <HeroIllustration />
             </div>
             <button
               onClick={openAdd}
@@ -517,7 +515,6 @@ export default function PeoplePage() {
                 fontWeight: 600,
                 cursor: 'pointer',
                 whiteSpace: 'nowrap',
-                flexShrink: 0,
               }}
             >
               + Add Person
