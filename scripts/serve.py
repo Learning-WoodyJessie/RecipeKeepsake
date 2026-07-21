@@ -1227,6 +1227,16 @@ async def get_my_family_group_endpoint(user: dict = Depends(require_auth)):
 
 
 
+@app.get("/family/invite/{invite_token}/preview")
+async def family_invite_preview_endpoint(invite_token: str):
+    """Public — returns group name for an invite token. Used for OG meta tags (no auth needed)."""
+    from tools.groups import get_group_by_invite
+    group = get_group_by_invite(invite_token)
+    if not group:
+        raise HTTPException(status_code=404, detail="Invite not found.")
+    return JSONResponse(content={"group_name": group["name"]})
+
+
 @app.post("/family/groups/join/{invite_token}")
 async def join_family_group_endpoint(invite_token: str, user: dict = Depends(require_auth)):
     """Join a family group via invite token."""
