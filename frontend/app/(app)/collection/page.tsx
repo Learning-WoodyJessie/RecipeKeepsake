@@ -132,6 +132,60 @@ function MemoryRow({ memory, isFav, onToggle }: { memory: Memory; isFav: boolean
 }
 
 // ─── Right panel ─────────────────────────────────────────────────────────────
+function InviteCard() {
+  const [inviteUrl, setInviteUrl] = useState('')
+  const [groupName, setGroupName] = useState('')
+  const [copied, setCopied] = useState(false)
+
+  useEffect(() => {
+    api.family.getMyGroup()
+      .then((d: { group?: { name?: string } | null; invite_url?: string }) => {
+        if (!d.group) return
+        setGroupName(d.group.name ?? '')
+        setInviteUrl(d.invite_url ?? '')
+      })
+      .catch(() => {})
+  }, [])
+
+  if (!inviteUrl) return null
+
+  async function copy() {
+    await navigator.clipboard.writeText(inviteUrl)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  return (
+    <div style={{ background: 'var(--accent-light)', border: '1px solid rgba(24,107,94,0.2)', borderRadius: 16, padding: '1.1rem 1.25rem' }}>
+      <p style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--accent)', margin: '0 0 0.25rem' }}>
+        Invite family
+      </p>
+      <p style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text)', margin: '0 0 0.25rem', fontFamily: 'var(--serif)' }}>
+        {groupName}
+      </p>
+      <p style={{ fontSize: '0.78rem', color: 'var(--muted)', margin: '0 0 0.85rem', lineHeight: 1.5 }}>
+        Share this link so family can join and see the collection.
+      </p>
+      <button
+        type="button"
+        onClick={copy}
+        style={{
+          width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
+          background: copied ? 'var(--accent)' : 'white',
+          color: copied ? 'white' : 'var(--accent)',
+          border: '1.5px solid var(--accent)', borderRadius: 10,
+          padding: '0.55rem', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer',
+        }}
+      >
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+        </svg>
+        {copied ? 'Copied!' : 'Copy invite link'}
+      </button>
+    </div>
+  )
+}
+
 function RightPanel() {
   const items = [
     {
@@ -171,6 +225,7 @@ function RightPanel() {
 
   return (
     <aside style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <InviteCard />
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, padding: '1.25rem' }}>
         <p style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '0.95rem', color: 'var(--text)', marginBottom: '1rem' }}>
           Why share with your family?
