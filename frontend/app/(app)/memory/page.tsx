@@ -870,11 +870,24 @@ function MemoryDetail() {
         <section style={{ marginBottom: '1.25rem' }}>
           <h2 style={{ fontSize: '0.78rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--muted)', marginBottom: '0.65rem' }}>Transcript</h2>
           {transcript ? (
-            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: '0.85rem' }}>
-              <p style={{ fontSize: '0.88rem', color: 'var(--text2)', lineHeight: 1.85, fontFamily: 'var(--serif)', fontStyle: 'italic', margin: 0, whiteSpace: 'pre-wrap' }}>
-                {transcript}
-              </p>
-            </div>
+            <>
+              {memory.transcript_raw && memory.transcript_raw !== memory.transcript_english && (
+                <>
+                  <p style={{ fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--muted)', marginBottom: '0.3rem' }}>Original</p>
+                  <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: '0.85rem', marginBottom: '0.75rem' }}>
+                    <p style={{ fontSize: '0.88rem', color: 'var(--text2)', lineHeight: 1.85, fontFamily: 'var(--serif)', fontStyle: 'italic', margin: 0, whiteSpace: 'pre-wrap' }}>
+                      {memory.transcript_raw}
+                    </p>
+                  </div>
+                  <p style={{ fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--muted)', marginBottom: '0.3rem' }}>English</p>
+                </>
+              )}
+              <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: '0.85rem' }}>
+                <p style={{ fontSize: '0.88rem', color: 'var(--text2)', lineHeight: 1.85, fontFamily: 'var(--serif)', fontStyle: 'italic', margin: 0, whiteSpace: 'pre-wrap' }}>
+                  {transcript}
+                </p>
+              </div>
+            </>
           ) : (
             <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: '1.25rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.4rem', textAlign: 'center' }}>
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--border)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
