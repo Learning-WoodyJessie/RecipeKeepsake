@@ -14,4 +14,5 @@ export function toggleFavorite(token: string): string[] {
 
 export function clearUserData(): void {
   localStorage.removeItem(KEY)
+  localStorage.removeItem('familyGroupCreated')
 }

@@ -8,7 +8,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import AuthGuard from '@/components/AuthGuard'
 import { api } from '@/lib/api'
-import { supabase } from '@/lib/supabase'
+import { signOut as authSignOut } from '@/lib/auth'
 import { EchoesLogoMark } from '@/components/EchoesLogoMark'
 
 type Memory = {
@@ -47,7 +47,7 @@ function SharedContent() {
         </div>
         <button
           type="button"
-          onClick={() => supabase.auth.signOut()}
+          onClick={() => authSignOut()}
           style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 10, padding: '0.5rem 1rem', fontSize: '0.82rem', color: 'var(--text2)', cursor: 'pointer' }}
         >
           Sign out
