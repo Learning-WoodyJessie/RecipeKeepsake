@@ -101,7 +101,7 @@ export default function SupportPage() {
         .sp-subtitle { font-size: 0.95rem; color: var(--sp-muted); margin-bottom: 2.5rem; }
         .sp-contact {
           background: var(--sp-accent-light); border: 1px solid var(--sp-accent);
-          border-radius: 12px; padding: 1.25rem 1.5rem; margin-bottom: 3rem;
+          border-radius: 12px; padding: 1.25rem 1.5rem; margin-bottom: 0.75rem;
           display: flex; align-items: center; justify-content: space-between;
           flex-wrap: wrap; gap: 0.75rem;
         }
@@ -136,14 +136,42 @@ export default function SupportPage() {
         <div className="sp-hero">
           <p className="sp-eyebrow">Support</p>
           <h1 className="sp-title">How can we help?</h1>
-          <p className="sp-subtitle">Find answers below or reach out directly. We usually respond within 24 hours.</p>
+          <p className="sp-subtitle">Find answers below, report an issue, or share ideas. We usually respond within 24 hours.</p>
 
           <div className="sp-contact">
             <div className="sp-contact-label">
-              <strong>Email us</strong>
+              <strong>Get help or share feedback</strong>
               echoesofhome63@gmail.com
             </div>
             <a href="mailto:echoesofhome63@gmail.com" className="sp-contact-btn">Send a message</a>
+          </div>
+          <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '3rem', flexWrap: 'wrap' }}>
+            <a
+              href="mailto:echoesofhome63@gmail.com?subject=Support%20request"
+              style={{
+                flex: 1, minWidth: 140, textAlign: 'center',
+                background: 'var(--sp-surface)', border: '1px solid var(--sp-border)',
+                borderRadius: 10, padding: '0.85rem 1rem', textDecoration: 'none',
+                color: 'var(--sp-body)',
+              }}
+            >
+              <div style={{ fontSize: '1.2rem', marginBottom: '0.25rem' }}>🛠️</div>
+              <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--sp-heading)', marginBottom: '0.15rem' }}>Report an issue</div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--sp-muted)' }}>Something not working?</div>
+            </a>
+            <a
+              href="mailto:echoesofhome63@gmail.com?subject=Feedback%20%2F%20suggestion"
+              style={{
+                flex: 1, minWidth: 140, textAlign: 'center',
+                background: 'var(--sp-surface)', border: '1px solid var(--sp-border)',
+                borderRadius: 10, padding: '0.85rem 1rem', textDecoration: 'none',
+                color: 'var(--sp-body)',
+              }}
+            >
+              <div style={{ fontSize: '1.2rem', marginBottom: '0.25rem' }}>💡</div>
+              <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--sp-heading)', marginBottom: '0.15rem' }}>Share feedback</div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--sp-muted)' }}>Ideas or suggestions</div>
+            </a>
           </div>
         </div>
 

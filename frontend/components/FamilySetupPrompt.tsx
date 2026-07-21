@@ -15,15 +15,13 @@ export default function FamilySetupPrompt() {
     const t = setTimeout(() => {
       api.family.getMyGroup()
         .then((d: { group: unknown }) => {
+          console.log('[FamilySetupPrompt] getMyGroup result:', d)
           if (!d.group) {
-            // No group — show prompt and clear any stale done-flag
             if (typeof window !== 'undefined') localStorage.removeItem(DONE_KEY)
             setVisible(true)
-          }
-          // Has group — silently mark done so we never show the prompt again
-          else if (typeof window !== 'undefined') localStorage.setItem(DONE_KEY, '1')
+          } else if (typeof window !== 'undefined') localStorage.setItem(DONE_KEY, '1')
         })
-        .catch(() => {})
+        .catch((e: unknown) => { console.error('[FamilySetupPrompt] getMyGroup error:', e) })
     }, 800)
     return () => clearTimeout(t)
   }, [])
