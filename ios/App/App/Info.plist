@@ -48,7 +48,7 @@
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Echoes of Home needs microphone access to record family memories.</string>
+	<string>To record your family's voice narrations of recipes, songs, and stories. Audio is transcribed and saved privately to your archive.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Echoes of Home uses your camera to capture photos of family members and recipes.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
@@ -62,7 +62,7 @@
 			<string>com.echoesofhome.app</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>recipekeepsake</string>
+				<string>echoesofhome</string>
 			</array>
 		</dict>
 	</array>
