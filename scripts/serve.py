@@ -34,7 +34,7 @@ load_dotenv(Path(__file__).parent.parent / ".env")
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
-from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -538,30 +538,87 @@ async def get_memory_by_short_token(prefix: str, user: dict = Depends(require_au
         raise HTTPException(status_code=404, detail="Memory not found")
 
 
+_BOT_UA_FRAGMENTS = ("whatsapp", "facebookexternalhit", "twitterbot", "telegrambot", "linkedinbot", "slackbot", "discordbot")
+
+def _is_bot(request: Request) -> bool:
+    ua = (request.headers.get("user-agent") or "").lower()
+    return any(frag in ua for frag in _BOT_UA_FRAGMENTS)
+
+def _og_html(title: str, description: str, image_url: str, canonical_url: str) -> str:
+    """Minimal HTML page with OG meta tags for social media crawlers."""
+    esc = lambda s: s.replace("&", "&amp;").replace('"', "&quot;").replace("<", "&lt;")
+    return f"""<!doctype html><html><head>
+<meta charset="utf-8">
+<title>{esc(title)}</title>
+<meta property="og:title" content="{esc(title)}">
+<meta property="og:description" content="{esc(description)}">
+<meta property="og:image" content="{esc(image_url)}">
+<meta property="og:url" content="{esc(canonical_url)}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Echoes of Home">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{esc(title)}">
+<meta name="twitter:description" content="{esc(description)}">
+<meta name="twitter:image" content="{esc(image_url)}">
+<meta http-equiv="refresh" content="0;url={esc(canonical_url)}">
+</head><body></body></html>"""
+
+
 @app.get("/memory/{shortcode}")
-async def memory_shortcode_redirect(shortcode: str):
-    """Resolve share URLs like /memory/smitha-recipe-42329f17 → /memory?token=<full-token>.
+async def memory_shortcode_redirect(shortcode: str, request: Request):
+    """Resolve share URLs like /memory/dads-song-3da38e4f.
+
+    - Social bots (WhatsApp etc.): return OG-tag HTML so the link preview
+      shows the memory title and image instead of the generic site card.
+    - Real users: redirect to /memory?token=<full-token>.
+    - Falls back to /recipes if the slug/token can't be resolved.
 
     No auth required — the memory page itself enforces auth after redirect.
-    Extracts the 8-char token prefix from the last hyphen-separated segment.
     """
-    # Next.js 16 prefetches /memory/__next._tree.txt (and similar __next.* files)
-    # during client-side navigation. This route intercepts before serve_frontend,
-    # so we must serve the actual static file rather than redirecting to /recipes.
+    # Next.js 16 prefetches /memory/__next._tree.txt during client-side navigation.
     if shortcode.startswith("__next"):
         static_file = _FRONTEND_OUT / "memory" / shortcode
         if static_file.is_file():
             return FileResponse(static_file)
         raise HTTPException(status_code=404, detail="not found")
-    prefix = shortcode.split("-")[-1]
-    if len(prefix) != 8:
-        return RedirectResponse(url="/recipes", status_code=302)
+
+    from tools.storage import get_recipe_by_slug, get_recipe_by_token_prefix
+
+    # Try exact slug lookup first (handles all slug formats stored in DB),
+    # then fall back to 8-char token prefix from the last hyphen segment.
+    recipe = None
     try:
-        from tools.storage import get_recipe_by_token_prefix
-        recipe = get_recipe_by_token_prefix(prefix)
-        return RedirectResponse(url=f"/memory?token={recipe['token']}", status_code=302)
+        recipe = get_recipe_by_slug(shortcode)
     except Exception:
+        pass
+    if not recipe:
+        prefix = shortcode.split("-")[-1]
+        if len(prefix) == 8:
+            try:
+                recipe = get_recipe_by_token_prefix(prefix)
+            except Exception:
+                pass
+
+    if not recipe:
         return RedirectResponse(url="/recipes", status_code=302)
+
+    base = os.environ.get("NEXT_PUBLIC_APP_URL", "https://www.theechoesofhome.com")
+    canonical = f"{base}/memory?token={recipe['token']}"
+    slug = recipe.get("slug") or shortcode
+    share_url = f"{base}/memory/{slug}"
+
+    if _is_bot(request):
+        title_val = recipe.get("title") or "A family memory"
+        narrator = recipe.get("narrator")
+        mem_type = recipe.get("type") or "memory"
+        type_labels = {"song": "song", "recipe": "recipe", "story": "story", "fable": "fable", "wisdom": "wisdom", "poem": "poem"}
+        kind = type_labels.get(mem_type, "memory")
+        og_title = f"{title_val}{f' · {narrator}' if narrator else ''} — Echoes of Home"
+        og_desc = f"A family {kind} preserved forever. Listen and share with your family."
+        og_image = recipe.get("image_url") or f"{base}/og-image.png"
+        return HTMLResponse(content=_og_html(og_title, og_desc, og_image, share_url))
+
+    return RedirectResponse(url=canonical, status_code=302)
 
 
 @app.get("/recipe/by-slug/{slug}")
