@@ -482,6 +482,8 @@ export default function PeoplePage() {
       <style>{`
         .rk-people-cols { display: grid; grid-template-columns: 1fr; gap: 1.25rem; max-width: 1200px; margin: 0 auto; }
         @media (min-width: 860px) { .rk-people-cols { grid-template-columns: 1fr 272px; align-items: start; } }
+        .rk-hero-illustration { display: none; }
+        @media (min-width: 600px) { .rk-hero-illustration { display: block; } }
       `}</style>
 
       <div className="rk-people-cols">
@@ -498,7 +500,7 @@ export default function PeoplePage() {
                   Precious voices that echo through every recipe, every song, every story. Treasured here, forever.
                 </p>
               </div>
-              <HeroIllustration />
+              <div className="rk-hero-illustration"><HeroIllustration /></div>
             </div>
             <button
               onClick={openAdd}
