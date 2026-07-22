@@ -9,7 +9,7 @@ const FAQS = [
     items: [
       {
         q: 'What languages can I record in?',
-        a: 'Telugu and English, including mixed recordings. If your grandmother switches between Telugu and English mid-sentence, that\'s fine. Support for Hindi, Tamil, Kannada, and other languages is coming soon.',
+        a: 'Telugu and English, including mixed recordings. If the person you\'re capturing switches between Telugu and English mid-sentence, that\'s handled naturally. Support for Hindi, Tamil, Kannada, and other languages is coming soon.',
       },
       {
         q: 'What audio formats can I upload?',
@@ -17,15 +17,15 @@ const FAQS = [
       },
       {
         q: 'How long can the recording be?',
-        a: 'Between 30 seconds and about 15 minutes works best. Very short clips may not have enough detail. Very long recordings (30+ minutes) can be split into parts, one per memory.',
+        a: 'Between 30 seconds and about 15 minutes works best. Very short clips may not have enough detail. Longer recordings can be split into parts — one memory per story or recipe.',
       },
       {
         q: 'What if the recording quality is poor or there\'s background noise?',
-        a: 'We do our best, but quality matters. A quiet room with the phone close to the narrator gives the best results. If the transcription misses something, you can always edit the content before saving.',
+        a: 'We do our best, but quality matters. A quiet room with the phone close to the person speaking gives the best results. If the transcription misses something, you can edit the content before saving.',
       },
       {
         q: 'Do I need to be present when recording?',
-        a: 'No, you can record on any device and upload later. Many families record on a phone during a cooking session and upload from a laptop afterwards.',
+        a: 'No. You can record on any device and upload later. Many families record during a cooking session or a story-telling moment and upload from a laptop afterwards.',
       },
     ],
   },
@@ -34,15 +34,32 @@ const FAQS = [
     items: [
       {
         q: 'How do I invite family members to see my collection?',
-        a: 'After signing in, you\'ll be prompted to name your family collection. Once created, go to the Family Collection page in the sidebar — you\'ll see a Copy invite link button. Send that link to family members so they can join.',
+        a: 'After signing in, you\'ll be prompted to name your family collection. Once created, go to the Family Collection page in the sidebar — you\'ll find a Copy invite link button. Send that link to anyone you want to bring into your archive.',
       },
       {
         q: 'Does my family need to sign up to view memories?',
-        a: 'Yes. A free sign-in makes sure only the people you trust can access your archive. Once they join via your invite link, they can browse your full family collection.',
+        a: 'Yes. A free sign-in makes sure only the people you trust can access your archive. Once someone joins via your invite link, they can browse the full family collection and leave reactions on memories.',
       },
       {
-        q: 'Can I share my whole collection with family?',
-        a: 'Yes. Create a Family Group when prompted after sign-in (or from Account settings). Then share the invite link from the Family Collection page. Family members who join can view all memories you\'ve added to the collection.',
+        q: 'Can family members add their own memories?',
+        a: 'Yes. When someone joins via your invite link, they become a contributor. They can record and upload their own memories, which are added to the shared collection for everyone to see.',
+      },
+      {
+        q: 'What if someone I invited already has their own family collection?',
+        a: 'They\'ll be given the option to view your collection as a guest without leaving their own. Each person can only belong to one family group, but viewing another family\'s collection is always possible.',
+      },
+    ],
+  },
+  {
+    section: 'Reactions & Engagement',
+    items: [
+      {
+        q: 'What are the reactions on memories?',
+        a: 'Family members can react to any memory with 😊 Smiling, 🥹 Touched, 🏆 Proud, or 🙏 Grateful. Reactions are a quiet way to let someone know their memory meant something — no words needed.',
+      },
+      {
+        q: 'Can I see who reacted to a memory?',
+        a: 'You can see the reaction counts on each memory. Individual reactions are visible to all family members in the collection.',
       },
     ],
   },
@@ -51,7 +68,7 @@ const FAQS = [
     items: [
       {
         q: 'Who can see my memories?',
-        a: 'Only you, unless you share a link. Your recordings, transcripts, and memories are private to your account. We don\'t share your data with anyone.',
+        a: 'Only you, unless you share a link. Recordings, transcripts, and memories are private to your account. We don\'t share your data with anyone.',
       },
       {
         q: 'Where is my audio stored?',
@@ -68,7 +85,7 @@ const FAQS = [
     items: [
       {
         q: 'What if the transcription or content isn\'t right?',
-        a: 'For recipes, you can edit the title, ingredients, and steps before saving, and again afterwards from the memory page. The original audio is always preserved, so nothing is ever lost.',
+        a: 'For recipes, you can edit the title, ingredients, and steps before saving, and again afterwards from the memory page. The original audio is always preserved — nothing is ever lost.',
       },
       {
         q: 'Can I edit a memory after saving?',
@@ -76,7 +93,7 @@ const FAQS = [
       },
       {
         q: 'Can I delete a memory?',
-        a: 'Yes. Open the memory and scroll to the bottom. The delete option is available there. Deletion is permanent.',
+        a: 'Yes. Open the memory and scroll to the bottom. The delete option is there. Deletion is permanent.',
       },
       {
         q: 'Can I favourite a memory to find it quickly?',
@@ -85,19 +102,19 @@ const FAQS = [
     ],
   },
   {
-    section: 'Account & Family Members',
+    section: 'Account & Narrators',
     items: [
       {
-        q: 'How do I add family members as narrators?',
-        a: 'Go to Our People in the sidebar. Add a family member with their name, relationship, and a photo. When recording or uploading, select their name as the narrator so memories are credited to them.',
+        q: 'How do I add the people I\'m recording as narrators?',
+        a: 'Go to Our People in the sidebar. Add anyone whose voice you want to preserve — a parent, grandparent, aunt, uncle, or anyone close to you — with their name, relationship, and a photo. When recording, select their name so every memory is credited to the right person.',
       },
       {
         q: 'How do I sign in?',
-        a: 'You can sign in with Google or Apple. We don\'t offer password login. This keeps your account secure without having to remember another password.',
+        a: 'You can sign in with Google or Apple. There\'s no password to remember, which keeps your archive secure and easy to access.',
       },
       {
         q: 'Is there a limit on how many memories I can save?',
-        a: 'You can save up to 10 memories per day. There is no cap on total memories stored.',
+        a: 'You can save up to 20 memories per day. There is no cap on total memories stored — every voice deserves to be kept.',
       },
     ],
   },
