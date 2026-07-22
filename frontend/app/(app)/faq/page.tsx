@@ -9,7 +9,7 @@ const FAQS = [
     items: [
       {
         q: 'What languages can I record in?',
-        a: 'Telugu and English, including mixed recordings. If the person you\'re capturing switches between Telugu and English mid-sentence, that\'s handled naturally. Support for Hindi, Tamil, Kannada, and other languages is coming soon.',
+        a: 'Most languages are supported. Telugu is our most tested and optimized language, with full glossary support and dialect awareness for common cooking terms. We\'ve also verified the pipeline works with Kannada, Tamil, Spanish, and French. If the person you\'re recording switches between languages mid-sentence, that\'s handled naturally. If your language produces unexpected results, the transcription can always be corrected before saving.',
       },
       {
         q: 'What audio formats can I upload?',
