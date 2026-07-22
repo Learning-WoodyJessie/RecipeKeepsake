@@ -643,8 +643,7 @@ export default function MemoriesPage() {
         .rk-mem-cols { display: grid; grid-template-columns: 1fr; gap: 1.25rem; }
         @media (min-width: 860px) { .rk-mem-cols { grid-template-columns: 1fr 272px; align-items: start; } }
         .rk-recipe-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
-        @media (min-width: 640px) { .rk-recipe-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-        @media (min-width: 900px) { .rk-recipe-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+        @media (min-width: 1100px) { .rk-recipe-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
         @keyframes rk-lid-up {
           0%, 15%   { transform: translateY(0px); }
           28%, 62%  { transform: translateY(-16px); }
