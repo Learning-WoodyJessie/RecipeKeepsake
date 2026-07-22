@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { signOut as authSignOut } from '@/lib/auth'
+import { EchoesLogoMark } from '@/components/EchoesLogoMark'
 
 function cap(s: string) { return s.charAt(0).toUpperCase() + s.slice(1) }
 
@@ -122,25 +123,29 @@ export default function AppTopBar({ onMenuClick }: { onMenuClick?: () => void })
           @media (max-width: 699px) { .rk-hamburger { display: block !important; } }
         `}</style>
 
-        {/* Brand name — centered on mobile, hidden on desktop (sidebar handles it) */}
-        <p
+        {/* Brand — logo + name + subtitle, centered on mobile */}
+        <div
           className="rk-brand-name"
           style={{
             display: 'none',
             flex: 1,
-            textAlign: 'center',
-            fontFamily: 'var(--serif)',
-            fontSize: '1.05rem',
-            fontWeight: 700,
-            color: 'var(--text)',
-            margin: 0,
-            letterSpacing: '0.01em',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '0.5rem',
           }}
         >
-          Echoes of Home
-        </p>
+          <EchoesLogoMark size={36} />
+          <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
+            <span style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '1rem', color: 'var(--text)', letterSpacing: '0.01em' }}>
+              Echoes of Home
+            </span>
+            <span style={{ fontFamily: 'var(--serif)', fontStyle: 'italic', fontSize: '0.65rem', color: 'var(--muted)', letterSpacing: '0.04em' }}>
+              Keepsake of memories
+            </span>
+          </div>
+        </div>
         <style>{`
-          @media (max-width: 699px) { .rk-brand-name { display: block !important; } }
+          @media (max-width: 699px) { .rk-brand-name { display: flex !important; } }
         `}</style>
 
         {/* Search — desktop only in the top row */}
