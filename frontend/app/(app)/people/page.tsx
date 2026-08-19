@@ -307,7 +307,7 @@ function HeroIllustration() {
   return (
     <div style={{ flexShrink: 0, width: 'clamp(200px, 30vw, 340px)' }}>
       <img
-        src="/hero-people.png"
+        src="/hero-people.jpg"
         alt="Every voice. Every story. Every memory."
         style={{ width: '100%', height: 'auto', display: 'block', objectFit: 'contain' }}
       />
