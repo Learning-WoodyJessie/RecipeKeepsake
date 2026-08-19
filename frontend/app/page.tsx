@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, Suspense } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { signInWithGoogle, signInWithApple } from '@/lib/auth'
+import { api } from '@/lib/api'
 import { EchoesLogoMark } from '@/components/EchoesLogoMark'
 
 const features = [
@@ -58,15 +59,42 @@ function LandingPageInner() {
     })
   }, [router, next])
 
-  function handleGoogle() {
+  const [busy, setBusy] = useState<'google' | 'apple' | null>(null)
+  const [signInError, setSignInError] = useState('')
+
+  async function handleSignIn(provider: 'google' | 'apple') {
+    if (busy) return
+    setSignInError('')
+    setBusy(provider)
     if (next) localStorage.setItem('returnTo', next)
-    signInWithGoogle(next || undefined)
+
+    try {
+      if (provider === 'google') await signInWithGoogle(next || undefined)
+      else await signInWithApple(next || undefined)
+
+      // Native sign-in completes in place; the web path has already navigated
+      // away to the provider by now, so this only runs inside the app shell.
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) return
+
+      const destination = next || '/home'
+      try {
+        const shared = await api.viewers.sharedWithMe() as { is_viewer?: boolean }
+        router.replace(shared.is_viewer && destination === '/home' ? '/shared' : destination)
+      } catch {
+        router.replace(destination)
+      }
+    } catch (e) {
+      // Backing out of the sheet is not an error worth showing.
+      if ((e as Error)?.name === 'SignInCancelled') return
+      setSignInError((e as Error)?.message || 'Sign-in failed. Please try again.')
+    } finally {
+      setBusy(null)
+    }
   }
 
-  function handleApple() {
-    if (next) localStorage.setItem('returnTo', next)
-    signInWithApple(next || undefined)
-  }
+  const handleGoogle = () => handleSignIn('google')
+  const handleApple = () => handleSignIn('apple')
 
   return (
     <main
@@ -306,7 +334,10 @@ function LandingPageInner() {
               <button
                 type="button"
                 onClick={handleGoogle}
+                disabled={busy !== null}
+                aria-busy={busy === 'google'}
                 style={{
+                  opacity: busy !== null && busy !== 'google' ? 0.55 : 1,
                   width: '100%',
                   background: 'var(--accent)',
                   color: 'white',
@@ -331,13 +362,16 @@ function LandingPageInner() {
                   <path fill="rgba(255,255,255,0.7)" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                   <path fill="rgba(255,255,255,0.9)" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                 </svg>
-                Continue with Google
+                {busy === 'google' ? 'Signing you in…' : 'Continue with Google'}
               </button>
 
               <button
                 type="button"
                 onClick={handleApple}
+                disabled={busy !== null}
+                aria-busy={busy === 'apple'}
                 style={{
+                  opacity: busy !== null && busy !== 'apple' ? 0.55 : 1,
                   width: '100%',
                   background: '#FFFFFF',
                   color: '#1D1D1F',
@@ -358,9 +392,15 @@ function LandingPageInner() {
                 <svg width="15" height="18" viewBox="0 0 814 1000" fill="#1D1D1F" aria-hidden="true">
                   <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-42.3-150.3-109.3S43.1 658 43.1 520c0-241.9 157.1-369.5 310.8-369.5 72.6 0 132.8 47.3 177.9 47.3 43.1 0 110.8-50.6 190.5-50.6 30.8 0 133.3 2.9 198.9 106.5zm-234-181.5c31.1-36.9 53.1-88.1 53.1-139.3 0-7.1-.6-14.3-1.9-20.1-50.6 1.9-110.8 33.7-147.1 75.8-28.5 32.4-55.1 83.6-55.1 135.5 0 7.8 1.3 15.6 1.9 18.1 3.2.6 8.4 1.3 13.6 1.3 45.4 0 102.5-30.4 135.5-71.3z" />
                 </svg>
-                Continue with Apple
+                {busy === 'apple' ? 'Signing you in…' : 'Continue with Apple'}
               </button>
             </div>
+
+            {signInError && (
+              <p role="alert" style={{ fontSize: '0.82rem', color: 'var(--accent)', marginBottom: '0.9rem', lineHeight: 1.5 }}>
+                {signInError}
+              </p>
+            )}
 
             {/* Privacy note */}
             <p style={{ fontSize: '0.77rem', color: 'var(--muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}>
@@ -403,7 +443,7 @@ function LandingPageInner() {
 
         {/* Footer — mobile only (hidden on desktop via CSS) */}
         <p className="rk-landing-footer" style={{ marginTop: 'clamp(1.25rem, 3vw, 2rem)', fontSize: '0.74rem', color: 'var(--muted)', textAlign: 'center', width: '100%', maxWidth: 480 }}>
-          <a href="/privacy-policy" style={{ color: 'var(--accent)', textDecoration: 'none' }}>Privacy policy</a>
+          <a href="/privacy" style={{ color: 'var(--accent)', textDecoration: 'none' }}>Privacy policy</a>
           {' · '}
           <a href="/support" style={{ color: 'var(--accent)', textDecoration: 'none' }}>Support</a>
           {' · '}After sign-in: Account from the app menu.

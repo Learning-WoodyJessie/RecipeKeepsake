@@ -1,5 +1,6 @@
 import { supabase } from './supabase'
 import { clearUserData } from './favorites'
+import { isNativeApp, signInOnNative } from './nativeAuth'
 
 const AUTH_CALLBACK = process.env.NEXT_PUBLIC_APP_URL
   ? `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`
@@ -15,19 +16,25 @@ export async function signOut(): Promise<void> {
 }
 
 export async function signInWithGoogle(next?: string): Promise<void> {
-  await supabase.auth.signInWithOAuth({
+  // Native shells must not hand OAuth to the system browser (App Store 4.0).
+  if (isNativeApp()) return signInOnNative('google')
+
+  const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: { redirectTo: callbackUrl(next), queryParams: { prompt: 'select_account' } },
   })
+  if (error) throw error
 }
 
 export async function signInWithApple(next?: string): Promise<void> {
-  // Use Supabase OAuth redirect for Apple sign-in (works on web and native via browser)
-  // Note: @capacitor-community/apple-sign-in does not yet support Capacitor 8
-  await supabase.auth.signInWithOAuth({
+  // On iOS this is the native ASAuthorization sheet, not a web redirect.
+  if (isNativeApp()) return signInOnNative('apple')
+
+  const { error } = await supabase.auth.signInWithOAuth({
     provider: 'apple',
     options: { redirectTo: callbackUrl(next) },
   })
+  if (error) throw error
 }
 
 /** Viewer role: send a one-time magic link to an email pre-approved by an owner. */
