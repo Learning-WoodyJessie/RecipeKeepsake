@@ -661,6 +661,42 @@ async def memory_shortcode_redirect(shortcode: str, request: Request):
     return RedirectResponse(url=canonical, status_code=302)
 
 
+def _can_read_recipe(recipe: dict, user: dict, user_id: str) -> bool:
+    """
+    True when the caller is allowed to open this memory.
+
+    Mirrors the predicates the listing endpoints already use, so anything the
+    app shows in a list can also be opened. Without this the two disagree:
+    /family/recipes lists every group member's memories while the detail
+    routes accepted only the owner, so shared memories rendered in the list
+    and then 404'd on tap.
+
+    Three ways in: you own it, you share a family group with the owner, or
+    the owner approved you as a viewer.
+    """
+    owner_id = recipe.get("user_id")
+    if not owner_id or owner_id == user_id:
+        return True
+
+    try:
+        from tools.groups import get_group_for_user
+        mine = get_group_for_user(user_id)
+        theirs = get_group_for_user(owner_id)
+        if mine and theirs and mine.get("id") and mine["id"] == theirs.get("id"):
+            return True
+    except Exception as e:
+        _logger.warning(f"event=can_read_group_check_failed error={e}")
+
+    try:
+        from tools.storage import get_owners_for_viewer
+        if owner_id in (get_owners_for_viewer(user.get("email"), user.get("phone")) or []):
+            return True
+    except Exception as e:
+        _logger.warning(f"event=can_read_viewer_check_failed error={e}")
+
+    return False
+
+
 @app.get("/recipe/by-slug/{slug}")
 async def get_recipe_by_slug_endpoint(slug: str, user: dict = Depends(require_auth)):
     """Fetch a single recipe by its human-readable slug. Caller must own the recipe."""
@@ -674,7 +710,8 @@ async def get_recipe_by_slug_endpoint(slug: str, user: dict = Depends(require_au
         recipe = get_recipe_by_slug(slug)
     except Exception:
         raise HTTPException(status_code=404, detail="Memory not found")
-    if recipe.get("user_id") and recipe["user_id"] != user_id:
+    if not _can_read_recipe(recipe, user, user_id):
+        # 404 not 403: never reveal which slugs exist to non-members.
         raise HTTPException(status_code=404, detail="Memory not found")
     return JSONResponse(content=recipe)
 
@@ -692,7 +729,8 @@ async def get_recipe_endpoint(token: str, user: dict = Depends(require_auth)):
         recipe = get_recipe_by_token(token)
     except Exception:
         raise HTTPException(status_code=404, detail="Recipe not found")
-    if recipe.get("user_id") and recipe["user_id"] != user_id:
+    if not _can_read_recipe(recipe, user, user_id):
+        # 404 not 403: never reveal which tokens exist to non-members.
         raise HTTPException(status_code=404, detail="Recipe not found")
     return JSONResponse(content=recipe)
 
@@ -1315,7 +1353,18 @@ async def list_family_recipes_endpoint(user: dict = Depends(require_auth)):
     group = get_group_for_user(_user_id(user))
     if not group:
         return JSONResponse(content={"recipes": []})
-    return JSONResponse(content={"recipes": list_group_recipes(group["id"])})
+    recipes = list_group_recipes(group["id"])
+    # Sign audio like /portal and list_recipes already do — the bucket is
+    # private, so an unsigned filename plays back as a 400 for the member.
+    try:
+        from tools.storage import _client as _storage_client, _sign_audio
+        sb = _storage_client()
+        for r in recipes:
+            if r.get("audio_url"):
+                r["audio_url"] = _sign_audio(r["audio_url"], sb)
+    except Exception as e:
+        _logger.warning(f"event=family_recipes_sign_audio_error error={e}")
+    return JSONResponse(content={"recipes": recipes})
 
 
 @app.get("/portal/{portal_token}")
