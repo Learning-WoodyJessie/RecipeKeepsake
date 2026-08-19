@@ -305,7 +305,7 @@ function PersonCard({ person, breakdown, onEdit, onNavigate }: { person: Person;
 // ─── Hero illustration ────────────────────────────────────────────────────
 function HeroIllustration() {
   return (
-    <div style={{ flexShrink: 0, width: 'clamp(200px, 30vw, 340px)' }}>
+    <div className="rk-people-hero">
       <img
         src="/hero-people.jpg"
         alt="Every voice. Every story. Every memory."
@@ -482,6 +482,17 @@ export default function PeoplePage() {
       <style>{`
         .rk-people-cols { display: grid; grid-template-columns: 1fr; gap: 1.25rem; max-width: 1200px; margin: 0 auto; }
         @media (min-width: 860px) { .rk-people-cols { grid-template-columns: 1fr 272px; align-items: start; } }
+        .rk-people-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: 0.75rem; }
+        /* min-width:0 lets the copy shrink; without it the flex item refuses to
+           go below its content width and pushes the illustration off-screen. */
+        .rk-people-copy { flex: 1; min-width: 0; }
+        .rk-people-hero { flex-shrink: 0; width: clamp(200px, 30vw, 340px); }
+        /* On phones a 200px fixed illustration beside the copy overflows the
+           viewport, so stack it full-width instead of letting it slide off. */
+        @media (max-width: 640px) {
+          .rk-people-head { flex-direction: column; gap: 0.75rem; }
+          .rk-people-hero { width: 100%; max-width: 420px; margin: 0 auto; }
+        }
       `}</style>
 
       <div className="rk-people-cols">
@@ -489,8 +500,8 @@ export default function PeoplePage() {
         <div>
           {/* Hero — sticky so "+ Add Person" stays visible as list grows */}
           <div style={{ position: 'sticky', top: 0, zIndex: 10, background: 'var(--cream, #FAF6F1)', paddingTop: '0.5rem', paddingBottom: '1rem', marginBottom: '0.75rem', borderBottom: '1px solid var(--border)' }}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem', marginBottom: '0.75rem' }}>
-              <div style={{ flex: 1 }}>
+            <div className="rk-people-head">
+              <div className="rk-people-copy">
                 <h1 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.4rem, 3vw, 2rem)', fontWeight: 700, color: 'var(--text)', marginBottom: '0.5rem' }}>
                   Our People
                 </h1>
