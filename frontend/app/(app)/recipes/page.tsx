@@ -502,7 +502,9 @@ function HeroIllustration() {
     <>
       <style>{`
         .rk-mem-hero-img-wrap {
-          width: clamp(200px, 30vw, 340px);
+          /* % of the card, not vw — these cards sit in a column narrower
+             than the viewport, so vw oversizes the image and crushes the copy. */
+          width: 38%; min-width: 150px; max-width: 340px;
           flex-shrink: 0;
           border-radius: 16px;
           overflow: hidden;

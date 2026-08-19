@@ -486,7 +486,7 @@ export default function PeoplePage() {
         /* min-width:0 lets the copy shrink; without it the flex item refuses to
            go below its content width and pushes the illustration off-screen. */
         .rk-people-copy { flex: 1; min-width: 0; }
-        .rk-people-hero { flex-shrink: 0; width: clamp(200px, 30vw, 340px); }
+        .rk-people-hero { flex-shrink: 0; width: 38%; min-width: 150px; max-width: 340px; }
         /* On phones a 200px fixed illustration beside the copy overflows the
            viewport, so stack it full-width instead of letting it slide off. */
         @media (max-width: 640px) {
