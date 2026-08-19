@@ -286,9 +286,9 @@ export default function CollectionPage() {
     <div style={{ padding: '1.5rem 1.75rem 2.5rem' }}>
       <style>{`
         .rk-col-wrap { max-width: 1200px; margin: 0 auto; }
-        .rk-col-cols { display: grid; grid-template-columns: 1fr; gap: 1.25rem; }
+        .rk-col-cols { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.25rem; }
         .rk-col-cols > * { min-width: 0; }
-        @media (min-width: 860px) { .rk-col-cols { grid-template-columns: 1fr 272px; align-items: start; } }
+        @media (min-width: 860px) { .rk-col-cols { grid-template-columns: minmax(0, 1fr) 272px; align-items: start; } }
       `}</style>
       <div className="rk-col-wrap">
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', marginBottom: '0.35rem' }}>

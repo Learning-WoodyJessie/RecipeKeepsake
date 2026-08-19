@@ -640,8 +640,8 @@ export default function MemoriesPage() {
     <div style={{ padding: '1.5rem 1.75rem 2.5rem' }}>
       <style>{`
         .rk-mem-wrap { max-width: 1200px; margin: 0 auto; }
-        .rk-mem-cols { display: grid; grid-template-columns: 1fr; gap: 1.25rem; }
-        @media (min-width: 860px) { .rk-mem-cols { grid-template-columns: 1fr 272px; align-items: start; } }
+        .rk-mem-cols { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.25rem; }
+        @media (min-width: 860px) { .rk-mem-cols { grid-template-columns: minmax(0, 1fr) 272px; align-items: start; } }
         .rk-recipe-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
         @media (min-width: 1100px) { .rk-recipe-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
         @keyframes rk-lid-up {

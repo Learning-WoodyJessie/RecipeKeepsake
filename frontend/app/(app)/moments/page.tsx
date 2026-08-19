@@ -370,9 +370,9 @@ export default function MomentsPage() {
     <div style={{ padding: '1.5rem 1.75rem 2.5rem' }}>
       <style>{`
         .rk-moments-wrap { max-width: 1200px; margin: 0 auto; }
-        .rk-moments-cols { display: grid; grid-template-columns: 1fr; gap: 1.25rem; }
+        .rk-moments-cols { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.25rem; }
         .rk-moments-cols > * { min-width: 0; }
-        @media (min-width: 860px) { .rk-moments-cols { grid-template-columns: 1fr 272px; align-items: start; } }
+        @media (min-width: 860px) { .rk-moments-cols { grid-template-columns: minmax(0, 1fr) 272px; align-items: start; } }
         .rk-moments-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
         @media (min-width: 1100px) { .rk-moments-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
         @keyframes rk-eq-bounce {

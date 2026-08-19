@@ -377,8 +377,8 @@ function CapturePageInner() {
   return (
     <div style={{ padding: '1.5rem 1.75rem 2.5rem', maxWidth: 1100, margin: '0 auto' }}>
       <style>{`
-        .rk-capture-cols { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
-        @media (min-width: 860px) { .rk-capture-cols { grid-template-columns: 1fr 272px; align-items: start; } }
+        .rk-capture-cols { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.5rem; }
+        @media (min-width: 860px) { .rk-capture-cols { grid-template-columns: minmax(0, 1fr) 272px; align-items: start; } }
       `}</style>
 
       {/* Back */}

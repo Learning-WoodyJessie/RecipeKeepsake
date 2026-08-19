@@ -553,13 +553,13 @@ export default function HomePage() {
       <style>{`
         .rk-home-cols {
           display: grid;
-          grid-template-columns: 1fr;
+          grid-template-columns: minmax(0, 1fr);
           gap: 1.25rem;
           max-width: 1200px;
           margin: 0 auto;
         }
         @media (min-width: 860px) {
-          .rk-home-cols { grid-template-columns: 1fr 272px; align-items: start; }
+          .rk-home-cols { grid-template-columns: minmax(0, 1fr) 272px; align-items: start; }
         }
         .rk-action-tiles { display: flex; gap: 0.65rem; flex-wrap: wrap; }
         @media (max-width: 480px) {
