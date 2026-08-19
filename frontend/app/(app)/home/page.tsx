@@ -53,7 +53,10 @@ function HeroCard({ userName }: { userName: string }) {
           display: flex; flex-direction: column; justify-content: center; min-width: 0;
         }
         .rk-hero-img-wrap {
-          width: clamp(200px, 32vw, 340px);
+          /* Percentage of the card, not vw. This card sits in a column far
+             narrower than the viewport (left nav + right sidebar), so a
+             vw-based width took two thirds of it and left the copy ~48pt. */
+          width: 38%; min-width: 150px; max-width: 340px;
           flex-shrink: 0; overflow: hidden; background: var(--cream);
         }
         @media (max-width: 600px) {
