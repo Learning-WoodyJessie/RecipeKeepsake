@@ -82,7 +82,7 @@ function FamilyCollectionCard({ groupData, groupChecked }: { groupData: { portal
                 Share
               </button>
               <button onClick={() => copy(groupData.portal_url ?? '', 'collection')}
-                style={{ flex: 1, background: 'var(--cream2)', border: '1px solid var(--border)', borderRadius: 8, padding: '0.35rem 0.6rem', fontSize: '0.72rem', color: copied === 'collection' ? 'var(--accent)' : 'var(--text2)', cursor: 'pointer', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'left' }}>
+                style={{ flex: 1, minWidth: 0, background: 'var(--cream2)', border: '1px solid var(--border)', borderRadius: 8, padding: '0.35rem 0.6rem', fontSize: '0.72rem', color: copied === 'collection' ? 'var(--accent)' : 'var(--text2)', cursor: 'pointer', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'left' }}>
                 {copied === 'collection' ? '✓ Copied!' : (groupData.portal_url ?? '').replace('https://', '')}
               </button>
             </div>
@@ -97,7 +97,7 @@ function FamilyCollectionCard({ groupData, groupChecked }: { groupData: { portal
                 Invite
               </button>
               <button onClick={() => copy(groupData.invite_url ?? '', 'invite')}
-                style={{ flex: 1, background: 'var(--cream2)', border: '1px solid var(--border)', borderRadius: 8, padding: '0.35rem 0.6rem', fontSize: '0.72rem', color: copied === 'invite' ? 'var(--accent)' : 'var(--text2)', cursor: 'pointer', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'left' }}>
+                style={{ flex: 1, minWidth: 0, background: 'var(--cream2)', border: '1px solid var(--border)', borderRadius: 8, padding: '0.35rem 0.6rem', fontSize: '0.72rem', color: copied === 'invite' ? 'var(--accent)' : 'var(--text2)', cursor: 'pointer', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'left' }}>
                 {copied === 'invite' ? '✓ Copied!' : (groupData.invite_url ?? '').replace('https://', '')}
               </button>
             </div>
@@ -480,8 +480,8 @@ export default function PeoplePage() {
   return (
     <div style={{ padding: '1.5rem 1.75rem 2.5rem' }}>
       <style>{`
-        .rk-people-cols { display: grid; grid-template-columns: 1fr; gap: 1.25rem; max-width: 1200px; margin: 0 auto; }
-        @media (min-width: 860px) { .rk-people-cols { grid-template-columns: 1fr 272px; align-items: start; } }
+        .rk-people-cols { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.25rem; max-width: 1200px; margin: 0 auto; }
+        @media (min-width: 860px) { .rk-people-cols { grid-template-columns: minmax(0, 1fr) 272px; align-items: start; } }
         .rk-people-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: 0.75rem; }
         /* min-width:0 lets the copy shrink; without it the flex item refuses to
            go below its content width and pushes the illustration off-screen. */
