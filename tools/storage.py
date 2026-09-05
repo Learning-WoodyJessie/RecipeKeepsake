@@ -4,6 +4,7 @@ import re
 import subprocess
 import mimetypes
 import tempfile
+import unicodedata
 import uuid as _uuid
 from pathlib import Path
 from supabase import create_client, Client
@@ -190,9 +191,20 @@ def upload_audio(local_path: str, filename: str, user_id: str = "") -> str:
 
 
 def _to_slug(text: str) -> str:
-    """Convert a title to a URL-safe kebab-case slug (max 80 chars)."""
+    r"""Convert a title to a URL-safe kebab-case slug (max 80 chars).
+
+    Keeps Unicode marks (category M) alongside letters and digits, not just
+    the base letters \w alone would match. Abugida scripts like Telugu carry
+    vowel sounds via combining vowel signs and the virama — those are
+    category Mn, invisible to \w, so a naive \w-based strip silently drops
+    them and produces a different, wrong word rather than just trimming
+    punctuation (e.g. "కోకోనట్" -> "కకనట" instead of staying "కోకోనట్").
+    """
     text = text.lower().strip()
-    text = re.sub(r'[^\w\s-]', '', text)
+    text = ''.join(
+        ch for ch in text
+        if unicodedata.category(ch)[0] in ('L', 'M', 'N') or ch in ' \t-'
+    )
     text = re.sub(r'[\s_]+', '-', text)
     text = re.sub(r'-{2,}', '-', text)
     return text.strip('-')[:80]
