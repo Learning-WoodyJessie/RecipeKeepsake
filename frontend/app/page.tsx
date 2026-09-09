@@ -426,6 +426,11 @@ function LandingPageInner() {
             border: '1px solid var(--border)',
             borderRadius: 20,
             padding: 'clamp(1.1rem, 3vw, 1.5rem)',
+            // Without this the card's rounded bottom corner ran straight into
+            // the screen edge — nothing was unreachable (content still
+            // scrolled into view complete), but the shape looked sliced off
+            // rather than a finished rounded card.
+            marginBottom: 'max(1rem, env(safe-area-inset-bottom, 0px))',
             boxShadow: '0 8px 28px rgba(45, 27, 14, 0.05)',
             display: 'flex',
             flexDirection: 'column',
