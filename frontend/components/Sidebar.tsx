@@ -1,11 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
-import { signOut as authSignOut } from '@/lib/auth'
+import { usePathname, useSearchParams } from 'next/navigation'
 import { EchoesLogoMark } from '@/components/EchoesLogoMark'
-import { useEffect, useState } from 'react'
 
 function pathMatches(path: string, href: string) {
   const a = (path.replace(/\/$/, '') || '/') || '/'
@@ -40,19 +37,9 @@ const Icon = {
       <polyline points="16 16 12 12 8 16" /><line x1="12" y1="12" x2="12" y2="21" /><path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3" />
     </svg>
   ),
-  signout: (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" />
-    </svg>
-  ),
   trash: (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6M10 11v6M14 11v6M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2" />
-    </svg>
-  ),
-  chevron: (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="6 9 12 15 18 9" />
     </svg>
   ),
   sparkle: (
@@ -75,21 +62,6 @@ const GROUP_LABEL: React.CSSProperties = {
 export default function Sidebar({ isOpen = false, onClose }: { isOpen?: boolean; onClose?: () => void }) {
   const path = usePathname()
   const searchParams = useSearchParams()
-  const router = useRouter()
-  const [profile, setProfile] = useState({ initial: '?', label: 'Account' })
-  const [profileMenuOpen, setProfileMenuOpen] = useState(false)
-
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      const meta = user?.user_metadata ?? {}
-      const name =
-        (typeof meta.full_name === 'string' && meta.full_name) ||
-        (typeof meta.name === 'string' && meta.name) ||
-        user?.email?.split('@')[0] ||
-        'You'
-      setProfile({ initial: name.slice(0, 1).toUpperCase(), label: name })
-    })
-  }, [])
 
   function navLinkAudio(href: string, label: string, icon: React.ReactNode) {
     const active = pathMatches(path, '/recipes') && searchParams.get('type') === 'audio'
@@ -159,7 +131,11 @@ export default function Sidebar({ isOpen = false, onClose }: { isOpen?: boolean;
           border-right: 1px solid var(--border);
           display: flex;
           flex-direction: column;
-          height: 100vh;
+          /* height:100% fills the parent's own 100dvh exactly. An explicit
+             100vh here overrides flex stretch and can render taller than the
+             visible viewport in a WKWebView, so the parent's overflow:hidden
+             clips the excess — the profile chip at the bottom was cut off. */
+          height: 100%;
           overflow-y: auto;
         }
         @media (max-width: 699px) {
@@ -261,105 +237,6 @@ export default function Sidebar({ isOpen = false, onClose }: { isOpen?: boolean;
           </svg>
         ))}
       </nav>
-
-      {/* ── Profile footer ── */}
-      <div style={{ margin: '0 0.75rem 1rem', position: 'relative' }}>
-        {/* Dropdown menu */}
-        {profileMenuOpen && (
-          <>
-            {/* Backdrop to close on outside click */}
-            <div
-              style={{ position: 'fixed', inset: 0, zIndex: 40 }}
-              onClick={() => setProfileMenuOpen(false)}
-            />
-            <div
-              style={{
-                position: 'absolute',
-                bottom: 'calc(100% + 8px)',
-                left: 0,
-                right: 0,
-                background: 'var(--surface)',
-                border: '1px solid var(--border)',
-                borderRadius: 12,
-                boxShadow: '0 4px 20px rgba(0,0,0,0.12)',
-                zIndex: 50,
-                overflow: 'hidden',
-              }}
-            >
-              <button
-                type="button"
-                onClick={() => { setProfileMenuOpen(false); router.push('/account') }}
-                style={{
-                  display: 'flex', width: '100%', alignItems: 'center', gap: '0.6rem',
-                  padding: '0.65rem 0.9rem', background: 'none', border: 'none',
-                  cursor: 'pointer', textAlign: 'left', fontSize: '0.85rem',
-                  fontWeight: 500, color: 'var(--text2)',
-                  borderBottom: '1px solid var(--border)',
-                }}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.65, flexShrink: 0 }}>
-                  <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
-                </svg>
-                Account settings
-              </button>
-              <button
-                type="button"
-                onClick={() => { setProfileMenuOpen(false); authSignOut().then(() => router.replace('/')) }}
-                style={{
-                  display: 'flex', width: '100%', alignItems: 'center', gap: '0.6rem',
-                  padding: '0.65rem 0.9rem', background: 'none', border: 'none',
-                  cursor: 'pointer', textAlign: 'left', fontSize: '0.85rem',
-                  fontWeight: 500, color: 'var(--text2)',
-                }}
-              >
-                <span style={{ opacity: 0.65, flexShrink: 0 }}>{Icon.signout}</span>
-                Sign out
-              </button>
-            </div>
-          </>
-        )}
-
-        {/* Profile button */}
-        <button
-          type="button"
-          onClick={() => setProfileMenuOpen(o => !o)}
-          style={{
-            width: '100%',
-            padding: '0.6rem 0.75rem',
-            borderRadius: 12,
-            border: '1px solid var(--border)',
-            background: profileMenuOpen ? 'var(--accent-light)' : 'var(--cream)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.65rem',
-            cursor: 'pointer',
-            textAlign: 'left',
-          }}
-        >
-          <div
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: '50%',
-              background: 'var(--accent)',
-              color: 'white',
-              fontFamily: 'var(--serif)',
-              fontWeight: 700,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '0.95rem',
-              flexShrink: 0,
-            }}
-          >
-            {profile.initial}
-          </div>
-          <span style={{ flex: 1, fontSize: '0.85rem', fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {profile.label}
-          </span>
-          <span style={{ opacity: 0.4, flexShrink: 0, transform: profileMenuOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>{Icon.chevron}</span>
-        </button>
-      </div>
     </aside>
     </>
   )
