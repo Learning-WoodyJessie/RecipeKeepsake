@@ -1,19 +1,30 @@
 /**
  * Purpose: Keep sign-in inside the native shell instead of bouncing to Safari.
  *
- * What: Runs the provider's OAuth page in SFSafariViewController and completes
- * the session over a custom-scheme deep link.
+ * What: Google runs its OAuth page in SFSafariViewController and completes the
+ * session over a custom-scheme deep link. Apple uses the native
+ * ASAuthorizationController sheet instead — no browser involved.
  *
- * How: signInWithOAuth(skipBrowserRedirect) yields the provider URL, which is
- * opened with @capacitor/browser (SFSafariViewController on iOS). Supabase
- * redirects back to echoesofhome://auth/callback, iOS reopens the app, and the
- * appUrlOpen listener turns the returned tokens into a session.
+ * How (Google): signInWithOAuth(skipBrowserRedirect) yields the provider URL,
+ * which is opened with @capacitor/browser (SFSafariViewController on iOS).
+ * Supabase redirects back to echoesofhome://auth/callback, iOS reopens the
+ * app, and the appUrlOpen listener turns the returned tokens into a session.
+ *
+ * How (Apple): @capawesome/capacitor-apple-sign-in drives the native
+ * AuthenticationServices sheet directly (Face ID/Touch ID, pre-filled Apple
+ * ID). The resulting identity token is exchanged for a Supabase session via
+ * signInWithIdToken — no browser, no deep link round-trip.
  *
  * Why: Capacitor cancels top-level navigations to off-origin hosts and hands
  * them to UIApplication.open() — the system Safari (WebViewDelegationHandler
- * .swift:107). That is what App Store review rejected under Guideline 4, and it
- * also stranded the session in Safari so the app could never finish a login.
- * Apple's rejection names Safari View Controller as an acceptable remedy.
+ * .swift:107). That is what App Store review rejected under Guideline 4 for
+ * Google, and Safari View Controller is Apple's named remedy for that bug.
+ * Apple sign-in is different: routing it through the same browser-hosted
+ * OAuth page shows Apple's generic web login form (email/password) instead of
+ * the native sheet users expect, which is what got the app rejected again
+ * under Guideline 2.1(a) on Sep 12 2026 ("didn't show Sign in with Apple
+ * properly"). Apple's own guidelines require the native AuthenticationServices
+ * flow when Sign in with Apple is offered on iOS.
  */
 import { Capacitor } from '@capacitor/core'
 import { supabase } from './supabase'
@@ -36,8 +47,55 @@ export function isNativeApp(): boolean {
 }
 
 function looksCancelled(e: unknown): boolean {
+  // @capawesome/capacitor-apple-sign-in rejects with code "SIGN_IN_CANCELED"
+  // when the user backs out of the native ASAuthorizationController sheet.
+  if (e && typeof e === 'object' && 'code' in e && (e as { code?: string }).code === 'SIGN_IN_CANCELED') {
+    return true
+  }
   const msg = e instanceof Error ? e.message : String(e ?? '')
   return /cancel|abort|dismiss|user closed/i.test(msg)
+}
+
+function randomNonce(byteLength = 32): string {
+  const bytes = new Uint8Array(byteLength)
+  crypto.getRandomValues(bytes)
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('')
+}
+
+async function sha256Hex(input: string): Promise<string> {
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(input))
+  return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, '0')).join('')
+}
+
+/**
+ * Native Sign in with Apple. Apple's request carries a SHA256-hashed nonce;
+ * Supabase is given the raw nonce back and hashes it itself to verify the
+ * identity token's nonce claim — both sides must agree on that pairing.
+ */
+async function signInWithAppleNative(): Promise<void> {
+  const { AppleSignIn, SignInScope } = await import('@capawesome/capacitor-apple-sign-in')
+
+  const rawNonce = randomNonce()
+  const hashedNonce = await sha256Hex(rawNonce)
+
+  let idToken: string
+  try {
+    const result = await AppleSignIn.signIn({
+      scopes: [SignInScope.Email, SignInScope.FullName],
+      nonce: hashedNonce,
+    })
+    idToken = result.idToken
+  } catch (e) {
+    if (looksCancelled(e)) throw new SignInCancelled()
+    throw e
+  }
+
+  const { error } = await supabase.auth.signInWithIdToken({
+    provider: 'apple',
+    token: idToken,
+    nonce: rawNonce,
+  })
+  if (error) throw error
 }
 
 /**
@@ -76,6 +134,8 @@ async function completeFromCallbackUrl(url: string): Promise<void> {
 
 /** Run OAuth in SFSafariViewController and finish over the deep link. */
 export async function signInOnNative(provider: OAuthProvider): Promise<void> {
+  if (provider === 'apple') return signInWithAppleNative()
+
   const [{ Browser }, { App }] = await Promise.all([
     import('@capacitor/browser'),
     import('@capacitor/app'),
