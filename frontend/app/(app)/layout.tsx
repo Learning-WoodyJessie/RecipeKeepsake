@@ -8,7 +8,6 @@ import { useState } from 'react'
 import AuthGuard from '@/components/AuthGuard'
 import AppTopBar from '@/components/AppTopBar'
 import Sidebar from '@/components/Sidebar'
-import FamilySetupPrompt from '@/components/FamilySetupPrompt'
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -48,7 +47,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <div style={{ flex: 1, width: '100%', display: 'flex', flexDirection: 'column', minWidth: 0, minHeight: 0, height: '100dvh' }}>
           <AppTopBar onMenuClick={() => setSidebarOpen(o => !o)} />
           <main style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', minHeight: 0, paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>{children}</main>
-          <FamilySetupPrompt />
         </div>
       </div>
     </AuthGuard>

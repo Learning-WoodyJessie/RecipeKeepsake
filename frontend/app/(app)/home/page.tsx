@@ -12,6 +12,7 @@ import { SkeletonRow } from '@/components/Skeleton'
 import { supabase } from '@/lib/supabase'
 import { readFavorites, toggleFavorite as toggleFav } from '@/lib/favorites'
 import HomeParticles from '@/components/HomeParticles'
+import FamilyGroupSheet from '@/components/FamilyGroupSheet'
 
 type Memory = {
   token: string
@@ -366,10 +367,11 @@ function MemoryRow({
 
 // ─── Right panel ───────────────────────────────────────────────────────────
 
-function QuotePanel() {
+function QuotePanel({ hasMemories }: { hasMemories: boolean }) {
   const [groupName, setGroupName] = useState('')
   const [inviteUrl, setInviteUrl] = useState('')
   const [inviteCopied, setInviteCopied] = useState(false)
+  const [sheetOpen, setSheetOpen] = useState(false)
 
   useEffect(() => {
     api.family.getMyGroup()
@@ -436,17 +438,30 @@ function QuotePanel() {
         ) : (
           <>
             <p style={{ fontSize: '0.78rem', color: 'var(--muted)', lineHeight: 1.5, marginBottom: '0.85rem' }}>
-              Create a shared collection so your family can browse memories together and add their own.
+              {hasMemories
+                ? 'Your first memory is saved. Invite your family to hear it and add their own.'
+                : 'Create a shared collection so your family can browse memories together and add their own.'}
             </p>
-            <Link href="/account#family" style={{
-              display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
-              fontSize: '0.82rem', fontWeight: 600, color: 'var(--accent)', textDecoration: 'none',
-            }}>
-              Set up family collection →
-            </Link>
+            <button
+              type="button"
+              onClick={() => setSheetOpen(true)}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '0.3rem', minHeight: 44,
+                background: 'transparent', border: 'none', padding: 0, cursor: 'pointer',
+                fontSize: '0.82rem', fontWeight: 600, color: 'var(--accent)',
+              }}
+            >
+              {hasMemories ? 'Invite your family →' : 'Set up family collection →'}
+            </button>
           </>
         )}
       </div>
+
+      <FamilyGroupSheet
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        onCreated={(d) => { setGroupName(d.group.name); setInviteUrl(d.invite_url) }}
+      />
 
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 20, padding: '1.25rem', boxShadow: '0 4px 16px rgba(45,27,14,0.05)' }}>
         <h3 style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '0.95rem', color: 'var(--text)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
@@ -586,7 +601,7 @@ export default function HomePage() {
 
         {/* ── Right: quote + tips ── */}
         <aside>
-          <QuotePanel />
+          <QuotePanel hasMemories={memories.length > 0} />
         </aside>
       </div>
 
