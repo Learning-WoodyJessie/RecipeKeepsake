@@ -104,7 +104,7 @@ function FamilyGroupSection() {
 
   useEffect(() => {
     api.family.getMyGroup()
-      .then(d => setData(d as FamilyGroupData))
+      .then((d: { group: FamilyGroupData['group'] | null }) => setData(d.group ? (d as FamilyGroupData) : null))
       .catch(() => setData(null))
       .finally(() => setLoading(false))
   }, [])
