@@ -12,6 +12,7 @@ import WaveformBars from '@/components/WaveformBars'
 import FavoriteHeart from '@/components/FavoriteHeart'
 import { SkeletonRow } from '@/components/Skeleton'
 import { readFavorites, toggleFavorite as toggleFav } from '@/lib/favorites'
+import FamilyGroupSheet from '@/components/FamilyGroupSheet'
 
 type Memory = {
   token: string
@@ -136,6 +137,8 @@ function InviteCard() {
   const [inviteUrl, setInviteUrl] = useState('')
   const [groupName, setGroupName] = useState('')
   const [copied, setCopied] = useState(false)
+  const [checked, setChecked] = useState(false)
+  const [sheetOpen, setSheetOpen] = useState(false)
 
   useEffect(() => {
     api.family.getMyGroup()
@@ -145,9 +148,44 @@ function InviteCard() {
         setInviteUrl(d.invite_url ?? '')
       })
       .catch(() => {})
+      .finally(() => setChecked(true))
   }, [])
 
-  if (!inviteUrl) return null
+  if (!checked) return null
+
+  if (!inviteUrl) {
+    return (
+      <>
+        <div style={{ background: 'var(--accent-light)', border: '1px solid rgba(24,107,94,0.2)', borderRadius: 16, padding: '1.1rem 1.25rem' }}>
+          <p style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--accent)', margin: '0 0 0.25rem' }}>
+            Invite family
+          </p>
+          <p style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text)', margin: '0 0 0.25rem', fontFamily: 'var(--serif)' }}>
+            Start your family collection
+          </p>
+          <p style={{ fontSize: '0.78rem', color: 'var(--muted)', margin: '0 0 0.85rem', lineHeight: 1.5 }}>
+            You don&apos;t have one yet. Name it to get a private link you can share with family.
+          </p>
+          <button
+            type="button"
+            onClick={() => setSheetOpen(true)}
+            style={{
+              width: '100%', minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'white', color: 'var(--accent)', border: '1.5px solid var(--accent)', borderRadius: 10,
+              padding: '0.55rem', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer',
+            }}
+          >
+            Set up family collection
+          </button>
+        </div>
+        <FamilyGroupSheet
+          open={sheetOpen}
+          onClose={() => setSheetOpen(false)}
+          onCreated={(d) => { setGroupName(d.group.name); setInviteUrl(d.invite_url) }}
+        />
+      </>
+    )
+  }
 
   async function copy() {
     await navigator.clipboard.writeText(inviteUrl)

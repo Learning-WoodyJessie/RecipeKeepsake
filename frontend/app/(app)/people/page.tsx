@@ -442,8 +442,8 @@ export default function PeoplePage() {
       }
       setMemoryCounts(counts)
     }).catch(() => {})
-    api.family.getMyGroup().then((d: { portal_url?: string; invite_url?: string }) => {
-      setGroupData(d)
+    api.family.getMyGroup().then((d: { group?: unknown; portal_url?: string; invite_url?: string }) => {
+      setGroupData(d.group ? d : null)
     }).catch(() => {}).finally(() => setGroupChecked(true))
   }, [])
 
