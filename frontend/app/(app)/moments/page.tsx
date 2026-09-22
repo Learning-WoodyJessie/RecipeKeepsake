@@ -7,7 +7,7 @@ import { api, type Person } from '@/lib/api'
 import { readFavorites, toggleFavorite } from '@/lib/favorites'
 import FavoriteHeart from '@/components/FavoriteHeart'
 import { SkeletonCard } from '@/components/Skeleton'
-import { buildMemoryShortUrl } from '@/lib/url'
+import { buildPublicMemoryShareUrl } from '@/lib/url'
 type Memory = {
   token: string
   slug?: string | null
@@ -39,7 +39,7 @@ function CardShareButton({ token, title, slug, top = 6, right = 44 }: { token: s
       onClick={e => {
         e.preventDefault()
         const origin = typeof window !== 'undefined' ? window.location.origin : 'https://www.theechoesofhome.com'
-        const shareUrl = buildMemoryShortUrl(origin, slug, token)
+        const shareUrl = buildPublicMemoryShareUrl(origin, slug, token)
         window.open(`https://wa.me/?text=${encodeURIComponent(`"${title ?? 'this moment'}" on Echoes of Home:\n${shareUrl}`)}`, '_blank')
       }}
       title="Share on WhatsApp"

@@ -284,6 +284,43 @@ def get_recipe_by_slug(slug: str) -> dict:
     return recipe
 
 
+# Fields shown on the public, no-auth memory page (/public/memory/{shortcode}).
+# Deliberately narrow: never user_id, review_flags, cook_notes, user_notes, or
+# anything else on the row — sharing one memory must not leak the owner's
+# identity or content they didn't choose to make link-public. See
+# decisions.log 2026-09-22 [Public memory sharing].
+_PUBLIC_MEMORY_FIELDS = (
+    "token", "slug", "title", "narrator", "type", "recorded_at",
+    "image_url", "audio_url", "transcript_raw", "transcript_english",
+    "ingredients", "steps",
+)
+
+
+def get_public_memory_view(shortcode: str) -> dict | None:
+    """Resolve a share shortcode (slug, or `memory-{token8}`) to the safelisted
+    public fields only. Returns None if not found — never raises, so the
+    caller can 404 without leaking whether a differently-shaped code exists.
+    """
+    recipe = None
+    try:
+        recipe = get_recipe_by_slug(shortcode)
+    except Exception:
+        pass
+    if not recipe:
+        prefix = shortcode.split("-")[-1]
+        if len(prefix) == 8:
+            try:
+                recipe = get_recipe_by_token_prefix(prefix)
+            except Exception:
+                pass
+    if not recipe:
+        return None
+    # get_recipe_by_slug/get_recipe_by_token_prefix already replace audio_url
+    # with a fresh signed URL — safelist after, so a future column addition
+    # can't leak through unnoticed.
+    return {k: recipe.get(k) for k in _PUBLIC_MEMORY_FIELDS}
+
+
 def patch_recipe(token: str, fields: dict) -> dict:
     """Update specific fields on a recipe row by token. Returns updated row."""
     result = (

@@ -70,7 +70,7 @@ function FamilyCollectionCard({ groupData, groupChecked }: { groupData: { portal
       {groupData ? (
         <>
           <p style={{ fontSize: '0.78rem', color: 'var(--muted)', lineHeight: 1.55, marginBottom: '0.85rem' }}>
-            Share these links with family. Anyone can browse your collection, no account needed.
+            Share these links with family — they&apos;ll sign in to browse your collection.
           </p>
           {/* Collection link */}
           <div style={{ marginBottom: '0.65rem' }}>
@@ -106,7 +106,7 @@ function FamilyCollectionCard({ groupData, groupChecked }: { groupData: { portal
       ) : (
         <>
           <p style={{ fontSize: '0.78rem', color: 'var(--muted)', lineHeight: 1.55, marginBottom: '0.85rem' }}>
-            Choose which memories to share with family. They browse on their phone, no account needed.
+            Choose which memories to share with family. They&apos;ll sign in to browse on their phone.
           </p>
           <Link href="/account#family" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--accent)', color: 'white', textDecoration: 'none', padding: '0.5rem 1rem', borderRadius: 20, fontSize: '0.82rem', fontWeight: 700 }}>
             Set up family collection

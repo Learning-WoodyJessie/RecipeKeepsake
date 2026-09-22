@@ -661,6 +661,84 @@ async def memory_shortcode_redirect(shortcode: str, request: Request):
     return RedirectResponse(url=canonical, status_code=302)
 
 
+@app.get("/m/{shortcode}")
+async def public_memory_pretty_link(shortcode: str, request: Request):
+    """Pretty, no-auth share link for a single memory: /m/dads-song-3da38e4f.
+
+    Mirrors /memory/{shortcode} exactly, one rung down in privilege: that one
+    resolves to the sign-in-gated app, this one resolves to the public,
+    read-only /m?code= page. Social bots get an OG-tag preview; real visitors
+    get redirected to the static page (this app ships as a Next static
+    export, which can't serve /m/{shortcode} as a real per-value route).
+    """
+    if shortcode.startswith("__next"):
+        static_file = _FRONTEND_OUT / "m" / shortcode
+        if static_file.is_file():
+            return FileResponse(static_file)
+        raise HTTPException(status_code=404, detail="not found")
+
+    ip = request.headers.get("X-Forwarded-For", "unknown").split(",")[0].strip()
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    count, day = _public_memory_ip_hits.get(ip, (0, today))
+    if day != today:
+        count = 0
+    count += 1
+    _public_memory_ip_hits[ip] = (count, today)
+    if count > 60:
+        raise HTTPException(status_code=429, detail="Too many requests")
+
+    from tools.storage import get_public_memory_view
+    memory = get_public_memory_view(shortcode)
+    if not memory:
+        return RedirectResponse(url="/", status_code=302)
+
+    base = os.environ.get("NEXT_PUBLIC_APP_URL", "https://www.theechoesofhome.com")
+    code = memory.get("slug") or shortcode
+    destination = f"{base}/m?code={code}"
+
+    if _is_bot(request):
+        title_val = memory.get("title") or "A family memory"
+        narrator = memory.get("narrator")
+        mem_type = memory.get("type") or "memory"
+        type_labels = {"song": "song", "recipe": "recipe", "story": "story", "fable": "fable", "wisdom": "wisdom", "poem": "poem"}
+        kind = type_labels.get(mem_type, "memory")
+        og_title = f"{title_val}{f' · {narrator}' if narrator else ''} — Echoes of Home"
+        og_desc = f"A family {kind} preserved forever. Listen and share with your family."
+        og_image = memory.get("image_url") or f"{base}/og-image.png"
+        return HTMLResponse(content=_og_html(og_title, og_desc, og_image, destination))
+
+    return RedirectResponse(url=destination, status_code=302)
+
+
+_public_memory_ip_hits: dict[str, tuple[int, str]] = {}
+
+
+@app.get("/public/memory/{shortcode}")
+async def get_public_memory_endpoint(shortcode: str, request: Request):
+    """Public — returns a safelisted view of one memory, no auth. Backs the
+    read-only /m/{shortcode} page. Sharing is opt-in and per-memory: the
+    collection/portal stays behind sign-in (decisions.log 2026-09-22).
+    """
+    # IP-keyed rate limit: max 60 lookups per IP per day, same pattern as the
+    # invite-preview endpoint — this is a lookup-by-guessable-8-char-token
+    # surface, unlike the UUID portal/invite tokens.
+    ip = request.headers.get("X-Forwarded-For", "unknown").split(",")[0].strip()
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    count, day = _public_memory_ip_hits.get(ip, (0, today))
+    if day != today:
+        count = 0
+    count += 1
+    _public_memory_ip_hits[ip] = (count, today)
+    if count > 60:
+        raise HTTPException(status_code=429, detail="Too many requests")
+
+    from tools.storage import get_public_memory_view
+    memory = get_public_memory_view(shortcode)
+    if not memory:
+        raise HTTPException(status_code=404, detail="Memory not found")
+    return JSONResponse(content=memory)
+
+
 def _can_read_recipe(recipe: dict, user: dict, user_id: str) -> bool:
     """
     True when the caller is allowed to open this memory.

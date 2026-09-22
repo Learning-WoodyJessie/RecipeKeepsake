@@ -258,7 +258,7 @@ function RightPanel() {
 
   const quote = {
     text: '"The stories we tell ourselves about our families are the most important stories we will ever hear."',
-    attr: 'Chitra Banerjee Divakaruni',
+    attr: 'Echoes of Home',
   }
 
   return (

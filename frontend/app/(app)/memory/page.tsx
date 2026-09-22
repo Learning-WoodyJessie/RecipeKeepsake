@@ -13,7 +13,7 @@ import ReactionBar from '@/components/ReactionBar'
 import LanguageSwitcher from '@/components/LanguageSwitcher'
 import { readFavorites, toggleFavorite as toggleFav } from '@/lib/favorites'
 import { buildMemoryShareMessage, toWhatsAppUrl } from '@/lib/share'
-import { buildMemoryShortUrl } from '@/lib/url'
+import { buildPublicMemoryShareUrl } from '@/lib/url'
 
 type Ingredient = { item: string; quantity: string }
 type MemoryType = 'recipe' | 'song' | 'story' | 'fable' | 'wisdom' | 'poem'
@@ -358,7 +358,7 @@ function MemoryDetail() {
   }
 
   function openWhatsApp() {
-    const memoryUrl = buildMemoryShortUrl(window.location.origin, memory?.slug, token)
+    const memoryUrl = buildPublicMemoryShareUrl(window.location.origin, memory?.slug, token)
     // Only substitute the viewer's own family portal when they own this memory —
     // otherwise a non-owner who happens to belong to their own unrelated family
     // group would forward a link to THEIR portal instead of this memory.

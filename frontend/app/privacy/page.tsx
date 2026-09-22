@@ -265,7 +265,7 @@ export default function PrivacyPage() {
           <p className="pp-eyebrow">Legal</p>
           <h1 className="pp-title">Privacy Policy</h1>
           <p className="pp-meta">
-            Effective July 1, 2026 &nbsp;·&nbsp; Last updated July 1, 2026
+            Effective July 1, 2026 &nbsp;·&nbsp; Last updated September 22, 2026
           </p>
 
           {/* At a glance cards */}
@@ -273,7 +273,7 @@ export default function PrivacyPage() {
             <div className="pp-glance-card">
               <div className="pp-glance-icon">🔒</div>
               <div className="pp-glance-label">Private by default</div>
-              <div className="pp-glance-desc">Your memories are never public. Only you and people you invite can see them.</div>
+              <div className="pp-glance-desc">Your family collection is never public — only you and people you invite can see it. If you choose to share one memory, only that memory becomes viewable by anyone with its link.</div>
             </div>
             <div className="pp-glance-card">
               <div className="pp-glance-icon">🚫</div>
@@ -410,8 +410,14 @@ export default function PrivacyPage() {
             </p>
             <p className="pp-p">
               If you create or join a Family Group, members of that group can see the memories
-              shared within it. The Family Portal (a read-only view for relatives) requires a
-              specific link that only you control. There are no public links and no anonymous access.
+              shared within it. The Family Portal (a read-only view of your whole collection)
+              requires signing in — there is no public or anonymous access to your collection.
+            </p>
+            <p className="pp-p">
+              You can also share a single memory directly. Tapping Share generates a link that
+              anyone holding it can view without signing in — only that one memory, never your
+              other memories or your full collection. You choose which memories to share this way;
+              nothing is shared automatically.
             </p>
             <p className="pp-p">
               We (the developers) can access your data as database administrators. We will only
