@@ -10,6 +10,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { api, type Person } from '@/lib/api'
 import PhotoPicker from '@/components/PhotoPicker'
+import ConfirmDialog from '@/components/ConfirmDialog'
 
 // photo_data (base64) is request-only - the server uploads it and responds
 // with a real photo_url, it's never part of the canonical Person shape.
@@ -415,6 +416,9 @@ export default function PeoplePage() {
   const [form, setForm] = useState<FormData>(EMPTY)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [confirmingDelete, setConfirmingDelete] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState('')
   const [groupData, setGroupData] = useState<{ portal_url?: string; invite_url?: string } | null>(null)
   const [groupChecked, setGroupChecked] = useState(false)
 
@@ -470,11 +474,20 @@ export default function PeoplePage() {
   }
 
   async function remove() {
-    if (!modal.editing) return
-    if (!confirm(`Delete ${modal.editing.name}? This cannot be undone.`)) return
-    await api.people.delete(modal.editing.id).catch((e: Error) => setError(e.message))
-    setPeople(prev => prev.filter(p => p.id !== modal.editing!.id))
-    setModal({ open: false, editing: null })
+    const target = modal.editing
+    if (!target) return
+    setDeleting(true)
+    setDeleteError('')
+    try {
+      await api.people.delete(target.id)
+      setPeople(prev => prev.filter(p => p.id !== target.id))
+      setConfirmingDelete(false)
+      setModal({ open: false, editing: null })
+    } catch (e: unknown) {
+      setDeleteError((e as Error).message)
+    } finally {
+      setDeleting(false)
+    }
   }
 
   return (
@@ -561,12 +574,23 @@ export default function PeoplePage() {
           form={form}
           setForm={setForm}
           onSave={save}
-          onDelete={remove}
+          onDelete={() => { setDeleteError(''); setConfirmingDelete(true) }}
           onClose={() => { setModal({ open: false, editing: null }); setError('') }}
           saving={saving}
           error={error}
         />
       )}
+
+      <ConfirmDialog
+        open={confirmingDelete}
+        title={modal.editing ? `Delete ${modal.editing.name}?` : 'Delete this person?'}
+        message="This removes their profile. Memories already recorded stay in your collection. This cannot be undone."
+        confirmLabel="Delete"
+        busy={deleting}
+        error={deleteError}
+        onConfirm={remove}
+        onCancel={() => setConfirmingDelete(false)}
+      />
     </div>
   )
 }

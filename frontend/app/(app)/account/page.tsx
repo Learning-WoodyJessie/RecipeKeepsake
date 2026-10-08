@@ -10,6 +10,7 @@ import { api } from '@/lib/api'
 import { buildPortalShareMessage, toWhatsAppUrl } from '@/lib/share'
 import { supabase } from '@/lib/supabase'
 import { signOut as authSignOut } from '@/lib/auth'
+import ConfirmDialog from '@/components/ConfirmDialog'
 
 type Viewer = { id: string; email: string | null; phone: string | null; created_at: string; revoked_at: string | null }
 
@@ -209,12 +210,12 @@ function FamilyGroupSection() {
 export default function AccountPage() {
   const router = useRouter()
   const [deleting, setDeleting] = useState(false)
+  const [confirmOpen, setConfirmOpen] = useState(false)
   const [error, setError] = useState('')
 
   async function deleteAccount() {
-    if (!confirm('Permanently delete your account and all family memories? This cannot be undone.')) return
-    if (!confirm('Are you absolutely sure? All audio, memories, and narrators will be erased.')) return
     setDeleting(true)
+    setError('')
     try {
       await api.account.delete()
       await authSignOut()
@@ -237,11 +238,21 @@ export default function AccountPage() {
         <p style={{ color: 'var(--text2)', fontSize: '0.85rem', marginBottom: '1.25rem', lineHeight: 1.6 }}>
           Permanently deletes all memories, audio recordings, narrator profiles, and your account. This cannot be undone.
         </p>
-        {error && <p style={{ color: 'var(--accent)', fontSize: '0.82rem', marginBottom: '0.75rem' }}>{error}</p>}
-        <button onClick={deleteAccount} disabled={deleting} style={{ background: 'var(--accent)', color: 'white', border: 'none', borderRadius: 10, padding: '0.65rem 1.5rem', fontSize: '0.85rem', fontWeight: 600, cursor: deleting ? 'default' : 'pointer' }}>
+        <button onClick={() => { setError(''); setConfirmOpen(true) }} disabled={deleting} style={{ background: 'var(--accent)', color: 'white', border: 'none', borderRadius: 10, padding: '0.65rem 1.5rem', fontSize: '0.85rem', fontWeight: 600, cursor: deleting ? 'default' : 'pointer' }}>
           {deleting ? 'Deleting…' : 'Delete my account'}
         </button>
       </div>
+
+      <ConfirmDialog
+        open={confirmOpen}
+        title="Delete your account?"
+        message="This permanently deletes your account and everything in it: all memories, audio recordings, and narrator profiles. This cannot be undone."
+        confirmLabel="Delete everything"
+        busy={deleting}
+        error={error}
+        onConfirm={deleteAccount}
+        onCancel={() => setConfirmOpen(false)}
+      />
     </div>
   )
 }
