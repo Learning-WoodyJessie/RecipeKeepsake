@@ -94,7 +94,7 @@ function PublicMemoryPageInner() {
 
   return (
     <Shell>
-      <title>{memory.title ? `${memory.title} — Echoes of Home` : 'A family memory — Echoes of Home'}</title>
+      <title>{memory.title ? `${memory.title} | Echoes of Home` : 'A family memory | Echoes of Home'}</title>
       <meta name="robots" content="noindex, nofollow" />
 
       {memory.type && (

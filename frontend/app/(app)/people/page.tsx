@@ -71,7 +71,7 @@ function FamilyCollectionCard({ groupData, groupChecked }: { groupData: { portal
       {groupData ? (
         <>
           <p style={{ fontSize: '0.78rem', color: 'var(--muted)', lineHeight: 1.55, marginBottom: '0.85rem' }}>
-            Share these links with family — they&apos;ll sign in to browse your collection.
+            Share these links with family. They&apos;ll sign in to browse your collection.
           </p>
           {/* Collection link */}
           <div style={{ marginBottom: '0.65rem' }}>
