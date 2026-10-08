@@ -11,6 +11,7 @@ import NarratorChip from '@/components/NarratorChip'
 import ReviewWizard from '@/components/ReviewWizard'
 import SingleScreenReview from '@/components/SingleScreenReview'
 import { api } from '@/lib/api'
+import { looksSilent, averageKbps } from '@/lib/recordingHealth'
 
 type Stage = 'idle' | 'recording' | 'processing' | 'preview' | 'review' | 'direct-review' | 'error'
 
@@ -164,6 +165,8 @@ function CapturePageInner() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const audioPreviewRef = useRef<HTMLAudioElement | null>(null)
   const [previewPlaying, setPreviewPlaying] = useState(false)
+  const [micLabel, setMicLabel] = useState('')
+  const [silentTake, setSilentTake] = useState(false)
 
   const fmt = (s: number) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`
 
@@ -238,6 +241,8 @@ function CapturePageInner() {
 
       const track = stream.getAudioTracks()[0]
       console.log('[capture] track label=%s settings=%o', track?.label, track?.getSettings())
+      setMicLabel(track?.label ?? '')
+      setSilentTake(false)
 
       const { mimeType, ext } = pickMimeType()
       extRef.current = ext
@@ -267,9 +272,9 @@ function CapturePageInner() {
         const durationSec = (Date.now() - recStart) / 1000
         const totalBytes = chunksRef.current.reduce((s, c) => s + c.size, 0)
         const blob = new Blob(chunksRef.current, { type: mr.mimeType })
-        const kbps = totalBytes > 0 ? ((totalBytes * 8) / durationSec / 1000).toFixed(1) : '0'
-        console.log('[capture] stop duration=%.1fs chunks=%d totalBytes=%d blobSize=%d blobType=%s kbps=%s',
-          durationSec, chunksRef.current.length, totalBytes, blob.size, blob.type, kbps)
+        const kbps = averageKbps(totalBytes, durationSec).toFixed(1)
+        console.log(`[capture] stop duration=${durationSec.toFixed(1)}s chunks=${chunksRef.current.length} totalBytes=${totalBytes} blobSize=${blob.size} blobType=${blob.type} kbps=${kbps}`)
+        setSilentTake(looksSilent(totalBytes, durationSec))
         if (blob.size < 1000) {
           console.warn('[capture] blob suspiciously small, likely empty audio (android AudioContext interference?)')
         }
@@ -603,7 +608,10 @@ function CapturePageInner() {
                   </button>
                 </div>
                 <p style={{ fontFamily: 'monospace', fontSize: '1.75rem', fontWeight: 600, color: 'var(--text)', marginBottom: '0.5rem', letterSpacing: '0.05em' }}>{fmt(duration)}</p>
-                <p style={{ fontSize: '0.82rem', color: '#DC2626', marginBottom: '1.25rem' }}>Recording… tap to stop</p>
+                <p style={{ fontSize: '0.82rem', color: '#DC2626', marginBottom: micLabel ? '0.2rem' : '1.25rem' }}>Recording… tap to stop</p>
+                {micLabel && (
+                  <p style={{ fontSize: '0.74rem', color: 'var(--muted)', marginBottom: '1.25rem' }}>Mic: {micLabel}</p>
+                )}
                 <LiveWaveform levels={levels} />
               </>
             )}
@@ -637,6 +645,11 @@ function CapturePageInner() {
                 <p style={{ fontSize: '0.82rem', color: 'var(--muted)', marginBottom: '1.25rem' }}>
                   {previewPlaying ? 'Playing…' : 'Tap to listen back'}
                 </p>
+                {silentTake && (
+                  <div role="alert" style={{ margin: '0 auto 1rem', maxWidth: 380, padding: '0.7rem 0.9rem', borderRadius: 10, background: '#FEF3C7', border: '1px solid #F59E0B', color: '#78350F', fontSize: '0.82rem', lineHeight: 1.5, textAlign: 'left' }}>
+                    This recording looks silent. {micLabel ? `Your mic (${micLabel}) may have dropped out.` : 'Your mic may have dropped out.'} Check your microphone and tap Re-record.
+                  </div>
+                )}
                 <WaveformDecoration />
                 <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', marginTop: '1.25rem' }}>
                   <button
