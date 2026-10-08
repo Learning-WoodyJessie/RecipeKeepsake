@@ -244,3 +244,6 @@ Classes and key functions should have similar docstrings. This ensures maintaina
 | `MAX_TRANSLATE_PER_DAY` | Daily translate limit per user (default: 50) |
 | `MAX_IMAGE_PER_DAY` | Daily image generation limit per user (default: 20) |
 | `ADMIN_SECRET` | Bearer secret for `POST /admin/clear-translation-cache` — operator use only |
+| `RESEND_API_KEY` | Resend API key — lets the backend email the operator when something fails that the user cannot fix (e.g. an account deletion that did not finish). Optional: without it alerts are only written to the Railway log (`event=ALERT`) |
+| `ALERT_EMAIL_TO` | Operator address(es) for those alerts, comma-separated. Needed together with `RESEND_API_KEY` |
+| `ALERT_EMAIL_FROM` | Optional sender, e.g. `Echoes of Home <alerts@yourdomain.com>`. Defaults to Resend's `onboarding@resend.dev`, which can only email the Resend account owner until a domain is verified |

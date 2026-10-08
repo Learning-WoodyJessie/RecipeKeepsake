@@ -1281,20 +1281,41 @@ async def delete_account_endpoint(user: dict = Depends(require_auth)):
     """Permanently delete all data for the authenticated user.
 
     Only answers {"deleted": true} when everything — including the login — is
-    gone. If any step failed the login is kept so the user can retry, and the
-    response says so instead of reporting a success that did not happen.
+    gone. If anything failed the login is kept so the user can retry; the user
+    sees a deliberately generic message, and the operator is emailed the
+    details (user id and which steps failed) after the response is sent.
     """
+    from starlette.background import BackgroundTask
+    from tools.alerts import send_alert
     from tools.storage import delete_account, AccountDeletionIncomplete
     user_id = _user_id(user)
     if not user_id:
         raise HTTPException(status_code=400, detail="Cannot identify user")
     try:
         delete_account(user_id, email=user.get("email"), phone=user.get("phone"))
-    except AccountDeletionIncomplete as e:
-        _logger.error(f"event=delete_account_incomplete user_id={user_id} failures={e.failures}")
-        raise HTTPException(
+    except Exception as e:
+        failures = e.failures if isinstance(e, AccountDeletionIncomplete) else [f"unexpected {type(e).__name__}"]
+        request_id = _request_id.get("-")
+        _logger.error(f"event=delete_account_incomplete user_id={user_id} failures={failures}")
+        alert = BackgroundTask(
+            send_alert,
+            f"delete-account:{user_id}",
+            "Account deletion failed",
+            (
+                f"An account deletion did not finish.\n\n"
+                f"user id: {user_id}\n"
+                f"failed steps: {', '.join(failures)}\n"
+                f"request id: {request_id}\n"
+                f"time (UTC): {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+                f"The user's login was kept, so they can retry. Look this id up in Supabase "
+                f"(Authentication > Users) to see what remains, and search the Railway logs "
+                f"for event=delete_account_step_failed or the request id."
+            ),
+        )
+        return JSONResponse(
             status_code=500,
-            detail="We couldn't finish deleting your account. Some data was removed and your account is still active. Please try again, or contact support if it keeps happening.",
+            content={"detail": "Something went wrong while deleting your account. Please try again, or contact support if it keeps happening."},
+            background=alert,
         )
     return JSONResponse(content={"deleted": True})
 

@@ -299,17 +299,45 @@ class TestEndpoint:
         async def fake_user():
             return {"sub": "alice", "email": "alice@x.com", "phone": "+15550001"}
         app.dependency_overrides[require_auth] = fake_user
-        with patch("tools.storage.delete_account", side_effect=side_effect) as m:
+        with patch("tools.storage.delete_account", side_effect=side_effect) as m, \
+             patch("tools.alerts.send_alert") as alert:
             res = TestClient(app).delete("/account", headers={"Authorization": "Bearer x"})
-        return res, m
+        return res, m, alert
 
-    def test_success_reports_deleted_and_passes_the_users_email_and_phone(self):
-        res, m = self.call()
+    def test_success_reports_deleted_passes_email_and_phone_and_sends_no_alert(self):
+        res, m, alert = self.call()
         assert res.status_code == 200 and res.json() == {"deleted": True}
         m.assert_called_once_with("alice", email="alice@x.com", phone="+15550001")
+        alert.assert_not_called()
 
     def test_an_incomplete_deletion_is_a_500_not_a_false_success(self):
-        res, _ = self.call(AccountDeletionIncomplete(["profile"]))
+        res, _, _ = self.call(AccountDeletionIncomplete(["profile"]))
         assert res.status_code == 500
-        assert "still active" in res.json()["detail"]
         assert res.json().get("deleted") is None
+
+    def test_the_user_sees_a_generic_message_with_no_internal_detail(self):
+        res, _, _ = self.call(AccountDeletionIncomplete(["files in images", "profile"]))
+        detail = res.json()["detail"]
+        assert "Something went wrong" in detail
+        for leak in ("profile", "images", "files", "alice", "still active", "removed", "step"):
+            assert leak not in detail
+
+    def test_the_operator_is_alerted_with_the_user_id_and_failed_steps(self):
+        res, _, alert = self.call(AccountDeletionIncomplete(["files in images", "profile"]))
+        alert.assert_called_once()
+        key, subject, body = alert.call_args.args
+        assert key == "delete-account:alice"
+        assert "Account deletion failed" in subject
+        assert "alice" in body and "files in images" in body and "profile" in body
+
+    def test_the_alert_does_not_include_the_users_email_or_phone(self):
+        _, _, alert = self.call(AccountDeletionIncomplete(["profile"]))
+        _, subject, body = alert.call_args.args
+        for pii in ("alice@x.com", "+15550001"):
+            assert pii not in subject and pii not in body
+
+    def test_an_unexpected_crash_gets_the_same_generic_message_and_an_alert(self):
+        res, _, alert = self.call(RuntimeError("kaboom with secrets"))
+        assert res.status_code == 500
+        assert "kaboom" not in res.json()["detail"]
+        assert "unexpected RuntimeError" in alert.call_args.args[2]
