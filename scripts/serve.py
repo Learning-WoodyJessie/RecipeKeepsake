@@ -380,6 +380,21 @@ def _is_bot(request: Request) -> bool:
     return any(frag in ua for frag in _BOT_UA_FRAGMENTS)
 
 
+def _static_child(folder: str, name: str) -> Path | None:
+    """A real file named `name` inside out/<folder>/, or None.
+
+    Next's client navigation fetches helper files such as /m/index.txt and
+    /m/__next.*.txt. Routes shaped like /m/{shortcode} would otherwise read
+    those names as a share code, find no memory, and redirect to the landing
+    page — which breaks the page change and strands the user on Home.
+    """
+    base = (_FRONTEND_OUT / folder).resolve()
+    candidate = (base / name).resolve()
+    if candidate.parent == base and candidate.is_file():
+        return candidate
+    return None
+
+
 def _og_html(title: str, description: str, image_url: str, canonical_url: str) -> str:
     """Minimal HTML page with OG meta tags for social media crawlers."""
     def esc(s: str) -> str:
@@ -630,10 +645,10 @@ async def memory_shortcode_redirect(shortcode: str, request: Request):
     No auth required — the memory page itself enforces auth after redirect.
     """
     # Next.js 16 prefetches /memory/__next._tree.txt during client-side navigation.
+    static_file = _static_child("memory", shortcode)
+    if static_file:
+        return FileResponse(static_file)
     if shortcode.startswith("__next"):
-        static_file = _FRONTEND_OUT / "memory" / shortcode
-        if static_file.is_file():
-            return FileResponse(static_file)
         raise HTTPException(status_code=404, detail="not found")
 
     from tools.storage import get_recipe_by_slug, get_recipe_by_token_prefix
@@ -685,10 +700,10 @@ async def public_memory_pretty_link(shortcode: str, request: Request):
     get redirected to the static page (this app ships as a Next static
     export, which can't serve /m/{shortcode} as a real per-value route).
     """
+    static_file = _static_child("m", shortcode)
+    if static_file:
+        return FileResponse(static_file)
     if shortcode.startswith("__next"):
-        static_file = _FRONTEND_OUT / "m" / shortcode
-        if static_file.is_file():
-            return FileResponse(static_file)
         raise HTTPException(status_code=404, detail="not found")
 
     ip = request.headers.get("X-Forwarded-For", "unknown").split(",")[0].strip()

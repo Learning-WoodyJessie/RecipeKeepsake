@@ -157,6 +157,10 @@ def static_site(tmp_path, monkeypatch):
         "index.html": "LANDING-PAGE",
         "m/index.html": "PUBLIC-MEMORY-PAGE",
         "memory/index.html": "MEMORY-APP-PAGE",
+        # helper files Next's client navigation fetches for a soft page change
+        "m/index.txt": "M-PAGE-RSC-PAYLOAD",
+        "m/__next.m.__PAGE__.txt": "M-PAGE-SEGMENT",
+        "memory/index.txt": "MEMORY-PAGE-RSC-PAYLOAD",
     }.items():
         f = tmp_path / rel
         f.parent.mkdir(parents=True, exist_ok=True)
@@ -217,3 +221,42 @@ class TestRealBrowserNavigation:
         with _storage_env(), patch("tools.storage.get_recipe_by_slug", return_value=dict(_FULL_ROW)):
             res = _client.get("/public/memory/dads-song-abc12345")
         assert res.status_code == 200 and res.json()["title"] == "Dad's Song"
+
+
+RSC_FETCH = {"Accept": "*/*", "RSC": "1", "User-Agent": BROWSER["User-Agent"]}
+
+
+class TestClientNavigationHelperFiles:
+    """Clicking a link inside the app, or finishing sign-in, makes Next fetch
+    helper files like /m/index.txt. The /m/{shortcode} route used to read
+    "index.txt" as a share code, find no memory and redirect to the landing
+    page — which broke the page change and dropped signed-in users on Home
+    when they used "Sign in" on a shared memory."""
+
+    def test_the_page_payload_is_served_not_redirected(self, static_site):
+        res = _client.get("/m/index.txt?_rsc=abc", headers=RSC_FETCH, follow_redirects=False)
+        assert res.status_code == 200 and "M-PAGE-RSC-PAYLOAD" in res.text
+
+    def test_segment_files_are_served(self, static_site):
+        res = _client.get("/m/__next.m.__PAGE__.txt?_rsc=abc", headers=RSC_FETCH, follow_redirects=False)
+        assert res.status_code == 200 and "M-PAGE-SEGMENT" in res.text
+
+    def test_a_missing_next_helper_file_is_a_404_not_a_lookup_or_redirect(self, static_site):
+        res = _client.get("/m/__next.nothing.txt", headers=RSC_FETCH, follow_redirects=False)
+        assert res.status_code == 404
+
+    def test_the_older_memory_route_serves_its_helper_files_too(self, static_site):
+        res = _client.get("/memory/index.txt?_rsc=abc", headers=RSC_FETCH, follow_redirects=False)
+        assert res.status_code == 200 and "MEMORY-PAGE-RSC-PAYLOAD" in res.text
+
+    def test_a_real_share_code_still_goes_through_the_lookup(self, static_site):
+        with _storage_env(), patch("tools.storage.get_recipe_by_slug", return_value=dict(_FULL_ROW)):
+            res = _client.get("/m/dads-song-abc12345", headers=BROWSER, follow_redirects=False)
+        assert res.status_code == 302 and res.headers["location"].endswith("/m?code=dads-song-abc12345")
+
+    def test_the_helper_cannot_be_used_to_read_files_outside_its_folder(self, static_site):
+        from scripts.serve import _static_child
+        assert _static_child("m", "../index.html") is None
+        assert _static_child("m", "..") is None
+        assert _static_child("m", "does-not-exist.txt") is None
+        assert _static_child("m", "index.txt") is not None

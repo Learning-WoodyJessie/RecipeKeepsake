@@ -3,6 +3,7 @@ import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import AudioPlayer from '@/components/AudioPlayer'
+import { supabase } from '@/lib/supabase'
 import { EchoesLogoMark } from '@/components/EchoesLogoMark'
 
 // Public, no-sign-in view of a single memory someone shared via a
@@ -49,6 +50,14 @@ function PublicMemoryPageInner() {
   const [memory, setMemory] = useState<PublicMemory | null>(null)
   const [notFound, setNotFound] = useState(false)
   const [showOriginal, setShowOriginal] = useState(false)
+  // null until we know, so a signed-in person never flashes a "Sign in" prompt
+  const [signedIn, setSignedIn] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    supabase.auth.getSession()
+      .then(({ data: { session } }) => setSignedIn(!!session))
+      .catch(() => setSignedIn(false))
+  }, [])
 
   useEffect(() => {
     if (!code) { setNotFound(true); return }
@@ -156,23 +165,33 @@ function PublicMemoryPageInner() {
         </div>
       )}
 
-      <div style={{
-        marginTop: '2rem', padding: '1.25rem', borderRadius: 14,
-        background: 'var(--accent-light)', border: '1px solid rgba(24,107,94,0.2)', textAlign: 'center',
-      }}>
-        <p style={{ fontSize: '0.88rem', color: 'var(--text)', margin: '0 0 0.85rem', lineHeight: 1.5 }}>
-          {memory.narrator ? `See ${memory.narrator}'s whole family collection` : "See this family's whole collection"} — recipes, songs, and stories, all in one place.
+      {signedIn === false && (
+        <div style={{
+          marginTop: '2rem', padding: '1.25rem', borderRadius: 14,
+          background: 'var(--accent-light)', border: '1px solid rgba(24,107,94,0.2)', textAlign: 'center',
+        }}>
+          <p style={{ fontSize: '0.88rem', color: 'var(--text)', margin: '0 0 0.85rem', lineHeight: 1.5 }}>
+            Family voices, recipes, and stories — kept together in one private place. Part of the family? Sign in to see the rest.
+          </p>
+          <Link
+            href={`/?next=${encodeURIComponent(`/m?code=${code}`)}`}
+            style={{
+              display: 'inline-block', background: 'var(--accent)', color: 'white', textDecoration: 'none',
+              padding: '0.65rem 1.5rem', borderRadius: 10, fontSize: '0.9rem', fontWeight: 700,
+            }}
+          >
+            Sign in
+          </Link>
+        </div>
+      )}
+
+      {signedIn === true && (
+        <p style={{ marginTop: '2rem', textAlign: 'center' }}>
+          <Link href="/home" style={{ color: 'var(--accent)', fontWeight: 600, fontSize: '0.9rem', textDecoration: 'none' }}>
+            Go to my memories →
+          </Link>
         </p>
-        <Link
-          href={`/?next=${encodeURIComponent(`/m?code=${code}`)}`}
-          style={{
-            display: 'inline-block', background: 'var(--accent)', color: 'white', textDecoration: 'none',
-            padding: '0.65rem 1.5rem', borderRadius: 10, fontSize: '0.9rem', fontWeight: 700,
-          }}
-        >
-          Sign in to see more
-        </Link>
-      </div>
+      )}
     </Shell>
   )
 }

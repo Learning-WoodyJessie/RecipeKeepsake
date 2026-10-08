@@ -28,10 +28,27 @@ test('the public page reads the shortcode from ?code= and calls the public endpo
   assert.match(page, /<Suspense>/, 'useSearchParams needs a Suspense boundary, per the existing / landing page pattern')
 })
 
-test('the public page is not search-indexed and does not claim to be the full collection', () => {
+test('the public page is not search-indexed', () => {
+  assert.match(read('../app/m/page.tsx'), /noindex/)
+})
+
+test('the page knows whether you are signed in and never shows "Sign in" to someone who is', () => {
   const page = read('../app/m/page.tsx')
-  assert.match(page, /noindex/)
-  assert.match(page, /Sign in to see more/)
+  assert.match(page, /supabase\.auth\.getSession\(\)/)
+  // three states: unknown (nothing shown, no flash), signed out, signed in
+  assert.match(page, /useState<boolean \| null>\(null\)/)
+  const signInBlock = page.slice(page.indexOf('{signedIn === false && ('), page.indexOf('{signedIn === true && ('))
+  assert.match(signInBlock, />\s*Sign in\s*</)
+  assert.match(signInBlock, /\/\?next=/)
+  const signedInBlock = page.slice(page.indexOf('{signedIn === true && ('))
+  assert.doesNotMatch(signedInBlock.split('</Shell>')[0], /Sign in/)
+  assert.match(signedInBlock, /href="\/home"/)
+})
+
+test('the sign-in prompt does not promise a collection the visitor may not have access to', () => {
+  const page = read('../app/m/page.tsx')
+  assert.doesNotMatch(page, /whole family collection/)
+  assert.doesNotMatch(page, /Sign in to see more/)
 })
 
 test('the public page renders no edit, translate, or reaction affordances', () => {
