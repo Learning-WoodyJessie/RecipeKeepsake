@@ -48,7 +48,16 @@ test('Collection page gives a no-group user a way to start one, and never flashe
   const collection = read('../app/(app)/collection/page.tsx')
   assert.match(collection, /import FamilyGroupSheet from '@\/components\/FamilyGroupSheet'/)
   assert.match(collection, /Start your family collection/)
-  assert.match(collection, /\.finally\(\(\) => setChecked\(true\)\)/)
+  assert.match(collection, /\.finally\(\(\) => setGroup\(g => \(\{ \.\.\.g, checked: true \}\)\)\)/)
   assert.match(collection, /if \(!checked\) return null/)
-  assert.match(collection, /setInviteUrl\(d\.invite_url\)/, 'card must switch to the invite state after creating')
+  assert.match(collection, /inviteUrl: d\.invite_url/, 'page must switch to the invite state after creating')
+})
+
+test('Collection empty state tells a no-group user to create a collection, not to capture their first memory', () => {
+  const collection = read('../app/(app)/collection/page.tsx')
+  // Someone with recipes but no family collection used to be told "Capture your first one"
+  assert.doesNotMatch(collection, /Capture your first one/)
+  assert.match(collection, /You haven&apos;t created a family collection yet/)
+  // empty state waits for the group check so it never flashes the wrong message
+  assert.match(collection, /!group\.checked \? null : !group\.inviteUrl/)
 })

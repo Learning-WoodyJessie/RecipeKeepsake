@@ -133,57 +133,38 @@ function MemoryRow({ memory, isFav, onToggle }: { memory: Memory; isFav: boolean
 }
 
 // ─── Right panel ─────────────────────────────────────────────────────────────
-function InviteCard() {
-  const [inviteUrl, setInviteUrl] = useState('')
-  const [groupName, setGroupName] = useState('')
-  const [copied, setCopied] = useState(false)
-  const [checked, setChecked] = useState(false)
-  const [sheetOpen, setSheetOpen] = useState(false)
+type GroupInfo = { checked: boolean; name: string; inviteUrl: string }
 
-  useEffect(() => {
-    api.family.getMyGroup()
-      .then((d: { group?: { name?: string } | null; invite_url?: string }) => {
-        if (!d.group) return
-        setGroupName(d.group.name ?? '')
-        setInviteUrl(d.invite_url ?? '')
-      })
-      .catch(() => {})
-      .finally(() => setChecked(true))
-  }, [])
+function InviteCard({ group, onSetup }: { group: GroupInfo; onSetup: () => void }) {
+  const [copied, setCopied] = useState(false)
+  const { inviteUrl, name: groupName, checked } = group
 
   if (!checked) return null
 
   if (!inviteUrl) {
     return (
-      <>
-        <div style={{ background: 'var(--accent-light)', border: '1px solid rgba(24,107,94,0.2)', borderRadius: 16, padding: '1.1rem 1.25rem' }}>
-          <p style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--accent)', margin: '0 0 0.25rem' }}>
-            Invite family
-          </p>
-          <p style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text)', margin: '0 0 0.25rem', fontFamily: 'var(--serif)' }}>
-            Start your family collection
-          </p>
-          <p style={{ fontSize: '0.78rem', color: 'var(--muted)', margin: '0 0 0.85rem', lineHeight: 1.5 }}>
-            You don&apos;t have one yet. Name it to get a private link you can share with family.
-          </p>
-          <button
-            type="button"
-            onClick={() => setSheetOpen(true)}
-            style={{
-              width: '100%', minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: 'white', color: 'var(--accent)', border: '1.5px solid var(--accent)', borderRadius: 10,
-              padding: '0.55rem', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer',
-            }}
-          >
-            Set up family collection
-          </button>
-        </div>
-        <FamilyGroupSheet
-          open={sheetOpen}
-          onClose={() => setSheetOpen(false)}
-          onCreated={(d) => { setGroupName(d.group.name); setInviteUrl(d.invite_url) }}
-        />
-      </>
+      <div style={{ background: 'var(--accent-light)', border: '1px solid rgba(24,107,94,0.2)', borderRadius: 16, padding: '1.1rem 1.25rem' }}>
+        <p style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--accent)', margin: '0 0 0.25rem' }}>
+          Invite family
+        </p>
+        <p style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text)', margin: '0 0 0.25rem', fontFamily: 'var(--serif)' }}>
+          Start your family collection
+        </p>
+        <p style={{ fontSize: '0.78rem', color: 'var(--muted)', margin: '0 0 0.85rem', lineHeight: 1.5 }}>
+          You don&apos;t have one yet. Name it to get a private link you can share with family.
+        </p>
+        <button
+          type="button"
+          onClick={onSetup}
+          style={{
+            width: '100%', minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'white', color: 'var(--accent)', border: '1.5px solid var(--accent)', borderRadius: 10,
+            padding: '0.55rem', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer',
+          }}
+        >
+          Set up family collection
+        </button>
+      </div>
     )
   }
 
@@ -224,7 +205,7 @@ function InviteCard() {
   )
 }
 
-function RightPanel() {
+function RightPanel({ group, onSetup }: { group: GroupInfo; onSetup: () => void }) {
   const items = [
     {
       icon: (
@@ -263,7 +244,7 @@ function RightPanel() {
 
   return (
     <aside style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      <InviteCard />
+      <InviteCard group={group} onSetup={onSetup} />
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, padding: '1.25rem' }}>
         <p style={{ fontFamily: 'var(--serif)', fontWeight: 700, fontSize: '0.95rem', color: 'var(--text)', marginBottom: '1rem' }}>
           Why share with your family?
@@ -293,12 +274,32 @@ function RightPanel() {
   )
 }
 
+const emptyStateButton: React.CSSProperties = {
+  display: 'inline-flex', alignItems: 'center', gap: '0.4rem', minHeight: 44,
+  background: 'var(--accent)', color: 'white', border: 'none', cursor: 'pointer',
+  padding: '0.55rem 1.2rem', borderRadius: 10,
+  fontSize: '0.85rem', fontWeight: 700,
+  boxShadow: '0 2px 8px rgba(24,107,94,0.22)',
+}
+
 export default function CollectionPage() {
   const [memories, setMemories] = useState<Memory[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [activeType, setActiveType] = useState<'all' | typeof TYPE_ORDER[number]>('all')
   const [favTick, setFavTick] = useState(0)
+  const [group, setGroup] = useState<GroupInfo>({ checked: false, name: '', inviteUrl: '' })
+  const [sheetOpen, setSheetOpen] = useState(false)
+
+  useEffect(() => {
+    api.family.getMyGroup()
+      .then((d: { group?: { name?: string } | null; invite_url?: string }) => {
+        if (!d.group) return
+        setGroup(g => ({ ...g, name: d.group?.name ?? '', inviteUrl: d.invite_url ?? '' }))
+      })
+      .catch(() => {})
+      .finally(() => setGroup(g => ({ ...g, checked: true })))
+  }, [])
 
   useEffect(() => {
     api.family.recipes()
@@ -362,34 +363,36 @@ export default function CollectionPage() {
       ) : error ? (
         <div style={{ padding: '2rem', color: 'var(--accent)' }}>{error}</div>
       ) : memories.length === 0 ? (
-        <div style={{ padding: '2rem 1.5rem', borderRadius: 14, background: 'var(--surface)', border: '1px dashed var(--border2)', textAlign: 'center' }}>
-          <p style={{ color: 'var(--muted)', fontSize: '0.85rem', lineHeight: 1.7, marginBottom: '1.1rem' }}>
-            No memories in your Family Collection yet.<br />
-            Add it here from any memory by clicking{' '}
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', verticalAlign: 'middle', background: 'var(--accent-light)', border: '1px solid rgba(24,107,94,0.2)', borderRadius: 8, padding: '2px 8px', fontSize: '0.78rem', fontWeight: 600, color: 'var(--accent)', whiteSpace: 'nowrap' }}>
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
-                <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
-              </svg>
-              Family Collection
-            </span>
-          </p>
-          <Link
-            href="/capture"
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
-              background: 'var(--accent)', color: 'white', textDecoration: 'none',
-              padding: '0.55rem 1.2rem', borderRadius: 10,
-              fontSize: '0.85rem', fontWeight: 700,
-              boxShadow: '0 2px 8px rgba(24,107,94,0.22)',
-            }}
-          >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-              <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/>
-            </svg>
-            Capture your first one
-          </Link>
-        </div>
+        !group.checked ? null : !group.inviteUrl ? (
+          <div style={{ padding: '2rem 1.5rem', borderRadius: 14, background: 'var(--surface)', border: '1px dashed var(--border2)', textAlign: 'center' }}>
+            <p style={{ fontFamily: 'var(--serif)', fontSize: '1rem', fontWeight: 700, color: 'var(--text)', margin: '0 0 0.4rem' }}>
+              You haven&apos;t created a family collection yet
+            </p>
+            <p style={{ color: 'var(--muted)', fontSize: '0.85rem', lineHeight: 1.7, margin: '0 0 1.1rem' }}>
+              Create one, then add any of your memories to it. Everyone you invite will see them here.
+            </p>
+            <button type="button" onClick={() => setSheetOpen(true)} style={emptyStateButton}>
+              Set up family collection
+            </button>
+          </div>
+        ) : (
+          <div style={{ padding: '2rem 1.5rem', borderRadius: 14, background: 'var(--surface)', border: '1px dashed var(--border2)', textAlign: 'center' }}>
+            <p style={{ color: 'var(--muted)', fontSize: '0.85rem', lineHeight: 1.7, marginBottom: '1.1rem' }}>
+              No memories in your Family Collection yet.<br />
+              Add one from any memory by clicking{' '}
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', verticalAlign: 'middle', background: 'var(--accent-light)', border: '1px solid rgba(24,107,94,0.2)', borderRadius: 8, padding: '2px 8px', fontSize: '0.78rem', fontWeight: 600, color: 'var(--accent)', whiteSpace: 'nowrap' }}>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                  <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+                </svg>
+                Family Collection
+              </span>
+            </p>
+            <Link href="/home" style={{ ...emptyStateButton, textDecoration: 'none' }}>
+              Choose a memory to add
+            </Link>
+          </div>
+        )
       ) : (
         <>
           {presentTypes.length > 1 && (
@@ -439,9 +442,14 @@ export default function CollectionPage() {
         </>
       )}
       </div>
-      <RightPanel />
+      <RightPanel group={group} onSetup={() => setSheetOpen(true)} />
       </div>
       </div>
+      <FamilyGroupSheet
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        onCreated={(d) => { setGroup({ checked: true, name: d.group.name, inviteUrl: d.invite_url }); setSheetOpen(false) }}
+      />
     </div>
   )
 }
