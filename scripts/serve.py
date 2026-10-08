@@ -467,6 +467,20 @@ class _SpaMiddleware(BaseHTTPMiddleware):
                 if len(parts) == 2 and parts[0] == "memory":
                     path = "memory"
 
+                # /m/<shortcode> is a real backend route (link preview for
+                # bots, redirect to /m?code= for people). There is no static
+                # file per shortcode, so without this the SPA fallback below
+                # would answer with the landing page and the route would
+                # never run.
+                m_parts = path.rstrip("/").split("/")
+                if len(m_parts) == 2 and m_parts[0] == "m":
+                    if path.endswith("/"):
+                        # The route only matches the slash-less form, and the
+                        # catch-all would otherwise take /m/x/ — canonicalise.
+                        from urllib.parse import quote
+                        return RedirectResponse(url=f"/m/{quote(m_parts[1])}", status_code=307)
+                    return await call_next(request)
+
                 candidate = _FRONTEND_OUT / path / "index.html"
                 if candidate.exists():
                     return FileResponse(str(candidate), headers=_NO_CACHE_HEADERS)

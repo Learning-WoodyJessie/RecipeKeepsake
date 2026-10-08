@@ -10,6 +10,7 @@ limit per IP since the token is only 8 hex characters.
 import os
 from unittest.mock import patch
 
+import pytest
 from fastapi.testclient import TestClient
 
 from scripts.serve import app, _public_memory_ip_hits
@@ -138,3 +139,81 @@ class TestPublicMemoryPrettyLink:
                 _client.get("/m/dads-song-abc12345", headers=headers, follow_redirects=False)
             res = _client.get("/m/dads-song-abc12345", headers=headers, follow_redirects=False)
         assert res.status_code == 429
+
+
+BROWSER = {
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "User-Agent": "Mozilla/5.0 (iPad; CPU OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Safari/604.1",
+}
+WHATSAPP = {"Accept": "text/html,application/xhtml+xml", "User-Agent": "WhatsApp/2.23.20 A"}
+
+
+@pytest.fixture
+def static_site(tmp_path, monkeypatch):
+    """A stand-in for frontend/out. _SpaMiddleware answers browser navigations
+    from these files BEFORE any route runs, and falls back to the landing page
+    for any path with no file — which is what swallowed /m/{shortcode}."""
+    for rel, marker in {
+        "index.html": "LANDING-PAGE",
+        "m/index.html": "PUBLIC-MEMORY-PAGE",
+        "memory/index.html": "MEMORY-APP-PAGE",
+    }.items():
+        f = tmp_path / rel
+        f.parent.mkdir(parents=True, exist_ok=True)
+        f.write_text(f"<html>{marker}</html>")
+    monkeypatch.setattr("scripts.serve._FRONTEND_OUT", tmp_path)
+    monkeypatch.setenv("NEXT_PUBLIC_APP_URL", "http://testserver")
+    _public_memory_ip_hits.clear()
+    return tmp_path
+
+
+class TestRealBrowserNavigation:
+    """The earlier tests sent no Accept header, so they skipped _SpaMiddleware
+    and passed while every real browser was handed the landing page — a
+    signed-in user bounced to /home, a signed-out one saw the sign-in screen.
+    These send what a browser actually sends."""
+
+    def test_a_browser_opening_the_pretty_link_is_redirected_not_given_the_landing_page(self, static_site):
+        with _storage_env(), patch("tools.storage.get_recipe_by_slug", return_value=dict(_FULL_ROW)):
+            res = _client.get("/m/dads-song-abc12345", headers=BROWSER, follow_redirects=False)
+        assert res.status_code == 302
+        assert res.headers["location"].endswith("/m?code=dads-song-abc12345")
+        assert "LANDING-PAGE" not in res.text
+
+    def test_following_the_redirect_lands_on_the_public_memory_page(self, static_site):
+        with _storage_env(), patch("tools.storage.get_recipe_by_slug", return_value=dict(_FULL_ROW)):
+            res = _client.get("/m/dads-song-abc12345", headers=BROWSER, follow_redirects=True)
+        assert res.status_code == 200
+        assert "PUBLIC-MEMORY-PAGE" in res.text
+
+    def test_a_trailing_slash_does_not_fall_through_to_the_landing_page(self, static_site):
+        with _storage_env(), patch("tools.storage.get_recipe_by_slug", return_value=dict(_FULL_ROW)):
+            res = _client.get("/m/dads-song-abc12345/", headers=BROWSER, follow_redirects=True)
+        assert "LANDING-PAGE" not in res.text
+
+    def test_a_chat_app_crawler_still_gets_the_link_preview(self, static_site):
+        with _storage_env(), patch("tools.storage.get_recipe_by_slug", return_value=dict(_FULL_ROW)):
+            res = _client.get("/m/dads-song-abc12345", headers=WHATSAPP, follow_redirects=False)
+        assert res.status_code == 200
+        assert "og:title" in res.text and "Dad's Song" in res.text
+        assert "LANDING-PAGE" not in res.text
+
+    def test_an_unknown_link_in_a_browser_goes_home_instead_of_hanging(self, static_site):
+        with _storage_env(), \
+             patch("tools.storage.get_recipe_by_slug", side_effect=Exception("no row")), \
+             patch("tools.storage.get_recipe_by_token_prefix", side_effect=Exception("no row")):
+            res = _client.get("/m/nothing-here-00000000", headers=BROWSER, follow_redirects=False)
+        assert res.status_code == 302 and res.headers["location"] == "/"
+
+    def test_the_public_page_itself_is_still_served_to_browsers(self, static_site):
+        res = _client.get("/m?code=dads-song-abc12345", headers=BROWSER)
+        assert res.status_code == 200 and "PUBLIC-MEMORY-PAGE" in res.text
+
+    def test_the_existing_memory_page_rewrite_is_unchanged(self, static_site):
+        res = _client.get("/memory/some-slug-12345678", headers=BROWSER)
+        assert res.status_code == 200 and "MEMORY-APP-PAGE" in res.text
+
+    def test_api_style_requests_without_the_browser_accept_header_still_reach_the_route(self, static_site):
+        with _storage_env(), patch("tools.storage.get_recipe_by_slug", return_value=dict(_FULL_ROW)):
+            res = _client.get("/public/memory/dads-song-abc12345")
+        assert res.status_code == 200 and res.json()["title"] == "Dad's Song"
