@@ -168,3 +168,46 @@ def list_group_recipes(group_id: str, fallback_owner_id: str | None = None) -> l
         .execute()
         .data
     )
+
+
+def remove_user_from_groups(sb, user_id: str) -> None:
+    """Detach a user from every family group before their account is deleted.
+
+    Takes the Supabase client as an argument so it runs against the same
+    connection (and the same test double) as delete_account().
+
+    - Last member: the group is deleted outright (nothing left to keep).
+    - Other members remain: only the user's membership is removed, so the
+      family keeps its portal and invite links. If the user owned the group,
+      ownership passes to the next member — an admin first, then whoever
+      joined earliest — and that member is promoted to admin.
+
+    Safe to re-run after a partial failure: it only acts on what is left.
+    """
+    memberships = (
+        sb.table("family_group_members").select("group_id").eq("user_id", user_id).execute().data or []
+    )
+    owned = sb.table("family_groups").select("id").eq("owner_id", user_id).execute().data or []
+    group_ids = list(dict.fromkeys([m["group_id"] for m in memberships] + [g["id"] for g in owned]))
+
+    for gid in group_ids:
+        members = (
+            sb.table("family_group_members").select("user_id, role, joined_at").eq("group_id", gid).execute().data or []
+        )
+        others = [m for m in members if m["user_id"] != user_id]
+
+        sb.table("family_group_members").delete().eq("group_id", gid).eq("user_id", user_id).execute()
+
+        if not others:
+            sb.table("family_groups").delete().eq("id", gid).execute()
+            continue
+
+        group_rows = sb.table("family_groups").select("owner_id").eq("id", gid).execute().data or []
+        if group_rows and group_rows[0].get("owner_id") == user_id:
+            successor = sorted(
+                others, key=lambda m: (m.get("role") != "admin", str(m.get("joined_at") or ""))
+            )[0]
+            sb.table("family_groups").update({"owner_id": successor["user_id"]}).eq("id", gid).execute()
+            sb.table("family_group_members").update({"role": "admin"}).eq("group_id", gid).eq(
+                "user_id", successor["user_id"]
+            ).execute()

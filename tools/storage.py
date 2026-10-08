@@ -486,49 +486,126 @@ def delete_person(person_id: str) -> None:
 
 # ── Account deletion ──────────────────────────────────────────────────────────
 
-def delete_account(user_id: str) -> None:
-    """Delete ALL data for a user: audio files, recipe rows, people rows, auth user.
+class AccountDeletionIncomplete(Exception):
+    """Raised when account deletion could not finish.
 
-    Errors on individual steps are logged but do not halt the sequence —
-    partial deletion is safer than abandoning mid-way.
+    The login is deliberately kept in that case: everything that was left is
+    still keyed by user_id, so signing in again and retrying finishes the job.
+    Deleting the login first would strand that data with no way to remove it.
     """
+
+    def __init__(self, failures: list[str]):
+        self.failures = failures
+        super().__init__("account deletion incomplete: " + ", ".join(failures))
+
+
+def _storage_object_name(url: str, bucket: str) -> str | None:
+    """Object name inside `bucket` for one of this project's own storage URLs.
+
+    Returns None for anything else (an external image URL, an empty value) so
+    callers never try to delete a file this app doesn't own.
+    """
+    if not url or not url.startswith("http"):
+        return None
+    from urllib.parse import unquote, urlparse
+    path = urlparse(url).path
+    for marker in (f"/object/public/{bucket}/", f"/object/sign/{bucket}/"):
+        if marker in path:
+            name = unquote(path.split(marker, 1)[1]).strip("/")
+            return name or None
+    return None
+
+
+def _remove_in_chunks(sb, bucket: str, names: list[str], size: int = 100) -> None:
+    for i in range(0, len(names), size):
+        sb.storage.from_(bucket).remove(names[i:i + size])
+
+
+def delete_account(user_id: str, email: str | None = None, phone: str | None = None) -> None:
+    """Delete everything tied to a user, then the login itself.
+
+    Order matters. Files go first, while the rows that point at them still
+    exist, and any file failure stops the run before a row is touched so a
+    retry can still find them. Row deletions then each run independently so as
+    much as possible is removed in one pass. The login is deleted last, and
+    only if everything before it succeeded. Every step is safe to repeat.
+
+    email/phone are the user's own identifiers, used to remove the entries
+    other owners made when approving them as a viewer.
+
+    Raises AccountDeletionIncomplete listing what failed.
+    """
+    from tools.groups import remove_user_from_groups
+
     sb = _client()
 
-    # 1. Delete audio files from Storage for each recipe
-    recipes = (
-        sb.table("memories")
-        .select("token, audio_url")
-        .eq("user_id", user_id)
-        .order("recorded_at", desc=False)
-        .execute()
-        .data
-    )
-    for r in recipes:
-        audio = r.get("audio_url", "")
-        if audio:
-            try:
-                filename = _audio_filename(audio)
-                sb.storage.from_("audio").remove([filename])
-            except Exception as e:
-                _logger.warning(f"event=delete_account_audio_failed error={type(e).__name__} msg={e}")
-
-    # 2. Delete all recipe rows for this user
     try:
-        sb.table("memories").delete().eq("user_id", user_id).execute()
+        memories = sb.table("memories").select("token, audio_url, image_url").eq("user_id", user_id).execute().data or []
+        people = sb.table("people").select("photo_url").eq("user_id", user_id).execute().data or []
     except Exception as e:
-        _logger.error(f"event=delete_account_recipes_failed error={type(e).__name__} msg={e}")
+        _logger.error(f"event=delete_account_lookup_failed error={type(e).__name__} msg={e}")
+        raise AccountDeletionIncomplete(["could not read account data"]) from e
 
-    # 3. Delete all people rows for this user
-    try:
-        sb.table("people").delete().eq("user_id", user_id).execute()
-    except Exception as e:
-        _logger.error(f"event=delete_account_people_failed error={type(e).__name__} msg={e}")
+    # 1. Files in Storage: audio, plus photos in both image buckets.
+    files: dict[str, list[str]] = {"audio": [], "images": [], "memory-photos": []}
+    for m in memories:
+        if m.get("audio_url"):
+            files["audio"].append(_audio_filename(m["audio_url"]))
+    photo_urls = [m["image_url"] for m in memories if m.get("image_url")]
+    photo_urls += [p["photo_url"] for p in people if p.get("photo_url")]
+    for url in photo_urls:
+        for bucket in ("images", "memory-photos"):
+            name = _storage_object_name(url, bucket)
+            if name:
+                files[bucket].append(name)
+                break
 
-    # 4. Delete the Supabase auth user (service role required)
+    failures: list[str] = []
+    for bucket, names in files.items():
+        if not names:
+            continue
+        try:
+            _remove_in_chunks(sb, bucket, names)
+        except Exception as e:
+            _logger.error(f"event=delete_account_files_failed bucket={bucket} error={type(e).__name__} msg={e}")
+            failures.append(f"files in {bucket}")
+    if failures:
+        raise AccountDeletionIncomplete(failures)
+
+    # 2. Database rows. Each step is independent; collect failures and continue.
+    def attempt(label: str, fn) -> None:
+        try:
+            fn()
+        except Exception as e:
+            _logger.error(f"event=delete_account_step_failed step={label} error={type(e).__name__} msg={e}")
+            failures.append(label)
+
+    def delete_reactions_on_memories() -> None:
+        tokens = [m["token"] for m in memories if m.get("token")]
+        for i in range(0, len(tokens), 100):
+            sb.table("reactions").delete().in_("memory_token", tokens[i:i + 100]).execute()
+
+    attempt("reactions on your memories", delete_reactions_on_memories)
+    attempt("your reactions", lambda: sb.table("reactions").delete().eq("user_id", user_id).execute())
+    attempt("memories", lambda: sb.table("memories").delete().eq("user_id", user_id).execute())
+    attempt("people", lambda: sb.table("people").delete().eq("user_id", user_id).execute())
+    attempt("family groups", lambda: remove_user_from_groups(sb, user_id))
+    attempt("viewer invites you sent", lambda: sb.table("viewers").delete().eq("owner_user_id", user_id).execute())
+    if email:
+        attempt("viewer invites for your email", lambda: sb.table("viewers").delete().eq("email", email).execute())
+    if phone:
+        attempt("viewer invites for your phone", lambda: sb.table("viewers").delete().eq("phone", phone).execute())
+    attempt("profile", lambda: sb.table("profiles").delete().eq("user_id", user_id).execute())
+    attempt("usage counters", lambda: sb.table("rate_limits").delete().eq("user_id", user_id).execute())
+    if failures:
+        raise AccountDeletionIncomplete(failures)
+
+    # 3. The login, last.
     try:
         sb.auth.admin.delete_user(user_id)
     except Exception as e:
-        _logger.warning(f"event=delete_account_auth_failed error={type(e).__name__} msg={e}")
+        _logger.error(f"event=delete_account_auth_failed error={type(e).__name__} msg={e}")
+        raise AccountDeletionIncomplete(["login"]) from e
 
 
 def check_rate_limit_db(user_id: str, endpoint: str) -> int:

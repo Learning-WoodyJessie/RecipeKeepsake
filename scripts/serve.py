@@ -1278,12 +1278,24 @@ async def delete_person_endpoint(person_id: str, user: dict = Depends(require_au
 
 @app.delete("/account")
 async def delete_account_endpoint(user: dict = Depends(require_auth)):
-    """Permanently delete all data for the authenticated user."""
-    from tools.storage import delete_account
+    """Permanently delete all data for the authenticated user.
+
+    Only answers {"deleted": true} when everything — including the login — is
+    gone. If any step failed the login is kept so the user can retry, and the
+    response says so instead of reporting a success that did not happen.
+    """
+    from tools.storage import delete_account, AccountDeletionIncomplete
     user_id = _user_id(user)
     if not user_id:
         raise HTTPException(status_code=400, detail="Cannot identify user")
-    delete_account(user_id)
+    try:
+        delete_account(user_id, email=user.get("email"), phone=user.get("phone"))
+    except AccountDeletionIncomplete as e:
+        _logger.error(f"event=delete_account_incomplete user_id={user_id} failures={e.failures}")
+        raise HTTPException(
+            status_code=500,
+            detail="We couldn't finish deleting your account. Some data was removed and your account is still active. Please try again, or contact support if it keeps happening.",
+        )
     return JSONResponse(content={"deleted": True})
 
 
