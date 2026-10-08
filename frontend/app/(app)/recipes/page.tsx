@@ -958,7 +958,7 @@ export default function MemoriesPage() {
             </p>
             <p style={{ fontSize: '0.83rem', color: 'var(--muted)', lineHeight: 1.55 }}>
               {isAudioMode
-                ? 'Keep recording. Every song, every story, every moment — kept safe forever.'
+                ? 'Keep recording. Every song, every story, every moment, kept safe forever.'
                 : 'The more you capture, the richer the archive your family will cherish forever.'}
             </p>
           </div>

@@ -271,7 +271,7 @@ function CapturePageInner() {
         console.log('[capture] stop duration=%.1fs chunks=%d totalBytes=%d blobSize=%d blobType=%s kbps=%s',
           durationSec, chunksRef.current.length, totalBytes, blob.size, blob.type, kbps)
         if (blob.size < 1000) {
-          console.warn('[capture] blob suspiciously small — likely empty audio (android AudioContext interference?)')
+          console.warn('[capture] blob suspiciously small, likely empty audio (android AudioContext interference?)')
         }
         stream.getTracks().forEach(t => t.stop())
         streamRef.current = null

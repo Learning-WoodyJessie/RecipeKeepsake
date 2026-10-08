@@ -29,7 +29,7 @@ const WA_ICON = (
 )
 
 function CardShareButton({ token, title, type, top = 8, right = 38 }: { token: string; title: string | null; type?: string | null; top?: number; right?: number }) {
-  const text = title ? `${title} — shared from Echoes of Home` : 'Shared from Echoes of Home'
+  const text = title ? `${title}, shared from Echoes of Home` : 'Shared from Echoes of Home'
   const url = `${typeof window !== 'undefined' ? window.location.origin : ''}/memory?token=${token}`
   const waUrl = `https://wa.me/?text=${encodeURIComponent(text + '\n' + url)}`
   return (

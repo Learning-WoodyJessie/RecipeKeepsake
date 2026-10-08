@@ -458,7 +458,7 @@ class _SpaMiddleware(BaseHTTPMiddleware):
             if (url_path == "/join" or url_path == "/join/") and _is_bot(request):
                 invite_token = request.query_params.get("invite")
                 base = os.environ.get("NEXT_PUBLIC_APP_URL", "https://www.theechoesofhome.com")
-                og_title = "You've been invited to a family memory group — Echoes of Home"
+                og_title = "You've been invited to a family memory group | Echoes of Home"
                 og_desc = "Join your family's private archive of voices, recipes, and memories. Accept the invite to listen and share together."
                 og_image = f"{base}/og-image.png"
                 canonical = f"{base}/join{f'?invite={invite_token}' if invite_token else ''}"
@@ -682,7 +682,7 @@ async def memory_shortcode_redirect(shortcode: str, request: Request):
         mem_type = recipe.get("type") or "memory"
         type_labels = {"song": "song", "recipe": "recipe", "story": "story", "fable": "fable", "wisdom": "wisdom", "poem": "poem"}
         kind = type_labels.get(mem_type, "memory")
-        og_title = f"{title_val}{f' · {narrator}' if narrator else ''} — Echoes of Home"
+        og_title = f"{title_val}{f' · {narrator}' if narrator else ''} | Echoes of Home"
         og_desc = f"A family {kind} preserved forever. Listen and share with your family."
         og_image = recipe.get("image_url") or f"{base}/og-image.png"
         return HTMLResponse(content=_og_html(og_title, og_desc, og_image, share_url))
@@ -731,7 +731,7 @@ async def public_memory_pretty_link(shortcode: str, request: Request):
         mem_type = memory.get("type") or "memory"
         type_labels = {"song": "song", "recipe": "recipe", "story": "story", "fable": "fable", "wisdom": "wisdom", "poem": "poem"}
         kind = type_labels.get(mem_type, "memory")
-        og_title = f"{title_val}{f' · {narrator}' if narrator else ''} — Echoes of Home"
+        og_title = f"{title_val}{f' · {narrator}' if narrator else ''} | Echoes of Home"
         og_desc = f"A family {kind} preserved forever. Listen and share with your family."
         og_image = memory.get("image_url") or f"{base}/og-image.png"
         return HTMLResponse(content=_og_html(og_title, og_desc, og_image, destination))

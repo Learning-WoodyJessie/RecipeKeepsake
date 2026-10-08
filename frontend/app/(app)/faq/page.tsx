@@ -17,7 +17,7 @@ const FAQS = [
       },
       {
         q: 'How long can the recording be?',
-        a: 'Between 30 seconds and about 15 minutes works best. Very short clips may not have enough detail. Longer recordings can be split into parts — one memory per story or recipe.',
+        a: 'Between 30 seconds and about 15 minutes works best. Very short clips may not have enough detail. Longer recordings can be split into parts, one memory per story or recipe.',
       },
       {
         q: 'What if the recording quality is poor or there\'s background noise?',
@@ -34,7 +34,7 @@ const FAQS = [
     items: [
       {
         q: 'How do I invite family members to see my collection?',
-        a: 'After signing in, you\'ll be prompted to name your family collection. Once created, go to the Family Collection page in the sidebar — you\'ll find a Copy invite link button. Send that link to anyone you want to bring into your archive.',
+        a: 'After signing in, you\'ll be prompted to name your family collection. Once created, go to the Family Collection page in the sidebar. You\'ll find a Copy invite link button. Send that link to anyone you want to bring into your archive.',
       },
       {
         q: 'Does my family need to sign up to view memories?',
@@ -55,7 +55,7 @@ const FAQS = [
     items: [
       {
         q: 'What are the reactions on memories?',
-        a: 'Family members can react to any memory with 😊 Smiling, 🥹 Touched, 🏆 Proud, or 🙏 Grateful. Reactions are a quiet way to let someone know their memory meant something — no words needed.',
+        a: 'Family members can react to any memory with 😊 Smiling, 🥹 Touched, 🏆 Proud, or 🙏 Grateful. Reactions are a quiet way to let someone know their memory meant something, no words needed.',
       },
       {
         q: 'Can I see who reacted to a memory?',
@@ -85,7 +85,7 @@ const FAQS = [
     items: [
       {
         q: 'What if the transcription or content isn\'t right?',
-        a: 'For recipes, you can edit the title, ingredients, and steps before saving, and again afterwards from the memory page. The original audio is always preserved — nothing is ever lost.',
+        a: 'For recipes, you can edit the title, ingredients, and steps before saving, and again afterwards from the memory page. The original audio is always preserved. Nothing is ever lost.',
       },
       {
         q: 'Can I edit a memory after saving?',
@@ -106,7 +106,7 @@ const FAQS = [
     items: [
       {
         q: 'How do I add the people I\'m recording as narrators?',
-        a: 'Go to Our People in the sidebar. Add anyone whose voice you want to preserve — a parent, grandparent, aunt, uncle, or anyone close to you — with their name, relationship, and a photo. When recording, select their name so every memory is credited to the right person.',
+        a: 'Go to Our People in the sidebar. Add anyone whose voice you want to preserve (a parent, grandparent, aunt, uncle, or anyone close to you) with their name, relationship, and a photo. When recording, select their name so every memory is credited to the right person.',
       },
       {
         q: 'How do I sign in?',
@@ -114,7 +114,7 @@ const FAQS = [
       },
       {
         q: 'Is there a limit on how many memories I can save?',
-        a: 'You can save up to 20 memories per day. There is no cap on total memories stored — every voice deserves to be kept.',
+        a: 'You can save up to 20 memories per day. There is no cap on total memories stored. Every voice deserves to be kept.',
       },
     ],
   },

@@ -451,7 +451,7 @@ function MemoryDetail() {
       padding: '0.5rem 0.75rem', marginTop: '0.5rem', fontSize: '0.78rem',
     }}>
       <span style={{ color: 'var(--accent)', fontWeight: 600 }}>
-        {portalToast === 'added' ? 'Added to Family Collection ✓' : 'Removed — no longer visible to your family.'}
+        {portalToast === 'added' ? 'Added to Family Collection ✓' : 'Removed. No longer visible to your family.'}
       </span>
       {portalToast === 'added' && inviteUrl && (
         <button
@@ -494,7 +494,7 @@ function MemoryDetail() {
           Create your family collection
         </h2>
         <p style={{ margin: '0 0 1rem', fontSize: '0.85rem', color: 'var(--muted)', lineHeight: 1.6 }}>
-          Give it a name — this memory will be added to it right away, and you'll get an invite link to share.
+          Give it a name. This memory will be added to it right away, and you'll get an invite link to share.
         </p>
         {createGroupError && <p style={{ color: 'var(--accent)', fontSize: '0.8rem', marginBottom: '0.75rem' }}>{createGroupError}</p>}
         <input

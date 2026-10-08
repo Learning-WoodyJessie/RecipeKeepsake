@@ -220,7 +220,7 @@ function CassetteHero() {
 
 function friendlyError(e: string): string {
   if (e.includes('memory_cap_reached')) return e // handled separately
-  if (e.includes('UNAVAILABLE') || e.includes('high demand') || e.includes('503')) return 'AI transcription is temporarily at capacity — please try again in a moment.'
+  if (e.includes('UNAVAILABLE') || e.includes('high demand') || e.includes('503')) return 'AI transcription is temporarily at capacity. Please try again in a moment.'
   if (e.includes('unsupported_language') || e.includes('not supported')) return 'There was a problem processing this audio. Please try again.'
   if (e.includes('NoneType') || e.includes('empty transcription')) return 'We couldn\'t read this recording. Please try a different file or format.'
   if (e.includes('File too large') || e.includes('413')) return e // already user-friendly

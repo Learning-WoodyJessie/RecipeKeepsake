@@ -198,7 +198,7 @@ export default function ReviewWizard({ draft, audioFile, narrator: narratorProp,
                 Unlimited storage is coming soon. Drop us an email and we'll notify you the moment it's ready.
               </p>
               <a
-                href="mailto:support@theechoesofhome.com?subject=Unlimited memories — please notify me"
+                href="mailto:support@theechoesofhome.com?subject=Unlimited memories: please notify me"
                 style={{ display: 'inline-block', padding: '0.5rem 1.25rem', background: 'var(--accent)', color: 'white', borderRadius: 10, fontSize: '0.82rem', fontWeight: 700, textDecoration: 'none' }}
               >
                 Contact support
