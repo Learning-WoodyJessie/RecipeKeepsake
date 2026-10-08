@@ -171,7 +171,7 @@ function PublicMemoryPageInner() {
           background: 'var(--accent-light)', border: '1px solid rgba(24,107,94,0.2)', textAlign: 'center',
         }}>
           <p style={{ fontSize: '0.88rem', color: 'var(--text)', margin: '0 0 0.85rem', lineHeight: 1.5 }}>
-            Family voices, recipes, and stories — kept together in one private place. Part of the family? Sign in to see the rest.
+            Echoes of Home keeps family voices, recipes, and stories together in one private place. Have an account? Sign in.
           </p>
           <Link
             href={`/?next=${encodeURIComponent(`/m?code=${code}`)}`}
