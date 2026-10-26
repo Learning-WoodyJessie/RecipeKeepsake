@@ -7,6 +7,7 @@ import { api, type Person } from '@/lib/api'
 import { readFavorites, toggleFavorite } from '@/lib/favorites'
 import FavoriteHeart from '@/components/FavoriteHeart'
 import { SkeletonCard } from '@/components/Skeleton'
+import { buildPublicMemoryShareUrl } from '@/lib/url'
 
 type Memory = {
   token: string
@@ -16,6 +17,7 @@ type Memory = {
   image_url: string | null
   tags: string[] | null
   type?: string | null
+  slug?: string | null
   portal_visible?: boolean
 }
 
@@ -28,9 +30,10 @@ const WA_ICON = (
   </svg>
 )
 
-function CardShareButton({ token, title, type, top = 8, right = 38 }: { token: string; title: string | null; type?: string | null; top?: number; right?: number }) {
+function CardShareButton({ token, title, slug, top = 8, right = 38 }: { token: string; title: string | null; slug?: string | null; top?: number; right?: number }) {
   const text = title ? `${title}, shared from Echoes of Home` : 'Shared from Echoes of Home'
-  const url = `${typeof window !== 'undefined' ? window.location.origin : ''}/memory?token=${token}`
+  // The public link: anyone can open it. The in-app memory link only works for the owner and their family.
+  const url = buildPublicMemoryShareUrl(typeof window !== 'undefined' ? window.location.origin : 'https://www.theechoesofhome.com', slug, token)
   const waUrl = `https://wa.me/?text=${encodeURIComponent(text + '\n' + url)}`
   return (
     <button
@@ -150,7 +153,7 @@ function RecipeCard({ memory, isFav, onToggleFav, inCollection, onToggleCollecti
             : <BowlPlaceholder token={memory.token} />
           }
         </Link>
-        <CardShareButton token={memory.token} title={memory.title} type={memory.type} top={8} right={38} />
+        <CardShareButton token={memory.token} title={memory.title} slug={memory.slug} top={8} right={38} />
         <BookmarkToggle inCollection={inCollection} onToggle={e => { e.preventDefault(); onToggleCollection() }} />
         <FavoriteHeart favorite={isFav} onToggle={onToggleFav} size="0.85rem"
           style={{ position: 'absolute', top: 8, right: 8, width: 26, height: 26, borderRadius: '50%', background: 'rgba(255,255,255,0.9)', boxShadow: '0 2px 6px rgba(0,0,0,0.12)' }}
@@ -196,7 +199,7 @@ function MomentCard({ memory, isFav, onToggleFav, inCollection, onToggleCollecti
     >
       <div style={{ position: 'relative', aspectRatio: '4/3', overflow: 'hidden', flexShrink: 0 }}>
         <EqualizerPlaceholder />
-        <CardShareButton token={memory.token} title={memory.title} type={memory.type} top={8} right={38} />
+        <CardShareButton token={memory.token} title={memory.title} slug={memory.slug} top={8} right={38} />
         <BookmarkToggle inCollection={inCollection} onToggle={e => { e.preventDefault(); onToggleCollection() }} />
         <FavoriteHeart favorite={isFav} onToggle={onToggleFav} size="0.85rem"
           style={{ position: 'absolute', top: 8, right: 8, width: 26, height: 26, borderRadius: '50%', background: 'rgba(255,255,255,0.9)' }}

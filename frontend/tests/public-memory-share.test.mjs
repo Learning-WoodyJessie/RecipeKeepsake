@@ -71,9 +71,26 @@ test('buildPublicMemoryShareUrl and the old buildMemoryShortUrl both exist and p
 })
 
 test('every WhatsApp share call site uses the public builder, not the auth-gated one', () => {
-  for (const rel of ['../app/(app)/memory/page.tsx', '../app/(app)/moments/page.tsx', '../app/(app)/recipes/page.tsx']) {
+  for (const rel of ['../app/(app)/memory/page.tsx', '../app/(app)/moments/page.tsx', '../app/(app)/recipes/page.tsx', '../app/(app)/search/page.tsx']) {
     const src = read(rel)
     assert.match(src, /buildPublicMemoryShareUrl/, `${rel} should share the public link`)
     assert.doesNotMatch(src, /buildMemoryShortUrl/, `${rel} should not build the auth-gated link for new shares`)
   }
+})
+
+test('no share button hands out the sign-in-only /memory?token= link, which only the owner and their family can open', () => {
+  for (const rel of ['../app/(app)/search/page.tsx', '../app/(app)/moments/page.tsx', '../app/(app)/recipes/page.tsx']) {
+    const src = read(rel)
+    const share = src.slice(src.indexOf('function CardShareButton'), src.indexOf('function CardShareButton') + 900)
+    assert.ok(share.length > 100, `${rel} has a share button`)
+    assert.doesNotMatch(share, /\/memory\?token=/, `${rel} must not share the token link`)
+  }
+})
+
+test('the search cards pass the memory slug to the share button so the public link is the readable one', () => {
+  const src = read('../app/(app)/search/page.tsx')
+  assert.match(src, /slug\?: string \| null/)
+  const calls = src.match(/<CardShareButton [^>]*>/g) ?? []
+  assert.equal(calls.length, 2)
+  for (const call of calls) assert.match(call, /slug=\{memory\.slug\}/)
 })
