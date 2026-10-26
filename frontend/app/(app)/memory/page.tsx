@@ -11,6 +11,8 @@ import { supabase } from '@/lib/supabase'
 import AudioPlayer from '@/components/AudioPlayer'
 import ReactionBar from '@/components/ReactionBar'
 import LanguageSwitcher from '@/components/LanguageSwitcher'
+import MemoryUnavailable from '@/components/MemoryUnavailable'
+import { isNotFoundMessage } from '@/lib/memoryAccess'
 import { readFavorites, toggleFavorite as toggleFav } from '@/lib/favorites'
 import { buildMemoryShareMessage, toWhatsAppUrl } from '@/lib/share'
 import { buildPublicMemoryShareUrl } from '@/lib/url'
@@ -406,7 +408,7 @@ function MemoryDetail() {
       ))}
     </div>
   )
-  if (error) return <div style={{ padding: '2rem', color: 'var(--accent)' }}>{error}</div>
+  if (error) return isNotFoundMessage(error) ? <MemoryUnavailable error={error} /> : <div style={{ padding: '2rem', color: 'var(--accent)' }}>{error}</div>
   if (!memory || !display) return null
 
   // Ownership branch — until currentUserId resolves, default to the strictest
