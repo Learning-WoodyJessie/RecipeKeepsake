@@ -15,6 +15,8 @@ import sys
 import warnings
 from pathlib import Path
 
+from unittest.mock import AsyncMock, patch
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -133,3 +135,44 @@ class TestAvailabilityIsRememberedBriefly:
         assert len(calls) == 2
         cache.expire(); cache.get()
         assert len(calls) == 3
+
+
+class TestStartupMechanism:
+    """Starlette 1.x removed app.add_event_handler. A build that picked it up crashed the server on import
+    and Railway's health check rejected the deploy (2026-10-26). Startup must use a lifespan handler."""
+
+    def test_the_runner_is_started_and_stopped_with_the_server(self):
+        with patch.object(_job_runner, "start", new=AsyncMock()) as start, \
+             patch.object(_job_runner, "stop", new=AsyncMock()) as stop:
+            with TestClient(app):
+                start.assert_awaited_once()
+                stop.assert_not_awaited()
+            stop.assert_awaited_once()
+
+    def test_the_server_still_stops_cleanly_if_the_runner_fails_to_stop(self):
+        with patch.object(_job_runner, "start", new=AsyncMock()), \
+             patch.object(_job_runner, "stop", new=AsyncMock(side_effect=RuntimeError("boom"))):
+            with pytest.raises(RuntimeError):
+                with TestClient(app):
+                    pass
+
+    def test_no_removed_startup_hooks_are_used_anywhere(self):
+        for path in (ROOT / "scripts").glob("*.py"):
+            source = path.read_text()
+            for removed in ("add_event_handler(", ".on_event("):
+                assert removed not in source.replace("add_event_handler was removed", ""), f"{path.name} uses {removed}"
+
+
+class TestDependenciesArePinned:
+    """A fresh build must install exactly what the tests ran against, never 'whatever is newest'."""
+
+    def test_every_runtime_library_has_an_exact_version(self):
+        lines = [l.strip() for l in (ROOT / "requirements.txt").read_text().splitlines()
+                 if l.strip() and not l.lstrip().startswith("#")]
+        loose = [l for l in lines if "==" not in l and not l.startswith("pytest")]
+        assert loose == [], f"unpinned libraries: {loose}"
+
+    def test_the_libraries_the_server_actually_imports_are_all_pinned(self):
+        pinned = {l.split("==")[0].lower().replace("_", "-") for l in (ROOT / "requirements.txt").read_text().splitlines() if "==" in l}
+        for needed in ("fastapi", "starlette", "uvicorn", "pydantic", "openai", "google-genai", "supabase", "httpx", "pyjwt"):
+            assert needed in pinned, f"{needed} is not pinned"

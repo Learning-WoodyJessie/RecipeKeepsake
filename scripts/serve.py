@@ -24,7 +24,7 @@ import functools
 import os
 import tempfile
 import time
-from contextlib import contextmanager
+from contextlib import asynccontextmanager, contextmanager
 from typing import NoReturn
 import uuid
 from datetime import datetime, timezone
@@ -94,7 +94,22 @@ _ALLOWED_ORIGINS = os.environ.get(
 ).split(",")
 
 
-app = FastAPI(title="RecipeKeepsake API")
+@asynccontextmanager
+async def _lifespan(_app: FastAPI):
+    """Start and stop the background capture runner with the server.
+
+    Written as a lifespan handler because app.add_event_handler was removed in Starlette 1.x, which
+    crashed the server on import in production. The runner is resolved when the server starts, so it
+    can be defined further down this file. It does nothing unless background capture is configured.
+    """
+    await _job_runner.start()
+    try:
+        yield
+    finally:
+        await _job_runner.stop()
+
+
+app = FastAPI(title="RecipeKeepsake API", lifespan=_lifespan)
 
 _bearer = HTTPBearer(auto_error=False)
 
@@ -538,8 +553,6 @@ _job_runner = JobRunner(
 )
 _job_availability = Availability(_job_store.is_available)
 app.include_router(build_router(_job_deps, _job_store, _job_runner, availability=_job_availability))
-app.add_event_handler("startup", _job_runner.start)
-app.add_event_handler("shutdown", _job_runner.stop)
 
 
 _BOT_UA_FRAGMENTS = ("whatsapp", "facebookexternalhit", "twitterbot", "telegrambot", "linkedinbot", "slackbot", "discordbot")
