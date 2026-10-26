@@ -20,9 +20,12 @@ import json as _json
 import json as _json_stdlib
 import logging
 import contextvars
+import functools
 import os
 import tempfile
 import time
+from contextlib import contextmanager
+from typing import NoReturn
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -37,6 +40,8 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.staticfiles import StaticFiles
+from starlette.background import BackgroundTask
+from starlette.concurrency import run_in_threadpool
 from pydantic import BaseModel
 import httpx
 
@@ -44,7 +49,8 @@ from pipeline.transcribe import run_transcribe
 from pipeline.transform import run_transform, VALID_CATEGORIES
 from pipeline.persist import run_persist
 from pipeline.models import RecipeData
-from tools.storage import check_rate_limit_db
+from tools.storage import check_rate_limit_db, refund_rate_limit_db
+from tools.errors import classify_failure
 from prompts.translate_audio import translate_to_english
 from prompts.llm import OpenAIProvider
 from tools.config import load_config
@@ -116,6 +122,129 @@ def _check_memory_cap_or_raise(user_id: str) -> None:
     from tools.storage import count_memories, is_pro_user, FREE_MEMORY_LIMIT
     if not is_pro_user(user_id) and count_memories(user_id) >= FREE_MEMORY_LIMIT:
         raise HTTPException(status_code=403, detail="memory_cap_reached")
+
+
+# ── Quota that is handed back when the request fails ─────────────────────────
+
+_current_charge: contextvars.ContextVar = contextvars.ContextVar("current_charge", default=None)
+
+
+class _Charge:
+    """One unit of a user's daily quota, refundable exactly once."""
+
+    def __init__(self, user_id: str, endpoint: str):
+        self.user_id = user_id
+        self.endpoint = endpoint
+        self._refunded = False
+
+    def refund(self) -> None:
+        if self._refunded:
+            return
+        self._refunded = True
+        try:
+            refund_rate_limit_db(self.user_id, self.endpoint)
+        except Exception as e:  # a missed refund must never break the response
+            _logger.warning(f"event=quota_refund_failed error={type(e).__name__} msg={e}")
+
+
+@contextmanager
+def _quota(user_id: str, endpoint: str, limit: int):
+    """Charge one unit of today's quota. Hand it back if the body raises.
+
+    A provider outage (or a rejected upload, or the user hanging up) is not the
+    user's fault, so it must not cost them one of their daily captures. The
+    429 for being over the limit is raised before the charge exists, so it is
+    never refunded.
+    """
+    _check_rate_limit_db_or_raise(user_id, endpoint, limit)
+    charge = _Charge(user_id, endpoint)
+    token = _current_charge.set(charge)
+    try:
+        yield charge
+    except BaseException:
+        charge.refund()
+        raise
+    finally:
+        _current_charge.reset(token)
+
+
+def _refund_quota() -> None:
+    """Refund the charge of the request being served (for paths that cost us nothing)."""
+    charge = _current_charge.get()
+    if charge is not None:
+        charge.refund()
+
+
+def _with_quota(endpoint: str, limit_key: str):
+    """Decorator: run the endpoint inside _quota(). Keeps the endpoint's signature for FastAPI."""
+    def decorator(fn):
+        @functools.wraps(fn)
+        async def wrapper(*args, **kwargs):
+            with _quota(_user_id(kwargs["user"]), endpoint, _LIMITS[limit_key]):
+                return await fn(*args, **kwargs)
+        return wrapper
+    return decorator
+
+
+# ── Failures: friendly to the user, loud to the operator ─────────────────────
+
+class ServiceFailure(Exception):
+    """A server-side failure with a message that is safe to show to any user."""
+
+    def __init__(self, status_code: int, message: str, alert: tuple | None = None):
+        super().__init__(message)
+        self.status_code = status_code
+        self.message = message
+        self.alert = alert      # (key, subject, body) for the operator, or None
+
+
+def _send_operator_alert(key: str, subject: str, body: str) -> None:
+    from tools.alerts import send_alert
+    send_alert(key, subject, body)
+
+
+@app.exception_handler(ServiceFailure)
+async def _service_failure_handler(request: Request, exc: ServiceFailure):
+    # The alert rides on the response (BackgroundTask): raising an HTTPException
+    # would silently drop a task added any other way.
+    background = BackgroundTask(_send_operator_alert, *exc.alert) if exc.alert else None
+    return JSONResponse(status_code=exc.status_code, content={"detail": exc.message}, background=background)
+
+
+def _fail(exc: Exception, where: str, user_id: str = "") -> NoReturn:
+    """Turn any exception into a safe response; tell the operator when it needs a human.
+
+    Deliberate user-facing errors (HTTPException) pass through untouched.
+    """
+    if isinstance(exc, (HTTPException, ServiceFailure)):
+        raise exc
+    failure = classify_failure(exc)
+    _logger.error(f"event=request_failed where={where} kind={failure.kind} error={type(exc).__name__} msg={exc}")
+    alert = None
+    if failure.alert:
+        key = failure.kind if failure.kind.startswith("provider_") else f"{failure.kind}:{where}"
+        subject = f"Echoes of Home: {failure.kind.replace('_', ' ')} ({where})"
+        body = (
+            f"What: {failure.kind} while handling {where}\n"
+            f"User id: {user_id or 'unknown'}\n"
+            f"Request id: {_request_id.get('-')}\n"
+            f"Time (UTC): {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')}\n"
+            f"Error: {type(exc).__name__}: {str(exc)[:800]}\n\n"
+            "The user saw only a generic message. Check the Railway logs for this request id."
+        )
+        alert = (key, subject, body)
+    raise ServiceFailure(failure.status_code, failure.message, alert)
+
+
+# ── Who owns what ────────────────────────────────────────────────────────────
+
+def _owns(recipe: dict, user_id: str) -> bool:
+    """True only when the memory has an owner and it is this user.
+
+    A memory with no owner belongs to nobody. Treating "no owner" as "anyone may
+    touch it" let every signed-in user edit or delete such memories.
+    """
+    return bool(user_id) and recipe.get("user_id") == user_id
 
 
 # ── Upload safety ─────────────────────────────────────────────────────────────
@@ -782,7 +911,9 @@ def _can_read_recipe(recipe: dict, user: dict, user_id: str) -> bool:
     the owner approved you as a viewer.
     """
     owner_id = recipe.get("user_id")
-    if not owner_id or owner_id == user_id:
+    if not owner_id:
+        return False        # no owner means nobody may open it
+    if owner_id == user_id:
         return True
 
     try:
@@ -853,12 +984,12 @@ async def list_recipes_endpoint(user: dict = Depends(require_auth)):
 
 
 @app.post("/capture")
+@_with_quota("capture", "capture")
 async def capture_endpoint(audio: UploadFile = File(...), language: str = Form("auto"), user: dict = Depends(require_auth)):
     """
     Full pipeline: transcribe → translate → structure → image → save.
     Returns saved recipe JSON. Use /capture/process for review-before-save flow.
     """
-    _check_rate_limit_db_or_raise(_user_id(user), "capture", _LIMITS["capture"])
     _check_memory_cap_or_raise(_user_id(user))
     if not os.environ.get("OPENAI_API_KEY"):
         raise HTTPException(status_code=500, detail="OPENAI_API_KEY not set")
@@ -871,7 +1002,7 @@ async def capture_endpoint(audio: UploadFile = File(...), language: str = Form("
         tmp.write(data)
         tmp_path = tmp.name
 
-    try:
+    def _work():
         _logger.info(f"event=capture_start file={audio.filename}")
 
         transcript = run_transcribe(tmp_path, language=language)
@@ -917,9 +1048,11 @@ async def capture_endpoint(audio: UploadFile = File(...), language: str = Form("
 
         return JSONResponse(content=recipe)
 
+    try:
+        return await run_in_threadpool(_work)
     except Exception as e:
         _logger.error(f"event=capture_failed stage=persist error={type(e).__name__} msg={e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        _fail(e, "capture", _user_id(user))
     finally:
         try:
             os.unlink(tmp_path)
@@ -928,6 +1061,7 @@ async def capture_endpoint(audio: UploadFile = File(...), language: str = Form("
 
 
 @app.post("/capture/process")
+@_with_quota("capture", "capture")
 async def capture_process_endpoint(
     audio: UploadFile = File(...),
     language: str = Form("auto"),
@@ -938,7 +1072,6 @@ async def capture_process_endpoint(
     Does NOT save to Supabase. Returns structured JSON for client review.
     Client calls /capture/save after user edits.
     """
-    _check_rate_limit_db_or_raise(_user_id(user), "capture", _LIMITS["capture"])
     if not os.environ.get("OPENAI_API_KEY"):
         raise HTTPException(status_code=500, detail="OPENAI_API_KEY not set")
 
@@ -950,7 +1083,7 @@ async def capture_process_endpoint(
         tmp.write(data)
         tmp_path = tmp.name
 
-    try:
+    def _work():
         _logger.info(f"event=process_start file={audio.filename}")
 
         transcript = run_transcribe(tmp_path, language=language)
@@ -977,9 +1110,11 @@ async def capture_process_endpoint(
         _logger.info(f"event=process_done dish={recipe_data.title}")
         return JSONResponse(content=result)
 
+    try:
+        return await run_in_threadpool(_work)
     except Exception as e:
         _logger.error(f"event=process_failed error={type(e).__name__} msg={e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        _fail(e, "capture/process", _user_id(user))
     finally:
         try:
             os.unlink(tmp_path)
@@ -1015,7 +1150,7 @@ async def capture_save_endpoint(
         tmp.write(data)
         tmp_path = tmp.name
 
-    try:
+    def _work():
         # Rebuild a RecipeData from the client-edited dict
         raw_category = recipe_dict.get("category", "Other")
         recipe_data = RecipeData(
@@ -1052,9 +1187,11 @@ async def capture_save_endpoint(
         _logger.info(f"event=save_done id={saved.id} user_id={_user_id(user)}")
         return JSONResponse(content=result)
 
+    try:
+        return await run_in_threadpool(_work)
     except Exception as e:
         _logger.error(f"event=save_failed error={type(e).__name__} msg={e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        _fail(e, "capture/save", _user_id(user))
     finally:
         try:
             os.unlink(tmp_path)
@@ -1102,7 +1239,8 @@ async def save_audio_endpoint(
             tmp_path = tmp.name
         audio_filename = f"{uuid.uuid4()}{suffix}"
 
-    try:
+    def _work():
+        nonlocal audio_filename
         from tools.storage import upload_audio, insert_recipe, _sign_audio, _client as _sb
 
         tags = ["tale"]
@@ -1152,9 +1290,11 @@ async def save_audio_endpoint(
             "transcript_english": transcript_english,
         })
 
+    try:
+        return await run_in_threadpool(_work)
     except Exception as e:
         _logger.error(f"event=save_audio_failed error={type(e).__name__} msg={e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        _fail(e, "save-audio", _user_id(user))
     finally:
         if tmp_path:
             try:
@@ -1183,30 +1323,38 @@ async def save_text_endpoint(body: SaveTextRequest, user: dict = Depends(require
     if body.memory_type not in _VALID_MEMORY_TYPES:
         raise HTTPException(status_code=400, detail=f"invalid memory_type: {body.memory_type}")
 
-    _check_rate_limit_db_or_raise(user_id, "capture", _LIMITS["capture"])
+    # Charged only once the input is known to be valid; handed back if saving fails.
+    with _quota(user_id, "capture", _LIMITS["capture"]):
+        return await _save_text(body, user_id)
 
-    from tools.storage import insert_recipe
 
-    english = ""
-    try:
+async def _save_text(body: SaveTextRequest, user_id: str):
+    from tools.storage import insert_recipe, ensure_person_exists
+
+    def _translate() -> str:
         config = load_config()
         model = config["llm"].get("translate_model", config["llm"]["model"])
         provider = OpenAIProvider(model=model)
-        english = translate_to_english(body.text.strip(), provider)
+        return translate_to_english(body.text.strip(), provider)
+
+    english = ""
+    try:
+        english = await run_in_threadpool(_translate)
     except Exception:
-        pass
+        pass    # the English translation is optional; the memory is still saved
 
-    row = insert_recipe({
-        "title": body.title.strip(),
-        "narrator": body.narrator.strip() or None,
-        "transcript_raw": body.text.strip(),
-        "transcript_english": english,
-        "type": body.memory_type,
-        "user_id": user_id,
-    })
-
-    from tools.storage import ensure_person_exists
-    ensure_person_exists(user_id, body.narrator)
+    try:
+        row = await run_in_threadpool(insert_recipe, {
+            "title": body.title.strip(),
+            "narrator": body.narrator.strip() or None,
+            "transcript_raw": body.text.strip(),
+            "transcript_english": english,
+            "type": body.memory_type,
+            "user_id": user_id,
+        })
+        await run_in_threadpool(ensure_person_exists, user_id, body.narrator)
+    except Exception as e:
+        _fail(e, "save-text", user_id)
 
     return JSONResponse(content={
         "token": row["token"],
@@ -1543,12 +1691,17 @@ class ImageRequest(BaseModel):
 
 
 @app.post("/generate-image")
+@_with_quota("generate-image", "generate-image")
 async def generate_image_endpoint(body: ImageRequest, user: dict = Depends(require_auth)):
     """Generate a DALL-E image for a dish. Accepts full recipe fields for enriched prompt."""
-    _check_rate_limit_db_or_raise(_user_id(user), "generate-image", _LIMITS["generate-image"])
     if not os.environ.get("OPENAI_API_KEY"):
         raise HTTPException(status_code=500, detail="OPENAI_API_KEY not set")
-    url = _generate_image(body.title, ingredients=body.ingredients, steps=body.steps, cook_notes=body.cook_notes)
+    url = await run_in_threadpool(
+        _generate_image, body.title,
+        ingredients=body.ingredients, steps=body.steps, cook_notes=body.cook_notes,
+    )
+    if not url:
+        _refund_quota()      # no image was produced, so the attempt costs the user nothing
     return JSONResponse(content={"image_url": url})
 
 
@@ -1580,13 +1733,13 @@ async def patch_recipe_endpoint(token: str, body: PatchRecipeRequest, user: dict
     user_id = _user_id(user)
     if not user_id:
         raise HTTPException(status_code=403, detail="Cannot identify user")
-    if recipe.get("user_id") and recipe["user_id"] != user_id:
+    if not _owns(recipe, user_id):
         raise HTTPException(status_code=403, detail="Not your recipe")
     try:
-        updated = patch_recipe(token, fields)
+        updated = await run_in_threadpool(patch_recipe, token, fields)
         return JSONResponse(content=updated)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        _fail(e, "recipe/patch", user_id)
 
 
 @app.delete("/recipe/{token}")
@@ -1602,13 +1755,13 @@ async def delete_recipe_endpoint(token: str, user: dict = Depends(require_auth))
     user_id = _user_id(user)
     if not user_id:
         raise HTTPException(status_code=403, detail="Cannot identify user")
-    if recipe.get("user_id") and recipe["user_id"] != user_id:
+    if not _owns(recipe, user_id):
         raise HTTPException(status_code=403, detail="Not your recipe")
     try:
-        delete_recipe(token)
+        await run_in_threadpool(delete_recipe, token)
         return JSONResponse(content={"deleted": token})
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        _fail(e, "recipe/delete", user_id)
 
 
 @app.post("/memories/{token}/photo")
@@ -1629,12 +1782,15 @@ async def upload_memory_photo_endpoint(
     except Exception:
         raise HTTPException(status_code=404, detail="Memory not found")
 
-    if recipe.get("user_id") != _user_id(user):
+    if not _owns(recipe, _user_id(user)):
         raise HTTPException(status_code=403, detail="Not your memory")
 
     content_type = photo.content_type or "image/jpeg"
-    image_url = upload_memory_photo(data, content_type)
-    patch_recipe(token, {"image_url": image_url})
+    try:
+        image_url = await run_in_threadpool(upload_memory_photo, data, content_type)
+        await run_in_threadpool(patch_recipe, token, {"image_url": image_url})
+    except Exception as e:
+        _fail(e, "memory/photo", _user_id(user))
 
     return JSONResponse(content={"image_url": image_url})
 
@@ -1643,6 +1799,7 @@ _TRANSLATE_SUPPORTED = {"en", "te", "hi", "kn", "es", "fr"}
 
 
 @app.get("/recipe/{token}/translate")
+@_with_quota("translate", "translate")
 async def translate_recipe_endpoint(token: str, lang: str = "en", force: bool = False, user: dict = Depends(require_auth)):
     """
     Return recipe fields translated into the requested language.
@@ -1652,7 +1809,6 @@ async def translate_recipe_endpoint(token: str, lang: str = "en", force: bool = 
     fields directly — no LLM call.
     Pass ?force=true to bypass cache and re-translate (useful after prompt fixes).
     """
-    _check_rate_limit_db_or_raise(_user_id(user), "translate", _LIMITS["translate"])
     lang = lang.lower()
     if lang not in _TRANSLATE_SUPPORTED:
         raise HTTPException(status_code=400, detail=f"Unsupported language: {lang}")
@@ -1669,11 +1825,12 @@ async def translate_recipe_endpoint(token: str, lang: str = "en", force: bool = 
         recipe = get_recipe_by_token(token)
     except Exception:
         raise HTTPException(status_code=404, detail="Recipe not found")
-    if recipe.get("user_id") and recipe["user_id"] != _user_id(user):
+    if not _owns(recipe, _user_id(user)):
         raise HTTPException(status_code=404, detail="Recipe not found")
 
     # English is always available — return stored fields directly, no LLM call
     if lang == "en":
+        _refund_quota()      # no AI work was done, so it must not eat the daily translate quota
         return JSONResponse(content={
             "lang": "en",
             "title": recipe.get("title", ""),
@@ -1688,6 +1845,7 @@ async def translate_recipe_endpoint(token: str, lang: str = "en", force: bool = 
             cached = get_cached_translation(token, lang)
             if cached:
                 _logger.info(f"event=translation_cache_hit lang={lang} token={token}")
+                _refund_quota()      # served from cache: no AI cost
                 return JSONResponse(content={"lang": lang, **cached})
         except Exception as e:
             _logger.warning(f"event=translation_cache_read_error error={type(e).__name__} msg={e}")
@@ -1711,11 +1869,11 @@ async def translate_recipe_endpoint(token: str, lang: str = "en", force: bool = 
 
     t_llm = time.perf_counter()
     try:
-        translated = translate_recipe_fields(fields, lang, provider)
+        translated = await run_in_threadpool(translate_recipe_fields, fields, lang, provider)
         _logger.info(f"event=translation_llm_done lang={lang} duration={time.perf_counter()-t_llm:.2f}s")
     except Exception as e:
         _logger.error(f"event=translation_llm_error error={type(e).__name__} msg={e}")
-        raise HTTPException(status_code=500, detail=f"Translation failed: {e}")
+        _fail(e, "recipe/translate", _user_id(user))
 
     # Write to cache — non-fatal, don't fail the request if Supabase write fails
     try:

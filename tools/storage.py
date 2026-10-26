@@ -6,6 +6,7 @@ import mimetypes
 import tempfile
 import unicodedata
 import uuid as _uuid
+from datetime import datetime, timezone
 from pathlib import Path
 from supabase import create_client, Client
 import httpx
@@ -624,6 +625,40 @@ def check_rate_limit_db(user_id: str, endpoint: str) -> int:
     except Exception as e:
         _logger.warning(f"event=rate_limit_db_error error={type(e).__name__} msg={e}")
         return 0
+
+
+def refund_rate_limit_db(user_id: str, endpoint: str) -> None:
+    """Give back one unit of today's quota after a request failed through no fault of the user.
+
+    Never raises: a missed refund must not turn a handled failure into a crash.
+    Uses the `decrement_rate_limit` function (migration 005); if that is not
+    installed yet, falls back to a read-then-write, which is not atomic but is
+    good enough for a rare refund.
+    """
+    try:
+        _client().rpc(
+            "decrement_rate_limit",
+            {"p_user_id": user_id, "p_endpoint": endpoint},
+        ).execute()
+        return
+    except Exception as e:
+        _logger.warning(f"event=rate_limit_refund_rpc_error error={type(e).__name__} msg={e}")
+    try:
+        sb = _client()
+        today = datetime.now(timezone.utc).date().isoformat()
+        rows = (
+            sb.table("rate_limits").select("count")
+            .eq("user_id", user_id).eq("endpoint", endpoint).eq("date", today)
+            .execute().data or []
+        )
+        if rows and rows[0].get("count", 0) > 0:
+            (
+                sb.table("rate_limits").update({"count": rows[0]["count"] - 1})
+                .eq("user_id", user_id).eq("endpoint", endpoint).eq("date", today)
+                .execute()
+            )
+    except Exception as e:
+        _logger.warning(f"event=rate_limit_refund_failed error={type(e).__name__} msg={e}")
 
 
 # ── Viewer role (Phase 5, Epic 16) ────────────────────────────────────────────
