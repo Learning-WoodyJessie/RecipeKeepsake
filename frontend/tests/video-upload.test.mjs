@@ -16,20 +16,16 @@ const read = (rel) => readFileSync(path.join(root, rel), 'utf8')
 const MB = 1024 * 1024
 const f = (name, size, type = '') => ({ name, size, type })
 
-test('iPhone style .mov and .m4v always go the video way, in any case and any size', () => {
+test('phone video formats .mov, .m4v and .mp4 always go the video way, in any case and any size', () => {
   assert.equal(isVideoUpload(f('clip.mov', 1 * MB, 'video/quicktime')), true)
   assert.equal(isVideoUpload(f('CLIP.MOV', 90 * MB)), true)
   assert.equal(isVideoUpload(f('clip.m4v', 2 * MB)), true)
+  assert.equal(isVideoUpload(f('WhatsApp Video.mp4', 15 * MB, 'video/mp4')), true)
+  assert.equal(isVideoUpload(f('short.mp4', 300 * 1024, 'video/mp4')), true)
+  assert.equal(isVideoUpload(f('clip.MP4', 150 * MB, '')), true)
 })
 
-test('an .mp4 stays on the audio path unless it is too big for audio, so what works today is unchanged', () => {
-  assert.equal(isVideoUpload(f('voice.mp4', 5 * MB, 'video/mp4')), false)
-  assert.equal(isVideoUpload(f('voice.mp4', 25 * MB, 'video/mp4')), false)
-  assert.equal(isVideoUpload(f('clip.mp4', 25 * MB + 1, 'video/mp4')), true)
-  assert.equal(isVideoUpload(f('clip.mp4', 150 * MB, '')), true)
-})
-
-test('audio files never go the video way, however big', () => {
+test('audio files never go the video way, however big (voice recordings are .m4a, not .mp4)', () => {
   for (const name of ['a.m4a', 'a.mp3', 'a.wav', 'a.webm', 'a.ogg', 'a.aac', 'a.flac', 'a.opus', 'noextension'])
     assert.equal(isVideoUpload(f(name, 300 * MB, 'audio/mpeg')), false, name)
 })

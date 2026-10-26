@@ -174,9 +174,9 @@ Added after the audio flow shipped, as a separate path so audio cannot be affect
 - Same rules as audio: background capture switch, memory cap, one daily capture charged and refunded on failure,
   idempotent `client_request_id`. An unreadable video, or one with no sound, fails with a plain message and no charge.
 - `VIDEO_MAX_CONCURRENT` (default 1) conversions at once, 3 more may wait, beyond that "busy, try again in a minute".
-- Website: the picker offers video only on the recipe tab for people with background capture. `.mov` and `.m4v` always go
-  this way; an `.mp4` only when it is too big for the 25 MB audio limit, so anything that works as audio today is
-  unchanged. People are told that only the sound is kept, before and during the upload.
+- Website: the picker offers video only on the recipe tab for people with background capture. `.mov`, `.m4v` and
+  `.mp4` go this way (voice recordings are `.m4a`, so an `.mp4` picked here is a video, e.g. from WhatsApp); every audio
+  format goes the audio way, unchanged. People are told that only the sound is kept, before and during the upload.
 - Checked with real ffmpeg and a real server process: a 91 MB upload was accepted in about 1.5 s with no growth in
   server memory; a 217 MB one was refused in 3 ms without being read; no temporary files were left behind.
 

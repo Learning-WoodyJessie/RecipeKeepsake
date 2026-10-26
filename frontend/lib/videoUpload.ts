@@ -3,7 +3,6 @@
 // tests/video-upload.test.mjs ties the messages below to what the server really sends.
 
 const MB = 1024 * 1024
-const AUDIO_MAX_BYTES = 25 * MB
 export const VIDEO_MAX_BYTES = 200 * MB
 
 export const VIDEO_ACCEPT = 'video/mp4,video/quicktime,video/x-m4v,.mov,.m4v'
@@ -16,14 +15,13 @@ function extensionOf(name: string): string {
 }
 
 /**
- * Should this file go the video way? Only files that cannot be handled as audio today:
- * phone .mov/.m4v always, and an .mp4 that is too big for the audio limit. Everything that
- * already works as an audio upload keeps going the audio way, exactly as before.
+ * Should this file go the video way? Phone video formats: .mov, .m4v and .mp4. Voice recordings are
+ * .m4a, so an .mp4 picked here is a video (WhatsApp, camera roll); sending it the video way keeps only
+ * its sound, as the screen says. Every audio format keeps going the audio way, exactly as before.
  */
 export function isVideoUpload(file: PickedFile): boolean {
   const ext = extensionOf(file.name)
-  if (ext === '.mov' || ext === '.m4v') return true
-  return ext === '.mp4' && file.size > AUDIO_MAX_BYTES
+  return ext === '.mov' || ext === '.m4v' || ext === '.mp4'
 }
 
 export function videoTooLarge(file: PickedFile): boolean {
