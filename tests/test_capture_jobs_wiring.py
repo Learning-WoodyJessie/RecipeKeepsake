@@ -29,6 +29,7 @@ GOLDEN = json.loads((ROOT / "tests/golden/api_surface_2026-10-26.json").read_tex
 NEW_ENDPOINTS = {
     "GET /features", "GET /capture/jobs", "POST /capture/jobs", "GET /capture/jobs/{job_id}",
     "POST /capture/jobs/{job_id}/save", "POST /capture/jobs/{job_id}/retry", "DELETE /capture/jobs/{job_id}",
+    "POST /capture/jobs/video",
 }
 _client = TestClient(app)
 AUTH = {"Authorization": "Bearer x"}
@@ -64,14 +65,14 @@ class TestExistingApiIsUnchanged:
         assert missing == [], f"endpoints that disappeared: {missing}"
         assert changed == [], f"endpoints whose contract changed: {changed}"
 
-    def test_the_only_additions_are_the_background_capture_endpoints(self):
+    def test_the_only_additions_are_the_background_capture_and_video_endpoints(self):
         added = set(current_surface()) - set(GOLDEN)
         assert added == NEW_ENDPOINTS
 
 
 class TestFeatureOff:
     NEW_PATHS = [("get", "/capture/jobs"), ("get", "/capture/jobs/abc"), ("delete", "/capture/jobs/abc"),
-                 ("post", "/capture/jobs/abc/retry")]
+                 ("post", "/capture/jobs/abc/retry"), ("post", "/capture/jobs/video")]
 
     def test_features_says_no(self):
         sign_in()

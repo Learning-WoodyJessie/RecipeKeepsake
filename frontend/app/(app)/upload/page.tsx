@@ -12,6 +12,10 @@ import SingleScreenReview from '@/components/SingleScreenReview'
 import { api } from '@/lib/api'
 import { isFileProblemMessage, isServerSafeMessage } from '@/lib/serverMessages'
 import { exampleFor } from '@/lib/memoryExamples'
+import {
+  isVideoUpload, isVideoProblemMessage, videoTooLarge, VIDEO_ACCEPT, VIDEO_HINT, VIDEO_TOO_LARGE_MESSAGE,
+  VIDEO_PROCESSING_TITLE, VIDEO_PROCESSING_NOTE,
+} from '@/lib/videoUpload'
 import { newClientRequestId } from '@/lib/captureJobs'
 import { captureJobsEnabled } from '@/lib/useCaptureJobs'
 
@@ -230,6 +234,7 @@ function friendlyError(e: string): string {
   if (FORM_PROBLEMS.includes(e)) return e // a missing field, said plainly by this page
   if (isServerSafeMessage(e)) return e // the server already wrote this for the user
   if (isFileProblemMessage(e)) return e // says what is wrong with the chosen file
+  if (isVideoProblemMessage(e)) return e // says what is wrong with the chosen video
   if (e.includes('UNAVAILABLE') || e.includes('high demand') || e.includes('503')) return 'AI transcription is temporarily at capacity. Please try again in a moment.'
   if (e.includes('unsupported_language') || e.includes('not supported')) return 'There was a problem processing this audio. Please try again.'
   if (e.includes('NoneType') || e.includes('empty transcription')) return 'We couldn\'t read this recording. Please try a different file or format.'
@@ -250,6 +255,12 @@ export default function UploadPage() {
     if (m === 'text') setMode('text')
     else if (m === 'direct') setMode('direct')
   }, [searchParams])
+
+  useEffect(() => {
+    let alive = true
+    captureJobsEnabled().then((on) => { if (alive) setVideoOk(on) })
+    return () => { alive = false }
+  }, [])
   const [memoryType, setMemoryType] = useState<string>('song')
   const language = 'te'
   const [narrator, setNarrator] = useState('')
@@ -260,6 +271,8 @@ export default function UploadPage() {
   const [directReview, setDirectReview] = useState<{ token: string; transcriptRaw: string; transcriptEnglish: string } | null>(null)
   const [textContent, setTextContent] = useState('')
   const [processing, setProcessing] = useState(false)
+  const [videoOk, setVideoOk] = useState(false)               // videos are accepted for people with background capture
+  const [uploadingVideo, setUploadingVideo] = useState(false)
   const [error, setError] = useState('')
   const [dragOver, setDragOver] = useState(false)
   const [photoFile, setPhotoFile] = useState<File | null>(null)
@@ -283,20 +296,28 @@ export default function UploadPage() {
     // Background capture, for users it is switched on for: upload once and carry on. Anything else
     // (feature off, or the status check failing) falls straight through to the original flow.
     if (await captureJobsEnabled()) {
+      const asVideo = isVideoUpload(file)
+      if (asVideo && videoTooLarge(file)) {
+        setError(VIDEO_TOO_LARGE_MESSAGE)
+        setProcessing(false)
+        return
+      }
+      setUploadingVideo(asVideo)
       const jobForm = new FormData()
-      jobForm.append('audio', file)
+      jobForm.append(asVideo ? 'video' : 'audio', file)
       jobForm.append('language', language)
       if (uploadRef.current?.file !== file) uploadRef.current = { file, id: newClientRequestId() }
       jobForm.append('client_request_id', uploadRef.current.id)
       if (narrator) jobForm.append('narrator', narrator)
       try {
-        await api.captureJobs.create(jobForm)
+        await (asVideo ? api.captureJobs.createFromVideo(jobForm) : api.captureJobs.create(jobForm))
         uploadRef.current = null
         router.push('/home')
       } catch (e: unknown) {
         setError((e as Error).message)
       } finally {
         setProcessing(false)
+        setUploadingVideo(false)
       }
       return
     }
@@ -696,7 +717,7 @@ export default function UploadPage() {
           >
             <input
               type="file"
-              accept="audio/*,.mp3,.mp4,.m4a,.wav,.webm,.ogg,.oga,.opus,.flac,.aac,.aiff"
+              accept={`audio/*,.mp3,.mp4,.m4a,.wav,.webm,.ogg,.oga,.opus,.flac,.aac,.aiff${mode === 'ai' && videoOk ? `,${VIDEO_ACCEPT}` : ''}`}
               style={{ display: 'none' }}
               disabled={processing}
               onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f) }}
@@ -704,10 +725,10 @@ export default function UploadPage() {
             {processing ? (
               <div>
                 <p style={{ fontSize: '1.1rem', color: 'var(--text2)', marginBottom: '0.5rem' }}>
-                  {mode === 'direct' ? '♪ Saving your keepsake…' : '✨ Listening carefully…'}
+                  {mode === 'direct' ? '♪ Saving your keepsake…' : uploadingVideo ? VIDEO_PROCESSING_TITLE : '✨ Listening carefully…'}
                 </p>
                 <p style={{ fontSize: '0.82rem', color: 'var(--muted)' }}>
-                  {mode === 'direct' ? 'Your audio is being preserved, just a moment' : 'Transcribing, translating, and structuring, about 30–60 seconds'}
+                  {mode === 'direct' ? 'Your audio is being preserved, just a moment' : uploadingVideo ? VIDEO_PROCESSING_NOTE : 'Transcribing, translating, and structuring, about 30–60 seconds'}
                 </p>
               </div>
             ) : (
@@ -727,6 +748,9 @@ export default function UploadPage() {
                 <p style={{ fontSize: '0.78rem', color: 'var(--accent)', fontWeight: 500 }}>
                   {mode === 'direct' ? '♪ Kept exactly as it is, a gift for the family' : '✦ Best results with clear voice recordings'}
                 </p>
+                {mode === 'ai' && videoOk && (
+                  <p style={{ fontSize: '0.78rem', color: 'var(--muted)', marginTop: '0.5rem' }}>{VIDEO_HINT}</p>
+                )}
               </>
             )}
           </label>

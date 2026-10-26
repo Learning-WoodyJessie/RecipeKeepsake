@@ -163,6 +163,23 @@ Unset `CAPTURE_JOBS_ENABLED` and `CAPTURE_JOBS_ALLOWLIST` and let Railway redepl
 original flow immediately. Jobs already in flight are not lost: drafts stay on the Home card only while the
 feature is on, remain in the table, and are swept after 14 days (or removed with the account).
 
+## Video upload (sound only)
+
+Added after the audio flow shipped, as a separate path so audio cannot be affected.
+
+- `POST /capture/jobs/video` (`scripts/capture_video_api.py`, `tools/video.py`): accepts `.mp4`, `.mov`, `.m4v`, up to
+  `VIDEO_MAX_MB` (default 200). ffmpeg keeps only the sound as a mono MP3; that MP3 is stored and an ordinary job is
+  created for it. The video itself is never stored; the temporary folder is always removed.
+- Everything after job creation (worker, transcription, review, save, playback, retention) is the unchanged audio code.
+- Same rules as audio: background capture switch, memory cap, one daily capture charged and refunded on failure,
+  idempotent `client_request_id`. An unreadable video, or one with no sound, fails with a plain message and no charge.
+- `VIDEO_MAX_CONCURRENT` (default 1) conversions at once, 3 more may wait, beyond that "busy, try again in a minute".
+- Website: the picker offers video only on the recipe tab for people with background capture. `.mov` and `.m4v` always go
+  this way; an `.mp4` only when it is too big for the 25 MB audio limit, so anything that works as audio today is
+  unchanged. People are told that only the sound is kept, before and during the upload.
+- Checked with real ffmpeg and a real server process: a 91 MB upload was accepted in about 1.5 s with no growth in
+  server memory; a 217 MB one was refused in 3 ms without being read; no temporary files were left behind.
+
 ## Known limits
 
 - One server process is assumed for crash recovery: at startup, a job `processing` for more than two

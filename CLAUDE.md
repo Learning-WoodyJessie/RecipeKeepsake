@@ -250,3 +250,5 @@ Classes and key functions should have similar docstrings. This ensures maintaina
 | `CAPTURE_JOBS_ALLOWLIST` | Optional. Comma-separated emails or user ids who get background capture (upload once, review later). Unset = nobody |
 | `CAPTURE_JOBS_ENABLED` | Optional. `true` turns background capture on for everyone. Unset = off. See `docs/plans/2026-10-26-capture-jobs-design.md` |
 | `CAPTURE_JOBS_MAX_CONCURRENT` | Optional. How many captures the server processes at once (default 3) |
+| `VIDEO_MAX_MB` | Optional. Largest video accepted by `POST /capture/jobs/video`, in MB (default 200). Only the sound is kept |
+| `VIDEO_MAX_CONCURRENT` | Optional. How many videos are converted to audio at once (default 1) |

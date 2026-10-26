@@ -124,6 +124,11 @@ export const api = {
       const data = (await authFetch('/capture/jobs', { method: 'POST', body: formData })) as { job: CaptureJob }
       return data.job
     },
+    // A video: the server keeps only its sound. A separate call so the audio one above is untouched.
+    async createFromVideo(formData: FormData): Promise<CaptureJob> {
+      const data = (await authFetch('/capture/jobs/video', { method: 'POST', body: formData })) as { job: CaptureJob }
+      return data.job
+    },
     async list(): Promise<CaptureJob[]> {
       const data = (await authFetch('/capture/jobs')) as { jobs?: CaptureJob[] }
       return Array.isArray(data.jobs) ? data.jobs : []
