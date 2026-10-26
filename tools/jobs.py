@@ -70,6 +70,15 @@ class CaptureJobStore:
             query = query.in_(column, list(value)) if isinstance(value, tuple) else query.eq(column, value)
         return query.execute().data or []
 
+    def is_available(self) -> bool:
+        """Can jobs be stored right now? False until migration 006 has been run, or while the database is failing."""
+        try:
+            self._table().select("id").limit(1).execute()
+            return True
+        except Exception as exc:
+            _logger.warning(f"event=capture_jobs_unavailable error={type(exc).__name__} msg={exc}")
+            return False
+
     # -- create / read ---------------------------------------------------------
 
     def create(

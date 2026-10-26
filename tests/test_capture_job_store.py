@@ -74,6 +74,19 @@ class TestCreate:
             store.create("u1", "r1", audio_path="a.mp3")
 
 
+class TestAvailability:
+    def test_available_when_the_table_exists(self, store):
+        assert store.is_available() is True
+
+    def test_not_available_when_the_migration_has_not_been_run(self, store, db):
+        db.missing_tables.add(TABLE)
+        assert store.is_available() is False
+
+    def test_not_available_when_the_database_is_failing(self, store, db):
+        db.fail_tables.add(TABLE)
+        assert store.is_available() is False
+
+
 class TestFindByRequest:
     def test_finds_the_job_for_a_repeated_upload_without_creating_one(self, store, db):
         job = make(store, req="r1")

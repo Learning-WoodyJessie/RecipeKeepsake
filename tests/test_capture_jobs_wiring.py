@@ -19,7 +19,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 import tools.storage as storage
-from scripts.serve import app, require_auth, _job_runner
+from scripts.serve import app, require_auth, _job_runner, _job_availability
 from tests.fakes.jobs_db import new_jobs_db
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -36,7 +36,10 @@ AUTH = {"Authorization": "Bearer x"}
 def _clean(monkeypatch):
     monkeypatch.delenv("CAPTURE_JOBS_ENABLED", raising=False)
     monkeypatch.delenv("CAPTURE_JOBS_ALLOWLIST", raising=False)
+    storage._supabase = new_jobs_db()               # the capture_jobs table exists unless a test says otherwise
+    _job_availability.expire()
     yield
+    _job_availability.expire()
     app.dependency_overrides.pop(require_auth, None)
     storage._supabase = None
 
@@ -102,9 +105,31 @@ class TestSwitchingItOn:
         sign_in("anyone@else.com", "u9")
         assert _client.get("/features", headers=AUTH).json() == {"capture_jobs": True}
 
+    def test_switching_it_on_before_the_migration_is_run_keeps_everyone_on_the_original_flow(self, monkeypatch):
+        monkeypatch.setenv("CAPTURE_JOBS_ENABLED", "true")
+        db = new_jobs_db()
+        db.missing_tables.add("capture_jobs")
+        storage._supabase = db
+        sign_in()
+        assert _client.get("/features", headers=AUTH).json() == {"capture_jobs": False}
+
     def test_an_enabled_user_reaches_the_real_endpoint_not_the_website_catch_all(self, monkeypatch):
         monkeypatch.setenv("CAPTURE_JOBS_ENABLED", "true")
         storage._supabase = new_jobs_db()
         sign_in()
         res = _client.get("/capture/jobs/does-not-exist", headers=AUTH)
         assert res.status_code == 404 and res.json() == {"detail": "Not found"}
+
+
+class TestAvailabilityIsRememberedBriefly:
+    def test_the_cache_serves_repeats_and_can_be_expired(self):
+        from scripts.capture_jobs_api import Availability
+        calls = []
+        now = {"t": 1000.0}
+        cache = Availability(lambda: calls.append(1) or True, ttl_seconds=60, clock=lambda: now["t"])
+        assert cache.get() is True and cache.get() is True and len(calls) == 1
+        now["t"] += 61
+        cache.get()
+        assert len(calls) == 2
+        cache.expire(); cache.get()
+        assert len(calls) == 3

@@ -53,7 +53,7 @@ from tools.storage import check_rate_limit_db, refund_rate_limit_db
 from tools.errors import classify_failure
 from tools.features import capture_jobs_configured, capture_jobs_enabled_for
 from tools.jobs import CaptureJobStore
-from scripts.capture_jobs_api import JobDeps, JobRunner, build_router
+from scripts.capture_jobs_api import Availability, JobDeps, JobRunner, build_router
 from prompts.translate_audio import translate_to_english
 from prompts.llm import OpenAIProvider
 from tools.config import load_config
@@ -536,7 +536,8 @@ _job_deps = JobDeps(
 _job_runner = JobRunner(
     _job_store, _job_deps, max_concurrent=int(os.environ.get("CAPTURE_JOBS_MAX_CONCURRENT", "3")),
 )
-app.include_router(build_router(_job_deps, _job_store, _job_runner))
+_job_availability = Availability(_job_store.is_available)
+app.include_router(build_router(_job_deps, _job_store, _job_runner, availability=_job_availability))
 app.add_event_handler("startup", _job_runner.start)
 app.add_event_handler("shutdown", _job_runner.stop)
 

@@ -26,6 +26,7 @@ import logging
 import os
 import re
 import tempfile
+import time
 import uuid
 from dataclasses import dataclass
 from pathlib import Path
@@ -81,6 +82,34 @@ class JobDeps:
     describe_failure: Callable                   # (exc, where, user_id) -> (Failure, alert tuple | None)
     send_alert: Callable[[str, str, str], None]
     transcription_suffix: Callable[[str], str]
+
+
+class Availability:
+    """Remembers for a minute whether the capture_jobs table is usable.
+
+    The feature can be switched on before migration 006 has been run, or the database can have a
+    bad moment. Either way users must keep the original capture flow, so /features only says yes
+    when jobs can actually be stored. The answer is cached so it is not a database round trip on
+    every page load.
+    """
+
+    def __init__(self, check: Callable[[], bool], ttl_seconds: float = 60, clock: Callable[[], float] = time.monotonic):
+        self._check = check
+        self._ttl = ttl_seconds
+        self._clock = clock
+        self._answer: bool | None = None
+        self._at = 0.0
+        self.checks = 0
+
+    def get(self) -> bool:
+        now = self._clock()
+        if self._answer is None or now - self._at >= self._ttl:
+            self._answer, self._at = bool(self._check()), now
+            self.checks += 1
+        return self._answer
+
+    def expire(self) -> None:
+        self._answer = None
 
 
 def _draft_from(recipe: RecipeData, narrator: str | None) -> dict:
@@ -271,8 +300,11 @@ class SaveJobRequest(BaseModel):
     category: str = "Other"
 
 
-def build_router(deps: JobDeps, store: CaptureJobStore, runner: JobRunner) -> APIRouter:
+def build_router(
+    deps: JobDeps, store: CaptureJobStore, runner: JobRunner, availability: Availability | None = None,
+) -> APIRouter:
     router = APIRouter()
+    availability = availability or Availability(store.is_available)
 
     async def gate(user: dict = Depends(deps.require_auth)) -> dict:
         """Signed in AND switched on for this user. Everyone else sees a plain 404, as if it did not exist."""
@@ -288,7 +320,9 @@ def build_router(deps: JobDeps, store: CaptureJobStore, runner: JobRunner) -> AP
 
     @router.get("/features")
     async def features(user: dict = Depends(deps.require_auth)):
-        return {"capture_jobs": bool(deps.enabled_for(user))}
+        # Both: switched on for this user AND the table exists. Otherwise the original flow keeps working.
+        on = bool(deps.enabled_for(user)) and await run_in_threadpool(availability.get)
+        return {"capture_jobs": on}
 
     @router.post("/capture/jobs")
     async def create_job(

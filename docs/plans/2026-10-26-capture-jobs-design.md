@@ -64,8 +64,10 @@ Two environment variables, both off by default:
 - `CAPTURE_JOBS_ALLOWLIST`: comma-separated emails or user ids. Only those people get the flow.
 - `CAPTURE_JOBS_ENABLED=true`: everyone gets it.
 
-`GET /features` (signed in) tells the website whether this user has it, once per page session. Any
-failure of that call means "no", so the original flow keeps working. When neither variable is set the
+`GET /features` (signed in) tells the website whether this user has it, once per page session. It says yes
+only when the flag is on for the user AND the `capture_jobs` table exists (checked at most once a minute),
+so switching the flag on before running migration 006 is harmless. Any failure of the call means "no",
+so the original flow keeps working. When neither variable is set the
 background machinery does not even start (no database access, no timers). Off means the old
 endpoints and the old screens, untouched. Rollback is changing one variable, with no code deploy.
 

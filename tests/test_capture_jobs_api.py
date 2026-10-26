@@ -38,6 +38,7 @@ class Env:
     capped: bool = False
     bad_audio: bool = False
     failures: list = field(default_factory=list)
+    availability: object = None
 
 
 def alice(): return {"X-User": "alice"}
@@ -84,8 +85,9 @@ def env():
     )
     runner = JobRunner(store, deps, autostart=False)
     app = FastAPI()
-    app.include_router(build_router(deps, store, runner))
-    e = Env(client=TestClient(app), db=db, store=store, runner=runner)
+    router_availability = api.Availability(store.is_available, ttl_seconds=60)
+    app.include_router(build_router(deps, store, runner, availability=router_availability))
+    e = Env(client=TestClient(app), db=db, store=store, runner=runner, availability=router_availability)
     holder["env"] = e
     runner.schedule_image = lambda token, recipe: e.images.append((token, recipe["title"]))
 
@@ -145,6 +147,24 @@ class TestWhoMayUseIt:
         env.disabled.add("alice")
         assert upload(env).status_code == 404
         assert env.charges == [] and env.db.rows(TABLE) == [] and env.db.files == {}
+
+    def test_features_says_no_when_the_table_does_not_exist_yet_even_if_the_flag_is_on(self, env):
+        """The flag can be switched on before migration 006 is run. Users must keep the original flow."""
+        env.db.missing_tables.add(TABLE)
+        assert env.client.get("/features", headers=alice()).json() == {"capture_jobs": False}
+
+    def test_features_comes_back_on_once_the_table_exists(self, env):
+        env.db.missing_tables.add(TABLE)
+        assert env.client.get("/features", headers=alice()).json() == {"capture_jobs": False}
+        env.db.missing_tables.discard(TABLE)
+        env.availability.expire()                       # the answer is remembered briefly; skip the wait
+        assert env.client.get("/features", headers=alice()).json() == {"capture_jobs": True}
+
+    def test_the_table_check_is_remembered_rather_than_repeated_on_every_page_load(self, env):
+        env.client.get("/features", headers=alice())
+        env.client.get("/features", headers=bob())
+        env.client.get("/features", headers=alice())
+        assert env.availability.checks == 1
 
     def test_features_reports_the_flag_for_the_caller(self, env):
         env.disabled.add("bob")
