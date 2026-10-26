@@ -29,9 +29,9 @@ export function videoTooLarge(file: PickedFile): boolean {
 }
 
 export const VIDEO_TOO_LARGE_MESSAGE = 'File too large. Maximum size is 200 MB.'
-export const VIDEO_HINT = 'Have a video? Upload it too. We keep only the sound, not the video.'
-export const VIDEO_PROCESSING_TITLE = '✨ Taking the sound from your video…'
-export const VIDEO_PROCESSING_NOTE = 'We keep only the audio, not the video. Large videos can take a few minutes to upload.'
+export const VIDEO_HINT = "Recorded it on video? Drop it in. We'll save the voice."
+export const VIDEO_PROCESSING_TITLE = '✨ Saving the voice from your video…'
+export const VIDEO_PROCESSING_NOTE = 'We save just the voice, so your video stays on your phone. Big files can take a few minutes.'
 
 // What the server says when a video cannot be used (tools/video.py). Shown as written.
 export const VIDEO_PROBLEMS = [

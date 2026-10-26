@@ -40,10 +40,12 @@ test('the file picker offers phone video formats', () => {
   for (const t of ['video/mp4', 'video/quicktime', '.mov', '.m4v']) assert.ok(VIDEO_ACCEPT.includes(t), t)
 })
 
-test('people are told up front and while it works that only the sound is kept', () => {
-  assert.match(VIDEO_HINT, /only the sound, not the video/)
-  assert.match(VIDEO_PROCESSING_NOTE, /only the audio, not the video/)
-  assert.ok(VIDEO_PROCESSING_TITLE.length > 0)
+test('people are told up front and while it works that it is the voice that is kept', () => {
+  assert.match(VIDEO_HINT, /save the voice/)
+  assert.match(VIDEO_PROCESSING_TITLE, /voice from your video/)
+  assert.match(VIDEO_PROCESSING_NOTE, /just the voice/)
+  assert.match(VIDEO_PROCESSING_NOTE, /your video stays on your phone/)
+  assert.ok(!/never the video/i.test(`${VIDEO_HINT} ${VIDEO_PROCESSING_NOTE}`), 'no harsh wording')
 })
 
 test('no message uses an em dash', () => {
