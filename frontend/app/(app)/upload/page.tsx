@@ -131,6 +131,20 @@ function TypePills({ value, onChange }: { value: string; onChange: (v: string) =
   )
 }
 
+// Example text shown in the empty Title and Description boxes, so the hint fits the kind of memory chosen.
+const EXAMPLES: Record<string, { title: string; description: string }> = {
+  song:   { title: "Ammamma's lullaby",                  description: 'Sung at bedtime, the way it was handed down in the family.' },
+  story:  { title: 'The year the monsoon came early',    description: 'A story told on warm evenings about how the family first came to live here.' },
+  fable:  { title: 'The clever crow',                    description: 'A bedtime tale with a lesson at the end.' },
+  wisdom: { title: 'What Nanamma said about patience',   description: 'A saying repeated at the dinner table whenever things got hard.' },
+  poem:   { title: 'A poem for the new year',            description: 'Recited from memory at every family gathering.' },
+  other:  { title: 'A memory worth keeping',             description: 'Why this one matters to the family.' },
+}
+
+function exampleFor(memoryType: string) {
+  return EXAMPLES[memoryType] ?? EXAMPLES.other
+}
+
 function performerLabel(memoryType: string, mode: string): string {
   if (mode === 'ai') return 'Who is narrating?'
   if (mode === 'text') {
@@ -490,7 +504,7 @@ export default function UploadPage() {
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Ammamma's lullaby"
+                  placeholder={exampleFor(memoryType).title}
                   style={{
                     width: '100%',
                     border: '1px solid var(--border2)',
@@ -512,7 +526,7 @@ export default function UploadPage() {
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="A blessing she sang every morning before the day began."
+                  placeholder={exampleFor(memoryType).description}
                   rows={2}
                   style={{
                     width: '100%',
