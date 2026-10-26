@@ -13,6 +13,7 @@ import { supabase } from '@/lib/supabase'
 import { readFavorites, toggleFavorite as toggleFav } from '@/lib/favorites'
 import HomeParticles from '@/components/HomeParticles'
 import FamilyGroupSheet from '@/components/FamilyGroupSheet'
+import CaptureJobsBanner from '@/components/CaptureJobsBanner'
 
 type Memory = {
   token: string
@@ -590,6 +591,7 @@ export default function HomePage() {
         {/* ── Left: main content ── */}
         <div>
           <HeroCard userName={userName} />
+          <CaptureJobsBanner />
           <MemoriesSection
             memories={memories}
             favTokens={favTokens}

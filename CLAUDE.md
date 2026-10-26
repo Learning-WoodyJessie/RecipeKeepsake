@@ -247,3 +247,6 @@ Classes and key functions should have similar docstrings. This ensures maintaina
 | `RESEND_API_KEY` | Resend API key — lets the backend email the operator when something fails that the user cannot fix (e.g. an account deletion that did not finish). Optional: without it alerts are only written to the Railway log (`event=ALERT`) |
 | `ALERT_EMAIL_TO` | Operator address(es) for those alerts, comma-separated. Needed together with `RESEND_API_KEY` |
 | `ALERT_EMAIL_FROM` | Optional sender, e.g. `Echoes of Home <alerts@yourdomain.com>`. Defaults to Resend's `onboarding@resend.dev`, which can only email the Resend account owner until a domain is verified |
+| `CAPTURE_JOBS_ALLOWLIST` | Optional. Comma-separated emails or user ids who get background capture (upload once, review later). Unset = nobody |
+| `CAPTURE_JOBS_ENABLED` | Optional. `true` turns background capture on for everyone. Unset = off. See `docs/plans/2026-10-26-capture-jobs-design.md` |
+| `CAPTURE_JOBS_MAX_CONCURRENT` | Optional. How many captures the server processes at once (default 3) |

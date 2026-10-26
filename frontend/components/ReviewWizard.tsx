@@ -47,7 +47,10 @@ const ACTION_BAR: React.CSSProperties = {
   boxShadow: '0 -4px 16px rgba(45,27,14,0.08)',
 }
 
-export default function ReviewWizard({ draft, audioFile, narrator: narratorProp, onCancel }: { draft: Draft; audioFile: File; narrator?: string; onCancel: () => void }) {
+// `audioFile` is the recording to upload when saving (original flow). `jobId` means the recording is
+// already stored on the server as a background-capture draft, so saving only sends the reviewed
+// recipe and the audio is never uploaded a second time.
+export default function ReviewWizard({ draft, audioFile, jobId, narrator: narratorProp, onCancel }: { draft: Draft; audioFile?: File; jobId?: string; narrator?: string; onCancel: () => void }) {
   const router = useRouter()
   const [step, setStep] = useState(1)
   const [title, setTitle] = useState(draft.title ?? '')
@@ -69,23 +72,34 @@ export default function ReviewWizard({ draft, audioFile, narrator: narratorProp,
   async function save() {
     setSaving(true)
     try {
-      const recipe = { ...draft, title: title, ingredients, steps, category }
-      const form = new FormData()
-      form.append('audio', audioFile, audioFile.name)
-      form.append('recipe', JSON.stringify(recipe))
-      form.append('narrator', narrator)
-      const saved = await api.capture.save(form)
+      let saved: { token: string }
+      if (jobId) {
+        saved = await api.captureJobs.save(jobId, {
+          title, narrator, ingredients, steps, category,
+          cook_notes: draft.cook_notes, review_flags: draft.review_flags,
+        })
+      } else {
+        if (!audioFile) throw new Error('Missing recording')
+        const recipe = { ...draft, title: title, ingredients, steps, category }
+        const form = new FormData()
+        form.append('audio', audioFile, audioFile.name)
+        form.append('recipe', JSON.stringify(recipe))
+        form.append('narrator', narrator)
+        saved = await api.capture.save(form)
+      }
+      // A background capture gets its generated picture a little after saving; the memory page watches for it.
+      const afterSave = jobId ? '&imagePending=1' : ''
       if (photoFile) {
         try {
           await api.memories.uploadPhoto(saved.token, photoFile)
         } catch {
           setError('Memory saved, but photo upload failed. You can try again from the memory page.')
           setSaving(false)
-          router.push(`/memory?token=${saved.token}&justSaved=1`)
+          router.push(`/memory?token=${saved.token}&justSaved=1${afterSave}`)
           return
         }
       }
-      router.push(`/memory?token=${saved.token}&justSaved=1`)
+      router.push(`/memory?token=${saved.token}&justSaved=1${afterSave}`)
     } catch (e: unknown) { setError((e as Error).message); setSaving(false) }
   }
 

@@ -220,6 +220,25 @@ function MemoryDetail() {
     api.recipes.list().then((r: unknown[]) => setOwnMemoryCount(r.length)).catch(() => setOwnMemoryCount(0))
   }, [])
 
+  // A recipe saved from a background capture has its picture made a little after saving.
+  // Look for it every few seconds for about a minute (only when the save asked us to).
+  useEffect(() => {
+    if (!token || new URLSearchParams(window.location.search).get('imagePending') !== '1') return
+    let tries = 0
+    const timer = setInterval(async () => {
+      tries += 1
+      try {
+        const fresh = await api.recipes.get(token) as Memory
+        if (fresh.image_url) {
+          setMemory(m => (m ? { ...m, image_url: fresh.image_url } : m))
+          clearInterval(timer)
+        }
+      } catch { /* try again next time */ }
+      if (tries >= 10) clearInterval(timer)
+    }, 6000)
+    return () => clearInterval(timer)
+  }, [token])
+
   useEffect(() => {
     if (new URLSearchParams(window.location.search).get('justSaved') !== '1') return
     setJustSavedToast(true)

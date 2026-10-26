@@ -11,6 +11,8 @@ import ReviewWizard from '@/components/ReviewWizard'
 import SingleScreenReview from '@/components/SingleScreenReview'
 import { api } from '@/lib/api'
 import { isServerSafeMessage } from '@/lib/serverMessages'
+import { newClientRequestId } from '@/lib/captureJobs'
+import { captureJobsEnabled } from '@/lib/useCaptureJobs'
 
 const TIPS_RECIPE = [
   {
@@ -257,6 +259,8 @@ export default function UploadPage() {
   const [photoFile, setPhotoFile] = useState<File | null>(null)
   const [photoPreview, setPhotoPreview] = useState<string | null>(null)
   const photoInputRef = useRef<HTMLInputElement | null>(null)
+  // Idempotency key for the background upload in flight, tied to the file it was made for.
+  const uploadRef = useRef<{ file: File; id: string } | null>(null)
 
   function handlePhotoSelected(file: File) {
     setPhotoFile(file)
@@ -270,6 +274,26 @@ export default function UploadPage() {
   async function handleFileAI(file: File) {
     setProcessing(true)
     setError('')
+    // Background capture, for users it is switched on for: upload once and carry on. Anything else
+    // (feature off, or the status check failing) falls straight through to the original flow.
+    if (await captureJobsEnabled()) {
+      const jobForm = new FormData()
+      jobForm.append('audio', file)
+      jobForm.append('language', language)
+      if (uploadRef.current?.file !== file) uploadRef.current = { file, id: newClientRequestId() }
+      jobForm.append('client_request_id', uploadRef.current.id)
+      if (narrator) jobForm.append('narrator', narrator)
+      try {
+        await api.captureJobs.create(jobForm)
+        uploadRef.current = null
+        router.push('/home')
+      } catch (e: unknown) {
+        setError((e as Error).message)
+      } finally {
+        setProcessing(false)
+      }
+      return
+    }
     const form = new FormData()
     form.append('audio', file)
     form.append('language', language)

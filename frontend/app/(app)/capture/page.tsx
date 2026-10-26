@@ -12,8 +12,11 @@ import ReviewWizard from '@/components/ReviewWizard'
 import SingleScreenReview from '@/components/SingleScreenReview'
 import { api } from '@/lib/api'
 import { looksSilent, averageKbps } from '@/lib/recordingHealth'
+import BackgroundCaptureStatus from '@/components/BackgroundCaptureStatus'
+import { newClientRequestId } from '@/lib/captureJobs'
+import { captureJobsEnabled } from '@/lib/useCaptureJobs'
 
-type Stage = 'idle' | 'recording' | 'processing' | 'preview' | 'review' | 'direct-review' | 'error'
+type Stage = 'idle' | 'recording' | 'processing' | 'preview' | 'review' | 'direct-review' | 'background' | 'error'
 
 const TIPS_RECIPE = [
   {
@@ -161,6 +164,10 @@ function CapturePageInner() {
   const analyserStreamRef = useRef<MediaStream | null>(null)
   const rafRef = useRef<number | null>(null)
   const blobRef = useRef<Blob | null>(null)
+  // Background capture: the id of the job being watched, and the idempotency key for the upload in flight
+  // (kept across retries so a lost response can never create, or charge for, a second job).
+  const [bgJobId, setBgJobId] = useState<string | null>(null)
+  const uploadIdRef = useRef<string | null>(null)
   const previewUrlRef = useRef<string | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const audioPreviewRef = useRef<HTMLAudioElement | null>(null)
@@ -230,6 +237,7 @@ function CapturePageInner() {
   async function startRecording() {
     try {
       setError('')
+      uploadIdRef.current = null
       const ua = navigator.userAgent
       const isAndroid = /android/i.test(ua)
       const isIOS = /iphone|ipad|ipod/i.test(ua)
@@ -322,11 +330,36 @@ function CapturePageInner() {
     if (previewUrlRef.current) { URL.revokeObjectURL(previewUrlRef.current); previewUrlRef.current = null }
     setPreviewUrl(null)
     blobRef.current = null
+    uploadIdRef.current = null
     setDuration(0)
     setStage('idle')
   }
 
+  // Background capture, for users it is switched on for: upload once, then let the server work while
+  // the user does something else. Returns false (and touches nothing) when it is not switched on,
+  // so the original flow below runs exactly as before.
+  async function tryBackgroundCapture(blob: Blob): Promise<boolean> {
+    if (!(await captureJobsEnabled())) return false
+    uploadIdRef.current ??= newClientRequestId()
+    const form = new FormData()
+    form.append('audio', blob, `recording${extRef.current}`)
+    form.append('language', language)
+    form.append('client_request_id', uploadIdRef.current)
+    if (narrator) form.append('narrator', narrator)
+    try {
+      const job = await api.captureJobs.create(form)
+      uploadIdRef.current = null
+      setBgJobId(job.id)
+      setStage('background')
+    } catch (e: unknown) {
+      setError((e as Error).message)
+      setStage('error')        // blobRef and uploadIdRef are kept, so "Try again" resends the same recording
+    }
+    return true
+  }
+
   async function processAudio(blob: Blob) {
+    if (await tryBackgroundCapture(blob)) return
     const ext = blob.type.includes('mp4') ? 'mp4' : 'webm'
     const form = new FormData()
     const filename = `recording${extRef.current}`
@@ -679,6 +712,10 @@ function CapturePageInner() {
               </div>
             )}
 
+            {stage === 'background' && bgJobId && (
+              <BackgroundCaptureStatus jobId={bgJobId} onRecordAnother={() => { discardRecording(); setBgJobId(null) }} />
+            )}
+
             {stage === 'error' && error?.includes('memory_cap_reached') && (
               <div style={{ padding: '1.25rem', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, textAlign: 'center' }}>
                 <p style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>🔒</p>
@@ -702,7 +739,11 @@ function CapturePageInner() {
             {stage === 'error' && !error?.includes('memory_cap_reached') && (
               <div style={{ padding: '1rem 0' }}>
                 <p style={{ color: 'var(--accent)', marginBottom: '1rem', fontSize: '0.9rem' }}>{error}</p>
-                <button onClick={() => { setStage('idle'); setError('') }} style={{ background: 'var(--accent)', color: 'white', border: 'none', borderRadius: 10, padding: '0.6rem 1.5rem', cursor: 'pointer', fontWeight: 600 }}>Try again</button>
+                <button onClick={() => {
+                  // A background upload that failed keeps its recording: resend it rather than start over.
+                  if (uploadIdRef.current && blobRef.current) { setError(''); setStage('processing'); void processAudio(blobRef.current) }
+                  else { setStage('idle'); setError('') }
+                }} style={{ background: 'var(--accent)', color: 'white', border: 'none', borderRadius: 10, padding: '0.6rem 1.5rem', cursor: 'pointer', fontWeight: 600 }}>Try again</button>
               </div>
             )}
           </div>

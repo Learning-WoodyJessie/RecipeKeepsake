@@ -59,9 +59,15 @@ process. Instead:
 
 ### D3. Dark launch
 
-`CAPTURE_JOBS_ENABLED` (default off). `GET /features` reports it. The website asks once
-and chooses the new flow only if true. Off means the old endpoints and the old screens,
-untouched. Rollback is flipping one variable, with no deploy.
+Two environment variables, both off by default:
+
+- `CAPTURE_JOBS_ALLOWLIST`: comma-separated emails or user ids. Only those people get the flow.
+- `CAPTURE_JOBS_ENABLED=true`: everyone gets it.
+
+`GET /features` (signed in) tells the website whether this user has it, once per page session. Any
+failure of that call means "no", so the original flow keeps working. When neither variable is set the
+background machinery does not even start (no database access, no timers). Off means the old
+endpoints and the old screens, untouched. Rollback is changing one variable, with no code deploy.
 
 ### D4. The old endpoints are not modified
 
@@ -143,7 +149,23 @@ A failed job stores `error_kind` and a user-safe `error_message` (from
 
 ## Rollout
 
-1. Run migration `006_capture_jobs.sql`.
-2. Deploy with the flag off. Verify nothing changed.
-3. Turn the flag on for yourself (`CAPTURE_JOBS_ENABLED=true`), test end to end.
-4. Leave it on. Retire the old endpoints in a later release.
+1. Run migration `006_capture_jobs.sql` in the Supabase SQL editor.
+2. Deploy with both variables unset. Nothing changes for anyone (verified by tests/test_capture_jobs_wiring.py).
+3. Set `CAPTURE_JOBS_ALLOWLIST=<your email>`. Record, leave the screen, lock the phone, come back, review, save.
+4. When happy, set `CAPTURE_JOBS_ENABLED=true`.
+5. Retire the old endpoints in a later release, after a few weeks without incident.
+
+## Rollback
+
+Unset `CAPTURE_JOBS_ENABLED` and `CAPTURE_JOBS_ALLOWLIST` and let Railway redeploy. New captures use the
+original flow immediately. Jobs already in flight are not lost: drafts stay on the Home card only while the
+feature is on, remain in the table, and are swept after 14 days (or removed with the account).
+
+## Known limits
+
+- One server process is assumed for crash recovery: at startup, a job `processing` for more than two
+  minutes is treated as abandoned. The atomic claim keeps several instances safe from running one job
+  twice, but the startup rule would need a heartbeat before scaling out.
+- No push notification (needs a native release). The Home card refreshes the moment the app returns.
+- No sidebar badge yet; the Home card and the capture screen carry the status.
+- The generated picture appears a few seconds after saving; the memory page looks for it for about a minute.

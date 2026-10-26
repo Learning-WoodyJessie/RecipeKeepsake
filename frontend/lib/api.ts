@@ -1,4 +1,5 @@
 import { supabase } from './supabase'
+import type { CaptureJob } from '@/lib/captureJobs'
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080'
 
@@ -108,6 +109,38 @@ export const api = {
   capture: {
     process: (formData: FormData) => authFetch('/capture/process', { method: 'POST', body: formData }),
     save: (formData: FormData) => authFetch('/capture/save', { method: 'POST', body: formData }),
+  },
+  // Background capture (docs/plans/2026-10-26-capture-jobs-design.md). Only used when
+  // features.get() says it is switched on for this user; otherwise the calls above are used.
+  features: {
+    async get(): Promise<{ capture_jobs: boolean }> {
+      const data: unknown = await authFetch('/features')
+      const on = !!data && typeof data === 'object' && (data as { capture_jobs?: unknown }).capture_jobs === true
+      return { capture_jobs: on }
+    },
+  },
+  captureJobs: {
+    async create(formData: FormData): Promise<CaptureJob> {
+      const data = (await authFetch('/capture/jobs', { method: 'POST', body: formData })) as { job: CaptureJob }
+      return data.job
+    },
+    async list(): Promise<CaptureJob[]> {
+      const data = (await authFetch('/capture/jobs')) as { jobs?: CaptureJob[] }
+      return Array.isArray(data.jobs) ? data.jobs : []
+    },
+    async get(id: string): Promise<CaptureJob> {
+      const data = (await authFetch(`/capture/jobs/${encodeURIComponent(id)}`)) as { job: CaptureJob }
+      return data.job
+    },
+    save: (id: string, body: object): Promise<{ token: string }> =>
+      authFetch(`/capture/jobs/${encodeURIComponent(id)}/save`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+      }),
+    async retry(id: string): Promise<CaptureJob> {
+      const data = (await authFetch(`/capture/jobs/${encodeURIComponent(id)}/retry`, { method: 'POST' })) as { job: CaptureJob }
+      return data.job
+    },
+    discard: (id: string) => authFetch(`/capture/jobs/${encodeURIComponent(id)}`, { method: 'DELETE' }),
   },
   audio: {
     save: (formData: FormData) => authFetch('/save-audio', { method: 'POST', body: formData }),
