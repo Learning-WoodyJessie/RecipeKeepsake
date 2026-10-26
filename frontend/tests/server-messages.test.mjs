@@ -35,7 +35,27 @@ test('every message the server defines is on the website pass-through list', () 
 
 test('the upload page lets server messages through before its own guessing', () => {
   const upload = read('../app/(app)/upload/page.tsx')
-  assert.match(upload, /import \{ isServerSafeMessage \} from '@\/lib\/serverMessages'/)
+  assert.match(upload, /import \{[^}]*isServerSafeMessage[^}]*\} from '@\/lib\/serverMessages'/)
   const fn = upload.slice(upload.indexOf('function friendlyError'))
   assert.ok(fn.indexOf('isServerSafeMessage(e)') < fn.indexOf("e.includes('503')"), 'pass-through must come first')
+})
+
+const serve = read('../../scripts/serve.py')
+const fileProblems = [...ts.matchAll(/SERVER_FILE_PROBLEMS = \[(.+?)\]/g)][0][1]
+  .split(/',\s*'/).map((p) => p.replace(/^'|'$/g, ''))
+
+test('every file problem the website explains is a message the upload check really sends', () => {
+  assert.equal(fileProblems.length, 3)
+  for (const phrase of fileProblems) {
+    assert.ok(serve.includes(phrase), `scripts/serve.py does not contain: ${phrase}`)
+  }
+})
+
+test('the upload page shows what is wrong with the file instead of a vague message', () => {
+  const upload = read('../app/(app)/upload/page.tsx')
+  assert.match(upload, /isFileProblemMessage/)
+  const fn = upload.slice(upload.indexOf('function friendlyError'))
+  const rule = fn.indexOf('isFileProblemMessage(e)')
+  assert.ok(rule >= 0, 'friendlyError must call isFileProblemMessage')
+  assert.ok(rule < fn.indexOf("e.includes('400')"), 'must come before the catch-all 400 rule')
 })

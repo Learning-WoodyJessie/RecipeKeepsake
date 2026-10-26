@@ -10,7 +10,7 @@ import NarratorCarousel from '@/components/NarratorCarousel'
 import ReviewWizard from '@/components/ReviewWizard'
 import SingleScreenReview from '@/components/SingleScreenReview'
 import { api } from '@/lib/api'
-import { isServerSafeMessage } from '@/lib/serverMessages'
+import { isFileProblemMessage, isServerSafeMessage } from '@/lib/serverMessages'
 import { newClientRequestId } from '@/lib/captureJobs'
 import { captureJobsEnabled } from '@/lib/useCaptureJobs'
 
@@ -224,6 +224,7 @@ function CassetteHero() {
 function friendlyError(e: string): string {
   if (e.includes('memory_cap_reached')) return e // handled separately
   if (isServerSafeMessage(e)) return e // the server already wrote this for the user
+  if (isFileProblemMessage(e)) return e // says what is wrong with the chosen file
   if (e.includes('UNAVAILABLE') || e.includes('high demand') || e.includes('503')) return 'AI transcription is temporarily at capacity. Please try again in a moment.'
   if (e.includes('unsupported_language') || e.includes('not supported')) return 'There was a problem processing this audio. Please try again.'
   if (e.includes('NoneType') || e.includes('empty transcription')) return 'We couldn\'t read this recording. Please try a different file or format.'
