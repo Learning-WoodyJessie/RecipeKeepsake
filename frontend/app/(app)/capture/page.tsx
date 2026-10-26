@@ -15,6 +15,7 @@ import { looksSilent, averageKbps } from '@/lib/recordingHealth'
 import BackgroundCaptureStatus from '@/components/BackgroundCaptureStatus'
 import { newClientRequestId } from '@/lib/captureJobs'
 import { captureJobsEnabled } from '@/lib/useCaptureJobs'
+import { exampleFor } from '@/lib/memoryExamples'
 
 type Stage = 'idle' | 'recording' | 'processing' | 'preview' | 'review' | 'direct-review' | 'background' | 'error'
 
@@ -524,7 +525,7 @@ function CapturePageInner() {
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="e.g. Nanna's evening ghazal"
+                  placeholder={exampleFor(memoryType).title}
                   style={{
                     width: '100%',
                     border: '1px solid var(--border2)',
@@ -545,7 +546,7 @@ function CapturePageInner() {
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="e.g. A lullaby Nani sang every night before bed."
+                  placeholder={exampleFor(memoryType).description}
                   rows={2}
                   style={{
                     width: '100%',
@@ -759,7 +760,7 @@ function CapturePageInner() {
 
               {/* Upload an audio file */}
               <Link
-                href="/upload"
+                href={mode === 'direct' ? '/upload?mode=direct' : '/upload'}
                 style={{
                   display: 'flex',
                   alignItems: 'center',

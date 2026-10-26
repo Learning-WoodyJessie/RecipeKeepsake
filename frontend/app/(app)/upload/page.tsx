@@ -11,6 +11,7 @@ import ReviewWizard from '@/components/ReviewWizard'
 import SingleScreenReview from '@/components/SingleScreenReview'
 import { api } from '@/lib/api'
 import { isFileProblemMessage, isServerSafeMessage } from '@/lib/serverMessages'
+import { exampleFor } from '@/lib/memoryExamples'
 import { newClientRequestId } from '@/lib/captureJobs'
 import { captureJobsEnabled } from '@/lib/useCaptureJobs'
 
@@ -131,20 +132,6 @@ function TypePills({ value, onChange }: { value: string; onChange: (v: string) =
   )
 }
 
-// Example text shown in the empty Title and Description boxes, so the hint fits the kind of memory chosen.
-const EXAMPLES: Record<string, { title: string; description: string }> = {
-  song:   { title: "Ammamma's lullaby",                  description: 'Sung at bedtime, the way it was handed down in the family.' },
-  story:  { title: 'The year the monsoon came early',    description: 'A story told on warm evenings about how the family first came to live here.' },
-  fable:  { title: 'The clever crow',                    description: 'A bedtime tale with a lesson at the end.' },
-  wisdom: { title: 'What Nanamma said about patience',   description: 'A saying repeated at the dinner table whenever things got hard.' },
-  poem:   { title: 'A poem for the new year',            description: 'Recited from memory at every family gathering.' },
-  other:  { title: 'A memory worth keeping',             description: 'Why this one matters to the family.' },
-}
-
-function exampleFor(memoryType: string) {
-  return EXAMPLES[memoryType] ?? EXAMPLES.other
-}
-
 function performerLabel(memoryType: string, mode: string): string {
   if (mode === 'ai') return 'Who is narrating?'
   if (mode === 'text') {
@@ -235,8 +222,12 @@ function CassetteHero() {
   )
 }
 
+// Messages this page raises itself when a field is missing. They are already plain, so they are shown as written.
+const FORM_PROBLEMS = ['Please enter a title first.', 'Please add some text or a photo first.']
+
 function friendlyError(e: string): string {
   if (e.includes('memory_cap_reached')) return e // handled separately
+  if (FORM_PROBLEMS.includes(e)) return e // a missing field, said plainly by this page
   if (isServerSafeMessage(e)) return e // the server already wrote this for the user
   if (isFileProblemMessage(e)) return e // says what is wrong with the chosen file
   if (e.includes('UNAVAILABLE') || e.includes('high demand') || e.includes('503')) return 'AI transcription is temporarily at capacity. Please try again in a moment.'
