@@ -48,6 +48,40 @@ def run_persist(
     except Exception as e:
         _logger.warning(f"event=audio_upload_failed error={type(e).__name__} msg={e}")
 
+    return _insert(recipe, stored_path, narrator, user_id, recorded_by_email, recorded_by_name)
+
+
+def run_persist_stored(
+    recipe: RecipeData,
+    stored_path: str,
+    narrator: str = "Grandma",
+    user_id: str = "",
+    recorded_by_email: str = "",
+    recorded_by_name: str = "",
+    token: str | None = None,
+) -> SavedRecipe:
+    """
+    Stage 3 for a recording that is already in storage (a reviewed capture job).
+
+    The audio was uploaded once when the job was created, so it is only referenced here:
+    no second upload, no copy. Builds exactly the row run_persist() builds.
+
+    `token` lets the caller choose the memory's token. The capture-job save derives it from
+    the job id, so saving twice (a double tap, a retry after a dropped response) hits the
+    unique constraint instead of creating a duplicate memory.
+    """
+    return _insert(recipe, stored_path, narrator, user_id, recorded_by_email, recorded_by_name, token)
+
+
+def _insert(
+    recipe: RecipeData,
+    stored_path: str,
+    narrator: str,
+    user_id: str,
+    recorded_by_email: str,
+    recorded_by_name: str,
+    token: str | None = None,
+) -> SavedRecipe:
     row = {
         "type": "recipe",
         "title": recipe.title,
@@ -65,6 +99,8 @@ def run_persist(
         "recorded_by_name": recorded_by_name,
         "tags": [recipe.category] if recipe.category else [],
     }
+    if token:
+        row["token"] = token
     saved = insert_recipe(row)
     return SavedRecipe(
         id=saved.get("id", ""),

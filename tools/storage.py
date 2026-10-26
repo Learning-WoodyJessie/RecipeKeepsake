@@ -517,6 +517,39 @@ def _storage_object_name(url: str, bucket: str) -> str | None:
     return None
 
 
+def download_stored_audio(name: str) -> bytes:
+    """Bytes of a file in the private audio bucket (used by the background capture worker)."""
+    return _client().storage.from_("audio").download(name)
+
+
+def delete_stored_audio(names: list[str]) -> None:
+    """Remove files from the private audio bucket. Raises if storage refuses, so callers keep their rows and retry."""
+    if names:
+        _remove_in_chunks(_client(), "audio", list(names))
+
+
+def attach_generated_image(token: str, image_url: str) -> bool:
+    """Give a memory its generated image, but only if it still has none.
+
+    The picture is made after the memory is saved; by then the owner may already have
+    added their own photo, which must not be overwritten. Returns True if the image was set.
+    """
+    if not image_url:
+        return False
+    sb = _client()
+    for still_empty in (lambda q: q.is_("image_url", "null"), lambda q: q.eq("image_url", "")):
+        rows = still_empty(sb.table("memories").update({"image_url": image_url}).eq("token", token)).execute().data
+        if rows:
+            return True
+    return False
+
+
+def _is_missing_table(exc: Exception) -> bool:
+    """True when a query failed only because a migration has not been run yet."""
+    text = str(exc).lower()
+    return "pgrst205" in text or "could not find the table" in text or "does not exist" in text
+
+
 def _remove_in_chunks(sb, bucket: str, names: list[str], size: int = 100) -> None:
     for i in range(0, len(names), size):
         sb.storage.from_(bucket).remove(names[i:i + size])
@@ -547,11 +580,26 @@ def delete_account(user_id: str, email: str | None = None, phone: str | None = N
         _logger.error(f"event=delete_account_lookup_failed error={type(e).__name__} msg={e}")
         raise AccountDeletionIncomplete(["could not read account data"]) from e
 
+    # Background-capture drafts hold audio nobody else points at. The table only exists
+    # once migration 006 has run; before that there is nothing to remove.
+    capture_jobs: list[dict] = []
+    jobs_table_exists = True
+    try:
+        capture_jobs = sb.table("capture_jobs").select("audio_path").eq("user_id", user_id).execute().data or []
+    except Exception as e:
+        if not _is_missing_table(e):
+            _logger.error(f"event=delete_account_lookup_failed table=capture_jobs error={type(e).__name__} msg={e}")
+            raise AccountDeletionIncomplete(["could not read account data"]) from e
+        jobs_table_exists = False
+
     # 1. Files in Storage: audio, plus photos in both image buckets.
     files: dict[str, list[str]] = {"audio": [], "images": [], "memory-photos": []}
     for m in memories:
         if m.get("audio_url"):
             files["audio"].append(_audio_filename(m["audio_url"]))
+    for job in capture_jobs:
+        if job.get("audio_path") and job["audio_path"] not in files["audio"]:
+            files["audio"].append(job["audio_path"])
     photo_urls = [m["image_url"] for m in memories if m.get("image_url")]
     photo_urls += [p["photo_url"] for p in people if p.get("photo_url")]
     for url in photo_urls:
@@ -588,6 +636,8 @@ def delete_account(user_id: str, email: str | None = None, phone: str | None = N
 
     attempt("reactions on your memories", delete_reactions_on_memories)
     attempt("your reactions", lambda: sb.table("reactions").delete().eq("user_id", user_id).execute())
+    if jobs_table_exists:
+        attempt("capture drafts", lambda: sb.table("capture_jobs").delete().eq("user_id", user_id).execute())
     attempt("memories", lambda: sb.table("memories").delete().eq("user_id", user_id).execute())
     attempt("people", lambda: sb.table("people").delete().eq("user_id", user_id).execute())
     attempt("family groups", lambda: remove_user_from_groups(sb, user_id))
