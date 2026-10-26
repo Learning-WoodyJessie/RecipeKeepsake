@@ -317,7 +317,6 @@ export default function UploadPage() {
 
   // Direct save mode
   async function handleFileDirect(file: File) {
-    if (!title.trim()) { setError('Please enter a title first.'); return }
     setProcessing(true)
     setError('')
     const form = new FormData()
@@ -489,7 +488,7 @@ export default function UploadPage() {
 
               <div style={{ marginBottom: '1.25rem' }}>
                 <div style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--muted)', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>
-                  Title *
+                  Title
                 </div>
                 <input
                   type="text"
@@ -508,6 +507,9 @@ export default function UploadPage() {
                     boxSizing: 'border-box',
                   }}
                 />
+                <p style={{ fontSize: '0.78rem', color: 'var(--muted)', margin: '0.4rem 0 0' }}>
+                  Needed before you save. You can add it on the next screen.
+                </p>
               </div>
 
               <div style={{ marginBottom: '1.25rem' }}>
