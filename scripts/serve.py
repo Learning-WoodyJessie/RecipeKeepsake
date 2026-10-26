@@ -51,6 +51,9 @@ from pipeline.persist import run_persist
 from pipeline.models import RecipeData
 from tools.storage import check_rate_limit_db, refund_rate_limit_db
 from tools.errors import classify_failure
+from tools.features import capture_jobs_configured, capture_jobs_enabled_for
+from tools.jobs import CaptureJobStore
+from scripts.capture_jobs_api import JobDeps, JobRunner, build_router
 from prompts.translate_audio import translate_to_english
 from prompts.llm import OpenAIProvider
 from tools.config import load_config
@@ -211,13 +214,12 @@ async def _service_failure_handler(request: Request, exc: ServiceFailure):
     return JSONResponse(status_code=exc.status_code, content={"detail": exc.message}, background=background)
 
 
-def _fail(exc: Exception, where: str, user_id: str = "") -> NoReturn:
-    """Turn any exception into a safe response; tell the operator when it needs a human.
+def _describe_failure(exc: Exception, where: str, user_id: str = ""):
+    """Classify a failure, log it, and build the operator alert if it needs a human.
 
-    Deliberate user-facing errors (HTTPException) pass through untouched.
+    Returns (Failure, alert) where alert is (key, subject, body) or None. Shared by request
+    handlers (_fail) and the background capture runner, which has no response to answer.
     """
-    if isinstance(exc, (HTTPException, ServiceFailure)):
-        raise exc
     failure = classify_failure(exc)
     _logger.error(f"event=request_failed where={where} kind={failure.kind} error={type(exc).__name__} msg={exc}")
     alert = None
@@ -233,6 +235,17 @@ def _fail(exc: Exception, where: str, user_id: str = "") -> NoReturn:
             "The user saw only a generic message. Check the Railway logs for this request id."
         )
         alert = (key, subject, body)
+    return failure, alert
+
+
+def _fail(exc: Exception, where: str, user_id: str = "") -> NoReturn:
+    """Turn any exception into a safe response; tell the operator when it needs a human.
+
+    Deliberate user-facing errors (HTTPException) pass through untouched.
+    """
+    if isinstance(exc, (HTTPException, ServiceFailure)):
+        raise exc
+    failure, alert = _describe_failure(exc, where, user_id)
     raise ServiceFailure(failure.status_code, failure.message, alert)
 
 
@@ -499,6 +512,33 @@ async def require_auth(creds: HTTPAuthorizationCredentials = Depends(_bearer)) -
     if not creds:
         raise HTTPException(status_code=401, detail="Not authenticated")
     return await decode_auth_user(creds)
+
+
+# ── Background capture (dark launch) ──────────────────────────────────────────
+# Off unless CAPTURE_JOBS_ENABLED or CAPTURE_JOBS_ALLOWLIST is set. The old /capture/*
+# endpoints below are untouched. See docs/plans/2026-10-26-capture-jobs-design.md.
+_job_store = CaptureJobStore()
+_job_deps = JobDeps(
+    require_auth=require_auth,
+    user_id_of=_user_id,
+    enabled_for=capture_jobs_enabled_for,
+    configured=capture_jobs_configured,
+    validate_audio=_validate_audio_upload,
+    check_memory_cap=_check_memory_cap_or_raise,
+    charge_quota=lambda user_id: _check_rate_limit_db_or_raise(user_id, "capture", _LIMITS["capture"]),
+    refund_quota=lambda user_id: refund_rate_limit_db(user_id, "capture"),
+    moderate=_moderate_transcript,
+    generate_image=_generate_image,
+    describe_failure=_describe_failure,
+    send_alert=_send_operator_alert,
+    transcription_suffix=_whisper_suffix,
+)
+_job_runner = JobRunner(
+    _job_store, _job_deps, max_concurrent=int(os.environ.get("CAPTURE_JOBS_MAX_CONCURRENT", "3")),
+)
+app.include_router(build_router(_job_deps, _job_store, _job_runner))
+app.add_event_handler("startup", _job_runner.start)
+app.add_event_handler("shutdown", _job_runner.stop)
 
 
 _BOT_UA_FRAGMENTS = ("whatsapp", "facebookexternalhit", "twitterbot", "telegrambot", "linkedinbot", "slackbot", "discordbot")

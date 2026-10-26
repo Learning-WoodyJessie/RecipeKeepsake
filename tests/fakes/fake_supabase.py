@@ -47,6 +47,7 @@ class FakeQuery:
     def lt(self, col, val): self.filters.append(("lt", col, val)); return self
     def lte(self, col, val): self.filters.append(("lte", col, val)); return self
     def is_(self, col, val): self.filters.append(("is", col, val)); return self
+    def ilike(self, col, pattern): self.filters.append(("ilike", col, pattern)); return self
     def order(self, col, desc=False): self._order = (col, bool(desc)); return self
     def limit(self, n): self._limit = n; return self
     def single(self): self._single = True; return self
@@ -60,6 +61,7 @@ class FakeQuery:
             if kind == "in" and have not in val: return False
             if kind == "lt" and not (have is not None and have < val): return False
             if kind == "lte" and not (have is not None and have <= val): return False
+            if kind == "ilike" and str(have or "").lower() != str(val).lower().strip("%"): return False
             if kind == "is" and have != (None if val in ("null", None) else val): return False
         return True
 
@@ -80,7 +82,7 @@ class FakeQuery:
             for col, default in db.defaults.get(self.table, {}).items():
                 new.setdefault(col, default() if callable(default) else default)
             rows.append(new)
-            return SimpleNamespace(data=[copy.deepcopy(new)])
+            return SimpleNamespace(data=[copy.deepcopy(new)], count=1)
 
         hit = [r for r in rows if self._match(r)]
         if self.op == "update":
@@ -98,8 +100,8 @@ class FakeQuery:
         if self._single:
             if not out:
                 raise RuntimeError("no rows (single)")
-            return SimpleNamespace(data=out[0])
-        return SimpleNamespace(data=out)
+            return SimpleNamespace(data=out[0], count=1)
+        return SimpleNamespace(data=out, count=len(hit))
 
 
 class FakeBucket:
@@ -145,4 +147,5 @@ class FakeSupabase:
         return FakeQuery(self, name)
 
     def rows(self, table: str) -> list[dict]:
-        return self.tables.get(table, [])
+        """The live list of rows (created on first use), so tests can append to it."""
+        return self.tables.setdefault(table, [])

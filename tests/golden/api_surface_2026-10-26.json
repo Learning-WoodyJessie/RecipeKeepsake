@@ -1,0 +1,625 @@
+{
+ "DELETE /account": {
+  "body": {},
+  "params": [],
+  "responses": [
+   "200"
+  ]
+ },
+ "DELETE /people/{person_id}": {
+  "body": {},
+  "params": [
+   [
+    "path",
+    "person_id",
+    true
+   ]
+  ],
+  "responses": [
+   "200",
+   "422"
+  ]
+ },
+ "DELETE /recipe/{token}": {
+  "body": {},
+  "params": [
+   [
+    "path",
+    "token",
+    true
+   ]
+  ],
+  "responses": [
+   "200",
+   "422"
+  ]
+ },
+ "DELETE /viewers/{viewer_id}": {
+  "body": {},
+  "params": [
+   [
+    "path",
+    "viewer_id",
+    true
+   ]
+  ],
+  "responses": [
+   "200",
+   "422"
+  ]
+ },
+ "GET /": {
+  "body": {},
+  "params": [],
+  "responses": [
+   "200"
+  ]
+ },
+ "GET /family/groups/me": {
+  "body": {},
+  "params": [],
+  "responses": [
+   "200"
+  ]
+ },
+ "GET /family/invite/{invite_token}/preview": {
+  "body": {},
+  "params": [
+   [
+    "path",
+    "invite_token",
+    true
+   ]
+  ],
+  "responses": [
+   "200",
+   "422"
+  ]
+ },
+ "GET /family/members": {
+  "body": {},
+  "params": [],
+  "responses": [
+   "200"
+  ]
+ },
+ "GET /family/recipes": {
+  "body": {},
+  "params": [],
+  "responses": [
+   "200"
+  ]
+ },
+ "GET /health": {
+  "body": {},
+  "params": [],
+  "responses": [
+   "200"
+  ]
+ },
+ "GET /m/{shortcode}": {
+  "body": {},
+  "params": [
+   [
+    "path",
+    "shortcode",
+    true
+   ]
+  ],
+  "responses": [
+   "200",
+   "422"
+  ]
+ },
+ "GET /memory/short/{prefix}": {
+  "body": {},
+  "params": [
+   [
+    "path",
+    "prefix",
+    true
+   ]
+  ],
+  "responses": [
+   "200",
+   "422"
+  ]
+ },
+ "GET /memory/{shortcode}": {
+  "body": {},
+  "params": [
+   [
+    "path",
+    "shortcode",
+    true
+   ]
+  ],
+  "responses": [
+   "200",
+   "422"
+  ]
+ },
+ "GET /people": {
+  "body": {},
+  "params": [],
+  "responses": [
+   "200"
+  ]
+ },
+ "GET /portal/{portal_token}": {
+  "body": {},
+  "params": [
+   [
+    "path",
+    "portal_token",
+    true
+   ]
+  ],
+  "responses": [
+   "200",
+   "422"
+  ]
+ },
+ "GET /privacy-policy": {
+  "body": {},
+  "params": [],
+  "responses": [
+   "200"
+  ]
+ },
+ "GET /public/memory/{shortcode}": {
+  "body": {},
+  "params": [
+   [
+    "path",
+    "shortcode",
+    true
+   ]
+  ],
+  "responses": [
+   "200",
+   "422"
+  ]
+ },
+ "GET /reactions/{memory_token}": {
+  "body": {},
+  "params": [
+   [
+    "path",
+    "memory_token",
+    true
+   ]
+  ],
+  "responses": [
+   "200",
+   "422"
+  ]
+ },
+ "GET /recipe/by-slug/{slug}": {
+  "body": {},
+  "params": [
+   [
+    "path",
+    "slug",
+    true
+   ]
+  ],
+  "responses": [
+   "200",
+   "422"
+  ]
+ },
+ "GET /recipe/{token}": {
+  "body": {},
+  "params": [
+   [
+    "path",
+    "token",
+    true
+   ]
+  ],
+  "responses": [
+   "200",
+   "422"
+  ]
+ },
+ "GET /recipe/{token}/translate": {
+  "body": {},
+  "params": [
+   [
+    "path",
+    "token",
+    true
+   ],
+   [
+    "query",
+    "force",
+    false
+   ],
+   [
+    "query",
+    "lang",
+    false
+   ]
+  ],
+  "responses": [
+   "200",
+   "422"
+  ]
+ },
+ "GET /recipes": {
+  "body": {},
+  "params": [],
+  "responses": [
+   "200"
+  ]
+ },
+ "GET /support": {
+  "body": {},
+  "params": [],
+  "responses": [
+   "200"
+  ]
+ },
+ "GET /viewers": {
+  "body": {},
+  "params": [],
+  "responses": [
+   "200"
+  ]
+ },
+ "GET /viewers/shared-with-me": {
+  "body": {},
+  "params": [],
+  "responses": [
+   "200"
+  ]
+ },
+ "GET /{path}": {
+  "body": {},
+  "params": [
+   [
+    "path",
+    "path",
+    true
+   ]
+  ],
+  "responses": [
+   "200",
+   "422"
+  ]
+ },
+ "HEAD /": {
+  "body": {},
+  "params": [],
+  "responses": [
+   "200"
+  ]
+ },
+ "HEAD /people": {
+  "body": {},
+  "params": [],
+  "responses": [
+   "200"
+  ]
+ },
+ "HEAD /privacy-policy": {
+  "body": {},
+  "params": [],
+  "responses": [
+   "200"
+  ]
+ },
+ "HEAD /support": {
+  "body": {},
+  "params": [],
+  "responses": [
+   "200"
+  ]
+ },
+ "HEAD /{path}": {
+  "body": {},
+  "params": [
+   [
+    "path",
+    "path",
+    true
+   ]
+  ],
+  "responses": [
+   "200",
+   "422"
+  ]
+ },
+ "PATCH /recipe/{token}": {
+  "body": {
+   "application/json": [
+    "cook_notes",
+    "ingredients",
+    "narrator",
+    "portal_visible",
+    "steps",
+    "tags",
+    "title",
+    "user_notes"
+   ],
+   "application/json:required": []
+  },
+  "params": [
+   [
+    "path",
+    "token",
+    true
+   ]
+  ],
+  "responses": [
+   "200",
+   "422"
+  ]
+ },
+ "POST /admin/clear-translation-cache": {
+  "body": {},
+  "params": [
+   [
+    "query",
+    "lang",
+    true
+   ],
+   [
+    "query",
+    "secret",
+    true
+   ]
+  ],
+  "responses": [
+   "200",
+   "422"
+  ]
+ },
+ "POST /capture": {
+  "body": {
+   "multipart/form-data": [
+    "audio",
+    "language"
+   ],
+   "multipart/form-data:required": [
+    "audio"
+   ]
+  },
+  "params": [],
+  "responses": [
+   "200",
+   "422"
+  ]
+ },
+ "POST /capture/process": {
+  "body": {
+   "multipart/form-data": [
+    "audio",
+    "language"
+   ],
+   "multipart/form-data:required": [
+    "audio"
+   ]
+  },
+  "params": [],
+  "responses": [
+   "200",
+   "422"
+  ]
+ },
+ "POST /capture/save": {
+  "body": {
+   "multipart/form-data": [
+    "audio",
+    "narrator",
+    "recipe"
+   ],
+   "multipart/form-data:required": [
+    "audio",
+    "recipe"
+   ]
+  },
+  "params": [],
+  "responses": [
+   "200",
+   "422"
+  ]
+ },
+ "POST /client-error": {
+  "body": {
+   "application/json": [
+    "component_stack",
+    "error",
+    "url"
+   ],
+   "application/json:required": [
+    "error"
+   ]
+  },
+  "params": [],
+  "responses": [
+   "200",
+   "422"
+  ]
+ },
+ "POST /family/groups": {
+  "body": {},
+  "params": [],
+  "responses": [
+   "200"
+  ]
+ },
+ "POST /family/groups/join/{invite_token}": {
+  "body": {},
+  "params": [
+   [
+    "path",
+    "invite_token",
+    true
+   ]
+  ],
+  "responses": [
+   "200",
+   "422"
+  ]
+ },
+ "POST /generate-image": {
+  "body": {
+   "application/json": [
+    "cook_notes",
+    "ingredients",
+    "steps",
+    "title"
+   ],
+   "application/json:required": [
+    "title"
+   ]
+  },
+  "params": [],
+  "responses": [
+   "200",
+   "422"
+  ]
+ },
+ "POST /memories/{token}/photo": {
+  "body": {
+   "multipart/form-data": [
+    "photo"
+   ],
+   "multipart/form-data:required": [
+    "photo"
+   ]
+  },
+  "params": [
+   [
+    "path",
+    "token",
+    true
+   ]
+  ],
+  "responses": [
+   "200",
+   "422"
+  ]
+ },
+ "POST /people": {
+  "body": {
+   "application/json": [
+    "bio",
+    "emoji",
+    "name",
+    "notes",
+    "photo_data",
+    "relationship"
+   ],
+   "application/json:required": [
+    "name"
+   ]
+  },
+  "params": [],
+  "responses": [
+   "200",
+   "422"
+  ]
+ },
+ "POST /reaction/{memory_token}": {
+  "body": {
+   "application/json": [
+    "emoji"
+   ],
+   "application/json:required": [
+    "emoji"
+   ]
+  },
+  "params": [
+   [
+    "path",
+    "memory_token",
+    true
+   ]
+  ],
+  "responses": [
+   "200",
+   "422"
+  ]
+ },
+ "POST /save-audio": {
+  "body": {
+   "multipart/form-data": [
+    "audio",
+    "description",
+    "language",
+    "memory_type",
+    "narrator",
+    "original_text",
+    "title"
+   ],
+   "multipart/form-data:required": []
+  },
+  "params": [],
+  "responses": [
+   "200",
+   "422"
+  ]
+ },
+ "POST /save-text": {
+  "body": {
+   "application/json": [
+    "memory_type",
+    "narrator",
+    "text",
+    "title"
+   ],
+   "application/json:required": [
+    "text",
+    "title"
+   ]
+  },
+  "params": [],
+  "responses": [
+   "200",
+   "422"
+  ]
+ },
+ "POST /viewers": {
+  "body": {
+   "application/json": [
+    "email",
+    "phone"
+   ],
+   "application/json:required": []
+  },
+  "params": [],
+  "responses": [
+   "200",
+   "422"
+  ]
+ },
+ "PUT /people/{person_id}": {
+  "body": {
+   "application/json": [
+    "bio",
+    "emoji",
+    "name",
+    "notes",
+    "photo_data",
+    "relationship"
+   ],
+   "application/json:required": [
+    "name"
+   ]
+  },
+  "params": [
+   [
+    "path",
+    "person_id",
+    true
+   ]
+  ],
+  "responses": [
+   "200",
+   "422"
+  ]
+ }
+}
